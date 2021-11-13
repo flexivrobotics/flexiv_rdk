@@ -8,12 +8,139 @@
 
 #include <vector>
 #include <string>
+#include <ostream>
 
 namespace flexiv {
 
 /**
+ * @struct RobotStates
+ * @brief Data struct containing the joint- and Cartesian-space robot states.
+ */
+struct RobotStates
+{
+    /**
+     * @brief \f$ \mathbb{R}^{Dof \times 1} \f$ measured link-side joint
+     * positions \f$ q~[rad] \f$
+     */
+    std::vector<double> m_q;
+
+    /**
+     * @brief \f$ \mathbb{R}^{Dof \times 1} \f$ measured motor-side joint
+     * positions \f$ \theta~[rad] \f$
+     */
+    std::vector<double> m_theta;
+
+    /**
+     * @brief \f$ \mathbb{R}^{Dof \times 1} \f$ measured link-side joint
+     * velocities \f$ \dot{q}~[rad/s] \f$
+     */
+    std::vector<double> m_dq;
+
+    /**
+     * @brief \f$ \mathbb{R}^{Dof \times 1} \f$ measured motor-side joint
+     * velocities \f$ \dot{\theta}~[rad/s] \f$
+     */
+    std::vector<double> m_dtheta;
+
+    /**
+     * @brief \f$ \mathbb{R}^{Dof \times 1} \f$ measured joint torques
+     * \f$ \tau~[Nm] \f$
+     */
+    std::vector<double> m_tau;
+
+    /**
+     * @brief \f$ \mathbb{R}^{Dof \times 1} \f$ desired joint torques
+     * \f$ \tau_{d}~[Nm] \f$
+     */
+    std::vector<double> m_tauDes;
+
+    /**
+     * @brief \f$ \mathbb{R}^{Dof \times 1} \f$ numerical derivative of joint
+     * torques \f$ \dot{\tau}~[Nm/s] \f$
+     */
+    std::vector<double> m_tauDot;
+
+    /**
+     * @brief \f$ \mathbb{R}^{Dof \times 1} \f$ estimated external joint torques
+     * \f$ \hat \tau_{ext}~[Nm] \f$
+     */
+    std::vector<double> m_tauExt;
+
+    /**
+     * @brief \f$ \mathbb{R}^{7 \times 1} \f$ measured TCP pose in base frame
+     * @note \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
+     * \times 1} \f$ quaternion \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$
+     */
+    std::vector<double> m_tcpPose;
+
+    /**
+     * @brief \f$ \mathbb{R}^{7 \times 1} \f$ desired TCP pose in base frame
+     * @note \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
+     * \times 1} \f$ quaternion \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$
+     */
+    std::vector<double> m_tcpPoseDes;
+
+    /**
+     * @brief \f$ \mathbb{R}^{6 \times 1} \f$ measured TCP velocity in base
+     * frame
+     * @note \f$ \mathbb{R}^{3 \times 1} \f$ linear velocity and \f$
+     * \mathbb{R}^{3 \times 1} \f$ angular velocity \f$ [v_x, v_y, v_z,
+     * \omega_x, \omega_y, \omega_z]^T \f$
+     */
+    std::vector<double> m_tcpVel;
+
+    /**
+     * @brief \f$ \mathbb{R}^{7 \times 1} \f$ measured camera pose in base frame
+     * @note \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
+     * \times 1} \f$ quaternion \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$
+     */
+    std::vector<double> m_camPose;
+
+    /**
+     * @brief \f$ \mathbb{R}^{7 \times 1} \f$ measured flange pose in base frame
+     * @note \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
+     * \times 1} \f$ quaternion \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$
+     */
+    std::vector<double> m_flangePose;
+
+    /**
+     * @brief \f$ \mathbb{R}^{7 \times 1} \f$ measured pose of the last link in
+     * base frame
+     * @note \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
+     * \times 1} \f$ quaternion \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$
+     */
+    std::vector<double> m_endLinkPose;
+
+    /**
+     * @brief \f$ \mathbb{R}^{6 \times 1} \f$ estimated external force vector
+     * applied on TCP in TCP frame
+     * @note \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times
+     * 1} \f$ moment \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$
+     */
+    std::vector<double> m_extForceInTcpFrame;
+
+    /**
+     * @brief \f$ \mathbb{R}^{6 \times 1} \f$ estimated external force vector
+     * applied on TCP in the base frame
+     * @note \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times
+     * 1} \f$ moment \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$
+     */
+    std::vector<double> m_extForceInBaseFrame;
+};
+
+/**
+ * @brief Operator overloading to out stream all robot states in JSON format:
+ * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}
+ * @param[in] ostream Ostream instance
+ * @param[in] robotStates RobotStates to out stream
+ * @return Updated ostream instance
+ */
+std::ostream& operator<<(
+    std::ostream& ostream, const flexiv::RobotStates& robotStates);
+
+/**
  * @struct SystemStatus
- * @brief Status of the system
+ * @brief Data struct containing status of the robot system.
  */
 struct SystemStatus
 {
@@ -37,7 +164,7 @@ struct SystemStatus
     bool m_programRequest;
 
     /**
-     * @brief If a plan or primitive is currently running
+     * @brief If a plan is currently running
      */
     bool m_programRunning;
 
@@ -74,93 +201,8 @@ struct SystemStatus
 };
 
 /**
- * @struct RobotStates
- * @brief Joint and cartesian-level robot states
- */
-struct RobotStates
-{
-    /**
-     * @brief \f$ \mathbb{R}^{Dof \times 1} \f$ measured link-side positions \f$
-     * q~[rad] \f$
-     */
-    std::vector<double> m_linkPosition;
-
-    /**
-     * @brief \f$ \mathbb{R}^{Dof \times 1} \f$ measured link-side velocities
-     * \f$ \dot{q}~[rad/s] \f$
-     */
-    std::vector<double> m_linkVelocity;
-
-    /**
-     * @brief \f$ \mathbb{R}^{Dof \times 1} \f$ measured link-side torques \f$
-     * \tau_{J}~[Nm] \f$
-     */
-    std::vector<double> m_linkTorque;
-
-    /**
-     * @brief \f$ \mathbb{R}^{Dof \times 1} \f$ estimated external link-side
-     * torques \f$ \hat \tau_{ext}~[Nm] \f$
-     */
-    std::vector<double> m_linkTorqueExt;
-
-    /**
-     * @brief \f$ \mathbb{R}^{7 \times 1} \f$ current TCP pose in base frame
-     * @note \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
-     * \times 1} \f$ quaternion \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$
-     */
-    std::vector<double> m_tcpPose;
-
-    /**
-     * @brief \f$ \mathbb{R}^{6 \times 1} \f$ current TCP velocity in base frame
-     * @note \f$ \mathbb{R}^{3 \times 1} \f$ linear velocity and \f$
-     * \mathbb{R}^{3 \times 1} \f$ angular velocity \f$ [v_x, v_y, v_z,
-     * \omega_x, \omega_y, \omega_z]^T \f$
-     */
-    std::vector<double> m_tcpVel;
-
-    /**
-     * @brief \f$ \mathbb{R}^{6 \times 1} \f$ current TCP acceleration in base
-     * frame
-     * @note \f$ \mathbb{R}^{3 \times 1} \f$ linear acceleration and \f$
-     * \mathbb{R}^{3 \times 1} \f$ angular acceleration \f$ [a_x, a_y, a_z,
-     * \alpha_x, \alpha_y, \alpha_z]^T \f$
-     * @note To be deprecated
-     */
-    std::vector<double> m_tcpAcc;
-
-    /**
-     * @brief \f$ \mathbb{R}^{7 \times 1} \f$ current camera pose in base frame
-     * @note \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
-     * \times 1} \f$ quaternion \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$
-     */
-    std::vector<double> m_camPose;
-
-    /**
-     * @brief \f$ \mathbb{R}^{7 \times 1} \f$ current flange pose in base frame
-     * @note \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
-     * \times 1} \f$ quaternion \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$
-     */
-    std::vector<double> m_flangePose;
-
-    /**
-     * @brief \f$ \mathbb{R}^{7 \times 1} \f$ current pose of the last link
-     * @note \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
-     * \times 1} \f$ quaternion \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$
-     */
-    std::vector<double> m_endLinkPose;
-
-    /**
-     * @brief \f$ \mathbb{R}^{6 \times 1} \f$ current external wrench applied on
-     * tool in TCP frame
-     * @note \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times
-     * 1} \f$ moment \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$
-     */
-    std::vector<double> m_tcpWrench;
-};
-
-/**
  * @struct PlanInfo
- * @brief Information on the execution of a primitive/plan
+ * @brief Data struct containing information of the on-going primitive/plan.
  */
 struct PlanInfo
 {

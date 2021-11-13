@@ -1,11 +1,12 @@
 /**
- * @example Select a plan from a list to execute using RDK's plan execution API
+ * @example plan_execution.cpp
+ * Select a plan from a list to execute using RDK's plan execution API.
  * @copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <config.h>
 #include <Robot.hpp>
+#include <Log.hpp>
 
 #include <string>
 #include <iostream>
@@ -24,6 +25,9 @@ std::mutex g_userInputMutex;
 // callback function for user input state machine
 void userInputStateMachine(std::shared_ptr<flexiv::Robot> robot)
 {
+    // log object for printing message with timestamp and coloring
+    flexiv::Log log;
+
     // use while loop to prevent this thread from return
     while (true) {
         // wake up every 0.1 second to do something
@@ -50,15 +54,12 @@ void userInputStateMachine(std::shared_ptr<flexiv::Robot> robot)
             for (unsigned int i = 0; i < planList.size(); i++) {
                 std::cout << "[" << i << "] " << planList[i] << std::endl;
             }
-            std::cout << "Enter index to select a plan to execute:"
-                      << std::endl;
+            log.info("Enter index to select a plan to execute:");
         }
         // stop plan execution
         else if (inputBuffer == "s") {
             robot->stop();
-            std::cout
-                << "Execution stopped, enter index to execute another plan:"
-                << std::endl;
+            log.info("Execution stopped, enter index to execute another plan:");
 
             // after calling stop(), the robot will enter Idle mode, so put the
             // robot back to plan execution mode to take more plan commands
@@ -95,16 +96,32 @@ void userInputStateMachine(std::shared_ptr<flexiv::Robot> robot)
 
 int main(int argc, char* argv[])
 {
+    // log object for printing message with timestamp and coloring
+    flexiv::Log log;
+
+    // Parse Parameters
+    //=============================================================================
+    // check if program has 3 arguments
+    if (argc != 3) {
+        log.error("Invalid program arguments. Usage: <robot_ip> <local_ip>");
+        return 0;
+    }
+    // IP of the robot server
+    std::string robotIP = argv[1];
+
+    // IP of the workstation PC running this program
+    std::string localIP = argv[2];
+
     // RDK Initialization
     //=============================================================================
-    //! RDK robot client
+    // RDK robot client
     auto robot = std::make_shared<flexiv::Robot>();
 
-    //! robot states data from RDK server
+    // create data struct for storing robot states
     auto robotStates = std::make_shared<flexiv::RobotStates>();
 
-    // initialize connection
-    robot->init(ROBOT_IP, LOCAL_IP);
+    // initialize robot interface and connect to the robot server
+    robot->init(robotIP, localIP);
 
     // wait for the connection to be established
     do {
@@ -113,14 +130,14 @@ int main(int argc, char* argv[])
 
     // enable the robot, make sure the E-stop is released before enabling
     if (robot->enable()) {
-        std::cout << "Enabling robot ..." << std::endl;
+        log.info("Enabling robot ...");
     }
 
     // wait for the robot to become operational
     do {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     } while (!robot->isOperational());
-    std::cout << "Robot is now operational" << std::endl;
+    log.info("Robot is now operational");
 
     // set mode after robot is operational
     robot->setMode(flexiv::MODE_PLAN_EXECUTION);
@@ -137,7 +154,7 @@ int main(int argc, char* argv[])
 
     // User Input
     //=============================================================================
-    std::cout << "Choose the following option to continue:" << std::endl;
+    log.info("Choose from the following options to continue:");
     std::cout << "[l] - show plan list" << std::endl;
     std::cout << "[s] - stop execution of current plan" << std::endl;
 

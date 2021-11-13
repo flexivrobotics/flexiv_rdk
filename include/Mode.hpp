@@ -10,7 +10,7 @@ namespace flexiv {
 
 /**
  * @enum Mode
- * @brief Available modes of the robot
+ * @brief Operation modes of the robot.
  */
 enum Mode
 {
