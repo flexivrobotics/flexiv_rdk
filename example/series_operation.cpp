@@ -1,14 +1,14 @@
 /**
- * @example Consecutively run a series of operations of different types using
- * various RDK APIs
+ * @example series_operation.cpp
+ * Consecutively run a series of operations of different types using
+ * various RDK APIs.
  * @copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <config.h>
 #include <Robot.hpp>
+#include <Log.hpp>
 
-#include <iostream>
 #include <string>
 #include <cmath>
 #include <thread>
@@ -79,19 +79,12 @@ const std::string OperationNames[OP_NUM] = {"Idle", "Stop robot", "Go home",
 
 }
 
-void printVector(const std::vector<double>& vec)
-{
-    for (auto i : vec) {
-        std::cout << i << "  ";
-    }
-    std::cout << std::endl;
-}
-
 void resetVars(void) { }
 
 // callback function for realtime periodic task
 void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
-    std::shared_ptr<flexiv::Robot> robot, const std::vector<Operation>& op_list)
+    std::shared_ptr<flexiv::Robot> robot, const std::vector<Operation>& op_list,
+    flexiv::Log& log)
 {
     // read robot states
     robot->getRobotStates(robotStates.get());
@@ -104,8 +97,8 @@ void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
             // reset operation timer
             g_opTimer = 0;
             // print
-            std::cout << "Running operation: "
-                      << OperationNames[op_list[g_opIndex]] << std::endl;
+            log.info(
+                "Running operation: " + OperationNames[op_list[g_opIndex]]);
             break;
         }
         case OP_STOP_ROBOT: {
@@ -124,9 +117,8 @@ void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
                     // reset operation timer
                     g_opTimer = 0;
                     // print
-                    std::cout << "Running operation: "
-                              << OperationNames[op_list[g_opIndex]]
-                              << std::endl;
+                    log.info("Running operation: "
+                             + OperationNames[op_list[g_opIndex]]);
                 }
             }
             break;
@@ -153,9 +145,8 @@ void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
                         // reset flag
                         g_isPlanSent = false;
                         // print
-                        std::cout << "Running operation: "
-                                  << OperationNames[op_list[g_opIndex]]
-                                  << std::endl;
+                        log.info("Running operation: "
+                                 + OperationNames[op_list[g_opIndex]]);
                     }
                 }
             }
@@ -168,7 +159,7 @@ void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
             } else {
                 // send plan command only once
                 if (!g_isPlanSent) {
-                    robot->executePlanByName("MultiDOFSineTest_A4");
+                    robot->executePlanByName("MultiDOFSineTest_A5");
                     g_isPlanSent = true;
                 }
 
@@ -181,9 +172,8 @@ void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
                     // reset flag
                     g_isPlanSent = false;
                     // print
-                    std::cout << "Running operation: "
-                              << OperationNames[op_list[g_opIndex]]
-                              << std::endl;
+                    log.info("Running operation: "
+                             + OperationNames[op_list[g_opIndex]]);
                 }
             }
             break;
@@ -194,12 +184,10 @@ void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
                 robot->setMode(flexiv::MODE_JOINT_POSITION);
 
                 // set initial joint position
-                if (robotStates->m_linkPosition.size() == k_robotDofs) {
-                    g_initJointPos = robotStates->m_linkPosition;
+                if (robotStates->m_q.size() == k_robotDofs) {
+                    g_initJointPos = robotStates->m_q;
                 } else {
-                    std::cout
-                        << "Error: invalid size of received joint position"
-                        << std::endl;
+                    log.error("Invalid size of received joint position");
                     // stop robot and terminate program
                     robot->stop();
                     exit(1);
@@ -234,9 +222,8 @@ void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
                     // reset operation timer
                     g_opTimer = 0;
                     // print
-                    std::cout << "Running operation: "
-                              << OperationNames[op_list[g_opIndex]]
-                              << std::endl;
+                    log.info("Running operation: "
+                             + OperationNames[op_list[g_opIndex]]);
                 }
             }
             break;
@@ -247,12 +234,10 @@ void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
                 robot->setMode(flexiv::MODE_JOINT_TORQUE);
 
                 // set initial joint position
-                if (robotStates->m_linkPosition.size() == k_robotDofs) {
-                    g_initJointPos = robotStates->m_linkPosition;
+                if (robotStates->m_q.size() == k_robotDofs) {
+                    g_initJointPos = robotStates->m_q;
                 } else {
-                    std::cout
-                        << "Error: invalid size of received joint position"
-                        << std::endl;
+                    log.error("Invalid size of received joint position");
                     // stop robot and terminate program
                     robot->stop();
                     exit(1);
@@ -273,17 +258,16 @@ void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
                 g_sineCounter++;
 
                 // impedance control on all joints
-                std::vector<double> targetTorque(k_robotDofs, 0);
+                std::vector<double> torqueDesired(k_robotDofs, 0);
                 for (size_t i = 0; i < k_robotDofs; ++i) {
-                    targetTorque[i]
+                    torqueDesired[i]
                         = k_impedanceKp[i]
-                              * (targetPosition[i]
-                                  - robotStates->m_linkPosition[i])
-                          - k_impedanceKd[i] * robotStates->m_linkVelocity[i];
+                              * (targetPosition[i] - robotStates->m_q[i])
+                          - k_impedanceKd[i] * robotStates->m_dtheta[i];
                 }
 
                 // send command
-                robot->streamJointTorque(targetTorque, true);
+                robot->streamJointTorque(torqueDesired, true);
 
                 // wait for operation period to timeout
                 if (++g_opTimer >= 10 * k_secToCount) {
@@ -292,9 +276,8 @@ void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
                     // reset operation timer
                     g_opTimer = 0;
                     // print
-                    std::cout << "Running operation: "
-                              << OperationNames[op_list[g_opIndex]]
-                              << std::endl;
+                    log.info("Running operation: "
+                             + OperationNames[op_list[g_opIndex]]);
                 }
             }
             break;
@@ -308,8 +291,7 @@ void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
                 if (robotStates->m_tcpPose.size() == k_cartPoseSize) {
                     g_initTcpPose = robotStates->m_tcpPose;
                 } else {
-                    std::cout << "Error: invalid size of received TCP pose"
-                              << std::endl;
+                    log.error("Invalid size of received TCP pose");
                     // stop robot and terminate program
                     robot->stop();
                     exit(1);
@@ -340,15 +322,15 @@ void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
                     // reset operation timer
                     g_opTimer = 0;
                     // print
-                    std::cout << "Running operation: "
-                              << OperationNames[op_list[g_opIndex]]
-                              << std::endl;
+                    log.info("Running operation: "
+                             + OperationNames[op_list[g_opIndex]]);
                 }
             }
             break;
         }
         case OP_FINISH: {
-            // do nothing, robot will hold
+            // repeat the whole sequence
+            g_opIndex = 0;
             break;
         }
         default:
@@ -358,19 +340,32 @@ void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
 
 int main(int argc, char* argv[])
 {
-    // print loop frequency
-    std::cout << "Example client running at 1000 Hz" << std::endl;
+    // log object for printing message with timestamp and coloring
+    flexiv::Log log;
+
+    // Parse Parameters
+    //=============================================================================
+    // check if program has 3 arguments
+    if (argc != 3) {
+        log.error("Invalid program arguments. Usage: <robot_ip> <local_ip>");
+        return 0;
+    }
+    // IP of the robot server
+    std::string robotIP = argv[1];
+
+    // IP of the workstation PC running this program
+    std::string localIP = argv[2];
 
     // RDK Initialization
     //=============================================================================
-    // RDK robot interface
+    // instantiate robot interface
     auto robot = std::make_shared<flexiv::Robot>();
 
-    // robot states data from RDK server
+    // create data struct for storing robot states
     auto robotStates = std::make_shared<flexiv::RobotStates>();
 
-    // initialize connection
-    robot->init(ROBOT_IP, LOCAL_IP);
+    // initialize robot interface and connect to the robot server
+    robot->init(robotIP, localIP);
 
     // wait for the connection to be established
     do {
@@ -379,14 +374,14 @@ int main(int argc, char* argv[])
 
     // enable the robot, make sure the E-stop is released before enabling
     if (robot->enable()) {
-        std::cout << "Enabling robot ..." << std::endl;
+        log.info("Enabling robot ...");
     }
 
     // wait for the robot to become operational
     do {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     } while (!robot->isOperational());
-    std::cout << "Robot is now operational" << std::endl;
+    log.info("Robot is now operational");
 
     // List of Operations
     //=============================================================================
@@ -415,7 +410,7 @@ int main(int argc, char* argv[])
     //=============================================================================
     // this is a blocking method, so all other user-defined background threads
     // should be spawned before this
-    robot->start(std::bind(periodicTask, robotStates, robot, op_list));
+    robot->start(std::bind(periodicTask, robotStates, robot, op_list, log));
 
     return 0;
 }

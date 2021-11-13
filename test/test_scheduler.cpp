@@ -1,11 +1,12 @@
 /**
- * @test Test to evaluate RDK's internal real-time scheduler
+ * @test test_scheduler.cpp
+ * A test to evaluate RDK's internal real-time scheduler.
  * @copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <config.h>
 #include <Robot.hpp>
+#include <Log.hpp>
 
 #include <iostream>
 #include <thread>
@@ -50,8 +51,8 @@ void highPriorityPeriodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
 
     // do some random stuff to verify the callback's params are working
     robot->getRobotStates(robotStates.get());
-    if ((robotStates->m_linkPosition.size() != k_robotDofs)
-        || (robotStates->m_linkTorque.size() != k_robotDofs)) {
+    if ((robotStates->m_q.size() != k_robotDofs)
+        || (robotStates->m_tau.size() != k_robotDofs)) {
         std::cerr << "robotStates message corrupted!" << std::endl;
     }
 
@@ -95,19 +96,32 @@ void lowPriorityTask()
 
 int main(int argc, char* argv[])
 {
-    // print loop frequency
-    std::cout << "Example client running at 1000 Hz" << std::endl;
+    // log object for printing message with timestamp and coloring
+    flexiv::Log log;
+
+    // Parse Parameters
+    //=============================================================================
+    // check if program has 3 arguments
+    if (argc != 3) {
+        log.error("Invalid program arguments. Usage: <robot_ip> <local_ip>");
+        return 0;
+    }
+    // IP of the robot server
+    std::string robotIP = argv[1];
+
+    // IP of the workstation PC running this program
+    std::string localIP = argv[2];
 
     // RDK Initialization
     //=============================================================================
-    // RDK robot interface
+    // instantiate robot interface
     auto robot = std::make_shared<flexiv::Robot>();
 
-    // robot states data from RDK server
+    // create data struct for storing robot states
     auto robotStates = std::make_shared<flexiv::RobotStates>();
 
-    // initialize connection
-    robot->init(ROBOT_IP, LOCAL_IP);
+    // initialize robot interface and connect to the robot server
+    robot->init(robotIP, localIP);
 
     // wait for the connection to be established
     do {
@@ -116,14 +130,14 @@ int main(int argc, char* argv[])
 
     // enable the robot, make sure the E-stop is released before enabling
     if (robot->enable()) {
-        std::cout << "Enabling robot ..." << std::endl;
+        log.info("Enabling robot ...");
     }
 
     // wait for the robot to become operational
     do {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     } while (!robot->isOperational());
-    std::cout << "Robot is now operational" << std::endl;
+    log.info("Robot is now operational");
 
     // set mode after robot is operational
     robot->setMode(flexiv::MODE_IDLE);

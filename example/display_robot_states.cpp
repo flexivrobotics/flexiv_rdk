@@ -1,11 +1,12 @@
 /**
- * @example Print received robot states
+ * @example display_robot_states.cpp
+ * Print received robot states.
  * @copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <config.h>
 #include <Robot.hpp>
+#include <Log.hpp>
 
 #include <iostream>
 #include <iomanip>
@@ -17,31 +18,12 @@ namespace {
 // print counter
 unsigned int g_printCounter = 0;
 
-// data to be printed in low-priority thread
-struct PrintData
-{
-    std::vector<double> q;
-    std::vector<double> dq;
-    std::vector<double> tau_J;
-    std::vector<double> tau_J_ext;
-    std::vector<double> tcp_pose;
-    std::vector<double> tcp_vel;
-    std::vector<double> tcp_acc;
-    std::vector<double> tcp_wrench;
-} g_printData;
+// robot states to be printed in another low-priority thread
+flexiv::RobotStates g_robotStatesPrintBuffer;
 
-// mutex on data to be printed in low-priority thread
-std::mutex g_printDataMutex;
+// mutex on robot states print buffer
+std::mutex g_printBufferMutex;
 
-}
-
-void printVector(std::string title, const std::vector<double>& vec)
-{
-    std::cout << "\n" << title << ": \n";
-    for (auto i : vec) {
-        std::cout << std::fixed << std::setprecision(5) << i << "  ";
-    }
-    std::cout << std::endl;
 }
 
 // user-defined high-priority realtime periodic task, running at 1kHz
@@ -51,17 +33,10 @@ void highPriorityPeriodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
     // get robot states
     robot->getRobotStates(robotStates.get());
 
-    // save data to global variable for printing in another thread
+    // save data to buffer for printing in another thread
     {
-        std::lock_guard<std::mutex> lock(g_printDataMutex);
-        g_printData.q = robotStates->m_linkPosition;
-        g_printData.dq = robotStates->m_linkVelocity;
-        g_printData.tau_J = robotStates->m_linkTorque;
-        g_printData.tau_J_ext = robotStates->m_linkTorqueExt;
-        g_printData.tcp_pose = robotStates->m_tcpPose;
-        g_printData.tcp_vel = robotStates->m_tcpVel;
-        g_printData.tcp_acc = robotStates->m_tcpAcc;
-        g_printData.tcp_wrench = robotStates->m_tcpWrench;
+        std::lock_guard<std::mutex> lock(g_printBufferMutex);
+        g_robotStatesPrintBuffer = *(robotStates.get());
     }
 }
 
@@ -77,46 +52,53 @@ void lowPriorityTask()
         // wake up every second to do something
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-        // safely save the global data to local
-        PrintData printData;
+        // safely save data in print buffer to local first to avoid prolonged
+        // mutex lock
+        flexiv::RobotStates robotStates;
         {
-            std::lock_guard<std::mutex> lock(g_printDataMutex);
-            printData = g_printData;
+            std::lock_guard<std::mutex> lock(g_printBufferMutex);
+            robotStates = g_robotStatesPrintBuffer;
         }
 
-        // devider
+        // divider
         std::cout << "\n\n[" << ++g_printCounter << "]";
         std::cout << "========================================================="
                   << std::endl;
 
-        // print everything
-        printVector("q [A1 ~ A7]", printData.q);
-        printVector("dq [A1 ~ A7]", printData.dq);
-        printVector("tau_J [A1 ~ A7]", printData.tau_J);
-        printVector("tau_J_ext [A1 ~ A7]", printData.tau_J_ext);
-        printVector("tcp_pose [X, Y, Z, w, x, y, z]", printData.tcp_pose);
-        printVector("tcp_vel [vx, vy, vz, wx, wy, wz]", printData.tcp_vel);
-        printVector("tcp_acc [ax, ay, az, αx, αy, αz]", printData.tcp_acc);
-        printVector(
-            "tcp_wrench [Fx, Fy, Fz, Mx, My, Mz]", printData.tcp_wrench);
+        // print all robot states in JSON format using the built-in ostream
+        // operator overloading
+        std::cout << robotStates << std::endl;
     }
 }
 
 int main(int argc, char* argv[])
 {
-    // print loop frequency
-    std::cout << "Example client running at 1000 Hz" << std::endl;
+    // log object for printing message with timestamp and coloring
+    flexiv::Log log;
+
+    // Parse Parameters
+    //=============================================================================
+    // check if program has 3 arguments
+    if (argc != 3) {
+        log.error("Invalid program arguments. Usage: <robot_ip> <local_ip>");
+        return 0;
+    }
+    // IP of the robot server
+    std::string robotIP = argv[1];
+
+    // IP of the workstation PC running this program
+    std::string localIP = argv[2];
 
     // RDK Initialization
     //=============================================================================
-    // RDK robot interface
+    // instantiate robot interface
     auto robot = std::make_shared<flexiv::Robot>();
 
-    // robot states data from RDK server
+    // create data struct for storing robot states
     auto robotStates = std::make_shared<flexiv::RobotStates>();
 
-    // initialize connection
-    robot->init(ROBOT_IP, LOCAL_IP);
+    // initialize robot interface and connect to the robot server
+    robot->init(robotIP, localIP);
 
     // wait for the connection to be established
     do {
@@ -125,14 +107,14 @@ int main(int argc, char* argv[])
 
     // enable the robot, make sure the E-stop is released before enabling
     if (robot->enable()) {
-        std::cout << "Enabling robot ..." << std::endl;
+        log.info("Enabling robot ...");
     }
 
     // wait for the robot to become operational
     do {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     } while (!robot->isOperational());
-    std::cout << "Robot is now operational" << std::endl;
+    log.info("Robot is now operational");
 
     // set mode after robot is operational
     robot->setMode(flexiv::MODE_IDLE);

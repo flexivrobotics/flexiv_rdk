@@ -18,7 +18,7 @@ find_package(Threads REQUIRED)
 
 # list of examples
 set(TOOL_LIST
-  keyboad_move_tcp
+  keyboard_move_tcp
 )
 
 # ===== CONFIGURE ALL TOOLS =====

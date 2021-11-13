@@ -21,7 +21,8 @@ class RobotClientHandler;
 
 /**
  * @class Robot
- * @brief Robot interface for RDK client
+ * @brief Main interface with the robot, including system, control, motion, and
+ * IO methods.
  */
 class Robot
 {
@@ -120,6 +121,18 @@ public:
      */
     void disconnect(void);
 
+    /**
+     * @brief Check if the robot is in fault state
+     * @return True: robot has fault, false: robot normal
+     */
+    bool isFault(void) const;
+
+    /**
+     * @brief Clear minor fault of the robot
+     * @return True: success, false: failed
+     */
+    bool clearFault(void);
+
     //=========================== CONTROL METHODS ==============================
     /**
      * @brief Set robot mode, call it after initialization
@@ -136,7 +149,7 @@ public:
      * @brief Get the current robot mode
      * @return Mode of the robot, see flexiv::Mode
      */
-    Mode getMode(void);
+    Mode getMode(void) const;
 
     /**
      * @brief Get robot states like joint position, velocity, torque, TCP
@@ -204,18 +217,6 @@ public:
      * only one TCP, it'll be used by default
      */
     bool switchTcp(int32_t index);
-
-    /**
-     * @brief Check if the robot is in fault state
-     * @return True: robot has fault, false: robot normal
-     */
-    bool isFault(void);
-
-    /**
-     * @brief Clear minor fault of the robot
-     * @return True: success, false: failed
-     */
-    bool clearFault(void);
 
     /**
      * @brief Start auto recovery to bring joints that are outside the allowed
@@ -289,7 +290,7 @@ public:
      * @brief Check if the robot has come to a complete stop
      * @return True: stopped, false: still moving
      */
-    bool isStopped(void);
+    bool isStopped(void) const;
 
     //============================= IO METHODS =================================
     /**

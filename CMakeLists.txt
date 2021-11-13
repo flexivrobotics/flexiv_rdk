@@ -17,15 +17,6 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-# generate config file if not exit
-if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h)
-  configure_file(
-      "${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.h.in"
-      "${CMAKE_CURRENT_SOURCE_DIR}/include/config.h"
-      )
-endif()
-
-
 # ===================================
 #      CONFIGURE ALL EXAMPLES
 # ===================================
@@ -38,11 +29,13 @@ set(EXAMPLE_LIST
   joint_impedance_control
   joint_position_control
   plan_execution
+  primitive_execution
   robot_dynamics
   display_robot_states
   series_operation
   floating_with_soft_limits
   auto_recovery
+  visualization
 )
 
 foreach(example ${EXAMPLE_LIST})
@@ -75,6 +68,10 @@ set(TEST_LIST
   test_dynamic_engine
   test_scheduler
   test_set_tool
+  test_timeliness_monitor
+  test_data_integrity
+  test_endurance
+  test_log
 )
 
 foreach(test ${TEST_LIST})
