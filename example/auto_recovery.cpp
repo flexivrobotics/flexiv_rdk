@@ -1,16 +1,16 @@
 /**
- * @example Run auto-recovery if the robot's safety system is in recovery state,
- * otherwise run damped floating with joint APF disabled, so that the user can
- * manually trigger a safety system recovery state by moving any joint close to
- * its limit. See flexiv::Mode::MODE_AUTO_RECOVERY for more details.
+ * @example auto_recovery.cpp
+ * Run auto-recovery if the robot's safety system is in recovery state,
+ * otherwise run damped floating with joint soft limit disabled, so that the
+ * user can manually trigger a safety system recovery state by moving any joint
+ * close to its limit. See flexiv::Mode::MODE_AUTO_RECOVERY for more details.
  * @copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <config.h>
 #include <Robot.hpp>
+#include <Log.hpp>
 
-#include <iostream>
 #include <string>
 #include <thread>
 
@@ -31,34 +31,46 @@ void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
     robot->getRobotStates(robotStates.get());
 
     // set 0 joint torques
-    std::vector<double> targetTorque(k_robotDofs, 0.0);
+    std::vector<double> torqueDesired(k_robotDofs, 0.0);
 
     // add some velocity damping
     for (size_t i = 0; i < k_robotDofs; ++i) {
-        targetTorque[i]
-            = -k_floatingDamping[i] * robotStates->m_linkVelocity[i];
+        torqueDesired[i] = -k_floatingDamping[i] * robotStates->m_dtheta[i];
     }
 
     // send target joint torque to RDK server, enable gravity compensation
     // and joint-space APF
-    robot->streamJointTorque(targetTorque, true, false);
+    robot->streamJointTorque(torqueDesired, true, false);
 }
 
 int main(int argc, char* argv[])
 {
-    // print loop frequency
-    std::cout << "Example client running at 1000 Hz" << std::endl;
+    // log object for printing message with timestamp and coloring
+    flexiv::Log log;
+
+    // Parse Parameters
+    //=============================================================================
+    // check if program has 3 arguments
+    if (argc != 3) {
+        log.error("Invalid program arguments. Usage: <robot_ip> <local_ip>");
+        return 0;
+    }
+    // IP of the robot server
+    std::string robotIP = argv[1];
+
+    // IP of the workstation PC running this program
+    std::string localIP = argv[2];
 
     // RDK Initialization
     //=============================================================================
-    // RDK robot interface
+    // instantiate robot interface
     auto robot = std::make_shared<flexiv::Robot>();
 
-    // robot states data from RDK server
+    // create data struct for storing robot states
     auto robotStates = std::make_shared<flexiv::RobotStates>();
 
-    // initialize connection
-    robot->init(ROBOT_IP, LOCAL_IP);
+    // initialize robot interface and connect to the robot server
+    robot->init(robotIP, localIP);
 
     // wait for the connection to be established
     do {
@@ -67,7 +79,7 @@ int main(int argc, char* argv[])
 
     // enable the robot, make sure the E-stop is released before enabling
     if (robot->enable()) {
-        std::cout << "Enabling robot ..." << std::endl;
+        log.info("Enabling robot ...");
     }
 
     // if the system is in recovery state, we can't use isOperational to tell if

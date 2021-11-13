@@ -1,12 +1,13 @@
 /**
- * @test Test to evaluate the setTool API
+ * @test test_set_tool.cpp
+ * A test to evaluate the setTool API.
  * @copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <config.h>
 #include <Robot.hpp>
 #include <Model.hpp>
+#include <Log.hpp>
 
 #include <iostream>
 #include <iomanip>
@@ -47,8 +48,7 @@ void highPriorityPeriodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
     robot->getRobotStates(robotStates.get());
 
     // update robot model in dynamics engine
-    model->updateModel(
-        robotStates->m_linkPosition, robotStates->m_linkVelocity);
+    model->updateModel(robotStates->m_q, robotStates->m_dtheta);
 
     // mark timer start point
     g_tic = std::chrono::high_resolution_clock::now();
@@ -105,35 +105,50 @@ void lowPriorityTask()
         auto deltaG = G - g_G;
 
         std::cout << std::fixed << std::setprecision(5);
-        std::cout << "DIFFERENCE of M between ground truth (MATLAB) and rdk after "
-                     "setTool = "
-                  << std::endl
-                  << deltaM << std::endl;
+        std::cout
+            << "DIFFERENCE of M between ground truth (MATLAB) and rdk after "
+               "setTool = "
+            << std::endl
+            << deltaM << std::endl;
         std::cout << "norm of delta M: " << deltaM.norm() << std::endl;
 
-        std::cout << "DIFFERENCE of G between ground truth (MATLAB) and rdk after "
-                     "setTool = "
-                  << std::endl
-                  << deltaG.transpose() << std::endl;
+        std::cout
+            << "DIFFERENCE of G between ground truth (MATLAB) and rdk after "
+               "setTool = "
+            << std::endl
+            << deltaG.transpose() << std::endl;
         std::cout << "norm of delta G: " << deltaG.norm() << std::endl;
     }
 }
 
 int main(int argc, char* argv[])
 {
-    // print loop frequency
-    std::cout << "Example client running at 1000 Hz" << std::endl;
+    // log object for printing message with timestamp and coloring
+    flexiv::Log log;
+
+    // Parse Parameters
+    //=============================================================================
+    // check if program has 3 arguments
+    if (argc != 3) {
+        log.error("Invalid program arguments. Usage: <robot_ip> <local_ip>");
+        return 0;
+    }
+    // IP of the robot server
+    std::string robotIP = argv[1];
+
+    // IP of the workstation PC running this program
+    std::string localIP = argv[2];
 
     // RDK Initialization
     //=============================================================================
-    // RDK robot interface
+    // instantiate robot interface
     auto robot = std::make_shared<flexiv::Robot>();
 
-    // robot states data from RDK server
+    // create data struct for storing robot states
     auto robotStates = std::make_shared<flexiv::RobotStates>();
 
-    // initialize connection
-    robot->init(ROBOT_IP, LOCAL_IP);
+    // initialize robot interface and connect to the robot server
+    robot->init(robotIP, localIP);
 
     // wait for the connection to be established
     do {
@@ -142,14 +157,14 @@ int main(int argc, char* argv[])
 
     // enable the robot, make sure the E-stop is released before enabling
     if (robot->enable()) {
-        std::cout << "Enabling robot ..." << std::endl;
+        log.info("Enabling robot ...");
     }
 
     // wait for the robot to become operational
     do {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     } while (!robot->isOperational());
-    std::cout << "Robot is now operational" << std::endl;
+    log.info("Robot is now operational");
 
     // set mode after robot is operational
     robot->setMode(flexiv::MODE_PLAN_EXECUTION);

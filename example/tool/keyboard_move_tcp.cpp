@@ -1,10 +1,10 @@
 /**
- * @example Move robot TCP with keyboard
+ * @example keyboard_move_tcp.cpp
+ * A tool example to move robot TCP with keyboard.
  * @copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <config.h>
 #include <Robot.hpp>
 
 #include <iostream>
@@ -210,7 +210,7 @@ void highPriorityPeriodicTask(std::shared_ptr<flexiv::Robot> robot,
 
         if (robotStates->m_flangePose.size() == k_cartPoseSize) {
             g_currentTcpPose = robotStates->m_flangePose;
-            g_lastJointPos = robotStates->m_linkPosition;
+            g_lastJointPos = robotStates->m_q;
         }
         std::cout << "Initial joint position of robot (in degree) :"
                   << std::endl;
@@ -258,7 +258,7 @@ void highPriorityPeriodicTask(std::shared_ptr<flexiv::Robot> robot,
                 targetPosition, targetVelocity, targetAcceleration);
 
             // update last joint position for IK initial value
-            g_lastJointPos = robotStates->m_linkPosition;
+            g_lastJointPos = robotStates->m_q;
         }
         // handle exit
         else {
@@ -372,14 +372,21 @@ int main(int argc, char* argv[])
 {
     // Parse Parameters
     //=============================================================================
-    if (argc != 2) {
-        std::cerr << "Invalid program arguments. Usage: <urdf_file_path>"
+    // check if program has 3 arguments
+    if (argc != 4) {
+        log.error("Invalid program arguments. Usage: <robot_ip> <local_ip> "
+                     "<urdf_path>"
                   << std::endl;
         return 0;
     }
+    // IP of the robot server
+    std::string robotIP = argv[1];
 
-    // path for urdf file to parse
-    std::string urdfFilePath = argv[1];
+    // IP of the workstation PC running this program
+    std::string localIP = argv[2];
+
+    // type of motion specified by user
+    std::string urdfFilePath = argv[3];
 
     // RBDyn Initialization
     //=============================================================================
@@ -392,14 +399,14 @@ int main(int argc, char* argv[])
 
     // RDK Initialization
     //=============================================================================
-    // RDK robot interface
+    // instantiate robot interface
     auto robot = std::make_shared<flexiv::Robot>();
 
-    // robot states data from RDK server
+    // create data struct for storing robot states
     auto robotStates = std::make_shared<flexiv::RobotStates>();
 
-    // initialize connection
-    robot->init(ROBOT_IP, LOCAL_IP);
+    // initialize robot interface and connect to the robot server
+    robot->init(robotIP, localIP);
 
     // wait for the connection to be established
     do {
@@ -408,14 +415,14 @@ int main(int argc, char* argv[])
 
     // enable the robot, make sure the E-stop is released before enabling
     if (robot->enable()) {
-        std::cout << "Enabling robot ..." << std::endl;
+        log.info("Enabling robot ...");
     }
 
     // wait for the robot to become operational
     do {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     } while (!robot->isOperational());
-    std::cout << "Robot is now operational" << std::endl;
+    log.info("Robot is now operational");
 
     // set mode after robot is operational
     robot->setMode(flexiv::MODE_PLAN_EXECUTION);

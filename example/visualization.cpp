@@ -1,14 +1,15 @@
 /**
- * @example cartesian_impedance_control.cpp
- * Run Cartesian impedance control to hold or sine-sweep the robot TCP.
+ * @example visualization.cpp
+ * Run the RDK's integrated visualizer with the robot TCP doing sine-sweep
+ * movement.
  * @copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
 #include <Robot.hpp>
+#include <Visualization.hpp>
 #include <Log.hpp>
 
-#include <iostream>
 #include <cmath>
 #include <thread>
 
@@ -37,19 +38,15 @@ bool g_isInitPoseSet = false;
 
 // loop counter
 unsigned int g_loopCounter = 0;
-}
 
-void printVector(const std::vector<double>& vec)
-{
-    for (auto i : vec) {
-        std::cout << i << "  ";
-    }
-    std::cout << std::endl;
+// joint positions used by visualizer
+std::vector<double> g_jointPositions;
+
 }
 
 // callback function for realtime periodic task
 void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
-    std::shared_ptr<flexiv::Robot> robot, std::string motionType)
+    std::shared_ptr<flexiv::Robot> robot)
 {
     // read robot states
     robot->getRobotStates(robotStates.get());
@@ -65,30 +62,36 @@ void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
             g_initTcpPose = robotStates->m_tcpPose;
             g_currentTcpPose = g_initTcpPose;
             g_isInitPoseSet = true;
-            std::cout << "Initial Cartesion pose of robot TCP set to [position "
-                         "3x1 + rotation (quaternion) 4x1]:\n";
-            printVector(g_initTcpPose);
         }
     }
     // run control only after initial pose is set
     else {
-        // set target position based on motion type
-        if (motionType == "hold") {
-            robot->streamTcpPose(g_initTcpPose, tcpVel, tcpAcc);
-        } else if (motionType == "sine-sweep") {
-            g_currentTcpPose[1] = g_initTcpPose[1]
-                                  + k_swingAmp
-                                        * sin(2 * M_PI * k_swingFreq
-                                              * g_loopCounter * k_loopPeiord);
-            robot->streamTcpPose(g_currentTcpPose, tcpVel, tcpAcc);
-        } else {
-            flexiv::Log log;
-            log.error("Unknown motion type");
-            log.info("Accepted motion types: hold, sine-sweep");
-            exit(1);
-        }
+        g_currentTcpPose[1] = g_initTcpPose[1]
+                              + k_swingAmp
+                                    * sin(2 * M_PI * k_swingFreq * g_loopCounter
+                                          * k_loopPeiord);
+        robot->streamTcpPose(g_currentTcpPose, tcpVel, tcpAcc);
     }
+
+    // save joint positions to global variable by visualizer, skipping mutex
+    g_jointPositions = robotStates->m_q;
+
     g_loopCounter++;
+}
+
+void visualizerTask(std::shared_ptr<flexiv::Visualization> visualizer)
+{
+    // wait a while for the data to start streaming
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    // use while loop to prevent this thread from return
+    while (true) {
+        // run periodic tasks at 100Hz in this thread
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+        // update visualizer with joint positions
+        visualizer->update(g_jointPositions);
+    }
 }
 
 int main(int argc, char* argv[])
@@ -102,8 +105,7 @@ int main(int argc, char* argv[])
     if (argc != 4) {
         log.error(
             "Invalid program arguments. Usage: <robot_ip> <local_ip> "
-            "<motion_type>");
-        log.info("Accepted motion types: hold, sine-sweep");
+            "<robot_urdf>");
         return 0;
     }
     // IP of the robot server
@@ -112,8 +114,8 @@ int main(int argc, char* argv[])
     // IP of the workstation PC running this program
     std::string localIP = argv[2];
 
-    // type of motion specified by user
-    std::string motionType = argv[3];
+    // Path to robot URDF used by visualizer
+    std::string robotURDF = argv[3];
 
     // RDK Initialization
     //=============================================================================
@@ -150,15 +152,22 @@ int main(int argc, char* argv[])
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     } while (robot->getMode() != flexiv::MODE_CARTESIAN_IMPEDANCE);
 
-    // choose the index of tool being used. No need to call this method if the
-    // mounted tool on the robot has only one TCP, it'll be used by default
-    robot->switchTcp(0);
+    // Visualizer Initialization
+    //=============================================================================
+    auto visualizer = std::make_shared<flexiv::Visualization>();
+    visualizer->init(robotURDF);
+
+    // Low-priority Background Tasks
+    //=============================================================================
+    // use std::thread for some non-realtime tasks, not joining
+    // (non-blocking)
+    std::thread lowPriorityThread(std::bind(visualizerTask, visualizer));
 
     // High-priority Realtime Periodic Task @ 1kHz
     //=============================================================================
     // this is a blocking method, so all other user-defined background threads
     // should be spawned before this
-    robot->start(std::bind(periodicTask, robotStates, robot, motionType));
+    robot->start(std::bind(periodicTask, robotStates, robot));
 
     return 0;
 }

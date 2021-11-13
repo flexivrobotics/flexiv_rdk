@@ -14,12 +14,6 @@
 #include <mutex>
 
 namespace {
-// robot DOF
-const int k_robotDofs = 7;
-
-// loop counter
-unsigned int g_loopCounter = 0;
-
 // timer to measure scheduler performance
 std::chrono::high_resolution_clock::time_point g_tic, g_toc;
 
@@ -29,6 +23,26 @@ int64_t g_timeInterval;
 // mutex on the time interval data
 std::mutex g_intervalMutex;
 
+// mutex on position error
+std::mutex g_errorPosMutex;
+
+// flag for position error
+bool g_flagErrorPos = false;
+
+// mutex on orientation error
+std::mutex g_errorRotMutex;
+
+// flag for orientation error
+bool g_flagErrorRot = false;
+
+// error counter
+int g_numError = 0;
+
+// flag for test complete
+bool g_flagTestComplete = false;
+
+// Test time in seconds
+const int k_testTime = 600;
 }
 
 // user-defined high-priority realtime periodic task, running at 1kHz
@@ -51,9 +65,34 @@ void highPriorityPeriodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
 
     // do some random stuff to verify the callback's params are working
     robot->getRobotStates(robotStates.get());
-    if ((robotStates->m_q.size() != k_robotDofs)
-        || (robotStates->m_tau.size() != k_robotDofs)) {
-        std::cerr << "robotStates message corrupted!" << std::endl;
+
+    // Get position and position norm
+    double posX = robotStates->m_tcpPose[0];
+    double posY = robotStates->m_tcpPose[1];
+    double posZ = robotStates->m_tcpPose[2];
+
+    double posLength = sqrt(pow(posX, 2) + pow(posY, 2) + pow(posZ, 2));
+    if (posLength >= 2.0) {
+        {
+            std::lock_guard<std::mutex> lock(g_errorPosMutex);
+            g_flagErrorPos = true;
+        }
+    }
+
+    // Get orientation and orientation norm
+    double quadW = robotStates->m_tcpPose[3];
+    double quadX = robotStates->m_tcpPose[4];
+    double quadY = robotStates->m_tcpPose[5];
+    double quadZ = robotStates->m_tcpPose[6];
+
+    double quadNorm
+        = sqrt(pow(quadW, 2) + pow(quadX, 2) + pow(quadY, 2) + pow(quadZ, 2));
+
+    if (abs(quadNorm - 1.0) >= 1e-2) {
+        {
+            std::lock_guard<std::mutex> lock(g_errorRotMutex);
+            g_flagErrorRot = true;
+        }
     }
 
     // mark timer start point
@@ -68,13 +107,44 @@ void lowPriorityTask()
     uint64_t measureCount = 0;
     float avgInterval = 0.0;
 
+    // log object for printing message with timestamp and coloring
+    flexiv::Log log;
+
     // wait for a while for the time interval data to be available
     std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    log.info("Starting error counting...");
 
     // use while loop to prevent this thread from return
     while (true) {
         // wake up every second to do something
         std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        // Get error in position
+        bool flagErrorPos = false;
+        {
+            std::lock_guard<std::mutex> lock(g_errorPosMutex);
+            flagErrorPos = g_flagErrorPos;
+            g_flagErrorPos = false;
+        }
+
+        if (flagErrorPos) {
+            log.warn("Error in position");
+            g_numError++;
+        }
+
+        // Get error in rotation
+        bool flagErrorRot = false;
+        {
+            std::lock_guard<std::mutex> lock(g_errorRotMutex);
+            flagErrorRot = g_flagErrorRot;
+            g_flagErrorRot = false;
+        }
+
+        if (flagErrorRot) {
+            log.warn("Error in orientation");
+            g_numError++;
+        }
 
         // safely read the global variable
         int timeInterval;
@@ -83,14 +153,19 @@ void lowPriorityTask()
             timeInterval = g_timeInterval;
         }
 
-        // calculate average time interval
-        totalTime += timeInterval;
-        measureCount++;
-        avgInterval = (float)totalTime / (float)measureCount;
+        if ((float)totalTime >= (float)k_testTime * 1000.0) {
+            if (g_flagTestComplete == false) {
+                log.info(
+                    "Test ended - Total error = " + std::to_string(g_numError));
 
-        // print time interval of high-priority periodic task
-        std::cout << "RT task interval (curr | avg) = " << timeInterval << " | "
-                  << avgInterval << " us" << std::endl;
+                g_flagTestComplete = true;
+            }
+        } else {
+            // calculate average time interval
+            totalTime += timeInterval;
+            measureCount++;
+            avgInterval = (float)totalTime / (float)measureCount;
+        }
     }
 }
 
