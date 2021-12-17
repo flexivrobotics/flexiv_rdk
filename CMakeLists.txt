@@ -72,6 +72,7 @@ set(TEST_LIST
   test_data_integrity
   test_endurance
   test_log
+  test_loop_latency
 )
 
 foreach(test ${TEST_LIST})
