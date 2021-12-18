@@ -169,11 +169,6 @@ struct SystemStatus
     bool m_programRunning;
 
     /**
-     * @brief If the robot has reached the ready pose
-     */
-    bool m_reachedReady;
-
-    /**
      * @brief If the robot has reached target pose
      */
     bool m_reachedTarget;

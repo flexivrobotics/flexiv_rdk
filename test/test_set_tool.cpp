@@ -105,19 +105,17 @@ void lowPriorityTask()
         auto deltaG = G - g_G;
 
         std::cout << std::fixed << std::setprecision(5);
-        std::cout
-            << "DIFFERENCE of M between ground truth (MATLAB) and rdk after "
-               "setTool = "
-            << std::endl
-            << deltaM << std::endl;
-        std::cout << "norm of delta M: " << deltaM.norm() << std::endl;
+        std::cout << "Difference of M between ground truth (MATLAB) and "
+                     "integrated dynamics engine after setTool() = "
+                  << std::endl
+                  << deltaM << std::endl;
+        std::cout << "Norm of delta M: " << deltaM.norm() << '\n' << std::endl;
 
-        std::cout
-            << "DIFFERENCE of G between ground truth (MATLAB) and rdk after "
-               "setTool = "
-            << std::endl
-            << deltaG.transpose() << std::endl;
-        std::cout << "norm of delta G: " << deltaG.norm() << std::endl;
+        std::cout << "Difference of G between ground truth (MATLAB) and "
+                     "integrated dynamics engine after setTool() = "
+                  << std::endl
+                  << deltaG.transpose() << std::endl;
+        std::cout << "Norm of delta G: " << deltaG.norm() << '\n' << std::endl;
     }
 }
 
@@ -177,15 +175,11 @@ int main(int argc, char* argv[])
     // Bring Robot To Home
     //=============================================================================
     robot->executePlanByName("PLAN-Home");
+    // wait for the plan to start
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
+    // wait for the execution to finish
     flexiv::SystemStatus systemStatus;
-    // wait until execution begin
-    do {
-        robot->getSystemStatus(&systemStatus);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (systemStatus.m_programRunning == false);
-
-    // wait until execution finished
     do {
         robot->getSystemStatus(&systemStatus);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -205,7 +199,7 @@ int main(int argc, char* argv[])
 
     // Set Tool
     //=============================================================================
-    // Robotiq tool info
+    // artificial tool parameters for verification
     double mass = 0.9;
     // com is relative to tcp frame
     Eigen::Vector3d com = {0.0, 0.0, -0.093};
@@ -217,23 +211,27 @@ int main(int argc, char* argv[])
     Eigen::Vector3d tcpPosition = {0.0, 0.0, 0.15};
 
     if (model->setTool(mass, inertia, com, tcpPosition) == false) {
-        std::cout << "set tool failed! " << std::endl;
+        log.error("setTool() failed");
         return 0;
     }
-    std::cout << "set tool successfully" << std::endl;
+    log.info("setTool() successful");
 
-    // M, G Hard Code From MATLAB Robotics System Toolbox After Set Tool
+    // Hard-coded Dynamics Ground Truth from MATLAB
     //=============================================================================
-    g_M << 3.00477, -0.05394, 1.96283, -0.12863, -0.04579, 0.02819, -0.00164,
-        -0.05394, 3.31633, 0.05426, -1.45674, -0.19104, 0.26740, -0.00000,
-        1.96283, 0.05426, 1.45873, -0.00262, -0.00284, 0.00116, -0.00127,
-        -0.12863, -1.45674, -0.00262, 1.32548, 0.18352, -0.24987, -0.00007,
-        -0.04579, -0.19104, -0.00284, 0.18352, 0.05500, -0.03987, 0.00106,
-        0.02819, 0.26740, 0.00116, -0.24987, -0.03987, 0.08249, 0.00001,
-        -0.00164, -0.00000, -0.00127, -0.00007, 0.00106, 0.00001, 0.00168;
+    // clang-format off
+    g_M << 
+     2.916316686749461, -0.052869517013466,  1.903540434220357, -0.124348845003517, -0.041914639740668,  0.027649255000000, -0.001464000000000,
+    -0.052869517013466,  3.222619358431081,  0.053667041477633, -1.414236317529289, -0.184390078851855,  0.259867572215541, -0.000000000000000,
+     1.903540434220357,  0.053667041477633,  1.416023230140298, -0.002724223477633,  0.000093550780077,  0.001155982477633, -0.001121489064726,
+    -0.124348845003517, -1.414236317529289, -0.002724223477633,  1.287676548627496,  0.177147398851855, -0.244344118313748,  0.000000000000000,
+    -0.041914639740668, -0.184390078851855,  0.000093550780077,  0.177147398851855,  0.054219756143365, -0.038829881851855,  0.000941041060581,
+     0.027649255000000,  0.259867572215541,  0.001155982477633, -0.244344118313748, -0.038829881851855,  0.082171270000000,                  0,
+    -0.001464000000000, -0.000000000000000, -0.001121489064726,  0.000000000000000,  0.000941041060581,                  0,  0.001464000000000;
 
     // Matlab value is the joint torque to resist gravity
-    g_G << 0.00000, 54.18118, 0.84197, -23.68555, -2.82637, 3.39972, 0.00000;
+    g_G << 
+    -0.000000000000001,  52.664497076609663,  0.830964961569619, -22.968509865473024, -2.721399343355234, 3.272076450000000,                 0;
+    // clang-format on
 
     // Low-priority Background Tasks
     //=============================================================================
