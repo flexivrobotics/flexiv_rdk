@@ -1,7 +1,7 @@
 /**
  * @test test_log.cpp
  * Test log functions of the flexiv::Log class
- * @copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

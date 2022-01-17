@@ -1,7 +1,7 @@
 /**
  * @test test_dynamic_engine.cpp
  * A test to evaluate the dynamics engine (J, M, G)
- * @copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
