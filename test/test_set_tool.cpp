@@ -1,7 +1,7 @@
 /**
  * @test test_set_tool.cpp
  * A test to evaluate the setTool API.
- * @copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

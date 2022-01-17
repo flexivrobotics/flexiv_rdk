@@ -6,7 +6,7 @@
  * first, then if the check has failed too many times, the RDK connection with
  * the server will be closed. During this test, the robot will hold its position
  * using joint torque streaming mode.
- * @copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
