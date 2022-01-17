@@ -1,7 +1,7 @@
 /**
  * @test test_scheduler.cpp
  * A test to evaluate RDK's internal real-time scheduler.
- * @copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

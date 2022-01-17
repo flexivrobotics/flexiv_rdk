@@ -35,7 +35,7 @@ jobs:
       # Build examples and tests
       run: | 
         cd ${{github.workspace}}/build
-        make -j4
+        make -j$(nproc)
       
   build-ubuntu18:
     # The CMake configure and build commands are platform agnostic and should work equally
@@ -60,6 +60,6 @@ jobs:
       # Build examples and tests
       run: | 
         cd ${{github.workspace}}/build
-        make -j4
+        make -j$(nproc)
 
   

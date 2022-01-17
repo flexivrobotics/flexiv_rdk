@@ -187,7 +187,7 @@ struct SystemStatus
     /**
      * @brief If joint limit is triggered
      */
-    bool m_jntLimitTriggered;
+    bool m_jointLimitTriggered;
 
     /**
      * @brief Primitive states information
