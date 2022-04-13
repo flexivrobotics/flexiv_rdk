@@ -14,7 +14,7 @@ import argparse
 # Import Flexiv RDK Python library
 # fmt: off
 import sys
-sys.path.insert(0, "../lib/")
+sys.path.insert(0, "../lib/python/x64/")
 import flexivrdk
 # fmt: on
 
@@ -27,66 +27,84 @@ def main():
     argparser.add_argument('local_ip', help='IP address of the workstation PC')
     args = argparser.parse_args()
 
-    # RDK Initialization
+    # Define alias
     # =============================================================================
-    # Some alias
-    robot = flexivrdk.Robot()
-    mode = flexivrdk.Mode
     system_status = flexivrdk.SystemStatus()
+    log = flexivrdk.Log()
+    mode = flexivrdk.Mode
 
-    # Initialize connection with robot server
-    robot.init(args.robot_ip, args.local_ip)
+    try:
+        # RDK Initialization
+        # =============================================================================
+        # Instantiate robot interface
+        robot = flexivrdk.Robot(args.robot_ip, args.local_ip)
 
-    # Wait for the connection to be established
-    while not robot.isConnected():
-        time.sleep(1)
+        # Clear fault on robot server if any
+        if robot.isFault():
+            log.warn("Fault occurred on robot server, trying to clear ...")
+            # Try to clear the fault
+            robot.clearFault()
+            time.sleep(2)
+            # Check again
+            if robot.isFault():
+                log.error("Fault cannot be cleared, exiting ...")
+                return
+            log.info("Fault on robot server is cleared")
 
-    # Enable the robot, make sure the E-stop is released before enabling
-    if robot.enable():
-        print("Enabling robot ...")
+        # Enable the robot, make sure the E-stop is released before enabling
+        robot.enable()
+        log.info("Enabling robot ...")
 
-    # Wait for the robot to become operational
-    while not robot.isOperational():
-        time.sleep(1)
-    print("Robot is now operational")
-
-    # Set mode after robot is operational
-    robot.setMode(mode.MODE_PLAN_EXECUTION)
-
-    # Wait for the mode to be switched
-    while (robot.getMode() != mode.MODE_PLAN_EXECUTION):
-        time.sleep(1)
-
-    # Application-specific Code
-    # =============================================================================
-    while True:
-        # Get user input
-        input_case = int(input(
-            "Choose an action:\n \
-        [1] Get plan list \n \
-        [2] Execute plan by index \n \
-        [3] Stop the current plan execution \n"
-        )
-        )
-
-        # Check if user input is valid
-        assert (input_case >= 1 and input_case <= 3), "Invalid input"
-
-        # Get plan list
-        if input_case == 1:
-            plan_list = robot.getPlanNameList()
+        # Wait for the robot to become operational
+        while not robot.isOperational():
             time.sleep(1)
-            for i in range(len(plan_list)):
-                print("[" + str(i) + "]", plan_list[i])
+        log.info("Robot is now operational")
 
-        # Execute plan by index
-        elif input_case == 2:
-            index = int(input("Enter plan index to execute:\n"))
-            robot.executePlanByIndex(index)
+        # Set mode after robot is operational
+        robot.setMode(mode.MODE_PLAN_EXECUTION)
 
-        # Stop the current plan execution
-        elif input_case == 3:
-            robot.stop()
+        # Wait for the mode to be switched
+        while (robot.getMode() != mode.MODE_PLAN_EXECUTION):
+            time.sleep(1)
+
+        # Application-specific Code
+        # =============================================================================
+        while True:
+            # Monitor fault on robot server
+            if robot.isFault():
+                raise Exception("Fault occurred on robot server, exiting ...")
+
+            # Get user input
+            input_case = int(input(
+                "Choose an action:\n \
+            [1] Get plan list \n \
+            [2] Execute plan by index \n \
+            [3] Stop the current plan execution \n"
+            )
+            )
+
+            # Check if user input is valid
+            assert (input_case >= 1 and input_case <= 3), "Invalid input"
+
+            # Get plan list
+            if input_case == 1:
+                plan_list = robot.getPlanNameList()
+                time.sleep(1)
+                for i in range(len(plan_list)):
+                    print("[" + str(i) + "]", plan_list[i])
+
+            # Execute plan by index
+            elif input_case == 2:
+                index = int(input("Enter plan index to execute:\n"))
+                robot.executePlanByIndex(index)
+
+            # Stop the current plan execution
+            elif input_case == 3:
+                robot.stop()
+
+    except Exception as e:
+        # Print exception error message
+        log.error(str(e))
 
 
 if __name__ == "__main__":
