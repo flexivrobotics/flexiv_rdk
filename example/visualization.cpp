@@ -6,20 +6,22 @@
  * @author Flexiv
  */
 
-#include <Robot.hpp>
-#include <Visualization.hpp>
-#include <Log.hpp>
+#include <flexiv/Robot.hpp>
+#include <flexiv/Exception.hpp>
+#include <flexiv/Visualization.hpp>
+#include <flexiv/Log.hpp>
+#include <flexiv/Scheduler.hpp>
 
+#include <mutex>
 #include <cmath>
 #include <thread>
 
 namespace {
-
 /** Size of Cartesian pose vector [position 3x1 + rotation (quaternion) 4x1 ] */
 const unsigned int k_cartPoseSize = 7;
 
 /** RT loop period [sec] */
-const double k_loopPeiord = 0.001;
+const double k_loopPeriod = 0.001;
 
 /** TCP sine-sweep amplitude [m] */
 const double k_swingAmp = 0.1;
@@ -27,72 +29,111 @@ const double k_swingAmp = 0.1;
 /** TCP sine-sweep frequency [Hz] */
 const double k_swingFreq = 0.3;
 
-/** Initial Cartesian-space pose (position + rotation) of robot TCP */
-std::vector<double> g_initTcpPose;
+/** Data shared between threads */
+struct SharedData
+{
+    std::vector<double> jointPositions;
+} g_data;
 
-/** Current Cartesian-space pose (position + rotation) of robot TCP */
-std::vector<double> g_currentTcpPose;
-
-/** Flag whether initial Cartesian position is set */
-bool g_isInitPoseSet = false;
-
-/** Loop counter */
-unsigned int g_loopCounter = 0;
-
-/** Joint positions used by visualizer */
-std::vector<double> g_jointPositions;
+/** Mutex on shared data */
+std::mutex g_mutex;
 
 }
 
-/** Callback function for realtime periodic task */
-void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
-    std::shared_ptr<flexiv::Robot> robot)
+/** User-defined high-priority periodic task @ 1kHz */
+void highPriorityTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
+    flexiv::Scheduler* scheduler, flexiv::Log* log)
 {
-    // Read robot states
-    robot->getRobotStates(robotStates.get());
+    // Sine counter
+    static unsigned int sineCounter = 0;
 
-    // Use target TCP velocity and acceleration = 0
-    std::vector<double> tcpVel(6, 0);
-    std::vector<double> tcpAcc(6, 0);
+    // Initial Cartesian-space pose (position + rotation) of robot TCP
+    static std::vector<double> initTcpPose;
 
-    // Set initial TCP pose
-    if (!g_isInitPoseSet) {
-        // Check vector size before saving
-        if (robotStates->m_tcpPose.size() == k_cartPoseSize) {
-            g_initTcpPose = robotStates->m_tcpPose;
-            g_currentTcpPose = g_initTcpPose;
-            g_isInitPoseSet = true;
+    // Flag whether initial Cartesian position is set
+    static bool isInitPoseSet = false;
+
+    try {
+        // Monitor fault on robot server
+        if (robot->isFault()) {
+            throw flexiv::ServerException(
+                "highPriorityTask: Fault occurred on robot server, exiting "
+                "...");
         }
-    }
-    // Run control only after initial pose is set
-    else {
-        g_currentTcpPose[1] = g_initTcpPose[1]
-                              + k_swingAmp
-                                    * sin(2 * M_PI * k_swingFreq * g_loopCounter
-                                          * k_loopPeiord);
-        robot->streamTcpPose(g_currentTcpPose, tcpVel, tcpAcc);
-    }
 
-    // Save joint positions to global variable by visualizer, skipping mutex
-    g_jointPositions = robotStates->m_q;
+        // Read robot states
+        robot->getRobotStates(robotStates);
 
-    g_loopCounter++;
+        // Use target TCP velocity and acceleration = 0
+        std::vector<double> tcpVel(6, 0);
+        std::vector<double> tcpAcc(6, 0);
+
+        // Set initial TCP pose
+        if (!isInitPoseSet) {
+            // Check vector size before saving
+            if (robotStates->m_tcpPose.size() == k_cartPoseSize) {
+                initTcpPose = robotStates->m_tcpPose;
+                isInitPoseSet = true;
+            }
+        }
+        // Run control only after initial pose is set
+        else {
+            auto targetTcpPose = initTcpPose;
+            targetTcpPose[1] = initTcpPose[1]
+                               + k_swingAmp
+                                     * sin(2 * M_PI * k_swingFreq * sineCounter
+                                           * k_loopPeriod);
+            robot->streamTcpPose(targetTcpPose, tcpVel, tcpAcc);
+            sineCounter++;
+        }
+
+        // Safely write shared data
+        {
+            std::lock_guard<std::mutex> lock(g_mutex);
+            g_data.jointPositions = robotStates->m_q;
+        }
+
+    } catch (const flexiv::Exception& e) {
+        log->error(e.what());
+        scheduler->stop();
+    }
 }
 
-/** Low-priority periodic task for visualizer stuff */
-void visualizerTask(std::shared_ptr<flexiv::Visualization> visualizer)
+/** Low-priority periodic visualizer task */
+void visualizerTask(flexiv::Visualization* visualizer)
 {
-    // Wait a while for the data to start streaming
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    static unsigned int sineCounter = 0;
+    sineCounter++;
 
-    // Use while loop to prevent this thread from return
-    while (true) {
-        // Run periodic tasks at 100Hz in this thread
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-        // Update visualizer with joint positions
-        visualizer->update(g_jointPositions);
+    // Safely read shared data
+    std::vector<double> jointPositions;
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        jointPositions = g_data.jointPositions;
     }
+
+    // Update visualized robot with new joint positions
+    visualizer->updateRobot(jointPositions);
+
+    // Update visualized object with new position and orientation, use a sine
+    // function for demo
+    constexpr double k_sineFreq = 0.1;
+    constexpr double k_t = 0.02;
+    double sineOutput = sin(2 * M_PI * k_sineFreq * sineCounter * k_t);
+    Eigen::Vector3d newPosition(1, sineOutput, 0);
+
+    // Use Euler angles to generate rotation matrix
+    Eigen::Vector3d newEuler(
+        M_PI * sineOutput, M_PI * sineOutput, M_PI * sineOutput);
+    Eigen::AngleAxisd yaw(newEuler[2], Eigen::Vector3d::UnitZ());
+    Eigen::AngleAxisd pitch(newEuler[1], Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd roll(newEuler[0], Eigen::Vector3d::UnitX());
+    Eigen::Matrix3d newOrientation
+        = Eigen::Quaterniond(yaw * pitch * roll).toRotationMatrix();
+
+    // Set new position and orientation for all existing objects
+    visualizer->updateScene("box1", -newPosition, newOrientation);
+    visualizer->updateScene("mesh1", newPosition, newOrientation);
 }
 
 int main(int argc, char* argv[])
@@ -103,10 +144,10 @@ int main(int argc, char* argv[])
     // Parse Parameters
     //=============================================================================
     // Check if program has 3 arguments
-    if (argc != 4) {
+    if (argc != 5) {
         log.error(
             "Invalid program arguments. Usage: <robot_ip> <local_ip> "
-            "<robot_urdf>");
+            "<robot_urdf> <scene_urdf>");
         return 0;
     }
     // IP of the robot server
@@ -115,60 +156,74 @@ int main(int argc, char* argv[])
     // IP of the workstation PC running this program
     std::string localIP = argv[2];
 
-    // Path to robot URDF used by visualizer
+    // Path to URDFs used by visualizer
     std::string robotURDF = argv[3];
+    std::string sceneURDF = argv[4];
 
-    // RDK Initialization
-    //=============================================================================
-    // Instantiate robot interface
-    auto robot = std::make_shared<flexiv::Robot>();
+    try {
+        // RDK Initialization
+        //=============================================================================
+        // Instantiate robot interface
+        flexiv::Robot robot(robotIP, localIP);
 
-    // Create data struct for storing robot states
-    auto robotStates = std::make_shared<flexiv::RobotStates>();
+        // Create data struct for storing robot states
+        flexiv::RobotStates robotStates;
 
-    // Initialize robot interface and connect to the robot server
-    robot->init(robotIP, localIP);
+        // Clear fault on robot server if any
+        if (robot.isFault()) {
+            log.warn("Fault occurred on robot server, trying to clear ...");
+            // Try to clear the fault
+            robot.clearFault();
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            // Check again
+            if (robot.isFault()) {
+                log.error("Fault cannot be cleared, exiting ...");
+                return 0;
+            }
+            log.info("Fault on robot server is cleared");
+        }
 
-    // Wait for the connection to be established
-    do {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (!robot->isConnected());
-
-    // Enable the robot, make sure the E-stop is released before enabling
-    if (robot->enable()) {
+        // Enable the robot, make sure the E-stop is released before enabling
         log.info("Enabling robot ...");
+        robot.enable();
+
+        // Wait for the robot to become operational
+        while (!robot.isOperational()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        log.info("Robot is now operational");
+
+        // Set mode after robot is operational
+        robot.setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
+
+        // Wait for the mode to be switched
+        while (robot.getMode() != flexiv::MODE_CARTESIAN_IMPEDANCE) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+
+        // Visualizer Initialization
+        //=============================================================================
+        log.info(
+            "Initializing visualizer, make sure meshcat-server is started");
+        flexiv::Visualization visualizer(robotURDF, sceneURDF);
+
+        // Periodic Tasks
+        //=============================================================================
+        flexiv::Scheduler scheduler;
+        // Add periodic task with 1ms interval and highest applicable priority
+        scheduler.addTask(
+            std::bind(highPriorityTask, &robot, &robotStates, &scheduler, &log),
+            "HP periodic", 1, 45);
+        // Add periodic task with 20ms interval and low priority
+        scheduler.addTask(
+            std::bind(visualizerTask, &visualizer), "LP periodic", 20, 0);
+        // Start all added tasks, this is by default a blocking method
+        scheduler.start();
+
+    } catch (const flexiv::Exception& e) {
+        log.error(e.what());
+        return 0;
     }
-
-    // Wait for the robot to become operational
-    do {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (!robot->isOperational());
-    log.info("Robot is now operational");
-
-    // Set mode after robot is operational
-    robot->setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
-
-    // Wait for the mode to be switched
-    do {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (robot->getMode() != flexiv::MODE_CARTESIAN_IMPEDANCE);
-
-    // Visualizer Initialization
-    //=============================================================================
-    auto visualizer = std::make_shared<flexiv::Visualization>();
-    visualizer->init(robotURDF);
-
-    // Low-priority Background Tasks
-    //=============================================================================
-    // Use std::thread for some non-realtime tasks, not joining
-    // (non-blocking)
-    std::thread lowPriorityThread(std::bind(visualizerTask, visualizer));
-
-    // High-priority Realtime Periodic Task @ 1kHz
-    //=============================================================================
-    // This is a blocking method, so all other user-defined background threads
-    // should be spawned before this
-    robot->start(std::bind(periodicTask, robotStates, robot));
 
     return 0;
 }

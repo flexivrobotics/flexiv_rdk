@@ -7,8 +7,10 @@
  * @author Flexiv
  */
 
-#include <Robot.hpp>
-#include <Log.hpp>
+#include <flexiv/Robot.hpp>
+#include <flexiv/Exception.hpp>
+#include <flexiv/Log.hpp>
+#include <flexiv/Scheduler.hpp>
 
 #include <iostream>
 #include <thread>
@@ -26,46 +28,59 @@
 #include <termios.h>
 
 namespace {
-// loop counter
-unsigned int g_loopCounter = 0;
 
 // file descriptor of the serial port
 int g_fd = 0;
 }
 
 // callback function for realtime periodic task
-void periodicTask(std::shared_ptr<flexiv::Robot> robot, flexiv::Log& log)
+void periodicTask(
+    flexiv::Robot* robot, flexiv::Scheduler* scheduler, flexiv::Log* log)
 {
-    // send signal at 1Hz
-    switch (g_loopCounter % 1000) {
-        case 0: {
-            log.info(
-                "Sending benchmark signal to both workstation PC's serial port "
-                "and robot server's digital out port[0]");
-            break;
-        }
-        case 1: {
-            // signal robot server's digital out port
-            robot->writeDigitalOutput(0, true);
+    // Loop counter
+    static unsigned int loopCounter = 0;
 
-            // signal workstation PC's serial port
-            auto n = write(g_fd, "0", 1);
-            if (n < 0) {
-                log.error("Failed to write to serial port");
+    try {
+        // Monitor fault on robot server
+        if (robot->isFault()) {
+            throw flexiv::ServerException(
+                "periodicTask: Fault occurred on robot server, exiting ...");
+        }
+
+        // send signal at 1Hz
+        switch (loopCounter % 1000) {
+            case 0: {
+                log->info(
+                    "Sending benchmark signal to both workstation PC's serial "
+                    "port and robot server's digital out port[0]");
+                break;
             }
+            case 1: {
+                // signal robot server's digital out port
+                robot->writeDigitalOutput(0, true);
 
-            break;
+                // signal workstation PC's serial port
+                auto n = write(g_fd, "0", 1);
+                if (n < 0) {
+                    log->error("Failed to write to serial port");
+                }
+
+                break;
+            }
+            case 900: {
+                // reset digital out after a few seconds
+                robot->writeDigitalOutput(0, false);
+                break;
+            }
+            default:
+                break;
         }
-        case 900: {
-            // reset digital out after a few seconds
-            robot->writeDigitalOutput(0, false);
-            break;
-        }
-        default:
-            break;
+        loopCounter++;
+
+    } catch (const flexiv::Exception& e) {
+        log->error(e.what());
+        scheduler->stop();
     }
-
-    g_loopCounter++;
 }
 
 int main(int argc, char* argv[])
@@ -95,48 +110,62 @@ int main(int argc, char* argv[])
     // serial port name
     std::string serialPort = argv[3];
 
-    // RDK Initialization
-    //=============================================================================
-    // instantiate robot interface
-    auto robot = std::make_shared<flexiv::Robot>();
+    try {
+        // RDK Initialization
+        //=============================================================================
+        // Instantiate robot interface
+        flexiv::Robot robot(robotIP, localIP);
 
-    // initialize robot interface and connect to the robot server
-    robot->init(robotIP, localIP);
+        // Clear fault on robot server if any
+        if (robot.isFault()) {
+            log.warn("Fault occurred on robot server, trying to clear ...");
+            // Try to clear the fault
+            robot.clearFault();
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            // Check again
+            if (robot.isFault()) {
+                log.error("Fault cannot be cleared, exiting ...");
+                return 0;
+            }
+            log.info("Fault on robot server is cleared");
+        }
 
-    // wait for the connection to be established
-    do {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (!robot->isConnected());
-
-    // enable the robot, make sure the E-stop is released before enabling
-    if (robot->enable()) {
+        // enable the robot, make sure the E-stop is released before enabling
         log.info("Enabling robot ...");
+        robot.enable();
+
+        // wait for the robot to become operational
+        while (!robot.isOperational()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        log.info("Robot is now operational");
+
+        // Benchmark Signal
+        //=============================================================================
+        // get workstation PC's serial port ready,
+        g_fd = open(serialPort.c_str(),
+            O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL | O_CLOEXEC);
+
+        if (g_fd == -1) {
+            log.error("Unable to open serial port " + serialPort);
+        }
+
+        // print messages
+        log.warn("Benchmark signal will be sent every 1 second");
+
+        // Periodic Tasks
+        //=============================================================================
+        flexiv::Scheduler scheduler;
+        // Add periodic task with 1ms interval and highest applicable priority
+        scheduler.addTask(std::bind(periodicTask, &robot, &scheduler, &log),
+            "HP periodic", 1, 45);
+        // Start all added tasks, this is by default a blocking method
+        scheduler.start();
+
+    } catch (const flexiv::Exception& e) {
+        log.error(e.what());
+        return 0;
     }
-
-    // wait for the robot to become operational
-    do {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (!robot->isOperational());
-    log.info("Robot is now operational");
-
-    // Benchmark Signal
-    //=============================================================================
-    // get workstation PC's serial port ready,
-    g_fd = open(
-        serialPort.c_str(), O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL | O_CLOEXEC);
-
-    if (g_fd == -1) {
-        log.error("Unable to open serial port " + serialPort);
-    }
-
-    // print messages
-    log.warn("Benchmark signal will be sent every 1 second");
-
-    // High-priority Realtime Periodic Task @ 1kHz
-    //=============================================================================
-    // this is a blocking method, so all other user-defined background
-    // threads should be spawned before this
-    robot->start(std::bind(periodicTask, robot, log));
 
     return 0;
 }

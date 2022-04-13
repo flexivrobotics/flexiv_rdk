@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<link name="box1">
+    <visual>
+        <origin rpy="0 0 0" xyz="0 0 0" />
+        <geometry>
+            <box size="0.1 0.2 0.3"/>
+        </geometry>
+        <material name="white">
+            <color rgba="1.0 1.0 1.0 1.0" />
+        </material>
+    </visual>
+</link>
+<link name="mesh1">
+    <visual>
+        <origin rpy="0 0 0" xyz="0 0 0" />
+        <geometry>
+            <mesh filename="meshes/collision/link0.stl" />
+        </geometry>
+        <material name="white">
+            <color rgba="1.0 1.0 1.0 1.0" />
+        </material>
+    </visual>
+</link>

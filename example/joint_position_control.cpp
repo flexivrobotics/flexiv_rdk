@@ -5,8 +5,10 @@
  * @author Flexiv
  */
 
-#include <Robot.hpp>
-#include <Log.hpp>
+#include <flexiv/Robot.hpp>
+#include <flexiv/Exception.hpp>
+#include <flexiv/Log.hpp>
+#include <flexiv/Scheduler.hpp>
 
 #include <iostream>
 #include <string>
@@ -18,21 +20,15 @@ namespace {
 const int k_robotDofs = 7;
 
 /** RT loop period [sec] */
-const double k_loopPeiord = 0.001;
+const double k_loopPeriod = 0.001;
 
 /** Sine-sweep trajectory amplitude and frequency */
 const std::vector<double> k_sineAmp
     = {0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035};
 const std::vector<double> k_sineFreq = {0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3};
 
-/** Initial position of robot joints */
-std::vector<double> g_initPosition;
-
-/** Flag whether initial joint position is set */
-bool g_isInitPositionSet = false;
-
-/** Loop counter */
-unsigned int g_loopCounter = 0;
+/** Type of motion specified by user */
+std::string motionType = {};
 }
 
 /** Helper function to print a std::vector */
@@ -45,55 +41,76 @@ void printVector(const std::vector<double>& vec)
 }
 
 /** Callback function for realtime periodic task */
-void periodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
-    std::shared_ptr<flexiv::Robot> robot, std::string motionType,
-    flexiv::Log& log)
+void periodicTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
+    flexiv::Scheduler* scheduler, flexiv::Log* log)
 {
-    // Read robot states
-    robot->getRobotStates(robotStates.get());
+    // Sine counter
+    static unsigned int sineCounter = 0;
 
-    // Set initial joint position
-    if (!g_isInitPositionSet) {
-        // Check vector size before saving
-        if (robotStates->m_q.size() == k_robotDofs) {
-            g_initPosition = robotStates->m_q;
-            g_isInitPositionSet = true;
-            log.info("Initial joint position set to:");
-            printVector(g_initPosition);
+    // Whether initial joint position is set
+    static bool isInitPositionSet = false;
+
+    // Initial position of robot joints
+    static std::vector<double> initPosition;
+
+    try {
+        // Monitor fault on robot server
+        if (robot->isFault()) {
+            throw flexiv::ServerException(
+                "periodicTask: Fault occurred on robot server, exiting ...");
         }
-    }
-    // Run control only after init position is set
-    else {
-        // Initialize target vectors to hold position
-        auto targetPosition = g_initPosition;
-        std::vector<double> targetVelocity(k_robotDofs, 0);
-        std::vector<double> targetAcceleration(k_robotDofs, 0);
 
-        // Set target vectors based on motion type
-        if (motionType == "hold") {
-            // Do nothing, target vectors are initialized to hold position
-        } else if (motionType == "sine-sweep") {
-            for (size_t i = 0; i < k_robotDofs; ++i) {
-                targetPosition[i] = g_initPosition[i]
-                                    + k_sineAmp[i]
-                                          * sin(2 * M_PI * k_sineFreq[i]
-                                                * g_loopCounter * k_loopPeiord);
-                std::fill(targetVelocity.begin(), targetVelocity.end(), 0.5);
-                std::fill(
-                    targetAcceleration.begin(), targetAcceleration.end(), 0);
+        // Read robot states
+        robot->getRobotStates(robotStates);
+
+        // Set initial joint position
+        if (!isInitPositionSet) {
+            // Check vector size before saving
+            if (robotStates->m_q.size() == k_robotDofs) {
+                initPosition = robotStates->m_q;
+                isInitPositionSet = true;
+                log->info("Initial joint position set to:");
+                printVector(initPosition);
             }
-        } else {
-            log.error("Unknown motion type");
-            log.info("Accepted motion types: hold, sine-sweep");
-            exit(1);
+        }
+        // Run control only after init position is set
+        else {
+            // Initialize target vectors to hold position
+            auto targetPosition = initPosition;
+            std::vector<double> targetVelocity(k_robotDofs, 0);
+            std::vector<double> targetAcceleration(k_robotDofs, 0);
+
+            // Set target vectors based on motion type
+            if (motionType == "hold") {
+                // Do nothing, target vectors are initialized to hold position
+            } else if (motionType == "sine-sweep") {
+                for (size_t i = 0; i < k_robotDofs; ++i) {
+                    targetPosition[i]
+                        = initPosition[i]
+                          + k_sineAmp[i]
+                                * sin(2 * M_PI * k_sineFreq[i] * sineCounter
+                                      * k_loopPeriod);
+                    std::fill(
+                        targetVelocity.begin(), targetVelocity.end(), 0.5);
+                    std::fill(targetAcceleration.begin(),
+                        targetAcceleration.end(), 0);
+                }
+                sineCounter++;
+            } else {
+                log->error("Unknown motion type");
+                log->info("Accepted motion types: hold, sine-sweep");
+                exit(1);
+            }
+
+            // Send target joint position to RDK server
+            robot->streamJointPosition(
+                targetPosition, targetVelocity, targetAcceleration);
         }
 
-        // Send target joint position to RDK server
-        robot->streamJointPosition(
-            targetPosition, targetVelocity, targetAcceleration);
+    } catch (const flexiv::Exception& e) {
+        log->error(e.what());
+        scheduler->stop();
     }
-
-    g_loopCounter++;
 }
 
 int main(int argc, char* argv[])
@@ -118,48 +135,63 @@ int main(int argc, char* argv[])
     std::string localIP = argv[2];
 
     // Type of motion specified by user
-    std::string motionType = argv[3];
+    motionType = argv[3];
 
-    // RDK Initialization
-    //=============================================================================
-    // Instantiate robot interface
-    auto robot = std::make_shared<flexiv::Robot>();
+    try {
+        // RDK Initialization
+        //=============================================================================
+        // Instantiate robot interface
+        flexiv::Robot robot(robotIP, localIP);
 
-    // Create data struct for storing robot states
-    auto robotStates = std::make_shared<flexiv::RobotStates>();
+        // Create data struct for storing robot states
+        flexiv::RobotStates robotStates;
 
-    // Initialize robot interface and connect to the robot server
-    robot->init(robotIP, localIP);
+        // Clear fault on robot server if any
+        if (robot.isFault()) {
+            log.warn("Fault occurred on robot server, trying to clear ...");
+            // Try to clear the fault
+            robot.clearFault();
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            // Check again
+            if (robot.isFault()) {
+                log.error("Fault cannot be cleared, exiting ...");
+                return 0;
+            }
+            log.info("Fault on robot server is cleared");
+        }
 
-    // Wait for the connection to be established
-    do {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (!robot->isConnected());
-
-    // Enable the robot, make sure the E-stop is released before enabling
-    if (robot->enable()) {
+        // Enable the robot, make sure the E-stop is released before enabling
         log.info("Enabling robot ...");
+        robot.enable();
+
+        // Wait for the robot to become operational
+        while (!robot.isOperational()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        log.info("Robot is now operational");
+
+        // Set mode after robot is operational
+        robot.setMode(flexiv::MODE_JOINT_POSITION);
+
+        // Wait for the mode to be switched
+        while (robot.getMode() != flexiv::MODE_JOINT_POSITION) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+
+        // Periodic Tasks
+        //=============================================================================
+        flexiv::Scheduler scheduler;
+        // Add periodic task with 1ms interval and highest applicable priority
+        scheduler.addTask(
+            std::bind(periodicTask, &robot, &robotStates, &scheduler, &log),
+            "HP periodic", 1, 45);
+        // Start all added tasks, this is by default a blocking method
+        scheduler.start();
+
+    } catch (const flexiv::Exception& e) {
+        log.error(e.what());
+        return 0;
     }
-
-    // Wait for the robot to become operational
-    do {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (!robot->isOperational());
-    log.info("Robot is now operational");
-
-    // Set mode after robot is operational
-    robot->setMode(flexiv::MODE_JOINT_POSITION);
-
-    // Wait for the mode to be switched
-    do {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (robot->getMode() != flexiv::MODE_JOINT_POSITION);
-
-    // High-priority Realtime Periodic Task @ 1kHz
-    //=============================================================================
-    // This is a blocking method, so all other user-defined background threads
-    // should be spawned before this
-    robot->start(std::bind(periodicTask, robotStates, robot, motionType, log));
 
     return 0;
 }

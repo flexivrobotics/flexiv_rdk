@@ -5,8 +5,9 @@
  * @author Flexiv
  */
 
-#include <Robot.hpp>
-#include <Log.hpp>
+#include <flexiv/Log.hpp>
+#include <flexiv/Scheduler.hpp>
+#include <flexiv/Exception.hpp>
 
 #include <iostream>
 #include <thread>
@@ -14,84 +15,79 @@
 #include <mutex>
 
 namespace {
-// robot DOF
-const int k_robotDofs = 7;
 
-// loop counter
-unsigned int g_loopCounter = 0;
+/** Data shared between threads */
+struct SharedData
+{
+    int64_t measuredInterval = 0;
+} g_data;
 
-// timer to measure scheduler performance
-std::chrono::high_resolution_clock::time_point g_tic, g_toc;
-
-// scheduler time interval of the high-priority periodic task [us]
-int64_t g_timeInterval;
-
-// mutex on the time interval data
-std::mutex g_intervalMutex;
+/** Mutex on the shared data */
+std::mutex g_mutex;
 
 }
 
-// user-defined high-priority realtime periodic task, running at 1kHz
-void highPriorityPeriodicTask(std::shared_ptr<flexiv::RobotStates> robotStates,
-    std::shared_ptr<flexiv::Robot> robot)
+/** User-defined high-priority periodic task @ 1kHz */
+void highPriorityTask(flexiv::Scheduler* scheduler, flexiv::Log* log)
 {
-    // mark timer end point
-    g_toc = std::chrono::high_resolution_clock::now();
+    static unsigned int loopCounter = 0;
 
-    // calculate scheduler's interrupt interval and print
-    auto timeInterval
-        = std::chrono::duration_cast<std::chrono::microseconds>(g_toc - g_tic)
-              .count();
+    // Scheduler loop interval start time point
+    static std::chrono::high_resolution_clock::time_point tic;
 
-    // save to global variable for printing in another thread
-    {
-        std::lock_guard<std::mutex> lock(g_intervalMutex);
-        g_timeInterval = timeInterval;
-    }
+    try {
+        // Mark loop interval end point
+        auto toc = std::chrono::high_resolution_clock::now();
 
-    // do some random stuff to verify the callback's params are working
-    robot->getRobotStates(robotStates.get());
-    if ((robotStates->m_q.size() != k_robotDofs)
-        || (robotStates->m_tau.size() != k_robotDofs)) {
-        std::cerr << "robotStates message corrupted!" << std::endl;
-    }
+        // Calculate scheduler's interrupt interval and print
+        auto measuredInterval
+            = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic)
+                  .count();
 
-    // mark timer start point
-    g_tic = std::chrono::high_resolution_clock::now();
-}
-
-// user-defined low-priority non-realtime task
-// NOT strictly scheduled at a fixed rate
-void lowPriorityTask()
-{
-    uint64_t totalTime = 0;
-    uint64_t measureCount = 0;
-    float avgInterval = 0.0;
-
-    // wait for a while for the time interval data to be available
-    std::this_thread::sleep_for(std::chrono::seconds(2));
-
-    // use while loop to prevent this thread from return
-    while (true) {
-        // wake up every second to do something
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-
-        // safely read the global variable
-        int timeInterval;
+        // Safely write shared data
         {
-            std::lock_guard<std::mutex> lock(g_intervalMutex);
-            timeInterval = g_timeInterval;
+            std::lock_guard<std::mutex> lock(g_mutex);
+            g_data.measuredInterval = measuredInterval;
         }
 
-        // calculate average time interval
-        totalTime += timeInterval;
-        measureCount++;
-        avgInterval = (float)totalTime / (float)measureCount;
+        // Stop scheduler after 5 seconds
+        if (++loopCounter > 5000) {
+            loopCounter = 0;
+            scheduler->stop();
+        }
 
-        // print time interval of high-priority periodic task
-        std::cout << "RT task interval (curr | avg) = " << timeInterval << " | "
-                  << avgInterval << " us" << std::endl;
+        // Mark loop interval start point
+        tic = std::chrono::high_resolution_clock::now();
+
+    } catch (const flexiv::Exception& e) {
+        log->error(e.what());
+        scheduler->stop();
     }
+}
+
+/** User-defined low-priority periodic task @1Hz */
+void lowPriorityTask(flexiv::Log* log)
+{
+    static uint64_t accumulatedTime = 0;
+    static uint64_t numMeasures = 0;
+    static float avgInterval = 0.0;
+    int measuredInterval = 0;
+
+    // Safely read shared data
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        measuredInterval = g_data.measuredInterval;
+    }
+
+    // calculate average time interval
+    accumulatedTime += measuredInterval;
+    numMeasures++;
+    avgInterval = (float)accumulatedTime / (float)numMeasures;
+
+    // print time interval of high-priority periodic task
+    log->info("High-priority task interval (curr | avg) = "
+              + std::to_string(measuredInterval) + " | "
+              + std::to_string(avgInterval) + " us");
 }
 
 int main(int argc, char* argv[])
@@ -102,56 +98,33 @@ int main(int argc, char* argv[])
     // Parse Parameters
     //=============================================================================
     // check if program has 3 arguments
-    if (argc != 3) {
-        log.error("Invalid program arguments. Usage: <robot_ip> <local_ip>");
+    if (argc != 1) {
+        log.error("No program argument is required");
         return 0;
     }
-    // IP of the robot server
-    std::string robotIP = argv[1];
 
-    // IP of the workstation PC running this program
-    std::string localIP = argv[2];
+    try {
+        // Periodic Tasks
+        //=============================================================================
+        flexiv::Scheduler scheduler;
+        // Add periodic task with 1ms interval and highest applicable priority
+        scheduler.addTask(std::bind(highPriorityTask, &scheduler, &log),
+            "HP periodic", 1, 45);
+        // Add periodic task with 1s interval and lowest applicable priority
+        scheduler.addTask(
+            std::bind(lowPriorityTask, &log), "LP periodic", 1000, 0);
+        // Start all added tasks, this is by default a blocking method
+        scheduler.start();
 
-    // RDK Initialization
-    //=============================================================================
-    // instantiate robot interface
-    auto robot = std::make_shared<flexiv::Robot>();
+        // Restart scheduler after 2 seconds
+        log.warn("Scheduler will restart in 2 seconds");
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        scheduler.start();
 
-    // create data struct for storing robot states
-    auto robotStates = std::make_shared<flexiv::RobotStates>();
-
-    // initialize robot interface and connect to the robot server
-    robot->init(robotIP, localIP);
-
-    // wait for the connection to be established
-    do {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (!robot->isConnected());
-
-    // enable the robot, make sure the E-stop is released before enabling
-    if (robot->enable()) {
-        log.info("Enabling robot ...");
+    } catch (const flexiv::Exception& e) {
+        log.error(e.what());
+        return 0;
     }
-
-    // wait for the robot to become operational
-    do {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (!robot->isOperational());
-    log.info("Robot is now operational");
-
-    // set mode after robot is operational
-    robot->setMode(flexiv::MODE_IDLE);
-
-    // Low-priority Background Tasks
-    //=============================================================================
-    // use std::thread for some non-realtime tasks, not joining (non-blocking)
-    std::thread lowPriorityThread(lowPriorityTask);
-
-    // High-priority Realtime Periodic Task @ 1kHz
-    //=============================================================================
-    // this is a blocking method, so all other user-defined background threads
-    // should be spawned before this
-    robot->start(std::bind(highPriorityPeriodicTask, robotStates, robot));
 
     return 0;
 }
