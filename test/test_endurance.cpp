@@ -7,8 +7,10 @@
  * @author Flexiv
  */
 
-#include <Robot.hpp>
-#include <Log.hpp>
+#include <flexiv/Robot.hpp>
+#include <flexiv/Exception.hpp>
+#include <flexiv/Log.hpp>
+#include <flexiv/Scheduler.hpp>
 
 #include <fstream>
 #include <string>
@@ -21,7 +23,7 @@ namespace {
 const unsigned int k_cartPoseSize = 7;
 
 // RT loop period [sec]
-const double k_loopPeiord = 0.001;
+const double k_loopPeriod = 0.001;
 
 // TCP sine-sweep amplitude [m]
 const double k_swingAmp = 0.1;
@@ -29,14 +31,8 @@ const double k_swingAmp = 0.1;
 // TCP sine-sweep frequency [Hz]
 const double k_swingFreq = 0.025; // = 10mm/s linear velocity
 
-// initial Cartesian-space pose (position + rotation) of robot TCP
-std::vector<double> g_initTcpPose;
-
 // current Cartesian-space pose (position + rotation) of robot TCP
 std::vector<double> g_currentTcpPose;
-
-// flag whether initial Cartesian position is set
-bool g_isInitPoseSet = false;
 
 // high-priority task loop counter
 uint64_t g_hpLoopCounter = 0;
@@ -57,44 +53,63 @@ struct LogData
 }
 
 // callback function for realtime periodic task
-void highPriorityTask(std::shared_ptr<flexiv::RobotStates> robotStates,
-    std::shared_ptr<flexiv::Robot> robot)
+void highPriorityTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
+    flexiv::Scheduler* scheduler, flexiv::Log* log)
 {
-    // read robot states
-    robot->getRobotStates(robotStates.get());
+    // flag whether initial Cartesian position is set
+    static bool isInitPoseSet = false;
 
-    // TCP movement control
-    //=====================================================================
-    // use target TCP velocity and acceleration = 0
-    std::vector<double> tcpVel(6, 0);
-    std::vector<double> tcpAcc(6, 0);
+    // Initial Cartesian-space pose (position + rotation) of robot TCP
+    static std::vector<double> initTcpPose;
 
-    // set initial TCP pose
-    if (!g_isInitPoseSet) {
-        // check vector size before saving
-        if (robotStates->m_tcpPose.size() == k_cartPoseSize) {
-            g_initTcpPose = robotStates->m_tcpPose;
-            g_currentTcpPose = g_initTcpPose;
-            g_isInitPoseSet = true;
+    try {
+        // Monitor fault on robot server
+        if (robot->isFault()) {
+            throw flexiv::ServerException(
+                "highPriorityTask: Fault occurred on robot server, exiting "
+                "...");
         }
-    }
-    // run control after initial pose is set
-    else {
-        // move along Z direction
-        g_currentTcpPose[2] = g_initTcpPose[2]
-                              + k_swingAmp
-                                    * sin(2 * M_PI * k_swingFreq
-                                          * g_hpLoopCounter * k_loopPeiord);
-        robot->streamTcpPose(g_currentTcpPose, tcpVel, tcpAcc);
-    }
 
-    // save data to global buffer, not using mutex to avoid interruption on RT
-    // loop from potential priority inversion
-    g_logData.tcpPose = robotStates->m_tcpPose;
-    g_logData.tcpForce = robotStates->m_extForceInBaseFrame;
+        // Read robot states
+        robot->getRobotStates(robotStates);
 
-    // increment loop counter
-    g_hpLoopCounter++;
+        // TCP movement control
+        //=====================================================================
+        // use target TCP velocity and acceleration = 0
+        std::vector<double> tcpVel(6, 0);
+        std::vector<double> tcpAcc(6, 0);
+
+        // set initial TCP pose
+        if (!isInitPoseSet) {
+            // check vector size before saving
+            if (robotStates->m_tcpPose.size() == k_cartPoseSize) {
+                initTcpPose = robotStates->m_tcpPose;
+                g_currentTcpPose = initTcpPose;
+                isInitPoseSet = true;
+            }
+        }
+        // run control after initial pose is set
+        else {
+            // move along Z direction
+            g_currentTcpPose[2] = initTcpPose[2]
+                                  + k_swingAmp
+                                        * sin(2 * M_PI * k_swingFreq
+                                              * g_hpLoopCounter * k_loopPeriod);
+            robot->streamTcpPose(g_currentTcpPose, tcpVel, tcpAcc);
+        }
+
+        // save data to global buffer, not using mutex to avoid interruption on
+        // RT loop from potential priority inversion
+        g_logData.tcpPose = robotStates->m_tcpPose;
+        g_logData.tcpForce = robotStates->m_extForceInBaseFrame;
+
+        // increment loop counter
+        g_hpLoopCounter++;
+
+    } catch (const flexiv::Exception& e) {
+        log->error(e.what());
+        scheduler->stop();
+    }
 }
 
 void lowPriorityTask()
@@ -213,76 +228,89 @@ int main(int argc, char* argv[])
     log.info("Test duration: " + std::to_string(testHours) + " hours = "
              + std::to_string(g_testDurationLoopCounts) + " cycles");
 
-    // RDK Initialization
-    //=============================================================================
-    // instantiate robot interface
-    auto robot = std::make_shared<flexiv::Robot>();
+    try {
+        // RDK Initialization
+        //=============================================================================
+        // Instantiate robot interface
+        flexiv::Robot robot(robotIP, localIP);
 
-    // create data struct for storing robot states
-    auto robotStates = std::make_shared<flexiv::RobotStates>();
+        // create data struct for storing robot states
+        flexiv::RobotStates robotStates;
 
-    // initialize robot interface and connect to the robot server
-    robot->init(robotIP, localIP);
+        // Clear fault on robot server if any
+        if (robot.isFault()) {
+            log.warn("Fault occurred on robot server, trying to clear ...");
+            // Try to clear the fault
+            robot.clearFault();
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            // Check again
+            if (robot.isFault()) {
+                log.error("Fault cannot be cleared, exiting ...");
+                return 0;
+            }
+            log.info("Fault on robot server is cleared");
+        }
 
-    // wait for the connection to be established
-    do {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (!robot->isConnected());
-
-    // enable the robot, make sure the E-stop is released before enabling
-    if (robot->enable()) {
+        // enable the robot, make sure the E-stop is released before enabling
         log.info("Enabling robot ...");
+        robot.enable();
+
+        // wait for the robot to become operational
+        while (!robot.isOperational()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        log.info("Robot is now operational");
+
+        // Bring Robot To Home
+        //=============================================================================
+        // set mode after robot is operational
+        robot.setMode(flexiv::MODE_PLAN_EXECUTION);
+
+        // wait for mode to be set
+        while (robot.getMode() != flexiv::MODE_PLAN_EXECUTION) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+
+        robot.executePlanByName("PLAN-Home");
+
+        flexiv::SystemStatus systemStatus;
+        // wait until execution begin
+        while (systemStatus.m_programRunning == false) {
+            robot.getSystemStatus(&systemStatus);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+
+        // wait until execution finished
+        do {
+            robot.getSystemStatus(&systemStatus);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        } while (systemStatus.m_programRunning);
+
+        // set mode after robot is at home
+        robot.setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
+
+        // wait for the mode to be switched
+        while (robot.getMode() != flexiv::MODE_CARTESIAN_IMPEDANCE) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+
+        // Periodic Tasks
+        //=============================================================================
+        // use std::thread for logging task, not joining (non-blocking)
+        std::thread lowPriorityThread(lowPriorityTask);
+
+        flexiv::Scheduler scheduler;
+        // Add periodic task with 1ms interval and highest applicable priority
+        scheduler.addTask(
+            std::bind(highPriorityTask, &robot, &robotStates, &scheduler, &log),
+            "HP periodic", 1, 45);
+        // Start all added tasks, this is by default a blocking method
+        scheduler.start();
+
+    } catch (const flexiv::Exception& e) {
+        log.error(e.what());
+        return 0;
     }
-
-    // wait for the robot to become operational
-    do {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (!robot->isOperational());
-    log.info("Robot is now operational");
-
-    // Bring Robot To Home
-    //=============================================================================
-    // set mode after robot is operational
-    robot->setMode(flexiv::MODE_PLAN_EXECUTION);
-
-    // wait for mode to be set
-    do {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (robot->getMode() != flexiv::MODE_PLAN_EXECUTION);
-
-    robot->executePlanByName("PLAN-Home");
-
-    flexiv::SystemStatus systemStatus;
-    // wait until execution begin
-    do {
-        robot->getSystemStatus(&systemStatus);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (systemStatus.m_programRunning == false);
-
-    // wait until execution finished
-    do {
-        robot->getSystemStatus(&systemStatus);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (systemStatus.m_programRunning == true);
-
-    // set mode after robot is at home
-    robot->setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
-
-    // wait for the mode to be switched
-    do {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    } while (robot->getMode() != flexiv::MODE_CARTESIAN_IMPEDANCE);
-
-    // Low-priority Background Tasks
-    //=============================================================================
-    // use std::thread for some non-realtime tasks, not joining (non-blocking)
-    std::thread lowPriorityThread(lowPriorityTask);
-
-    // High-priority Realtime Periodic Task @ 1kHz
-    //=============================================================================
-    // this is a blocking method, so all other user-defined background threads
-    // should be spawned before this
-    robot->start(std::bind(highPriorityTask, robotStates, robot));
 
     return 0;
 }

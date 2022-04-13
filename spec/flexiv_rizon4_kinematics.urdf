@@ -69,6 +69,7 @@
       <geometry>
         <mesh filename="meshes/visual/link0.stl" />
       </geometry>
+      <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -88,6 +89,7 @@
       <geometry>
         <mesh filename="meshes/visual/link1.stl" />
       </geometry>
+      <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -107,6 +109,7 @@
       <geometry>
         <mesh filename="meshes/visual/link2.stl" />
       </geometry>
+      <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -126,6 +129,7 @@
       <geometry>
         <mesh filename="meshes/visual/link3.stl" />
       </geometry>
+      <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -145,6 +149,7 @@
       <geometry>
         <mesh filename="meshes/visual/link4.stl" />
       </geometry>
+      <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -164,6 +169,7 @@
       <geometry>
         <mesh filename="meshes/visual/link5.stl" />
       </geometry>
+      <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -183,6 +189,7 @@
       <geometry>
         <mesh filename="meshes/visual/link6.stl" />
       </geometry>
+      <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -202,6 +209,7 @@
       <geometry>
         <mesh filename="meshes/visual/link7.stl" />
       </geometry>
+      <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -215,7 +223,7 @@
     <color rgba="0. 0. 1. 0.5" />
   </material>
   <material name="rizon_light_grey">
-    <color rgba="0.9 0.9 0.9 1" />
+    <color rgba="0.7 0.7 0.7 1" />
   </material>
   <material name="rizon_dark_grey">
     <color rgba="0.2 0.2 0.2 1" />

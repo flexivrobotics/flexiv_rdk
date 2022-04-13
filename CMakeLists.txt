@@ -12,6 +12,8 @@ if( NOT CMAKE_BUILD_TYPE )
        FORCE )
 endif()
 
+option(BUILD_FOR_ARM64 "Link to RDK library for arm64 processor, otherwise link to x64" OFF)
+
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -25,16 +27,18 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/example)
 
 # list of examples
 set(EXAMPLE_LIST
+  auto_recovery
   cartesian_impedance_control
+  clear_fault
+  display_robot_states
+  floating_with_soft_limits
+  gripper_control
   joint_impedance_control
   joint_position_control
   plan_execution
   primitive_execution
   robot_dynamics
-  display_robot_states
   series_operation
-  floating_with_soft_limits
-  auto_recovery
   visualization
 )
 
@@ -46,14 +50,24 @@ foreach(example ${EXAMPLE_LIST})
   target_include_directories(${example} 
     PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/Eigen
+    ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/eigen3
   )
 
+  # Link basic libraries
   target_link_libraries(${example} 
-      ${CMAKE_CURRENT_SOURCE_DIR}/lib/libFlexivRdk.a
-      anl
       Threads::Threads
+      anl
   )
+
+  # Link arm64 or x64 version of libFlexivRdk
+  if (${BUILD_FOR_ARM64})
+    target_link_libraries(${example} 
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/cpp/arm64/libFlexivRdk.a)
+  else()
+    target_link_libraries(${example} 
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/cpp/x64/libFlexivRdk.a)
+  endif()
+
 endforeach()
 
 
@@ -65,14 +79,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/test)
 
 # list of tests
 set(TEST_LIST
-  test_dynamic_engine
-  test_scheduler
-  test_set_tool
-  test_timeliness_monitor
-  test_data_integrity
+  test_dynamics_engine
+  test_dynamics_with_tool
   test_endurance
   test_log
   test_loop_latency
+  test_scheduler
+  test_timeliness_monitor
 )
 
 foreach(test ${TEST_LIST})
@@ -83,12 +96,22 @@ foreach(test ${TEST_LIST})
   target_include_directories(${test} 
     PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/Eigen
+    ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/eigen3
   )
 
+  # Link basic libraries
   target_link_libraries(${test} 
-      ${CMAKE_CURRENT_SOURCE_DIR}/lib/libFlexivRdk.a
-      anl
       Threads::Threads
+      anl
   )
+
+  # Link arm64 or x64 version of libFlexivRdk
+  if (${BUILD_FOR_ARM64})
+    target_link_libraries(${test} 
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/cpp/arm64/libFlexivRdk.a)
+  else()
+    target_link_libraries(${test} 
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/cpp/x64/libFlexivRdk.a)
+  endif()
+
 endforeach()
