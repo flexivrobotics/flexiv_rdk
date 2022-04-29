@@ -153,7 +153,14 @@ int main(int argc, char* argv[])
 
         // Enable the robot, make sure the E-stop is released before enabling
         log.info("Enabling robot ...");
-        robot.enable();
+        // TODO: remove this extra try catch block after the destructor bug in
+        // Windows library is fixed
+        try {
+            robot.enable();
+        } catch (const flexiv::Exception& e) {
+            log.error(e.what());
+            return 0;
+        }
 
         // Wait for the robot to become operational
         while (!robot.isOperational()) {

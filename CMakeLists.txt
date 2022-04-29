@@ -62,10 +62,10 @@ foreach(example ${EXAMPLE_LIST})
   # Link arm64 or x64 version of libFlexivRdk
   if (${BUILD_FOR_ARM64})
     target_link_libraries(${example} 
-      ${CMAKE_CURRENT_SOURCE_DIR}/lib/cpp/arm64/libFlexivRdk.a)
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/cpp/arm64/libFlexivRdk.a)
   else()
     target_link_libraries(${example} 
-      ${CMAKE_CURRENT_SOURCE_DIR}/lib/cpp/x64/libFlexivRdk.a)
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/cpp/x64/libFlexivRdk.a)
   endif()
 
 endforeach()
@@ -108,10 +108,10 @@ foreach(test ${TEST_LIST})
   # Link arm64 or x64 version of libFlexivRdk
   if (${BUILD_FOR_ARM64})
     target_link_libraries(${test} 
-      ${CMAKE_CURRENT_SOURCE_DIR}/lib/cpp/arm64/libFlexivRdk.a)
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/cpp/arm64/libFlexivRdk.a)
   else()
     target_link_libraries(${test} 
-      ${CMAKE_CURRENT_SOURCE_DIR}/lib/cpp/x64/libFlexivRdk.a)
+      ${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/cpp/x64/libFlexivRdk.a)
   endif()
 
 endforeach()

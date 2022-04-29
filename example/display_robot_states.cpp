@@ -8,57 +8,39 @@
 #include <flexiv/Robot.hpp>
 #include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
-#include <flexiv/Scheduler.hpp>
 
 #include <iostream>
-#include <iomanip>
 #include <thread>
-#include <mutex>
 
-namespace {
-/** Mutex on shared data */
-std::mutex g_mutex;
-}
-
-/** User-defined high-priority periodic task @ 1kHz */
-void highPriorityTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
-    flexiv::Scheduler* scheduler, flexiv::Log* log)
+/** User-defined periodic task @ 1Hz */
+void periodicTask(flexiv::Robot* robot, flexiv::Log* log)
 {
+    unsigned int printCounter = 0;
+
+    // Data struct for storing robot states
+    flexiv::RobotStates robotStates;
+
     try {
-        // Safely write shared data
-        std::lock_guard<std::mutex> lock(g_mutex);
-        // Get robot states
-        robot->getRobotStates(robotStates);
+        while (true) {
+            // Wake up every second to do something
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            // Get robot states
+            robot->getRobotStates(&robotStates);
+
+            // Print all robot states in JSON format using the built-in ostream
+            // operator overloading
+            std::cout << "\n\n[" << ++printCounter << "]";
+            std::cout
+                << "========================================================="
+                << std::endl;
+
+            std::cout << robotStates << std::endl;
+        }
 
     } catch (const flexiv::Exception& e) {
         log->error(e.what());
-        scheduler->stop();
-    }
-}
-
-/** User-defined low-priority periodic task @ 1Hz */
-void lowPriorityTask(flexiv::RobotStates* robotStates)
-{
-    static unsigned int printCounter = 0;
-    constexpr size_t k_nominalDof = 7;
-
-    // Safely read shared data
-    flexiv::RobotStates robotStatesCopy;
-    {
-        std::lock_guard<std::mutex> lock(g_mutex);
-        robotStatesCopy = *robotStates;
-    }
-
-    // Print only when the data is valid
-    if (robotStatesCopy.m_q.size() == k_nominalDof) {
-        // Print divider
-        std::cout << "\n\n[" << ++printCounter << "]";
-        std::cout << "========================================================="
-                  << std::endl;
-
-        // Print all robot states in JSON format using the built-in ostream
-        // operator overloading
-        std::cout << robotStatesCopy << std::endl;
+        return;
     }
 }
 
@@ -86,21 +68,45 @@ int main(int argc, char* argv[])
         // Instantiate robot interface
         flexiv::Robot robot(robotIP, localIP);
 
-        // Create data struct for storing robot states
-        flexiv::RobotStates robotStates;
+        // Clear fault on robot server if any
+        if (robot.isFault()) {
+            log.warn("Fault occurred on robot server, trying to clear ...");
+            // Try to clear the fault
+            robot.clearFault();
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            // Check again
+            if (robot.isFault()) {
+                log.error("Fault cannot be cleared, exiting ...");
+                return 0;
+            }
+            log.info("Fault on robot server is cleared");
+        }
+
+        // Enable the robot, make sure the E-stop is released before enabling
+        log.info("Enabling robot ...");
+        // TODO: remove this extra try catch block after the destructor bug in
+        // Windows library is fixed
+        try {
+            robot.enable();
+        } catch (const flexiv::Exception& e) {
+            log.error(e.what());
+            return 0;
+        }
+
+        // Wait for the robot to become operational
+        while (!robot.isOperational()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        log.info("Robot is now operational");
 
         // Periodic Tasks
         //=============================================================================
-        flexiv::Scheduler scheduler;
-        // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(highPriorityTask, &robot, &robotStates, &scheduler, &log),
-            "HP periodic", 1, 45);
-        // Add periodic task with 1s interval and lowest applicable priority
-        scheduler.addTask(
-            std::bind(lowPriorityTask, &robotStates), "LP periodic", 1000, 0);
-        // Start all added tasks, this is by default a blocking method
-        scheduler.start();
+        // Use std::thread to do scheduling since this example is used for both
+        // Linux and Windows, and the latter does not support flexiv::Scheduler
+        std::thread lowPriorityThread(std::bind(periodicTask, &robot, &log));
+
+        // Properly exit thread
+        lowPriorityThread.join();
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
