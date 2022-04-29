@@ -15,7 +15,7 @@ import argparse
 # Import Flexiv RDK Python library
 # fmt: off
 import sys
-sys.path.insert(0, "../lib/python/x64/")
+sys.path.insert(0, "../lib/linux/python/x64/")
 import flexivrdk
 # fmt: on
 
@@ -55,8 +55,8 @@ def main():
             log.info("Fault on robot server is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        robot.enable()
         log.info("Enabling robot ...")
+        robot.enable()
 
         # Wait for the robot to become operational
         while not robot.isOperational():

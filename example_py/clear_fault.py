@@ -14,7 +14,7 @@ import argparse
 # Import Flexiv RDK Python library
 # fmt: off
 import sys
-sys.path.insert(0, "../lib/python/x64/")
+sys.path.insert(0, "../lib/linux/python/x64/")
 import flexivrdk
 # fmt: on
 
