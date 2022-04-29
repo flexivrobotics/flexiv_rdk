@@ -14,7 +14,7 @@ import argparse
 # Import Flexiv RDK Python library
 # fmt: off
 import sys
-sys.path.insert(0, "../lib/python/x64/")
+sys.path.insert(0, "../lib/linux/python/x64/")
 import flexivrdk
 # fmt: on
 
@@ -38,6 +38,27 @@ def main():
         # =============================================================================
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_ip, args.local_ip)
+
+        # Clear fault on robot server if any
+        if robot.isFault():
+            log.warn("Fault occurred on robot server, trying to clear ...")
+            # Try to clear the fault
+            robot.clearFault()
+            time.sleep(2)
+            # Check again
+            if robot.isFault():
+                log.error("Fault cannot be cleared, exiting ...")
+                return
+            log.info("Fault on robot server is cleared")
+
+        # Enable the robot, make sure the E-stop is released before enabling
+        log.info("Enabling robot ...")
+        robot.enable()
+
+        # Wait for the robot to become operational
+        while not robot.isOperational():
+            time.sleep(1)
+        log.info("Robot is now operational")
 
         # Application-specific Code
         # =============================================================================

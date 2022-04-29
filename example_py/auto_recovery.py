@@ -17,7 +17,7 @@ import argparse
 # Import Flexiv RDK Python library
 # fmt: off
 import sys
-sys.path.insert(0, "../lib/python/x64/")
+sys.path.insert(0, "../lib/linux/python/x64/")
 import flexivrdk
 # fmt: on
 
@@ -42,8 +42,8 @@ def main():
         robot = flexivrdk.Robot(args.robot_ip, args.local_ip)
 
         # Enable the robot, make sure the E-stop is released before enabling
-        robot.enable()
         log.info("Enabling robot ...")
+        robot.enable()
 
         # Application-specific Code
         # =============================================================================
