@@ -23,56 +23,56 @@ struct RobotStates
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
-    std::vector<double> m_q = {};
+    std::vector<double> q = {};
 
     /**
      * Measured motor-side joint positions \f$ \theta~[rad] \f$.
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
-    std::vector<double> m_theta = {};
+    std::vector<double> theta = {};
 
     /**
      * Measured link-side joint velocities \f$ \dot{q}~[rad/s] \f$.
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
-    std::vector<double> m_dq = {};
+    std::vector<double> dq = {};
 
     /**
      * Measured motor-side joint velocities \f$ \dot{\theta}~[rad/s] \f$.
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
-    std::vector<double> m_dtheta = {};
+    std::vector<double> dtheta = {};
 
     /**
      * Measured joint torques \f$ \tau~[Nm] \f$.
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
-    std::vector<double> m_tau = {};
+    std::vector<double> tau = {};
 
     /**
      * Desired joint torques \f$ \tau_{d}~[Nm] \f$.
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
-    std::vector<double> m_tauDes = {};
+    std::vector<double> tauDes = {};
 
     /**
      * Numerical derivative of joint torques \f$ \dot{\tau}~[Nm/s] \f$.
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
-    std::vector<double> m_tauDot = {};
+    std::vector<double> tauDot = {};
 
     /**
      * Estimated external joint torques \f$ \hat \tau_{ext}~[Nm] \f$.
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
-    std::vector<double> m_tauExt = {};
+    std::vector<double> tauExt = {};
 
     /**
      * Measured TCP pose in base frame \f$ ^{O}T_{TCP}~[m][] \f$.
@@ -81,7 +81,7 @@ struct RobotStates
      * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion \f$ [x, y, z,
      * q_w, q_x, q_y, q_z]^T \f$.
      */
-    std::vector<double> m_tcpPose = {};
+    std::vector<double> tcpPose = {};
 
     /**
      * Desired TCP pose in base frame \f$ {^{O}T_{TCP}}_{d}~[m][] \f$.
@@ -90,7 +90,7 @@ struct RobotStates
      * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion \f$ [x, y, z,
      * q_w, q_x, q_y, q_z]^T \f$.
      */
-    std::vector<double> m_tcpPoseDes = {};
+    std::vector<double> tcpPoseDes = {};
 
     /**
      * Measured TCP velocity in base frame \f$ ^{O}\dot{X}~[m/s][rad/s] \f$.
@@ -99,7 +99,7 @@ struct RobotStates
      * linear velocity and \f$ \mathbb{R}^{3 \times 1} \f$ angular velocity \f$
      * [v_x, v_y, v_z, \omega_x, \omega_y, \omega_z]^T \f$.
      */
-    std::vector<double> m_tcpVel = {};
+    std::vector<double> tcpVel = {};
 
     /**
      * Measured camera pose in base frame \f$ ^{O}T_{cam}~[m][] \f$.
@@ -108,7 +108,7 @@ struct RobotStates
      * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion \f$ [x, y, z,
      * q_w, q_x, q_y, q_z]^T \f$.
      */
-    std::vector<double> m_camPose = {};
+    std::vector<double> camPose = {};
 
     /**
      * Measured flange pose in base frame \f$ ^{O}T_{fl}~[m][] \f$.
@@ -117,7 +117,7 @@ struct RobotStates
      * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion \f$ [x, y, z,
      * q_w, q_x, q_y, q_z]^T \f$.
      */
-    std::vector<double> m_flangePose = {};
+    std::vector<double> flangePose = {};
 
     /**
      * Measured end link pose in base frame \f$ ^{O}T_{el}~[m][] \f$.
@@ -126,7 +126,7 @@ struct RobotStates
      * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion \f$ [x, y, z,
      * q_w, q_x, q_y, q_z]^T \f$.
      */
-    std::vector<double> m_endLinkPose = {};
+    std::vector<double> endLinkPose = {};
 
     /**
      * Estimated external force applied on TCP in TCP frame
@@ -136,7 +136,7 @@ struct RobotStates
      * force and \f$ \mathbb{R}^{3 \times 1} \f$ moment \f$ [f_x, f_y, f_z, m_x,
      * m_y, m_z]^T \f$.
      */
-    std::vector<double> m_extForceInTcpFrame = {};
+    std::vector<double> extForceInTcpFrame = {};
 
     /**
      * Estimated external force vector applied on TCP in the base frame
@@ -146,7 +146,7 @@ struct RobotStates
      * force and \f$ \mathbb{R}^{3 \times 1} \f$ moment \f$ [f_x, f_y, f_z, m_x,
      * m_y, m_z]^T \f$.
      */
-    std::vector<double> m_extForceInBaseFrame = {};
+    std::vector<double> extForceInBaseFrame = {};
 };
 
 /**
@@ -160,47 +160,6 @@ std::ostream& operator<<(
     std::ostream& ostream, const flexiv::RobotStates& robotStates);
 
 /**
- * @struct SystemStatus
- * @brief Data struct containing status of the robot system.
- */
-struct SystemStatus
-{
-    /**
-     * Emergency stop state
-     * @note True: E-stop released, false: E-stop pressed
-     */
-    bool m_emergencyStop = {};
-
-    /**
-     * External active state
-     * @note True: robot executing user commands, false: robot waiting
-     * for user commands
-     */
-    bool m_externalActive = {};
-
-    /**
-     * If user can send program request
-     * @note True: server can take new plan/primitive request from the client
-     */
-    bool m_programRequest = {};
-
-    /**
-     * If a plan is currently running
-     */
-    bool m_programRunning = {};
-
-    /**
-     * If the robot has reached target pose
-     */
-    bool m_reachedTarget = {};
-
-    /**
-     * If joint limit is triggered
-     */
-    bool m_jointLimitTriggered = {};
-};
-
-/**
  * @struct PlanInfo
  * @brief Data struct containing information of the on-going primitive/plan.
  */
@@ -209,37 +168,37 @@ struct PlanInfo
     /**
      * Current primitive name
      */
-    std::string m_ptName = {};
+    std::string ptName = {};
 
     /**
      * Current node name
      */
-    std::string m_nodeName = {};
+    std::string nodeName = {};
 
     /**
      * Current node path
      */
-    std::string m_nodePath = {};
+    std::string nodePath = {};
 
     /**
      * Current node path time period
      */
-    std::string m_nodePathTimePeriod = {};
+    std::string nodePathTimePeriod = {};
 
     /**
      * Current node path number
      */
-    std::string m_nodePathNumber = {};
+    std::string nodePathNumber = {};
 
     /**
      * Assigned plan name
      */
-    std::string m_assignedPlanName = {};
+    std::string assignedPlanName = {};
 
     /**
      * Velocity scale
      */
-    double m_velocityScale = {};
+    double velocityScale = {};
 };
 
 } /* namespace flexiv */

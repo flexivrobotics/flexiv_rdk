@@ -14,7 +14,7 @@ import argparse
 # Import Flexiv RDK Python library
 # fmt: off
 import sys
-sys.path.insert(0, "../lib/linux/python/x64/")
+sys.path.insert(0, "../lib_py")
 import flexivrdk
 # fmt: on
 
@@ -24,14 +24,14 @@ def main():
     # =============================================================================
     argparser = argparse.ArgumentParser()
     argparser.add_argument('robot_ip', help='IP address of the robot server')
-    argparser.add_argument('local_ip', help='IP address of the workstation PC')
+    argparser.add_argument('local_ip', help='IP address of this PC')
     args = argparser.parse_args()
 
     # Define alias
     # =============================================================================
-    system_status = flexivrdk.SystemStatus()
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
+    plan_info = flexivrdk.PlanInfo()
 
     try:
         # RDK Initialization
@@ -56,8 +56,16 @@ def main():
         robot.enable()
 
         # Wait for the robot to become operational
+        seconds_waited = 0
         while not robot.isOperational():
             time.sleep(1)
+            seconds_waited += 1
+            if seconds_waited == 10:
+                log.warn(
+                    "Still waiting for robot to become operational, please "
+                    "check that the robot 1) has no fault, 2) is booted "
+                    "into Auto mode")
+
         log.info("Robot is now operational")
 
         # Set mode after robot is operational
@@ -75,32 +83,59 @@ def main():
                 raise Exception("Fault occurred on robot server, exiting ...")
 
             # Get user input
-            input_case = int(input(
-                "Choose an action:\n \
-            [1] Get plan list \n \
-            [2] Execute plan by index \n \
-            [3] Stop the current plan execution \n"
-            )
-            )
+            log.info("Choose an action:")
+            print("[1] Show available plans")
+            print("[2] Execute a plan by index")
+            print("[3] Execute a plan by name")
+            user_input = int(input())
 
-            # Check if user input is valid
-            assert (input_case >= 1 and input_case <= 3), "Invalid input"
-
-            # Get plan list
-            if input_case == 1:
+            # Get and show plan list
+            if user_input == 1:
                 plan_list = robot.getPlanNameList()
-                time.sleep(1)
                 for i in range(len(plan_list)):
                     print("[" + str(i) + "]", plan_list[i])
+                print("")
 
             # Execute plan by index
-            elif input_case == 2:
+            elif user_input == 2:
                 index = int(input("Enter plan index to execute:\n"))
                 robot.executePlanByIndex(index)
 
-            # Stop the current plan execution
-            elif input_case == 3:
-                robot.stop()
+                # Print plan info while the current plan is running
+                while robot.isBusy():
+                    robot.getPlanInfo(plan_info)
+                    log.info(" ")
+                    print("assignedPlanName: ", plan_info.assignedPlanName)
+                    print("ptName: ", plan_info.ptName)
+                    print("nodeName: ", plan_info.nodeName)
+                    print("nodePath: ", plan_info.nodePath)
+                    print("nodePathTimePeriod: ", plan_info.nodePathTimePeriod)
+                    print("nodePathNumber: ", plan_info.nodePathNumber)
+                    print("velocityScale: ", plan_info.velocityScale)
+                    print("")
+                    time.sleep(1)
+
+            # Execute plan by name
+            elif user_input == 3:
+                name = str(input("Enter plan name to execute:\n"))
+                robot.executePlanByName(name)
+
+                # Print plan info while the current plan is running
+                while robot.isBusy():
+                    robot.getPlanInfo(plan_info)
+                    log.info(" ")
+                    print("assignedPlanName: ", plan_info.assignedPlanName)
+                    print("ptName: ", plan_info.ptName)
+                    print("nodeName: ", plan_info.nodeName)
+                    print("nodePath: ", plan_info.nodePath)
+                    print("nodePathTimePeriod: ", plan_info.nodePathTimePeriod)
+                    print("nodePathNumber: ", plan_info.nodePathNumber)
+                    print("velocityScale: ", plan_info.velocityScale)
+                    print("")
+                    time.sleep(1)
+
+            else:
+                log.warn("Invalid input")
 
     except Exception as e:
         # Print exception error message

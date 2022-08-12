@@ -16,48 +16,55 @@ enum Mode
 {
     MODE_UNKNOWN = -1,
 
-    /**
-     * @note This is the default mode upon initialization
-     */
-    MODE_IDLE, ///< The robot holds position and waits for commands
+    MODE_IDLE, ///< No operation to execute, the robot holds position and waits
+               ///< for new command.
 
     /**
-     * @note Receive and execute user commands at 1kHz
+     * @note Real-time (RT) mode
+     * @see flexiv::Robot::streamJointTorque()
      */
-    MODE_JOINT_TORQUE, ///< Real-time joint torque control
+    MODE_JOINT_TORQUE, ///< Execute continuous joint torque command @ 1kHz.
 
     /**
-     * @note Receive and execute user commands at 1kHz
+     * @note Real-time (RT) mode
+     * @see flexiv::Robot::streamJointPosition()
      */
-    MODE_JOINT_POSITION, ///< Real-time joint position control
+    MODE_JOINT_POSITION, ///< Execute continuous joint position command @ 1kHz.
 
     /**
-     * @note Receive and execute user commands at < 1kHz
+     * @note Non-real-time (NRT) mode
+     * @see flexiv::Robot::sendJointPosition()
      */
-    MODE_JOINT_POSITION_NRT, ///< Non-real-time joint position control
+    MODE_JOINT_POSITION_NRT, ///< Execute discrete joint position command
+                             ///< (smoothened by internal motion generator).
 
     /**
-     * @note Non-real-time control mode. The user selects a plan and executes
-     * it. Upon completion, the user can send another plan
+     * @note Non-real-time (NRT) mode
+     * @see flexiv::Robot::executePlanByIndex()
+     * @see flexiv::Robot::executePlanByName()
      */
-    MODE_PLAN_EXECUTION, ///< Execute the plan specified by user
+    MODE_PLAN_EXECUTION, ///< Execute pre-configured motion plans.
 
     /**
-     * @note Non-real-time control mode. The user sends a primitive command with
-     * the name and the associated parameters and executes it. Upon completion,
-     * the user can send another primitive command
+     * @note Non-real-time (NRT) mode
+     * @see flexiv::Robot::executePrimitive()
      */
-    MODE_PRIMITIVE_EXECUTION, ///< Execute the primitive specified by user
+    MODE_PRIMITIVE_EXECUTION, ///< Execute robot primitives.
 
     /**
-     * @note Receive and execute user commands at 1kHz
+     * @note Real-time (RT) mode
+     * @see flexiv::Robot::streamTcpPose()
      */
-    MODE_CARTESIAN_IMPEDANCE, ///< Real-time Cartesian impedance control
+    MODE_CARTESIAN_IMPEDANCE, ///< Execute continuous TCP pose command with
+                              ///< Cartesian impedance controller @ 1kHz.
 
     /**
-     * @note Receive and execute user commands at < 1kHz
+     * @note Non-real-time (NRT) mode
+     * @see flexiv::Robot::sendTcpPose()
      */
-    MODE_CARTESIAN_IMPEDANCE_NRT, ///< Non-realtime Cartesian impedance control
+    MODE_CARTESIAN_IMPEDANCE_NRT, ///< Execute discrete TCP pose command
+                                  ///< (smoothened by internal motion generator)
+                                  ///< with Cartesian impedance controller.
 };
 
 } /* namespace flexiv */

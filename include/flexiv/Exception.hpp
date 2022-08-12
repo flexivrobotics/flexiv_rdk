@@ -32,7 +32,7 @@ class InitException : public Exception
 
 /**
  * @class CommException
- * @brief Thrown if the comminication/connection with the robot server has an
+ * @brief Thrown if the communication/connection with the robot server has an
  * error.
  */
 class CommException : public Exception

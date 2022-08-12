@@ -2,9 +2,9 @@ name: CMake
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 env:
@@ -20,23 +20,32 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: | 
-        cd ${{github.workspace}}
-        rm -rf build
-        mkdir -p build && cd build
-        cmake .. -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      - name: Build and install library
+        # Configure CMake, then build and install the flexiv_rdk INTERFACE library to an external directory.
+        run: |
+          cd ${{github.workspace}}
+          rm -rf build && mkdir -p build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+          make install
 
-    - name: Build
-      # Build examples and tests
-      run: | 
-        cd ${{github.workspace}}/build
-        make -j$(nproc)
-      
+      - name: Build examples
+        # Find and link to the flexiv_rdk INTERFACE library, then build all examples.
+        run: |
+          cd ${{github.workspace}}/example
+          rm -rf build && mkdir -p build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+          make -j$(nproc)
+
+      - name: Build tests
+        # Find and link to the flexiv_rdk INTERFACE library, then build all tests.
+        run: |
+          cd ${{github.workspace}}/test
+          rm -rf build && mkdir -p build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+          make -j$(nproc)
+
   build-ubuntu18:
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
@@ -45,21 +54,28 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: | 
-        cd ${{github.workspace}}
-        rm -rf build
-        mkdir -p build && cd build
-        cmake .. -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      - name: Build and install library
+        # Configure CMake, then build and install the flexiv_rdk INTERFACE library to an external directory.
+        run: |
+          cd ${{github.workspace}}
+          rm -rf build && mkdir -p build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+          make install
 
-    - name: Build
-      # Build examples and tests
-      run: | 
-        cd ${{github.workspace}}/build
-        make -j$(nproc)
+      - name: Build examples
+        # Find and link to the flexiv_rdk INTERFACE library, then build all examples.
+        run: |
+          cd ${{github.workspace}}/example
+          rm -rf build && mkdir -p build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+          make -j$(nproc)
 
-  
+      - name: Build tests
+        # Find and link to the flexiv_rdk INTERFACE library, then build all tests.
+        run: |
+          cd ${{github.workspace}}/test
+          rm -rf build && mkdir -p build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+          make -j$(nproc)

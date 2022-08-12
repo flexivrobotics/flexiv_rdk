@@ -11,6 +11,7 @@
 #include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Scheduler.hpp>
+#include <flexiv/Utility.hpp>
 
 #include <iostream>
 #include <thread>
@@ -83,6 +84,19 @@ void periodicTask(
     }
 }
 
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: [robot IP] [local IP] [serial port name]" << std::endl;
+    std::cout << "    robot IP: address of the robot server" << std::endl;
+    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "    serial port name: /dev/ttyS0 for COM1, /dev/ttyS1 for "
+                 "COM2, /dev/ttyUSB0 for USB-serial converter" << std::endl;
+    std::cout << "Optional arguments: None" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
+}
+
 int main(int argc, char* argv[])
 {
     // log object for printing message with timestamp and coloring
@@ -90,17 +104,12 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    // check if program has 3 arguments
-    if (argc != 4) {
-        log.error(
-            "Invalid program arguments. Usage: <robot_ip> <local_ip> "
-            "<serial_port_name>");
-        log.info(
-            "Some examples of <serial_port_name>: /dev/ttyS0 corresponds to "
-            "COM1, /dev/ttyS1 corresponds to COM2, /dev/ttyUSB0 corresponds to "
-            "a USB-serial converter");
-        return 0;
+    if (argc < 4
+        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+        printHelp();
+        return 1;
     }
+
     // IP of the robot server
     std::string robotIP = argv[1];
 
@@ -125,7 +134,7 @@ int main(int argc, char* argv[])
             // Check again
             if (robot.isFault()) {
                 log.error("Fault cannot be cleared, exiting ...");
-                return 0;
+                return 1;
             }
             log.info("Fault on robot server is cleared");
         }
@@ -134,9 +143,16 @@ int main(int argc, char* argv[])
         log.info("Enabling robot ...");
         robot.enable();
 
-        // wait for the robot to become operational
+        // Wait for the robot to become operational
+        int secondsWaited = 0;
         while (!robot.isOperational()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            if (++secondsWaited == 10) {
+                log.warn(
+                    "Still waiting for robot to become operational, please "
+                    "check that the robot 1) has no fault, 2) is booted "
+                    "into Auto mode");
+            }
         }
         log.info("Robot is now operational");
 
@@ -164,7 +180,7 @@ int main(int argc, char* argv[])
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        return 0;
+        return 1;
     }
 
     return 0;

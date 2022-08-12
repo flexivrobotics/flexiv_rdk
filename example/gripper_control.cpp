@@ -10,9 +10,22 @@
 #include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Gripper.hpp>
+#include <flexiv/Utility.hpp>
 
+#include <iostream>
 #include <string>
 #include <thread>
+
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
+    std::cout << "    robot IP: address of the robot server" << std::endl;
+    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Optional arguments: None" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
+}
 
 int main(int argc, char* argv[])
 {
@@ -21,11 +34,12 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    // Check if program has 3 arguments
-    if (argc != 3) {
-        log.error("Invalid program arguments. Usage: <robot_ip> <local_ip>");
-        return 0;
+    if (argc < 3
+        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+        printHelp();
+        return 1;
     }
+
     // IP of the robot server
     std::string robotIP = argv[1];
 
@@ -47,25 +61,25 @@ int main(int argc, char* argv[])
             // Check again
             if (robot.isFault()) {
                 log.error("Fault cannot be cleared, exiting ...");
-                return 0;
+                return 1;
             }
             log.info("Fault on robot server is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
         log.info("Enabling robot ...");
-        // TODO: remove this extra try catch block after the destructor bug in
-        // Windows library is fixed
-        try {
-            robot.enable();
-        } catch (const flexiv::Exception& e) {
-            log.error(e.what());
-            return 0;
-        }
+        robot.enable();
 
         // Wait for the robot to become operational
+        int secondsWaited = 0;
         while (!robot.isOperational()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            if (++secondsWaited == 10) {
+                log.warn(
+                    "Still waiting for robot to become operational, please "
+                    "check that the robot 1) has no fault, 2) is booted "
+                    "into Auto mode");
+            }
         }
         log.info("Robot is now operational");
 
@@ -85,33 +99,37 @@ int main(int argc, char* argv[])
         // Instantiate gripper
         flexiv::Gripper gripper(&robot);
 
-        // Position control
-        // Close to width = 0.02m, using velocity = 0.1m/s
-        log.info("Closing fingers");
-        gripper.move(0.02, 0.1);
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        // Open to width = 0.08m, using velocity = 0.1m/s
-        log.info("Opening fingers");
-        gripper.move(0.08, 0.1);
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        // Position control test
+        log.info("Closing gripper");
+        gripper.move(0.01, 0.1, 20);
+        std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        // Force control
-        // Close fingers with 10N
-        log.info("Grasping with constant force");
-        gripper.grasp(10);
-        // Hold for 3 seconds
-        std::this_thread::sleep_for(std::chrono::seconds(3));
+        log.info("Opening gripper");
+        gripper.move(0.09, 0.1, 20);
+        std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        // Open fingers and stop halfway
-        log.info("Opening fingers");
-        gripper.move(0.08, 0.1);
+        // Stop test
+        log.info("Closing gripper");
+        gripper.move(0.01, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         log.info("Stopping gripper");
         gripper.stop();
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        log.info("Closing gripper");
+        gripper.move(0.01, 0.1, 20);
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        log.info("Opening gripper");
+        gripper.move(0.09, 0.1, 20);
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        log.info("Stopping gripper");
+        gripper.stop();
+        std::this_thread::sleep_for(std::chrono::seconds(2));
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        return 0;
+        return 1;
     }
 
     return 0;
