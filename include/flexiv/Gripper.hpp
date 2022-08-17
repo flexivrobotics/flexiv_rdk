@@ -13,8 +13,7 @@ namespace flexiv {
 
 /**
  * @class Gripper
- * @brief Interface with grippers that use the communication protocol template
- * provided by Flexiv.
+ * @brief Interface with grippers supported by Flexiv.
  */
 class Gripper
 {
@@ -28,9 +27,9 @@ public:
     virtual ~Gripper();
 
     /**
-     * @brief Grasp with direct force control.
+     * @brief Grasp with direct force control. Requires the mounted gripper to
+     * support direct force control.
      * @param[in] force Target gripping force. Positive direction: closing [N].
-     * @return True: success, false: failed.
      * @note Applicable modes: all modes except MODE_IDLE.
      * @warning Target inputs outside the valid range (specified in gripper's
      * configuration file) will be saturated.
@@ -42,17 +41,17 @@ public:
      * @brief Move the gripper fingers with position control.
      * @param[in] width Target opening width [m].
      * @param[in] velocity Closing/opening velocity, cannot be 0 [m/s].
-     * @return True: success, false: failed.
+     * @param[in] forceLimit Maximum output force during movement [N]. If not
+     * specified, default force limit of the mounted gripper will be used.
      * @note Applicable modes: all modes except MODE_IDLE.
      * @warning Target inputs outside the valid range (specified in gripper's
      * configuration file) will be saturated.
      * @throw ExecutionException if error occurred during execution.
      */
-    void move(double width, double velocity);
+    void move(double width, double velocity, double forceLimit = 0);
 
     /**
      * @brief Stop the gripper.
-     * @return True: success, false: failed.
      * @note Applicable modes: all modes.
      * @throw ExecutionException if error occurred during execution.
      */

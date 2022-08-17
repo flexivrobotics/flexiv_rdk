@@ -15,7 +15,7 @@ import argparse
 # Import Flexiv RDK Python library
 # fmt: off
 import sys
-sys.path.insert(0, "../lib/linux/python/x64/")
+sys.path.insert(0, "../lib_py")
 import flexivrdk
 # fmt: on
 
@@ -24,26 +24,24 @@ def main():
     # Parse Arguments
     # =============================================================================
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('robot_ip', help='IP address of the robot server')
-    argparser.add_argument('local_ip', help='IP address of the workstation PC')
+    # Required arguments
+    argparser.add_argument("robot_ip", help="IP address of the robot server")
+    argparser.add_argument("local_ip", help="IP address of this PC")
     argparser.add_argument(
-        'motion_type', help='Accepted motion types: hold, sine-sweep')
+        "frequency", help="command frequency, 1 to 1000 [Hz]", type=float)
+    # Optional arguments
     argparser.add_argument(
-        'frequency', help='Command frequency, 1 to 1000 [Hz]')
+        "--hold", action="store_true",
+        help="robot holds current TCP pose, otherwise do a sine-sweep")
     args = argparser.parse_args()
 
-    # Convert string to number
-    frequency = float(args.frequency)
-
     # Check if arguments are valid
-    assert (args.motion_type == "hold" or args.motion_type ==
-            "sine-sweep"), "Invalid <motion_type> input"
+    frequency = args.frequency
     assert (frequency >= 1 and frequency <= 1000), "Invalid <frequency> input"
 
     # Define alias
     # =============================================================================
     robot_states = flexivrdk.RobotStates()
-    system_status = flexivrdk.SystemStatus()
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
@@ -70,8 +68,16 @@ def main():
         robot.enable()
 
         # Wait for the robot to become operational
+        seconds_waited = 0
         while not robot.isOperational():
             time.sleep(1)
+            seconds_waited += 1
+            if seconds_waited == 10:
+                log.warn(
+                    "Still waiting for robot to become operational, please "
+                    "check that the robot 1) has no fault, 2) is booted "
+                    "into Auto mode")
+
         log.info("Robot is now operational")
 
         # Set mode after robot is operational
@@ -90,7 +96,7 @@ def main():
 
         # Use current robot TCP pose as initial pose
         robot.getRobotStates(robot_states)
-        init_pose = robot_states.m_tcpPose.copy()
+        init_pose = robot_states.tcpPose.copy()
         print("Initial pose set to: ", init_pose)
 
         # Initialize target vectors
@@ -113,40 +119,39 @@ def main():
                 raise Exception("Fault occurred on robot server, exiting ...")
 
             # Sine-sweep TCP along y axis
-            if args.motion_type == "sine-sweep":
+            if not args.hold:
                 target_pose[1] = init_pose[1] + SWING_AMP * \
                     math.sin(2 * math.pi * SWING_FREQ * loop_counter * period)
-
-                # Online change swivel angle at 2 seconds
-                preferred_degree = 0
-                if ((loop_counter * period) % 10.0 == 2.0):
-                    preferred_degree = 30
-                    robot.setSwivelAngle(preferred_degree / 180 * math.pi)
-                    log.info("Preferred swivel angle set to degrees: " +
-                             str(preferred_degree))
-
-                # Online change stiffness to softer at 5 seconds
-                if ((loop_counter * period) % 10.0 == 5.0):
-                    new_kp = [2000, 2000, 2000, 200, 200, 200]
-                    robot.setCartesianStiffness(new_kp)
-                    log.info("Cartesian stiffness set to: ")
-                    print(new_kp)
-
-                # Online change swivel angle at 7 seconds
-                if ((loop_counter * period) % 10.0 == 7.0):
-                    preferred_degree = -30
-                    robot.setSwivelAngle(preferred_degree / 180 * math.pi)
-                    log.info("Preferred swivel angle set to degrees: "
-                             + str(preferred_degree))
-
-                # Online reset stiffness to original at 9 seconds
-                if ((loop_counter * period) % 10.0 == 9.0):
-                    default_kp = [4000, 4000, 4000, 300, 300, 300]
-                    robot.setCartesianStiffness(default_kp)
-                    log.info("Cartesian stiffness is reset to: ")
-                    print(default_kp)
-
             # Otherwise robot TCP will hold at initial pose
+
+            # Online change swivel angle at 2 seconds
+            preferred_degree = 0
+            if ((loop_counter * period) % 10.0 == 2.0):
+                preferred_degree = 10
+                robot.setSwivelAngle(preferred_degree / 180 * math.pi)
+                log.info("Preferred swivel angle set to degrees: " +
+                         str(preferred_degree))
+
+            # Online change stiffness to softer at 5 seconds
+            if ((loop_counter * period) % 10.0 == 5.0):
+                new_kp = [2000, 2000, 2000, 200, 200, 200]
+                robot.setCartesianStiffness(new_kp)
+                log.info("Cartesian stiffness set to: ")
+                print(new_kp)
+
+            # Online change swivel angle at 7 seconds
+            if ((loop_counter * period) % 10.0 == 7.0):
+                preferred_degree = -10
+                robot.setSwivelAngle(preferred_degree / 180 * math.pi)
+                log.info("Preferred swivel angle set to degrees: "
+                         + str(preferred_degree))
+
+            # Online reset stiffness to original at 9 seconds
+            if ((loop_counter * period) % 10.0 == 9.0):
+                default_kp = [4000, 4000, 4000, 1900, 1900, 1900]
+                robot.setCartesianStiffness(default_kp)
+                log.info("Cartesian stiffness is reset to: ")
+                print(default_kp)
 
             # Send command
             robot.sendTcpPose(target_pose, max_wrench)

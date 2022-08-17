@@ -15,7 +15,7 @@ import argparse
 # Import Flexiv RDK Python library
 # fmt: off
 import sys
-sys.path.insert(0, "../lib/linux/python/x64/")
+sys.path.insert(0, "../lib_py")
 import flexivrdk
 # fmt: on
 
@@ -28,7 +28,7 @@ def main():
     argparser.add_argument(
         'robot_ip', help='IP address of the robot server')
     argparser.add_argument(
-        'local_ip', help='IP address of the workstation PC')
+        'local_ip', help='IP address of this PC')
     args = argparser.parse_args()
 
     # Define alias
@@ -59,8 +59,16 @@ def main():
         robot.enable()
 
         # Wait for the robot to become operational
+        seconds_waited = 0
         while not robot.isOperational():
             time.sleep(1)
+            seconds_waited += 1
+            if seconds_waited == 10:
+                log.warn(
+                    "Still waiting for robot to become operational, please "
+                    "check that the robot 1) has no fault, 2) is booted "
+                    "into Auto mode")
+
         log.info("Robot is now operational")
 
         # Set mode after robot is operational
@@ -71,35 +79,44 @@ def main():
             time.sleep(1)
 
         robot.executePlanByName("PLAN-Home")
+        # Wait for plan to start
         time.sleep(1)
+        # Wait for plan to finish
+        while robot.isBusy():
+            time.sleep(1)
 
         # Application-specific Code
         # =============================================================================
         # Instantiate gripper
         gripper = flexivrdk.Gripper(robot)
-        # Position control
-        # Close to width = 0.02m, using velocity = 0.1m/s
-        log.info("Closing fingers")
-        gripper.move(0.02, 0.1)
-        time.sleep(1)
-        # Open to width = 0.08m, using velocity = 0.1m/s
-        log.info("Opening fingers")
-        gripper.move(0.08, 0.1)
-        time.sleep(1)
 
-        # Force control
-        # Close fingers with 10N
-        log.info("Grasping with constant force")
-        gripper.grasp(10)
-        # Hold for 3 seconds
-        time.sleep(3)
+        # Move tests
+        log.info("Closing gripper")
+        gripper.move(0.01, 0.1, 20)
+        time.sleep(2)
 
-        # Open fingers and stop halfway
-        log.info("Opening fingers")
-        gripper.move(0.08, 0.1)
+        log.info("Opening gripper")
+        gripper.move(0.09, 0.1, 20)
+        time.sleep(2)
+
+        # Stop tests
+        log.info("Closing gripper")
+        gripper.move(0.01, 0.1, 20)
         time.sleep(0.5)
         log.info("Stopping gripper")
         gripper.stop()
+        time.sleep(2)
+
+        log.info("Closing gripper")
+        gripper.move(0.01, 0.1, 20)
+        time.sleep(2)
+
+        log.info("Opening gripper")
+        gripper.move(0.09, 0.1, 20)
+        time.sleep(0.5)
+        log.info("Stopping gripper")
+        gripper.stop()
+        time.sleep(2)
 
     except Exception as e:
         log.error(str(e))

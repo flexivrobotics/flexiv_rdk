@@ -15,7 +15,7 @@ import argparse
 # Import Flexiv RDK Python library
 # fmt: off
 import sys
-sys.path.insert(0, "../lib/linux/python/x64/")
+sys.path.insert(0, "../lib_py")
 import flexivrdk
 # fmt: on
 
@@ -24,26 +24,24 @@ def main():
     # Parse Arguments
     # =============================================================================
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('robot_ip', help='IP address of the robot server')
-    argparser.add_argument('local_ip', help='IP address of the workstation PC')
+    # Required arguments
+    argparser.add_argument("robot_ip", help="IP address of the robot server")
+    argparser.add_argument("local_ip", help="IP address of this PC")
     argparser.add_argument(
-        'motion_type', help='Accepted motion types: hold, sine-sweep')
+        "frequency", help="command frequency, 1 to 1000 [Hz]", type=float)
+    # Optional arguments
     argparser.add_argument(
-        'frequency', help='Command frequency, 1 to 1000 [Hz]')
+        "--hold", action="store_true",
+        help="robot holds current joint positions, otherwise do a sine-sweep")
     args = argparser.parse_args()
 
-    # Convert string to number
-    frequency = float(args.frequency)
-
     # Check if arguments are valid
-    assert (args.motion_type == "hold" or args.motion_type ==
-            "sine-sweep"), "Invalid <motion_type> input"
+    frequency = args.frequency
     assert (frequency >= 1 and frequency <= 1000), "Invalid <frequency> input"
 
     # Define alias
     # =============================================================================
     robot_states = flexivrdk.RobotStates()
-    system_status = flexivrdk.SystemStatus()
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
@@ -70,8 +68,16 @@ def main():
         robot.enable()
 
         # Wait for the robot to become operational
+        seconds_waited = 0
         while not robot.isOperational():
             time.sleep(1)
+            seconds_waited += 1
+            if seconds_waited == 10:
+                log.warn(
+                    "Still waiting for robot to become operational, please "
+                    "check that the robot 1) has no fault, 2) is booted "
+                    "into Auto mode")
+
         log.info("Robot is now operational")
 
         # Set mode after robot is operational
@@ -90,11 +96,11 @@ def main():
 
         # Use current robot joint positions as initial positions
         robot.getRobotStates(robot_states)
-        init_pos = robot_states.m_q.copy()
+        init_pos = robot_states.q.copy()
         print("Initial positions set to: ", init_pos)
 
         # Initialize target vectors
-        DOF = len(robot_states.m_q)
+        DOF = len(robot_states.q)
         target_pos = init_pos.copy()
         target_vel = [0.0] * DOF
         target_acc = [0.0] * DOF
@@ -120,7 +126,7 @@ def main():
                 raise Exception("Fault occurred on robot server, exiting ...")
 
             # Sine-sweep all joints
-            if args.motion_type == "sine-sweep":
+            if not args.hold:
                 for i in range(DOF):
                     target_pos[i] = init_pos[i] + SWING_AMP * \
                         math.sin(2 * math.pi * SWING_FREQ * loop_time)

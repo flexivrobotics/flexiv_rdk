@@ -6,18 +6,29 @@
  */
 
 #include <flexiv/Log.hpp>
+#include <flexiv/Utility.hpp>
+
+#include <iostream>
 #include <thread>
+
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: None" << std::endl;
+    std::cout << "Optional arguments: None" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
+}
 
 int main(int argc, char* argv[])
 {
+    if (flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+        printHelp();
+        return 1;
+    }
+
     // log object for printing message with timestamp and coloring
     flexiv::Log log;
-
-    // check if program has 3 arguments
-    if (argc != 1) {
-        log.error("No program argument is needed");
-        return 0;
-    }
 
     // print info message
     log.info("This is an INFO message with timestamp and GREEN coloring");

@@ -10,6 +10,7 @@
 #include <flexiv/Model.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Scheduler.hpp>
+#include <flexiv/Utility.hpp>
 
 #include <iostream>
 #include <iomanip>
@@ -39,8 +40,8 @@ std::mutex g_mutex;
 }
 
 /** User-defined high-priority periodic task @ 1kHz */
-void highPriorityTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
-    flexiv::Scheduler* scheduler, flexiv::Log* log, flexiv::Model* model)
+void highPriorityTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
+    flexiv::Log* log, flexiv::Model* model, flexiv::RobotStates& robotStates)
 {
     try {
         // Monitor fault on robot server
@@ -54,7 +55,7 @@ void highPriorityTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
         robot->getRobotStates(robotStates);
 
         // Update robot model in dynamics engine
-        model->updateModel(robotStates->m_q, robotStates->m_dtheta);
+        model->updateModel(robotStates.q, robotStates.dtheta);
 
         // Mark timer start point
         auto tic = std::chrono::high_resolution_clock::now();
@@ -123,6 +124,17 @@ void lowPriorityTask()
     std::cout << "Norm of delta G: " << deltaG.norm() << '\n' << std::endl;
 }
 
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
+    std::cout << "    robot IP: address of the robot server" << std::endl;
+    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Optional arguments: None" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
+}
+
 int main(int argc, char* argv[])
 {
     // log object for printing message with timestamp and coloring
@@ -130,11 +142,12 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    // check if program has 3 arguments
-    if (argc != 3) {
-        log.error("Invalid program arguments. Usage: <robot_ip> <local_ip>");
-        return 0;
+    if (argc < 3
+        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+        printHelp();
+        return 1;
     }
+
     // IP of the robot server
     std::string robotIP = argv[1];
 
@@ -159,7 +172,7 @@ int main(int argc, char* argv[])
             // Check again
             if (robot.isFault()) {
                 log.error("Fault cannot be cleared, exiting ...");
-                return 0;
+                return 1;
             }
             log.info("Fault on robot server is cleared");
         }
@@ -168,9 +181,16 @@ int main(int argc, char* argv[])
         log.info("Enabling robot ...");
         robot.enable();
 
-        // wait for the robot to become operational
+        // Wait for the robot to become operational
+        int secondsWaited = 0;
         while (!robot.isOperational()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            if (++secondsWaited == 10) {
+                log.warn(
+                    "Still waiting for robot to become operational, please "
+                    "check that the robot 1) has no fault, 2) is booted "
+                    "into Auto mode");
+            }
         }
         log.info("Robot is now operational");
 
@@ -185,15 +205,11 @@ int main(int argc, char* argv[])
         // Bring Robot To Home
         //=============================================================================
         robot.executePlanByName("PLAN-Home");
-        // wait for the plan to start
-        std::this_thread::sleep_for(std::chrono::seconds(1));
 
         // wait for the execution to finish
-        flexiv::SystemStatus systemStatus;
         do {
-            robot.getSystemStatus(&systemStatus);
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        } while (systemStatus.m_programRunning);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        } while (robot.isBusy());
 
         // put mode back to IDLE
         robot.setMode(flexiv::MODE_IDLE);
@@ -239,8 +255,8 @@ int main(int argc, char* argv[])
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(highPriorityTask, &robot, &robotStates,
-                              &scheduler, &log, &model),
+        scheduler.addTask(std::bind(highPriorityTask, &robot, &scheduler, &log,
+                              &model, robotStates),
             "HP periodic", 1, 45);
         // Add periodic task with 1s interval and lowest applicable priority
         scheduler.addTask(lowPriorityTask, "LP periodic", 1000, 0);
@@ -249,7 +265,7 @@ int main(int argc, char* argv[])
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        return 0;
+        return 1;
     }
 
     return 0;

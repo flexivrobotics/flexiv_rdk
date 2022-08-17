@@ -11,7 +11,9 @@
 #include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Scheduler.hpp>
+#include <flexiv/Utility.hpp>
 
+#include <iostream>
 #include <fstream>
 #include <string>
 #include <cmath>
@@ -52,9 +54,8 @@ struct LogData
 
 }
 
-// callback function for realtime periodic task
-void highPriorityTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
-    flexiv::Scheduler* scheduler, flexiv::Log* log)
+void highPriorityTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
+    flexiv::Log* log, flexiv::RobotStates& robotStates)
 {
     // flag whether initial Cartesian position is set
     static bool isInitPoseSet = false;
@@ -75,15 +76,11 @@ void highPriorityTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
 
         // TCP movement control
         //=====================================================================
-        // use target TCP velocity and acceleration = 0
-        std::vector<double> tcpVel(6, 0);
-        std::vector<double> tcpAcc(6, 0);
-
         // set initial TCP pose
         if (!isInitPoseSet) {
             // check vector size before saving
-            if (robotStates->m_tcpPose.size() == k_cartPoseSize) {
-                initTcpPose = robotStates->m_tcpPose;
+            if (robotStates.tcpPose.size() == k_cartPoseSize) {
+                initTcpPose = robotStates.tcpPose;
                 g_currentTcpPose = initTcpPose;
                 isInitPoseSet = true;
             }
@@ -95,13 +92,13 @@ void highPriorityTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
                                   + k_swingAmp
                                         * sin(2 * M_PI * k_swingFreq
                                               * g_hpLoopCounter * k_loopPeriod);
-            robot->streamTcpPose(g_currentTcpPose, tcpVel, tcpAcc);
+            robot->streamTcpPose(g_currentTcpPose);
         }
 
         // save data to global buffer, not using mutex to avoid interruption on
         // RT loop from potential priority inversion
-        g_logData.tcpPose = robotStates->m_tcpPose;
-        g_logData.tcpForce = robotStates->m_extForceInBaseFrame;
+        g_logData.tcpPose = robotStates.tcpPose;
+        g_logData.tcpForce = robotStates.extForceInBaseFrame;
 
         // increment loop counter
         g_hpLoopCounter++;
@@ -200,6 +197,18 @@ void lowPriorityTask()
     }
 }
 
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: [robot IP] [local IP] [test hours]" << std::endl;
+    std::cout << "    robot IP: address of the robot server" << std::endl;
+    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "    test hours: duration of the test, can have decimals" << std::endl;
+    std::cout << "Optional arguments: None" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
+}
+
 int main(int argc, char* argv[])
 {
     // log object for printing message with timestamp and coloring
@@ -207,14 +216,12 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    // check if program has 3 arguments
-    if (argc != 4) {
-        log.error(
-            "Invalid program arguments. Usage: <robot_ip> <local_ip> "
-            "<test_hours>");
-        log.info("Note: <test_hours> can be a float number");
-        return 0;
+    if (argc < 4
+        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+        printHelp();
+        return 1;
     }
+
     // IP of the robot server
     std::string robotIP = argv[1];
 
@@ -246,7 +253,7 @@ int main(int argc, char* argv[])
             // Check again
             if (robot.isFault()) {
                 log.error("Fault cannot be cleared, exiting ...");
-                return 0;
+                return 1;
             }
             log.info("Fault on robot server is cleared");
         }
@@ -255,9 +262,16 @@ int main(int argc, char* argv[])
         log.info("Enabling robot ...");
         robot.enable();
 
-        // wait for the robot to become operational
+        // Wait for the robot to become operational
+        int secondsWaited = 0;
         while (!robot.isOperational()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            if (++secondsWaited == 10) {
+                log.warn(
+                    "Still waiting for robot to become operational, please "
+                    "check that the robot 1) has no fault, 2) is booted "
+                    "into Auto mode");
+            }
         }
         log.info("Robot is now operational");
 
@@ -273,18 +287,10 @@ int main(int argc, char* argv[])
 
         robot.executePlanByName("PLAN-Home");
 
-        flexiv::SystemStatus systemStatus;
-        // wait until execution begin
-        while (systemStatus.m_programRunning == false) {
-            robot.getSystemStatus(&systemStatus);
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-
-        // wait until execution finished
+        // Wait fot the plan to finish
         do {
-            robot.getSystemStatus(&systemStatus);
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        } while (systemStatus.m_programRunning);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        } while (robot.isBusy());
 
         // set mode after robot is at home
         robot.setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
@@ -302,14 +308,14 @@ int main(int argc, char* argv[])
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
-            std::bind(highPriorityTask, &robot, &robotStates, &scheduler, &log),
+            std::bind(highPriorityTask, &robot, &scheduler, &log, robotStates),
             "HP periodic", 1, 45);
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        return 0;
+        return 1;
     }
 
     return 0;

@@ -8,6 +8,7 @@
 #include <flexiv/Log.hpp>
 #include <flexiv/Scheduler.hpp>
 #include <flexiv/Exception.hpp>
+#include <flexiv/Utility.hpp>
 
 #include <iostream>
 #include <thread>
@@ -90,6 +91,15 @@ void lowPriorityTask(flexiv::Log* log)
               + std::to_string(avgInterval) + " us");
 }
 
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: None" << std::endl;
+    std::cout << "Optional arguments: None" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
+}
+
 int main(int argc, char* argv[])
 {
     // log object for printing message with timestamp and coloring
@@ -97,10 +107,9 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    // check if program has 3 arguments
-    if (argc != 1) {
-        log.error("No program argument is required");
-        return 0;
+    if (flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+        printHelp();
+        return 1;
     }
 
     try {
@@ -123,7 +132,7 @@ int main(int argc, char* argv[])
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        return 0;
+        return 1;
     }
 
     return 0;

@@ -10,7 +10,9 @@
 #include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Scheduler.hpp>
+#include <flexiv/Utility.hpp>
 
+#include <iostream>
 #include <string>
 #include <thread>
 
@@ -24,8 +26,8 @@ const std::vector<double> k_floatingDamping
 }
 
 /** Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
-    flexiv::Scheduler* scheduler, flexiv::Log* log)
+void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
+    flexiv::Log* log, flexiv::RobotStates& robotStates)
 {
     try {
         // Monitor fault on robot server
@@ -42,7 +44,7 @@ void periodicTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
 
         // Add some velocity damping
         for (size_t i = 0; i < k_robotDofs; ++i) {
-            torqueDesired[i] = -k_floatingDamping[i] * robotStates->m_dtheta[i];
+            torqueDesired[i] = -k_floatingDamping[i] * robotStates.dtheta[i];
         }
 
         // Send target joint torque to RDK server, enable gravity compensation
@@ -55,6 +57,17 @@ void periodicTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
     }
 }
 
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
+    std::cout << "    robot IP: address of the robot server" << std::endl;
+    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Optional arguments: None" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
+}
+
 int main(int argc, char* argv[])
 {
     // Log object for printing message with timestamp and coloring
@@ -62,11 +75,12 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    // Check if program has 3 arguments
-    if (argc != 3) {
-        log.error("Invalid program arguments. Usage: <robot_ip> <local_ip>");
-        return 0;
+    if (argc < 3
+        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+        printHelp();
+        return 1;
     }
+
     // IP of the robot server
     std::string robotIP = argv[1];
 
@@ -91,7 +105,7 @@ int main(int argc, char* argv[])
             // Check again
             if (robot.isFault()) {
                 log.error("Fault cannot be cleared, exiting ...");
-                return 0;
+                return 1;
             }
             log.info("Fault on robot server is cleared");
         }
@@ -101,8 +115,15 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
+        int secondsWaited = 0;
         while (!robot.isOperational()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            if (++secondsWaited == 10) {
+                log.warn(
+                    "Still waiting for robot to become operational, please "
+                    "check that the robot 1) has no fault, 2) is booted "
+                    "into Auto mode");
+            }
         }
         log.info("Robot is now operational");
 
@@ -119,14 +140,14 @@ int main(int argc, char* argv[])
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
-            std::bind(periodicTask, &robot, &robotStates, &scheduler, &log),
+            std::bind(periodicTask, &robot, &scheduler, &log, robotStates),
             "HP periodic", 1, 45);
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        return 0;
+        return 1;
     }
 
     return 0;
