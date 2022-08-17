@@ -5,6 +5,10 @@ cmake_minimum_required(VERSION 3.4)
 # ===================================================================
 project(flexiv_rdk VERSION 0.6.0)
 
+# C++14 required
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # Configure build type
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "CMake build type" FORCE)
@@ -63,8 +67,6 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
   Threads::Threads
 )
 
-# Set target compile properties and options, which replaces the CMAKE_CXX_FLAGS
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_STANDARD 14)
 # Use moderate compiler warning option 
 if(MSVC)
   target_compile_options(${PROJECT_NAME} INTERFACE /W1)
