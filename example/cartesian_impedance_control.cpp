@@ -9,6 +9,7 @@
 #include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Scheduler.hpp>
+#include <flexiv/Utility.hpp>
 
 #include <iostream>
 #include <cmath>
@@ -31,18 +32,9 @@ const double k_swingFreq = 0.3;
 std::string motionType = {};
 }
 
-/** Helper function to print a std::vector */
-void printVector(const std::vector<double>& vec)
-{
-    for (auto i : vec) {
-        std::cout << i << "  ";
-    }
-    std::cout << std::endl;
-}
-
 /** Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
-    flexiv::Scheduler* scheduler, flexiv::Log* log)
+void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
+    flexiv::Log* log, flexiv::RobotStates& robotStates)
 {
     // Sine counter
     static unsigned int loopCounter = 0;
@@ -63,79 +55,86 @@ void periodicTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
         // Read robot states
         robot->getRobotStates(robotStates);
 
-        // Use target TCP velocity and acceleration = 0
-        std::vector<double> tcpVel(6, 0);
-        std::vector<double> tcpAcc(6, 0);
-
         // Set initial TCP pose
         if (!isInitPoseSet) {
             // Check vector size before saving
-            if (robotStates->m_tcpPose.size() == k_cartPoseSize) {
-                initTcpPose = robotStates->m_tcpPose;
+            if (robotStates.tcpPose.size() == k_cartPoseSize) {
+                initTcpPose = robotStates.tcpPose;
                 isInitPoseSet = true;
-                std::cout
-                    << "Initial Cartesion pose of robot TCP set to [position "
-                       "3x1 + rotation (quaternion) 4x1]:\n";
-                printVector(initTcpPose);
+                log->info(
+                    "Initial Cartesion pose of robot TCP set to [position "
+                    "3x1 + rotation (quaternion) 4x1]: "
+                    + flexiv::utility::vec2Str(initTcpPose));
             }
         }
         // Run control only after initial pose is set
         else {
             // Set target position based on motion type
             if (motionType == "hold") {
-                robot->streamTcpPose(initTcpPose, tcpVel, tcpAcc);
+                robot->streamTcpPose(initTcpPose);
             } else if (motionType == "sine-sweep") {
                 auto targetTcpPose = initTcpPose;
                 targetTcpPose[1] = initTcpPose[1]
                                    + k_swingAmp
                                          * sin(2 * M_PI * k_swingFreq
                                                * loopCounter * k_loopPeriod);
-                robot->streamTcpPose(targetTcpPose, tcpVel, tcpAcc);
-
-                // online change swivel angle at 2 seconds
-                double preferredAngleDeg = 0;
-                if (loopCounter % 10000 == 2000) {
-                    preferredAngleDeg = 30;
-                    robot->setSwivelAngle(preferredAngleDeg / 180 * M_PI);
-                    log->info("Preferred swivel angle set to degrees: "
-                              + std::to_string(preferredAngleDeg));
-                }
-
-                // online change stiffness to softer at 5 seconds
-                if (loopCounter % 10000 == 5000) {
-                    std::vector<double> newKp
-                        = {2000, 2000, 2000, 200, 200, 200};
-                    robot->setCartesianStiffness(newKp);
-                    log->info("Cartesian stiffness set to: ");
-                    printVector(newKp);
-                }
-
-                // online change swivel angle at 7 seconds
-                if (loopCounter % 10000 == 7000) {
-                    preferredAngleDeg = -30;
-                    robot->setSwivelAngle(preferredAngleDeg / 180 * M_PI);
-                    log->info("Preferred swivel angle set to degrees: "
-                              + std::to_string(preferredAngleDeg));
-                }
-
-                // online reset stiffness to original at 9 seconds
-                if (loopCounter % 10000 == 9000) {
-                    robot->setCartesianStiffness();
-                    log->info("Cartesian stiffness is reset");
-                }
-
-                loopCounter++;
+                robot->streamTcpPose(targetTcpPose);
             } else {
                 log->error("Unknown motion type");
                 log->info("Accepted motion types: hold, sine-sweep");
                 exit(1);
             }
+
+            // online change swivel angle at 2 seconds
+            double preferredAngleDeg = 0;
+            if (loopCounter % 10000 == 2000) {
+                preferredAngleDeg = 10;
+                robot->setSwivelAngle(preferredAngleDeg / 180 * M_PI);
+                log->info("Preferred swivel angle set to degrees: "
+                          + std::to_string(preferredAngleDeg));
+            }
+
+            // online change stiffness to softer at 5 seconds
+            if (loopCounter % 10000 == 5000) {
+                std::vector<double> newKp = {2000, 2000, 2000, 200, 200, 200};
+                robot->setCartesianStiffness(newKp);
+                log->info("Cartesian stiffness set to: "
+                          + flexiv::utility::vec2Str(newKp));
+            }
+
+            // online change swivel angle at 7 seconds
+            if (loopCounter % 10000 == 7000) {
+                preferredAngleDeg = -10;
+                robot->setSwivelAngle(preferredAngleDeg / 180 * M_PI);
+                log->info("Preferred swivel angle set to degrees: "
+                          + std::to_string(preferredAngleDeg));
+            }
+
+            // online reset stiffness to original at 9 seconds
+            if (loopCounter % 10000 == 9000) {
+                robot->setCartesianStiffness();
+                log->info("Cartesian stiffness is reset");
+            }
+
+            loopCounter++;
         }
 
     } catch (const flexiv::Exception& e) {
         log->error(e.what());
         scheduler->stop();
     }
+}
+
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
+    std::cout << "    robot IP: address of the robot server" << std::endl;
+    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Optional arguments: [--hold]" << std::endl;
+    std::cout << "    --hold: robot holds current TCP pose, otherwise do a sine-sweep" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
 }
 
 int main(int argc, char* argv[])
@@ -145,14 +144,12 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    // Check if program has 3 arguments
-    if (argc != 4) {
-        log.error(
-            "Invalid program arguments. Usage: <robot_ip> <local_ip> "
-            "<motion_type>");
-        log.info("Accepted motion types: hold, sine-sweep");
-        return 0;
+    if (argc < 3
+        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+        printHelp();
+        return 1;
     }
+
     // IP of the robot server
     std::string robotIP = argv[1];
 
@@ -160,7 +157,13 @@ int main(int argc, char* argv[])
     std::string localIP = argv[2];
 
     // Type of motion specified by user
-    motionType = argv[3];
+    if (flexiv::utility::programArgsExist(argc, argv, "--hold")) {
+        log.info("Robot holding current TCP pose");
+        motionType = "hold";
+    } else {
+        log.info("Robot running TCP sine-sweep");
+        motionType = "sine-sweep";
+    }
 
     try {
         // RDK Initialization
@@ -180,7 +183,7 @@ int main(int argc, char* argv[])
             // Check again
             if (robot.isFault()) {
                 log.error("Fault cannot be cleared, exiting ...");
-                return 0;
+                return 1;
             }
             log.info("Fault on robot server is cleared");
         }
@@ -190,8 +193,15 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
+        int secondsWaited = 0;
         while (!robot.isOperational()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            if (++secondsWaited == 10) {
+                log.warn(
+                    "Still waiting for robot to become operational, please "
+                    "check that the robot 1) has no fault, 2) is booted "
+                    "into Auto mode");
+            }
         }
         log.info("Robot is now operational");
 
@@ -213,14 +223,14 @@ int main(int argc, char* argv[])
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
-            std::bind(periodicTask, &robot, &robotStates, &scheduler, &log),
+            std::bind(periodicTask, &robot, &scheduler, &log, robotStates),
             "HP periodic", 1, 45);
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        return 0;
+        return 1;
     }
 
     return 0;

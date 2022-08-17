@@ -2,7 +2,8 @@
 
 """primitive_execution.py
 
-Execute various primitives using RDK's primitive execution API.
+Execute various primitives using RDK's primitive execution API. For details on 
+all available primitives, refer to Flexiv RDK Manual.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -11,10 +12,15 @@ __author__ = "Flexiv"
 import time
 import argparse
 
+# Utility methods
+from utility import quat2eulerZYX
+from utility import parse_pt_states
+from utility import list2str
+
 # Import Flexiv RDK Python library
 # fmt: off
 import sys
-sys.path.insert(0, "../lib/linux/python/x64/")
+sys.path.insert(0, "../lib_py")
 import flexivrdk
 # fmt: on
 
@@ -24,7 +30,7 @@ def main():
     # =============================================================================
     argparser = argparse.ArgumentParser()
     argparser.add_argument('robot_ip', help='IP address of the robot server')
-    argparser.add_argument('local_ip', help='IP address of the workstation PC')
+    argparser.add_argument('local_ip', help='IP address of this PC')
     args = argparser.parse_args()
 
     # Define alias
@@ -35,7 +41,6 @@ def main():
     try:
         # RDK Initialization
         # =============================================================================
-        # Some alias
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_ip, args.local_ip)
 
@@ -56,8 +61,16 @@ def main():
         robot.enable()
 
         # Wait for the robot to become operational
+        seconds_waited = 0
         while not robot.isOperational():
             time.sleep(1)
+            seconds_waited += 1
+            if seconds_waited == 10:
+                log.warn(
+                    "Still waiting for robot to become operational, please "
+                    "check that the robot 1) has no fault, 2) is booted "
+                    "into Auto mode")
+
         log.info("Robot is now operational")
 
         # Set mode after robot is operational
@@ -69,98 +82,86 @@ def main():
 
         # Application-specific Code
         # =============================================================================
-        # Flag to transit to the next primitive
-        transit_primitive = False
 
-        # Index for iterating through various primitives
-        pt_index = 1
+        # (1) Go to home pose
+        # -----------------------------------------------------------------------------
+        # All parameters of the "Home" primitive are optional,
+        # thus we can skip the parameters and the default values will be used
+        log.info("Executing primitive: Home")
 
-        # Go home first
+        # Send command to robot
         robot.executePrimitive("Home()")
-        log.info("Homing ...")
 
-        while True:
-            # Run user periodic task at 10Hz
-            time.sleep(0.1)
+        # Wait for robot to reach target location by checking for "reachedTarget = 1"
+        # in the list of current primitive states
+        while (parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1"):
+            time.sleep(1)
 
-            # Monitor fault on robot server
-            if robot.isFault():
-                raise Exception("Fault occurred on robot server, exiting ...")
+        # NOTE: can also use robot.isStopped() to indirectly tell if the robot has
+        # reached target
 
-            # Reset flag before checking for transition conditions
-            transit_primitive = False
+        # (2) Move robot joints to target positions
+        # -----------------------------------------------------------------------------
+        # The required parameter <target> takes in 7 target joint positions
+        # Unit: degrees
+        log.info("Executing primitive: MoveJ")
 
-            # Get system status which contains primitive states
-            pt_states = robot.getPrimitiveStates()
+        # Send command to robot
+        robot.executePrimitive("MoveJ(target=30 -45 0 90 0 40 30)")
 
-            # Check for transition condition "reachedTarget = 1"
-            for state in pt_states:
-                print(state)
+        # Wait for reached target
+        while (parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1"):
+            time.sleep(1)
 
-                # Split the state sentence into words
-                words = state.split()
+        # (3) Move robot TCP to a target position in world (base) frame
+        # -----------------------------------------------------------------------------
+        # Required parameter:
+        #   target: final target position
+        #       [pos_x pos_y pos_z rot_x rot_y rot_z ref_frame ref_point]
+        #       unit: m, deg
+        # Optional parameter:
+        #   waypoints: waypoints to pass before reaching final target
+        #       [same format as above, but can repeat for number of waypoints]
+        #   maxVel: maximum TCP linear velocity
+        #       unit: m/s
+        # NOTE: The rotations are using Euler ZYX convention, rot_x means Euler ZYX
+        # angle around X axis
+        log.info("Executing primitive: MoveL")
 
-                # Check if this state is "reachedTarget"
-                if words[0] == "reachedTarget":
-                    # Check if the state value is 1
-                    if words[-1] == "1":
-                        # Set transition flag
-                        transit_primitive = True
-                        log.info("Transitting to next primitive ...")
+        # Send command to robot
+        robot.executePrimitive(
+            "MoveL(target=0.65 -0.3 0.2 180 0 180 WORLD "
+            "WORLD_ORIGIN,waypoints=0.45 0.1 0.2 180 0 180 WORLD "
+            "WORLD_ORIGIN 0.45 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN, maxVel=0.2)")
 
-            # Iterate through various primitives if the previous is finished
-            if transit_primitive:
-                if pt_index == 0:
-                    # (1) Go home, all parameters of the "Home" primitive are
-                    # optional, thus we can skip the parameters and the default
-                    # values will be used
-                    robot.executePrimitive("Home()")
+        # Wait for reached target
+        while (parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1"):
+            time.sleep(1)
 
-                    # Execute the next primitive
-                    pt_index += 1
+        # (4) Another MoveL
+        # -----------------------------------------------------------------------------
+        # An example to convert quaternion into Euler ZYX angles required by the
+        # primitive is shown below.
+        log.info("Executing primitive: MoveL")
 
-                elif pt_index == 1:
-                    # (2) Move TCP to point A in world (base) frame. The
-                    # mandatory parameter "target" requires 8 values: [x y z
-                    # roll pitch yaw reference_frame reference_point]
-                    # unit: meters and degrees
-                    robot.executePrimitive(
-                        "MoveL(target=0.387 -0.11 0.203 180.0 0.0 180.0 WORLD "
-                        "WORLD_ORIGIN)")
+        # Target quaternion in the general [w,x,y,z] order
+        target_quat = [-0.373286, 0.0270976, 0.83113, 0.411274]
 
-                    # Execute the next primitive
-                    pt_index += 1
+        # Convert target quaternion to Euler ZYX using scipy package's 'xyz' extrinsic rotation
+        # NOTE: scipy uses [x,y,z,w] order to represent quaternion
+        eulerZYX_deg = quat2eulerZYX(target_quat, degree=True)
 
-                elif pt_index == 2:
-                    # (3) Move TCP to point B in world (base) frame
-                    robot.executePrimitive(
-                        "MoveL(target=0.687 0.0 0.264 180.0 0.0 180.0 WORLD "
-                        "WORLD_ORIGIN)")
+        # Send command to robot
+        robot.executePrimitive("MoveL(target=0.4 -0.1 0.2 "
+                               + list2str(eulerZYX_deg)
+                               + "WORLD WORLD_ORIGIN, maxVel=0.3)")
 
-                    # Execute the next primitive
-                    pt_index += 1
+        # Wait for reached target
+        while (parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1"):
+            time.sleep(1)
 
-                elif pt_index == 3:
-                    # (4) Move TCP to point C in world (base) frame
-                    robot.executePrimitive(
-                        "MoveL(target=0.387 0.1 0.1 -90.0 0.0 180.0 WORLD "
-                        "WORLD_ORIGIN)")
-
-                    # Execute the next primitive
-                    pt_index += 1
-
-                elif pt_index == 4:
-                    # (5) Move TCP to point D in world(base) frame
-                    robot.executePrimitive(
-                        "MoveL(target=0.5 0.0 0.3 180.0 0.0 180.0 WORLD "
-                        "WORLD_ORIGIN)")
-
-                    # Execute the next primitive
-                    pt_index += 1
-
-                elif pt_index == 5:
-                    # Repeat the moves
-                    pt_index = 0
+        # All done, stop robot and put into IDLE mode
+        robot.stop()
 
     except Exception as e:
         # Print exception error message

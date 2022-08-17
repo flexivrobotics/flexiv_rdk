@@ -1,98 +1,94 @@
 # Flexiv RDK
 
 ![CMake Badge](https://github.com/flexivrobotics/flexiv_rdk/actions/workflows/cmake.yml/badge.svg)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
 Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Software Platform, is a powerful development toolkit that enables the users to create complex and customized robotic applications using APIs that provide both low-level real-time (RT) and high-level non-real-time (NRT) access to Flexiv robots.
 
-## License
-
-Flexiv RDK is licensed under the [Apache 2.0 license](https://www.apache.org/licenses/LICENSE-2.0.html).
-
 ## References
 
-[Flexiv RDK main webpage](https://rdk.flexiv.com/) contains important information like the user manual and API documentation, please read them carefully before proceeding.
+[Flexiv RDK Home Page](https://rdk.flexiv.com/) is the main reference. It contains important information including user manual and API documentation.
 
-## OS and language support
+## Compatibility Overview
 
-Supported OS:
+| **Supported OS**          | **Required compiler kit** | **Supported platform** | **Supported language** |
+|---------------------------|---------------------------|------------------------|------------------------|
+| Ubuntu 18.04/20.04/22.04  | build-essential           | x86_64, arm64          | C++, Python            |
+| macOS 12 (Monterey)       | Xcode Command Line Tools  | arm64                  | C++, Python            |
+| Windows 10                | MSVC 14.0+                | x86_64                 | C++                    |
 
-* Linux: Ubuntu 18.04 / 20.04
-* Windows: 10 with MSVC 14.0+
+## Quick Start
 
-Supported programming languages:
+**NOTE:** the full documentation is in [Flexiv RDK Manual](https://rdk.flexiv.com/manual/).
 
-* C++ (Linux and Windows)
-* Python (Linux only)
+### C++ RDK
 
-## Run example programs
+The C++ interface of Flexiv RDK is packed into a unified modern CMake project named ``flexiv_rdk``, which can be configured via CMake on all supported OS.
 
-**NOTE:** the instruction below is only a quick reference, assuming you've already gone through [Flexiv RDK Manual](https://rdk.flexiv.com/manual/).
+#### Compile and install for Linux
 
-### Linux C++ interface
-
-1. Configure CMake and compile all C++ example programs for the x64 processor platform:
+1. In a new Terminal, use ``cmake-gui`` to configure the top-level ``flexiv_rdk`` CMake project:
 
         cd flexiv_rdk
         mkdir build && cd build
-        cmake ..
+        cmake-gui .. &
+
+2. *Configure* with default native compiler settings.
+3. Choose ``BUILD_PLATFORM`` and set ``CMAKE_INSTALL_PREFIX`` to a dedicated directory (preferably not a system path), for example ``~/rdk_install``.
+4. *Configure* and *Generate*, then back to the Terminal to compile and install:
+
+        cd flexiv_rdk/build
+        make install
+
+5. The user project can now find and link to the installed ``flexiv_rdk`` CMake package:
+
+        cd flexiv_rdk/example
+        mkdir build && cd build
+        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
         make -j4
 
-   If compiling for the arm64 processor platform, set the additional CMake option when configuring:
+   Note: ``CMAKE_INSTALL_PREFIX`` is set to the same directory where ``flexiv_rdk`` was installed to.
+6. Assuming the system setup detailed in the Flexiv RDK Manual is done, to run an compiled example program:
 
-        cmake .. -DBUILD_FOR_ARM64=ON
+        ./<program_name> [robot_ip] [local_ip] [...]
 
-2. The compiled program binaries will be output to ``flexiv_rdk/build/example``
-3. Assume the robot is booted and connected, to run an example program from a Linux Terminal:
+     Note: ``sudo`` is not required unless prompted by the program.
 
-        cd flexiv_rdk/build/example
-        ./<program_name> <robot_ip> <local_ip> <...>
+#### Compile and install for Mac
 
-   If ``flexiv::Scheduler`` is used in this program, then ``sudo`` is required to grant root privileges to the integrated scheduler:
+1. In a Terminal, use ``xcode-select`` command to invoke the installation of Xcode Command Line Tools, then follow the prompted window to finish the installation.
+2. Download ``cmake-3.x.x-macos-universal.dmg`` from [CMake download page](https://cmake.org/download/) and install the dmg file. The minimum required version is 3.4.
+3. When done, start CMake from Launchpad and navigate to Tools -> How to Install For Command Line Use. Then follow the instruction "Or, to install symlinks to '/usr/local/bin', run:" to install ``cmake`` and ``cmake-gui`` command for use in Terminal.
+4. The rest steps are the same as mentioned in [Compile and install for Linux](#compile-and-install-for-linux).
 
-        sudo ./<program_name> <robot_ip> <local_ip> <...>
+#### Compile and install for Windows
 
-### Linux Python interface
+1. Install any edition of Microsoft Visual Studio with version 2010 or above. Choose the "Desktop development with C++" package during installation.
+2. Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.4. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or PowerShell.
+3. Configure the ``flexiv_rdk`` CMake project using the same steps mentioned in [Compile and install for Linux](#compile-and-install-for-linux).
+4. Instead of ``make install``, use ``cmake`` to compile and install it:
 
-**NOTE:** Python 3.8 is required to use this interface, see Flexiv RDK Manual for more details.
+        cmake --build . --target INSTALL --config Release
 
-1. Make sure your Python version is 3.8.x:
+5. Configure the user project (RDK example programs) using the same steps mentioned in [Compile and install for Linux](#compile-and-install-for-linux).
+6. Instead of ``make``, use ``cmake`` to compile it:
+
+        cmake --build . --config Release
+
+7. To run an compiled example program:
+
+        cd Release
+        <program_name>.exe [robot_ip] [local_ip] [...]
+
+### Python RDK
+
+Python 3.8 is required to run Python RDK, see Flexiv RDK Manual for more details. The instruction below applies to all supported OS.
+
+1. Check Python version is 3.8.x:
 
         python3 --version
 
-2. Assume the robot is booted and connected, to run an example program from a Linux Terminal:
+2. Assume the system setup detailed in Flexiv RDK Manual is done, to run an example Python program:
 
         cd flexiv_rdk/example_py
-        python3 <program_name>.py <robot_ip> <local_ip> <...>
-
-   Note that ``sudo`` is not required for Python interface.
-
-### Windows C++ interface
-
-1. Install any edition of Microsoft Visual Studio with version 2010 or above.
-2. Use Visual Studio to open the example solution file at ``flexiv_rdk\example\windows\windows.sln``. Several example projects are pre-configured for x64 and x86 processor platforms, with each of them corresponding to an example under ``flexiv_rdk\example\``.
-3. Check that the global solution configuration is set to **Release**. This setting can usually be found near the top menu bar.
-4. Use *Build* -> *Build Solution* to compile all example projects. The compiled ``.exe`` executable binary files are output to ``flexiv_rdk\build\windows\``.
-5. Assume the robot is booted and connected, to run an example program from a Windows Command Prompt:
-
-        cd flexiv_rdk_dev\build\windows\<platform>\Release\
-        <program_name>.exe <robot_ip> <local_ip> <...>
-
-## Integrated visualization
-
-Flexiv RDK has integrated visualization (only available for **Linux C++ interface**) based on Meshcat. To use this feature:
-
-1. Install Meshcat server using ``pip``:
-
-        pip install meshcat
-
-2. Start the Meshcat server in Terminal:
-
-        meshcat-server
-
-3. It will provide several URLs, open ``web_url`` with a web browser. An empty scene will open up.
-
-4. Use APIs in ``flexiv::Visualization`` to communicate with the Meshcat server, the empty scene will be populated with robot(s) and user-defined objects if any. Refer to ``example/visualization.cpp``.
-
-**Note:** only STL mesh files are supported, which are provided in ``spec/meshes``.
-
+        python3 <program_name>.py [robot_ip] [local_ip] [...]

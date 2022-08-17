@@ -64,7 +64,7 @@ public:
      * @brief Get number of tasks added to the scheduler
      * @return Number of added tasks
      */
-    const unsigned int getTaskCount() const;
+    unsigned int getTaskCount() const;
 
 private:
     class Impl;

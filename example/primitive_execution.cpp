@@ -8,161 +8,20 @@
 #include <flexiv/Robot.hpp>
 #include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
+#include <flexiv/Utility.hpp>
 
-#include <vector>
-#include <string>
 #include <iostream>
-#include <sstream>
-#include <cmath>
-#include <mutex>
 #include <thread>
 
-namespace {
-/** Set this to true to print primitive states */
-const bool k_printPtStates = true;
-}
-
-/** Callback function for user-defined primitive state machine */
-void primitiveStateMachine(flexiv::Robot* robot)
+void printHelp()
 {
-    // Log object for printing message with timestamp and coloring
-    flexiv::Log log;
-
-    // If transitting to the next primitive
-    bool transitPrimitive = false;
-
-    // Index for iterating through various primitives
-    unsigned int ptIndex = 1;
-
-    try {
-        // Start any primitive once to pass the first transition condition check
-        robot->executePrimitive("Home()");
-
-        // Use while loop to prevent this thread from return
-        while (true) {
-            // Run user periodic tasks at 10Hz in this thread
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-            // Monitor fault on robot server
-            if (robot->isFault()) {
-                throw flexiv::ServerException(
-                    "primitiveStateMachine: Fault occurred on robot server, "
-                    "exiting ...");
-            }
-
-            // Reset transition flag before checking for transition conditions
-            transitPrimitive = false;
-
-            // Get system status
-            std::vector<std::string> ptStates = robot->getPrimitiveStates();
-
-            // Check for transition conditions
-            for (const auto& state : ptStates) {
-                // Parse key information from the string list for transition
-                // control
-                std::stringstream ss(state);
-                std::string buffer;
-                std::vector<std::string> parsedState;
-                while (ss >> buffer) {
-                    parsedState.push_back(buffer);
-                }
-
-                // Transition condition: "reachedTarget = 1"
-                if (parsedState.front() == "reachedTarget") {
-                    // Save the corresponding value, it should be at the end
-                    if (std::stoi(parsedState.back()) == 1) {
-                        transitPrimitive = true;
-                    }
-                }
-            }
-
-            // Iterate through commanding various primitives
-            if (transitPrimitive) {
-                switch (ptIndex) {
-                    case 0: {
-                        // (1) Go home, all parameters of the "Home" primitive
-                        // are optional, thus we can skip the parameters and the
-                        // default values will be used
-                        robot->executePrimitive("Home()");
-
-                        // Execute the next primitive
-                        ptIndex++;
-
-                        break;
-                    }
-                    case 1: {
-                        // (2) Move TCP to point A in world (base) frame. The
-                        // mandatory parameter "target" requires 8 values: [x y
-                        // z roll pitch yaw reference_frame reference_point]
-                        // unit: meters and degrees
-                        robot->executePrimitive(
-                            "MoveL(target=0.387 -0.11 0.203 180.0 0.0 180.0 "
-                            "WORLD "
-                            "WORLD_ORIGIN)");
-
-                        // Execute the next primitive
-                        ptIndex++;
-
-                        break;
-                    }
-                    case 2: {
-                        // (3) Move TCP to point B in world (base) frame
-                        robot->executePrimitive(
-                            "MoveL(target=0.687 0.0 0.264 180.0 0.0 180.0 "
-                            "WORLD "
-                            "WORLD_ORIGIN)");
-
-                        // Execute the next primitive
-                        ptIndex++;
-
-                        break;
-                    }
-                    case 3: {
-                        // (4) Move TCP to point C in world (base) frame
-                        robot->executePrimitive(
-                            "MoveL(target=0.387 0.1 0.1 -90.0 0.0 180.0 WORLD "
-                            "WORLD_ORIGIN)");
-
-                        // Execute the next primitive
-                        ptIndex++;
-                        break;
-                    }
-                    case 4: {
-                        // (5) Move TCP to point D in world (base) frame
-                        robot->executePrimitive(
-                            "MoveL(target=0.5 0.0 0.3 180.0 0.0 180.0 WORLD "
-                            "WORLD_ORIGIN)");
-
-                        // Execute the next primitive
-                        ptIndex++;
-                        break;
-                    }
-                    case 5: {
-                        // Repeat the moves
-                        ptIndex = 0;
-
-                        break;
-                    }
-
-                    default:
-                        log.error("Invalid ptIndex");
-                        break;
-                }
-            }
-
-            // Print each state in the primitive states string list
-            if (k_printPtStates) {
-                for (const auto& state : ptStates) {
-                    std::cout << state << std::endl;
-                }
-                // Empty line
-                std::cout << std::endl;
-            }
-        }
-    } catch (const flexiv::Exception& e) {
-        log.error(e.what());
-        return;
-    }
+    // clang-format off
+    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
+    std::cout << "    robot IP: address of the robot server" << std::endl;
+    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Optional arguments: None" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
 }
 
 int main(int argc, char* argv[])
@@ -172,11 +31,12 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    // Check if program has 3 arguments
-    if (argc != 3) {
-        log.error("Invalid program arguments. Usage: <robot_ip> <local_ip>");
-        return 0;
+    if (argc < 3
+        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+        printHelp();
+        return 1;
     }
+
     // IP of the robot server
     std::string robotIP = argv[1];
 
@@ -201,25 +61,25 @@ int main(int argc, char* argv[])
             // Check again
             if (robot.isFault()) {
                 log.error("Fault cannot be cleared, exiting ...");
-                return 0;
+                return 1;
             }
             log.info("Fault on robot server is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
         log.info("Enabling robot ...");
-        // TODO: remove this extra try catch block after the destructor bug in
-        // Windows library is fixed
-        try {
-            robot.enable();
-        } catch (const flexiv::Exception& e) {
-            log.error(e.what());
-            return 0;
-        }
+        robot.enable();
 
         // Wait for the robot to become operational
+        int secondsWaited = 0;
         while (!robot.isOperational()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            if (++secondsWaited == 10) {
+                log.warn(
+                    "Still waiting for robot to become operational, please "
+                    "check that the robot 1) has no fault, 2) is booted "
+                    "into Auto mode");
+            }
         }
         log.info("Robot is now operational");
 
@@ -231,18 +91,104 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
-        // Periodic Tasks
+        // Application-specific Code
         //=============================================================================
-        // Use std::thread for some low-priority tasks, not joining
-        // (non-blocking)
-        std::thread lowPriorityThread(std::bind(primitiveStateMachine, &robot));
 
-        // Wait for thread to finish
-        lowPriorityThread.join();
+        // (1) Go to home pose
+        // ----------------------------------------------------------------------------
+        // All parameters of the "Home" primitive are optional,
+        // thus we can skip the parameters and the default values will be used
+        log.info("Executing primitive: Home");
+
+        // Send command to robot
+        robot.executePrimitive("Home()");
+
+        // Wait for robot to reach target location by checking for
+        // "reachedTarget = 1" in the list of current primitive states
+        while (flexiv::utility::parsePtStates(
+                   robot.getPrimitiveStates(), "reachedTarget")
+               != "1") {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+
+        // NOTE: can also use robot.isStopped() to indirectly tell if the robot
+        // has reached target
+
+        // (2) Move robot joints to target positions
+        // ----------------------------------------------------------------------------
+        // The required parameter <target> takes in 7 target joint positions
+        // Unit: degrees
+        log.info("Executing primitive: MoveJ");
+
+        // Send command to robot
+        robot.executePrimitive("MoveJ(target=30 -45 0 90 0 40 30)");
+
+        // Wait for reached target
+        while (flexiv::utility::parsePtStates(
+                   robot.getPrimitiveStates(), "reachedTarget")
+               != "1") {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+
+        // (3) Move robot TCP to a target position in world (base) frame
+        // ----------------------------------------------------------------------------
+        // Required parameter:
+        //   target: final target position
+        //       [pos_x pos_y pos_z rot_x rot_y rot_z ref_frame ref_point]
+        //       unit: m, deg
+        // Optional parameter:
+        //   waypoints: waypoints to pass before reaching final target
+        //       [same format as above, but can repeat for number of waypoints]
+        //   maxVel: maximum TCP linear velocity
+        //       unit: m/s
+        // NOTE: The rotations are using Euler ZYX convention, rot_x means Euler
+        // ZYX angle around X axis
+        log.info("Executing primitive: MoveL");
+
+        // Send command to robot
+        robot.executePrimitive(
+            "MoveL(target=0.65 -0.3 0.2 180 0 180 WORLD "
+            "WORLD_ORIGIN,waypoints=0.45 0.1 0.2 180 0 180 WORLD "
+            "WORLD_ORIGIN 0.45 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN, "
+            "maxVel=0.2)");
+
+        // Wait for reached target
+        while (flexiv::utility::parsePtStates(
+                   robot.getPrimitiveStates(), "reachedTarget")
+               != "1") {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+
+        // (4) Another MoveL
+        // ----------------------------------------------------------------------------
+        // An example to convert quaternion into Euler ZYX angles required by
+        // the primitive is shown below.
+        log.info("Executing primitive: MoveL");
+
+        // Convert target quaternion to Euler ZYX using utility functions
+        std::vector<double> targetQuat
+            = {-0.373286, 0.0270976, 0.83113, 0.411274};
+        auto targetEulerDeg = flexiv::utility::rad2Deg(
+            flexiv::utility::quat2EulerZYX(targetQuat));
+
+        // Send command to robot
+        robot.executePrimitive("MoveL(target=0.4 -0.1 0.2 "
+                               + flexiv::utility::vec2Str(targetEulerDeg)
+                               + "WORLD WORLD_ORIGIN, maxVel=0.3)");
+
+        // Wait for reached target
+        while (flexiv::utility::parsePtStates(
+                   robot.getPrimitiveStates(), "reachedTarget")
+               != "1") {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+
+        // All done, stop robot and put into IDLE mode
+        robot.stop();
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        return 0;
+        return 1;
     }
 
     return 0;

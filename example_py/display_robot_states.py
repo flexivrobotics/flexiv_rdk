@@ -14,7 +14,7 @@ import argparse
 # Import Flexiv RDK Python library
 # fmt: off
 import sys
-sys.path.insert(0, "../lib/linux/python/x64/")
+sys.path.insert(0, "../lib_py")
 import flexivrdk
 # fmt: on
 
@@ -24,7 +24,7 @@ def main():
     # =============================================================================
     argparser = argparse.ArgumentParser()
     argparser.add_argument('robot_ip', help='IP address of the robot server')
-    argparser.add_argument('local_ip', help='IP address of the workstation PC')
+    argparser.add_argument('local_ip', help='IP address of this PC')
     args = argparser.parse_args()
 
     # Define alias
@@ -56,32 +56,43 @@ def main():
         robot.enable()
 
         # Wait for the robot to become operational
+        seconds_waited = 0
         while not robot.isOperational():
             time.sleep(1)
+            seconds_waited += 1
+            if seconds_waited == 10:
+                log.warn(
+                    "Still waiting for robot to become operational, please "
+                    "check that the robot 1) has no fault, 2) is booted "
+                    "into Auto mode")
+
         log.info("Robot is now operational")
 
         # Application-specific Code
         # =============================================================================
         while True:
             robot.getRobotStates(robot_states)
-            print("q: ", robot_states.m_q)
-            print("theta: ", robot_states.m_theta)
-            print("dq: ", robot_states.m_dq)
-            print("dtheta: ", robot_states.m_dtheta)
-            print("tau: ", robot_states.m_tau)
-            print("tau_des: ", robot_states.m_tauDes)
-            print("tau_dot: ", robot_states.m_tauDot)
-            print("tau_ext: ", robot_states.m_tauExt)
-            print("tcp_pose: ", robot_states.m_tcpPose)
-            print("tcp_pose_d: ", robot_states.m_tcpPoseDes)
-            print("tcp_velocity: ", robot_states.m_tcpVel)
-            print("camera_pose: ", robot_states.m_camPose)
-            print("flange_pose: ", robot_states.m_flangePose)
-            print("end_link_pose: ", robot_states.m_endLinkPose)
-            print("F_ext_tcp_frame: ", robot_states.m_extForceInTcpFrame)
-            print("F_ext_base_frame: ", robot_states.m_extForceInBaseFrame)
-            log.info("==" * 30)
+            log.info(" ")
+            # Round all list values to 2 decimals
+            # fmt: off
+            print("q: ",  ['%.2f' % i for i in robot_states.q])
+            print("theta: ", ['%.2f' % i for i in robot_states.theta])
+            print("dq: ", ['%.2f' % i for i in robot_states.dq])
+            print("dtheta: ", ['%.2f' % i for i in robot_states.dtheta])
+            print("tau: ", ['%.2f' % i for i in robot_states.tau])
+            print("tau_des: ", ['%.2f' % i for i in robot_states.tauDes])
+            print("tau_dot: ", ['%.2f' % i for i in robot_states.tauDot])
+            print("tau_ext: ", ['%.2f' % i for i in robot_states.tauExt])
+            print("tcp_pose: ", ['%.2f' % i for i in robot_states.tcpPose])
+            print("tcp_pose_d: ", ['%.2f' % i for i in robot_states.tcpPoseDes])
+            print("tcp_velocity: ", ['%.2f' % i for i in robot_states.tcpVel])
+            print("camera_pose: ", ['%.2f' % i for i in robot_states.camPose])
+            print("flange_pose: ", ['%.2f' % i for i in robot_states.flangePose])
+            print("end_link_pose: ", ['%.2f' % i for i in robot_states.endLinkPose])
+            print("F_ext_tcp_frame: ", ['%.2f' % i for i in robot_states.extForceInTcpFrame])
+            print("F_ext_base_frame: ", ['%.2f' % i for i in robot_states.extForceInBaseFrame])
             time.sleep(1)
+            # fmt: on
 
     except Exception as e:
         # Print exception error message

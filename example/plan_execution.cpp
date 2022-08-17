@@ -8,109 +8,20 @@
 #include <flexiv/Robot.hpp>
 #include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
+#include <flexiv/Utility.hpp>
 
-#include <string>
 #include <iostream>
-#include <cmath>
-#include <mutex>
 #include <thread>
-#include <atomic>
 
-namespace {
-/** User input string */
-std::string g_userInput;
-
-/** User input mutex */
-std::mutex g_userInputMutex;
-
-/** Flag to exit main thread */
-std::atomic<bool> g_exitMain = {false};
-}
-
-/** Callback function for user input state machine */
-void userInputStateMachine(flexiv::Robot* robot)
+void printHelp()
 {
-    // Log object for printing message with timestamp and coloring
-    flexiv::Log log;
-
-    try {
-        // Use while loop to prevent this thread from return
-        while (true) {
-            // Wake up every 0.1 second to do something
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-            // Monitor fault on robot server
-            if (robot->isFault()) {
-                throw flexiv::ServerException(
-                    "userInputStateMachine: Fault occurred on robot server, "
-                    "input anything to exit ...");
-            }
-
-            // Check user input
-            std::string inputBuffer;
-            {
-                std::lock_guard<std::mutex> lock(g_userInputMutex);
-                inputBuffer = g_userInput;
-            }
-
-            if (inputBuffer.empty()) {
-                // Do nothing, waiting for new user input or plan to finish
-            }
-            // List available plans
-            else if (inputBuffer == "l") {
-                auto planList = robot->getPlanNameList();
-                std::cout << "===================== Plan name list "
-                             "====================="
-                          << std::endl;
-                // Print plan list
-                for (unsigned int i = 0; i < planList.size(); i++) {
-                    std::cout << "[" << i << "] " << planList[i] << std::endl;
-                }
-                log.info("Enter index to select a plan to execute:");
-            }
-            // Stop plan execution
-            else if (inputBuffer == "s") {
-                robot->stop();
-                log.info(
-                    "Execution stopped, enter index to execute another plan:");
-
-                // After calling stop(), the robot will enter Idle mode, so put
-                // the robot back to plan execution mode to take more plan
-                // commands set mode after robot is operational
-                robot->setMode(flexiv::MODE_PLAN_EXECUTION);
-
-                // Wait for the mode to be switched
-                while (robot->getMode() != flexiv::MODE_PLAN_EXECUTION) {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                }
-            }
-            // Choose plan to execute
-            else {
-                // Check system status
-                flexiv::SystemStatus systemStatus;
-                robot->getSystemStatus(&systemStatus);
-
-                // Execute new plan if no plan is running
-                if (systemStatus.m_programRunning == false) {
-                    // Convert string to int
-                    int index = std::stoi(inputBuffer);
-                    // Start executing
-                    robot->executePlanByIndex(index);
-                }
-            }
-
-            // Reset user input every loop
-            {
-                std::lock_guard<std::mutex> lock(g_userInputMutex);
-                g_userInput.clear();
-            }
-        }
-
-    } catch (const flexiv::Exception& e) {
-        log.error(e.what());
-        g_exitMain = true;
-        return;
-    }
+    // clang-format off
+    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
+    std::cout << "    robot IP: address of the robot server" << std::endl;
+    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Optional arguments: None" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
 }
 
 int main(int argc, char* argv[])
@@ -120,11 +31,12 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    // Check if program has 3 arguments
-    if (argc != 3) {
-        log.error("Invalid program arguments. Usage: <robot_ip> <local_ip>");
-        return 0;
+    if (argc < 3
+        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+        printHelp();
+        return 1;
     }
+
     // IP of the robot server
     std::string robotIP = argv[1];
 
@@ -146,25 +58,25 @@ int main(int argc, char* argv[])
             // Check again
             if (robot.isFault()) {
                 log.error("Fault cannot be cleared, exiting ...");
-                return 0;
+                return 1;
             }
             log.info("Fault on robot server is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
         log.info("Enabling robot ...");
-        // TODO: remove this extra try catch block after the destructor bug in
-        // Windows library is fixed
-        try {
-            robot.enable();
-        } catch (const flexiv::Exception& e) {
-            log.error(e.what());
-            return 0;
-        }
+        robot.enable();
 
         // Wait for the robot to become operational
+        int secondsWaited = 0;
         while (!robot.isOperational()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            if (++secondsWaited == 10) {
+                log.warn(
+                    "Still waiting for robot to become operational, please "
+                    "check that the robot 1) has no fault, 2) is booted "
+                    "into Auto mode");
+            }
         }
         log.info("Robot is now operational");
 
@@ -176,34 +88,95 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
-        // Periodic Tasks
+        // Application-specific Code
         //=============================================================================
-        // Use std::thread for some low-priority tasks, not joining
-        // (non-blocking)
-        std::thread lowPriorityThread(std::bind(userInputStateMachine, &robot));
+        // Plan info data
+        flexiv::PlanInfo planInfo;
 
-        // User Input
-        //=============================================================================
-        log.info("Choose from the following options to continue:");
-        std::cout << "[l] - show plan list" << std::endl;
-        std::cout << "[s] - stop execution of current plan" << std::endl;
+        while (true) {
+            // Monitor fault on robot server
+            if (robot.isFault()) {
+                throw flexiv::ServerException(
+                    "Fault occurred on robot server, exiting ...");
+            }
 
-        // User input polling
-        std::string inputBuffer;
-        while (!g_exitMain) {
+            // Get user input
+            log.info("Choose an action:");
+            std::cout << "[1] Show available plans" << std::endl;
+            std::cout << "[2] Execute a plan by index" << std::endl;
+            std::cout << "[3] Execute a plan by name" << std::endl;
+
+            std::string inputBuffer;
             std::cin >> inputBuffer;
-            {
-                std::lock_guard<std::mutex> lock(g_userInputMutex);
-                g_userInput = inputBuffer;
+            int userInput = std::stoi(inputBuffer);
+
+            switch (userInput) {
+                // Get and show plan list
+                case 1: {
+                    auto planList = robot.getPlanNameList();
+                    for (size_t i = 0; i < planList.size(); i++) {
+                        std::cout << "[" << i << "] " << planList[i]
+                                  << std::endl;
+                    }
+                    std::cout << std::endl;
+                } break;
+                // Execute plan by index
+                case 2: {
+                    log.info("Enter plan index to execute:");
+                    int index;
+                    std::cin >> index;
+                    robot.executePlanByIndex(index);
+
+                    // Print plan info while the current plan is running
+                    while (robot.isBusy()) {
+                        robot.getPlanInfo(planInfo);
+                        log.info(" ");
+                        // clang-format off
+                        std::cout << "assignedPlanName: " << planInfo.assignedPlanName << std::endl;
+                        std::cout << "ptName: " << planInfo.ptName << std::endl;
+                        std::cout << "nodeName: " << planInfo.nodeName << std::endl;
+                        std::cout << "nodePath: " << planInfo.nodePath << std::endl;
+                        std::cout << "nodePathTimePeriod: " << planInfo.nodePathTimePeriod << std::endl;
+                        std::cout << "nodePathNumber: " << planInfo.nodePathNumber << std::endl;
+                        std::cout << "velocityScale: " << planInfo.velocityScale << std::endl;
+                        std::cout << std::endl;
+                        // clang-format on
+                        std::this_thread::sleep_for(std::chrono::seconds(1));
+                    }
+                } break;
+                // Execute plan by name
+                case 3: {
+                    log.info("Enter plan name to execute:");
+                    std::string name;
+                    std::cin >> name;
+                    robot.executePlanByName(name);
+
+                    // Print plan info while the current plan is running
+                    while (robot.isBusy()) {
+                        robot.getPlanInfo(planInfo);
+                        log.info(" ");
+                        // clang-format off
+                        std::cout << "assignedPlanName: " << planInfo.assignedPlanName << std::endl;
+                        std::cout << "ptName: " << planInfo.ptName << std::endl;
+                        std::cout << "nodeName: " << planInfo.nodeName << std::endl;
+                        std::cout << "nodePath: " << planInfo.nodePath << std::endl;
+                        std::cout << "nodePathTimePeriod: " << planInfo.nodePathTimePeriod << std::endl;
+                        std::cout << "nodePathNumber: " << planInfo.nodePathNumber << std::endl;
+                        std::cout << "velocityScale: " << planInfo.velocityScale << std::endl;
+                        std::cout << std::endl;
+                        // clang-format on
+                        std::this_thread::sleep_for(std::chrono::seconds(1));
+                    }
+                } break;
+                default:
+                    log.warn("Invalid input");
+                    break;
             }
         }
 
-        // Properly exit thread
-        lowPriorityThread.join();
-
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        return 0;
+        return 1;
     }
 
     return 0;

@@ -58,6 +58,20 @@ public:
     void updateScene(const std::string& objectName, Eigen::Vector3d position,
         Eigen::Matrix3d orientation);
 
+    /**
+     * @brief Update scene visualization by specifying new color of an existing
+     * object in the scene.
+     * @param[in] objectName Name of the object in the scene to update, as
+     * specified in the scene URDF.
+     * @param[in] r Red component, 0 to 1
+     * @param[in] g Green component, 0 to 1
+     * @param[in] b Blue component, 0 to 1
+     * @param[in] alpha Transparency, 0 to 1
+     * @throw ExecutionException if error occurred during execution.
+     */
+    void updateScene(const std::string& objectName, double r, double g,
+        double b, double alpha);
+
 private:
     class Impl;
     std::unique_ptr<Impl> m_pimpl;

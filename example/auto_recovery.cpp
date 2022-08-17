@@ -11,9 +11,22 @@
 #include <flexiv/Robot.hpp>
 #include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
+#include <flexiv/Utility.hpp>
 
+#include <iostream>
 #include <string>
 #include <thread>
+
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
+    std::cout << "    robot IP: address of the robot server" << std::endl;
+    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Optional arguments: None" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
+}
 
 int main(int argc, char* argv[])
 {
@@ -22,11 +35,12 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    // Check if program has 3 arguments
-    if (argc != 3) {
-        log.error("Invalid program arguments. Usage: <robot_ip> <local_ip>");
-        return 0;
+    if (argc < 3
+        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+        printHelp();
+        return 1;
     }
+
     // IP of the robot server
     std::string robotIP = argv[1];
 
@@ -44,14 +58,7 @@ int main(int argc, char* argv[])
 
         // Enable the robot, make sure the E-stop is released before enabling
         log.info("Enabling robot ...");
-        // TODO: remove this extra try catch block after the destructor bug in
-        // Windows library is fixed
-        try {
-            robot.enable();
-        } catch (const flexiv::Exception& e) {
-            log.error(e.what());
-            return 0;
-        }
+        robot.enable();
 
         // Application-specific Code
         //=============================================================================
@@ -78,7 +85,7 @@ int main(int argc, char* argv[])
         }
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        return 0;
+        return 1;
     }
 
     return 0;

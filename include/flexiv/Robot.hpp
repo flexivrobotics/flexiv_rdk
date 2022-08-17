@@ -37,7 +37,7 @@ public:
     Robot(const std::string& serverIP, const std::string& localIP);
     virtual ~Robot();
 
-    //============================ SYSTEM METHODS =============================
+    //============================= SYSTEM CONTROL =============================
     /**
      * @brief Enable the robot, if E-stop is released and there's no fault, the
      * robot will release brakes, and becomes operational a few seconds later.
@@ -60,10 +60,28 @@ public:
     bool isOperational(void) const;
 
     /**
+     * @brief Check if the robot is currently executing a task.
+     * @return True: busy, false: can take new task.
+     */
+    bool isBusy(void) const;
+
+    /**
      * @brief Check if the connection with the robot server is established.
      * @return True: connected, false: disconnected.
      */
     bool isConnected(void) const;
+
+    /**
+     * @brief Check if the robot is in fault state.
+     * @return True: robot has fault, false: robot normal.
+     */
+    bool isFault(void) const;
+
+    /**
+     * @brief Check if the Emergency Stop is released.
+     * @note True: E-stop released, false: E-stop pressed
+     */
+    bool isEstopReleased(void) const;
 
     /**
      * @brief Check if the robot system is in recovery state.
@@ -80,13 +98,6 @@ public:
     bool isRecoveryState(void) const;
 
     /**
-     * @brief Check if the connection with the robot server has timeout,
-     * according to the heartbeat singal monitoring.
-     * @return True: timeout, false: not timeout.
-     */
-    bool isTimeout(void) const;
-
-    /**
      * @brief Try establishing connection with the robot server.
      * @throw CommException if failed to establish connection.
      */
@@ -99,18 +110,11 @@ public:
     void disconnect(void);
 
     /**
-     * @brief Check if the robot is in fault state.
-     * @return True: robot has fault, false: robot normal.
-     */
-    bool isFault(void) const;
-
-    /**
      * @brief Clear minor fault of the robot.
      * @throw ExecutionException if error occurred during execution.
      */
     void clearFault(void);
 
-    //=========================== CONTROL METHODS ==============================
     /**
      * @brief Set robot mode, call it after initialization.
      * @param[in] mode Mode of the robot, see flexiv::Mode.
@@ -129,22 +133,14 @@ public:
      */
     Mode getMode(void) const;
 
+    //============================ ROBOT OPERATION =============================
     /**
      * @brief Get robot states like joint position, velocity, torque, TCP
      * pose, velocity, etc.
-     * @param[out] output Pointer to output data.
+     * @param[out] output Reference of output data object.
      * @note Call this method periodically to get the latest states.
-     * @throw InputException if output is null.
      */
-    void getRobotStates(RobotStates* output);
-
-    /**
-     * @brief Get system status data like E-stop status, program execution
-     * status, etc.
-     * @param[out] output Pointer to output data.
-     * @throw InputException if output is null.
-     */
-    void getSystemStatus(SystemStatus* output);
+    void getRobotStates(RobotStates& output);
 
     /**
      * @brief Execute a plan by specifying its index.
@@ -152,6 +148,7 @@ public:
      * getPlanNameList().
      * @throw ExecutionException if error occurred during execution.
      * @throw InputException if index is invalid.
+     * @note isBusy() can be used to check if a plan task has finished.
      * @warning This method will block for 50 ms.
      */
     void executePlanByIndex(unsigned int index);
@@ -161,6 +158,7 @@ public:
      * @param[in] name Name of the plan to execute, can be obtained via
      * getPlanNameList().
      * @throw ExecutionException if error occurred during execution.
+     * @note isBusy() can be used to check if a plan task has finished.
      * @warning This method will block for 50 ms.
      */
     void executePlanByName(const std::string& name);
@@ -179,20 +177,24 @@ public:
      * @brief Get detailed information about the currently running plan.
      * Contains information like plan name, primitive name, node name, node
      * path, node path time period, etc.
-     * @param[out] output Pointer to output data.
+     * @param[out] output Reference of output data object.
      * @throw CommException if there's no response from server.
      * @throw ExecutionException if error occurred during execution.
-     * @throw InputException if output is null.
      * @warning This method will block until the request-reply operation with
      * the server is done. The blocking time varies by communication latency.
      */
-    void getPlanInfo(PlanInfo* output);
+    void getPlanInfo(PlanInfo& output);
 
     /**
      * @brief Execute a primitive by specifying its name and parameters.
      * @param[in] ptCmd Primitive command with the format:
      * ptName(inputParam1=xxx, inputParam2=xxx, ...).
      * @throw ExecutionException if error occurred during execution.
+     * @throw InputException if size of the input string is greater than 5kb.
+     * @note A primitive won't terminate itself upon finish, thus isBusy()
+     * cannot be used to check if a primitive task is finished, use primitive
+     * states like "reachedTarget" instead.
+     * @see getPrimitiveStates()
      * @warning This method will block for 50 ms.
      */
     void executePrimitive(const std::string& ptCmd);
@@ -206,6 +208,31 @@ public:
      * the server is done. The blocking time varies by communication latency.
      */
     std::vector<std::string> getPrimitiveStates(void) const;
+
+    /**
+     * @brief Set global variables for the robot by specifying name and value.
+     * @param[in] globalVars Command to set global variables using the format:
+     * globalVar1=value(s), globalVar2=value(s), ...
+     * @throw ExecutionException if error occurred during execution.
+     * @throw InputException if size of the input string is greater than 5kb.
+     */
+    void setGlobalVariables(const std::string& globalVars);
+
+    /**
+     * @brief Get available global variables from the robot.
+     * @return Global variables in the format of a string list.
+     * @throw CommException if there's no response from server.
+     * @throw ExecutionException if error occurred during execution.
+     * @warning This method will block until the request-reply operation with
+     * the server is done. The blocking time varies by communication latency.
+     */
+    std::vector<std::string> getGlobalVariables(void) const;
+
+    /**
+     * @brief Check if the robot has come to a complete stop.
+     * @return True: stopped, false: still moving.
+     */
+    bool isStopped(void) const;
 
     /**
      * @brief If the mounted tool has more than one TCP, switch the TCP being
@@ -226,42 +253,9 @@ public:
      */
     void startAutoRecovery(void);
 
+    //============================= MOTION CONTROL =============================
     /**
-     * @brief Set stiffness of Cartesian impedance controller.
-     * @param[in] stiffness \f$ \mathbb{R}^{6 \times 1} \f$ diagonal elements of
-     * the positive definite stiffness matrix. Defaulted to the nominal
-     * stiffness.
-     * @note Applicable modes: MODE_CARTESIAN_IMPEDANCE,
-     * MODE_CARTESIAN_IMPEDANCE_NRT.
-     * @throw ExecutionException if error occurred during execution.
-     * @throw InputException if input is invalid.
-     */
-    void setCartesianStiffness(const std::vector<double>& stiffness
-                               = {4000, 4000, 4000, 300, 300, 300});
-
-    /**
-     * @brief During Cartesian impedance modes, set preferred elbow swivel
-     * angle, which is the angle between the arm plane and the reference plane.
-     * @param[in] angle Swivel angle \f$ {\phi}~[rad] \f$, valid range:
-     * [-2.0944, 2.0944] rad, i.e. [-120, 120] deg. Defaulted to the nominal
-     * swivel angle.
-     * @par Geometry definitions
-     * Arm plane: defined by the origin of 3 body frames: link2(shoulder),
-     * link4(elbow), and link6(wrist).
-     * Reference plane: defined by the origin of 3 body frames: base,
-     * link2(shoulder), and link6(wrist).
-     * Positive direction: defined as from link2 origin to link6 origin, right
-     * hand rule.
-     * @note Applicable modes: MODE_CARTESIAN_IMPEDANCE,
-     * MODE_CARTESIAN_IMPEDANCE_NRT.
-     * @throw ExecutionException if error occurred during execution.
-     * @throw InputException if input is invalid.
-     */
-    void setSwivelAngle(double angle = 0);
-
-    //=========================== MOTION METHODS ===============================
-    /**
-     * @brief [Real-time] Continuously send joint torque command to robot.
+     * @brief Continuously send joint torque command to robot.
      * @param[in] torques \f$ \mathbb{R}^{Dof \times 1} \f$ target torques of
      * the joints, \f$ {\tau_J}_d~[Nm] \f$.
      * @param[in] enableGravityComp Enable/disable robot gravity compensation.
@@ -269,18 +263,18 @@ public:
      * joints from moving outside the allowed position range, which will
      * trigger a safety fault that requires recovery operation.
      * @note Applicable mode: MODE_JOINT_TORQUE.
+     * @note Real-time (RT).
      * @throw ExecutionException if error occurred during execution.
      * @throw InputException if input is invalid.
      * @warning Always send smooth and continuous commands to avoid sudden
      * movements.
-     * @warning C++ only.
      */
     void streamJointTorque(const std::vector<double>& torques,
         bool enableGravityComp = true, bool enableSoftLimits = true);
 
     /**
-     * @brief [Real-time] Continuously send joint position, velocity and
-     * acceleration command.
+     * @brief Continuously send joint position, velocity, and acceleration
+     * command.
      * @param[in] positions \f$ \mathbb{R}^{Dof \times 1} \f$ target positions
      * of the joints, \f$ q_d~[rad] \f$.
      * @param[in] velocities \f$ \mathbb{R}^{Dof \times 1} \f$ target velocities
@@ -288,20 +282,20 @@ public:
      * @param[in] accelerations \f$ \mathbb{R}^{Dof \times 1} \f$ target
      * accelerations of the joints, \f$ \ddot{q}_d~[rad/s^2] \f$.
      * @note Applicable mode: MODE_JOINT_POSITION.
+     * @note Real-time (RT).
      * @throw ExecutionException if error occurred during execution.
      * @throw InputException if input is invalid.
      * @warning Always send smooth and continuous commands to avoid sudden
      * movements.
-     * @warning C++ only.
      */
     void streamJointPosition(const std::vector<double>& positions,
         const std::vector<double>& velocities,
         const std::vector<double>& accelerations);
 
     /**
-     * @brief [Non-real-time] Discretely send joint position, velocity and
-     * acceleration command. The internal trajectory generator will interpolate
-     * between two set points and make the motion smooth.
+     * @brief Discretely send joint position, velocity, and acceleration
+     * command. The internal trajectory generator will interpolate between two
+     * set points and make the motion smooth.
      * @param[in] positions \f$ \mathbb{R}^{Dof \times 1} \f$ target positions
      * of the joints, \f$ q_d~[rad] \f$.
      * @param[in] velocities \f$ \mathbb{R}^{Dof \times 1} \f$ target velocities
@@ -325,57 +319,85 @@ public:
         const std::vector<double>& maxJerk);
 
     /**
-     * @brief [Real-time] Continuously send TCP pose, velocity and acceleration
-     * command.
+     * @brief Continuously command target TCP pose for the robot to track using
+     * its Cartesian impedance controller.
      * @param[in] pose \f$ \mathbb{R}^{7 \times 1} \f$ target TCP pose
      * in base frame, \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$
      * \mathbb{R}^{4 \times 1} \f$ quaternion \f$ [x, y, z, q_w, q_x, q_y,
      * q_z]^T~[m][] \f$.
-     * @param[in] velocity \f$ \mathbb{R}^{6 \times 1} \f$ target TCP velocity
-     * in base frame, \f$ \mathbb{R}^{3 \times 1} \f$ linear velocity and \f$
-     * \mathbb{R}^{3 \times 1} \f$ angular velocity \f$ [v_x, v_y, v_z,
-     * \omega_x, \omega_y, \omega_z]^T~[m/s][rad/s] \f$.
-     * @param[in] acceleration \f$ \mathbb{R}^{6 \times 1} \f$ target TCP
-     * acceleration in base frame, \f$ \mathbb{R}^{3 \times 1} \f$ linear
-     * acceleration and \f$ \mathbb{R}^{3 \times 1} \f$ angular acceleration \f$
-     * [a_x, a_y, a_z, \alpha_x, \alpha_y, \alpha_z]^T~[m/s^2][rad/s^2] \f$.
+     * @param[in] maxWrench (Optional) \f$ \mathbb{R}^{6 \times 1} \f$ maximum
+     * contact wrench in TCP coordinate, the controller will soften if needed to
+     * keep the actual contact wrench under this value. Default value will be
+     * used if not specified. \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
+     * \mathbb{R}^{3 \times 1} \f$ moment \f$ [f_x, f_y, f_z, m_x, m_y,
+     * m_z]^T~[N][Nm] \f$.
      * @note Applicable mode: MODE_CARTESIAN_IMPEDANCE.
+     * @note Real-time (RT).
      * @throw ExecutionException if error occurred during execution.
      * @throw InputException if input is invalid.
      * @warning Always send smooth and continuous commands to avoid sudden
      * movements.
-     * @warning C++ only.
      */
     void streamTcpPose(const std::vector<double>& pose,
-        const std::vector<double>& velocity,
-        const std::vector<double>& acceleration);
+        const std::vector<double>& maxWrench
+        = {100.0, 100.0, 100.0, 30.0, 30.0, 30.0});
 
     /**
-     * @brief [Non-real-time] Discretely send TCP pose command with contact
-     * force constraints. The internal trajectory generator will interpolate
-     * between two set points and make the motion smooth.
+     * @brief Discretely command target TCP pose for the robot to track using
+     * its Cartesian impedance controller. An internal motion generator will
+     * smooth the discrete commands.
      * @param[in] pose \f$ \mathbb{R}^{7 \times 1} \f$ target TCP pose
      * in base frame, \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$
      * \mathbb{R}^{4 \times 1} \f$ quaternion \f$ [x, y, z, q_w, q_x, q_y,
      * q_z]^T~[m][] \f$.
-     * @param[in] maxWrench \f$ \mathbb{R}^{6 \times 1} \f$ maximum contact
-     * wrench in TCP coordinate, \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
+     * @param[in] maxWrench (Optional) \f$ \mathbb{R}^{6 \times 1} \f$ maximum
+     * contact wrench in TCP coordinate, the controller will soften if needed to
+     * keep the actual contact wrench under this value. Default value will be
+     * used if not specified. \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
      * \mathbb{R}^{3 \times 1} \f$ moment \f$ [f_x, f_y, f_z, m_x, m_y,
      * m_z]^T~[N][Nm] \f$.
      * @note Applicable mode: MODE_CARTESIAN_IMPEDANCE_NRT.
      * @throw ExecutionException if error occurred during execution.
      * @throw InputException if input is invalid.
      */
-    void sendTcpPose(
-        const std::vector<double>& pose, const std::vector<double>& maxWrench);
+    void sendTcpPose(const std::vector<double>& pose,
+        const std::vector<double>& maxWrench
+        = {100.0, 100.0, 100.0, 30.0, 30.0, 30.0});
 
     /**
-     * @brief Check if the robot has come to a complete stop.
-     * @return True: stopped, false: still moving.
+     * @brief Set stiffness of Cartesian impedance controller.
+     * @param[in] stiffness \f$ \mathbb{R}^{6 \times 1} \f$ diagonal elements of
+     * the positive definite stiffness matrix. Maximum (nominal) stiffness is
+     * provided as parameter default.
+     * @note Applicable modes: MODE_CARTESIAN_IMPEDANCE,
+     * MODE_CARTESIAN_IMPEDANCE_NRT.
+     * @throw ExecutionException if error occurred during execution.
+     * @throw InputException if input is invalid.
      */
-    bool isStopped(void) const;
+    void setCartesianStiffness(const std::vector<double>& stiffness
+                               = {4000, 4000, 4000, 1900, 1900, 1900});
 
-    //============================= IO METHODS =================================
+    /**
+     * @brief During Cartesian impedance modes, set preferred elbow swivel
+     * angle, which is the angle between the arm plane and the reference plane.
+     * @param[in] angle Swivel angle \f$ {\phi}~[rad] \f$, valid range:
+     * [-2.0944, 2.0944] rad, i.e. [-120, 120] deg. Default to the nominal
+     * swivel angle.
+     * @par Geometry definitions
+     * Arm plane: defined by the origin of 3 body frames: link2(shoulder),
+     * link4(elbow), and link6(wrist).
+     * Reference plane: defined by the origin of 3 body frames: base,
+     * link2(shoulder), and link6(wrist).
+     * Positive direction: defined as from link2 origin to link6 origin, right
+     * hand rule.
+     * @note Applicable modes: MODE_CARTESIAN_IMPEDANCE,
+     * MODE_CARTESIAN_IMPEDANCE_NRT.
+     * @throw ExecutionException if error occurred during execution.
+     * @throw InputException if input is invalid.
+     */
+    void setSwivelAngle(double angle = 0);
+
+    //=============================== IO CONTROL ===============================
     /**
      * @brief Set digital output on the control box.
      * @param[in] portNumber Port to set value to [0 ~ 15].

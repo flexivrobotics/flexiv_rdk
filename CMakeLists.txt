@@ -1,117 +1,85 @@
-# use cmake 3 which supports targets
-cmake_minimum_required(VERSION 3.1.3)
+cmake_minimum_required(VERSION 3.4)
 
-# ===================================
-#      PROJECT SETUP
-# ===================================
-project(FlexivRdkExampleAndTest)
+# ===================================================================
+#      PROJECT CONFIG
+# ===================================================================
+project(flexiv_rdk VERSION 0.6.0)
 
-if( NOT CMAKE_BUILD_TYPE )
-  set( CMAKE_BUILD_TYPE Release CACHE STRING
-       "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
-       FORCE )
+# C++14 required
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Configure build type
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "CMake build type" FORCE)
 endif()
 
-option(BUILD_FOR_ARM64 "Link to RDK library for arm64 processor, otherwise link to x64" OFF)
+# Configure processor platform
+set(BUILD_PLATFORM "x86_64" CACHE STRING "Processor platform")
+set_property(CACHE BUILD_PLATFORM PROPERTY STRINGS "x86_64" "arm64")
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
+# Set static library
+message("Building for system: ${CMAKE_SYSTEM_NAME}")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  if(${BUILD_PLATFORM} STREQUAL "x86_64")
+    set(RDK_STATIC_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/lib/libFlexivRdk.x86_64-linux-gnu.a")
+  elseif(${BUILD_PLATFORM} STREQUAL "arm64")
+    set(RDK_STATIC_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/lib/libFlexivRdk.aarch64-linux-gnu.a")
+  endif()
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  if(${BUILD_PLATFORM} STREQUAL "x86_64")
+    message(FATAL_ERROR "Mac with x86_64 processor is currently not supported.")
+  elseif(${BUILD_PLATFORM} STREQUAL "arm64")
+    set(RDK_STATIC_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/lib/libFlexivRdk.arm64-darwin.a")
+  endif()
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  if(${BUILD_PLATFORM} STREQUAL "x86_64")
+    set(RDK_STATIC_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/lib/FlexivRdk.x86_64-windows.lib")
+  elseif(${BUILD_PLATFORM} STREQUAL "arm64")
+    message(FATAL_ERROR "Windows with arm64 processor is currently not supported.")
+  endif()
+endif()
 
+# ===================================================================
+#      PROJECT DEPENDENCIES
+# ===================================================================
+# pthread
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-# ===================================
-#      CONFIGURE ALL EXAMPLES
-# ===================================
-# examples bin output directory
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/example) 
+# ===================================================================
+#      PROJECT LIBRARIES
+# ===================================================================
+# Create an INTERFACE library with no source file to compile
+add_library(${PROJECT_NAME} INTERFACE)
 
-# list of examples
-set(EXAMPLE_LIST
-  auto_recovery
-  cartesian_impedance_control
-  clear_fault
-  display_robot_states
-  floating_with_soft_limits
-  gripper_control
-  joint_impedance_control
-  joint_position_control
-  plan_execution
-  primitive_execution
-  robot_dynamics
-  series_operation
-  visualization
+# Create an alias of the library using flexiv namespace, 
+# to imitate the install target which uses flexiv namespace.
+add_library(flexiv::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
+target_include_directories(${PROJECT_NAME} INTERFACE 
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
 )
 
-foreach(example ${EXAMPLE_LIST})
-  # create executable from source
-  add_executable(${example} example/${example}.cpp)
-
-  # link dependencies
-  target_include_directories(${example} 
-    PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/eigen3
-  )
-
-  # Link basic libraries
-  target_link_libraries(${example} 
-      Threads::Threads
-      anl
-  )
-
-  # Link arm64 or x64 version of libFlexivRdk
-  if (${BUILD_FOR_ARM64})
-    target_link_libraries(${example} 
-      ${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/cpp/arm64/libFlexivRdk.a)
-  else()
-    target_link_libraries(${example} 
-      ${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/cpp/x64/libFlexivRdk.a)
-  endif()
-
-endforeach()
-
-
-# ===================================
-#      CONFIGURE ALL TESTS
-# ===================================
-# tests bin output directory
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/test) 
-
-# list of tests
-set(TEST_LIST
-  test_dynamics_engine
-  test_dynamics_with_tool
-  test_endurance
-  test_log
-  test_loop_latency
-  test_scheduler
-  test_timeliness_monitor
+target_link_libraries(${PROJECT_NAME} INTERFACE
+  ${RDK_STATIC_LIBRARY}
+  Threads::Threads
 )
 
-foreach(test ${TEST_LIST})
-  # create executable from source
-  add_executable(${test} test/${test}.cpp)
+# Use moderate compiler warning option 
+if(MSVC)
+  target_compile_options(${PROJECT_NAME} INTERFACE /W1)
+else()
+  target_compile_options(${PROJECT_NAME} INTERFACE -Wall -Wextra)
+endif()
 
-  # link dependencies
-  target_include_directories(${test} 
-    PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/eigen3
-  )
+# Install the INTERFACE library
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FlexivInstallLibrary.cmake)
+FlexivInstallLibrary()
 
-  # Link basic libraries
-  target_link_libraries(${test} 
-      Threads::Threads
-      anl
-  )
-
-  # Link arm64 or x64 version of libFlexivRdk
-  if (${BUILD_FOR_ARM64})
-    target_link_libraries(${test} 
-      ${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/cpp/arm64/libFlexivRdk.a)
-  else()
-    target_link_libraries(${test} 
-      ${CMAKE_CURRENT_SOURCE_DIR}/lib/linux/cpp/x64/libFlexivRdk.a)
-  endif()
-
-endforeach()
+# Also install Eigen headers
+install(
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/eigen3/Eigen
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} 
+)

@@ -11,7 +11,9 @@
 #include <flexiv/Visualization.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Scheduler.hpp>
+#include <flexiv/Utility.hpp>
 
+#include <iostream>
 #include <mutex>
 #include <cmath>
 #include <thread>
@@ -41,8 +43,8 @@ std::mutex g_mutex;
 }
 
 /** User-defined high-priority periodic task @ 1kHz */
-void highPriorityTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
-    flexiv::Scheduler* scheduler, flexiv::Log* log)
+void highPriorityTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
+    flexiv::Log* log, flexiv::RobotStates& robotStates)
 {
     // Sine counter
     static unsigned int sineCounter = 0;
@@ -64,15 +66,11 @@ void highPriorityTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
         // Read robot states
         robot->getRobotStates(robotStates);
 
-        // Use target TCP velocity and acceleration = 0
-        std::vector<double> tcpVel(6, 0);
-        std::vector<double> tcpAcc(6, 0);
-
         // Set initial TCP pose
         if (!isInitPoseSet) {
             // Check vector size before saving
-            if (robotStates->m_tcpPose.size() == k_cartPoseSize) {
-                initTcpPose = robotStates->m_tcpPose;
+            if (robotStates.tcpPose.size() == k_cartPoseSize) {
+                initTcpPose = robotStates.tcpPose;
                 isInitPoseSet = true;
             }
         }
@@ -83,14 +81,14 @@ void highPriorityTask(flexiv::Robot* robot, flexiv::RobotStates* robotStates,
                                + k_swingAmp
                                      * sin(2 * M_PI * k_swingFreq * sineCounter
                                            * k_loopPeriod);
-            robot->streamTcpPose(targetTcpPose, tcpVel, tcpAcc);
+            robot->streamTcpPose(targetTcpPose);
             sineCounter++;
         }
 
         // Safely write shared data
         {
             std::lock_guard<std::mutex> lock(g_mutex);
-            g_data.jointPositions = robotStates->m_q;
+            g_data.jointPositions = robotStates.q;
         }
 
     } catch (const flexiv::Exception& e) {
@@ -136,6 +134,19 @@ void visualizerTask(flexiv::Visualization* visualizer)
     visualizer->updateScene("mesh1", newPosition, newOrientation);
 }
 
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: [robot IP] [local IP] [robot URDF] [scene URDF]" << std::endl;
+    std::cout << "    robot IP: address of the robot server" << std::endl;
+    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "    robot URDF: path to the robot URDF file" << std::endl;
+    std::cout << "    scene URDF: path to the scene URDF file" << std::endl;
+    std::cout << "Optional arguments: None" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
+}
+
 int main(int argc, char* argv[])
 {
     // Log object for printing message with timestamp and coloring
@@ -143,13 +154,12 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    // Check if program has 3 arguments
-    if (argc != 5) {
-        log.error(
-            "Invalid program arguments. Usage: <robot_ip> <local_ip> "
-            "<robot_urdf> <scene_urdf>");
-        return 0;
+    if (argc < 5
+        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+        printHelp();
+        return 1;
     }
+
     // IP of the robot server
     std::string robotIP = argv[1];
 
@@ -178,7 +188,7 @@ int main(int argc, char* argv[])
             // Check again
             if (robot.isFault()) {
                 log.error("Fault cannot be cleared, exiting ...");
-                return 0;
+                return 1;
             }
             log.info("Fault on robot server is cleared");
         }
@@ -188,8 +198,15 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
+        int secondsWaited = 0;
         while (!robot.isOperational()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            if (++secondsWaited == 10) {
+                log.warn(
+                    "Still waiting for robot to become operational, please "
+                    "check that the robot 1) has no fault, 2) is booted "
+                    "into Auto mode");
+            }
         }
         log.info("Robot is now operational");
 
@@ -212,7 +229,7 @@ int main(int argc, char* argv[])
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
-            std::bind(highPriorityTask, &robot, &robotStates, &scheduler, &log),
+            std::bind(highPriorityTask, &robot, &scheduler, &log, robotStates),
             "HP periodic", 1, 45);
         // Add periodic task with 20ms interval and low priority
         scheduler.addTask(
@@ -222,7 +239,7 @@ int main(int argc, char* argv[])
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        return 0;
+        return 1;
     }
 
     return 0;
