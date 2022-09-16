@@ -377,26 +377,6 @@ public:
     void setCartesianStiffness(const std::vector<double>& stiffness
                                = {4000, 4000, 4000, 1900, 1900, 1900});
 
-    /**
-     * @brief During Cartesian impedance modes, set preferred elbow swivel
-     * angle, which is the angle between the arm plane and the reference plane.
-     * @param[in] angle Swivel angle \f$ {\phi}~[rad] \f$, valid range:
-     * [-2.0944, 2.0944] rad, i.e. [-120, 120] deg. Default to the nominal
-     * swivel angle.
-     * @par Geometry definitions
-     * Arm plane: defined by the origin of 3 body frames: link2(shoulder),
-     * link4(elbow), and link6(wrist).
-     * Reference plane: defined by the origin of 3 body frames: base,
-     * link2(shoulder), and link6(wrist).
-     * Positive direction: defined as from link2 origin to link6 origin, right
-     * hand rule.
-     * @note Applicable modes: MODE_CARTESIAN_IMPEDANCE,
-     * MODE_CARTESIAN_IMPEDANCE_NRT.
-     * @throw ExecutionException if error occurred during execution.
-     * @throw InputException if input is invalid.
-     */
-    void setSwivelAngle(double angle = 0);
-
     //=============================== IO CONTROL ===============================
     /**
      * @brief Set digital output on the control box.
