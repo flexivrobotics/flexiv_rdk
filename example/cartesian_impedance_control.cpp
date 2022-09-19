@@ -85,29 +85,12 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
                 exit(1);
             }
 
-            // online change swivel angle at 2 seconds
-            double preferredAngleDeg = 0;
-            if (loopCounter % 10000 == 2000) {
-                preferredAngleDeg = 10;
-                robot->setSwivelAngle(preferredAngleDeg / 180 * M_PI);
-                log->info("Preferred swivel angle set to degrees: "
-                          + std::to_string(preferredAngleDeg));
-            }
-
             // online change stiffness to softer at 5 seconds
             if (loopCounter % 10000 == 5000) {
                 std::vector<double> newKp = {2000, 2000, 2000, 200, 200, 200};
                 robot->setCartesianStiffness(newKp);
                 log->info("Cartesian stiffness set to: "
                           + flexiv::utility::vec2Str(newKp));
-            }
-
-            // online change swivel angle at 7 seconds
-            if (loopCounter % 10000 == 7000) {
-                preferredAngleDeg = -10;
-                robot->setSwivelAngle(preferredAngleDeg / 180 * M_PI);
-                log->info("Preferred swivel angle set to degrees: "
-                          + std::to_string(preferredAngleDeg));
             }
 
             // online reset stiffness to original at 9 seconds
