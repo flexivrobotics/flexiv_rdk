@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
 
         // Wait for the mode to be switched
         while (robot.getMode() != flexiv::MODE_CARTESIAN_IMPEDANCE) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
         // Choose the index of tool being used. No need to call this method if
