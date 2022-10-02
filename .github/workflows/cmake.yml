@@ -12,7 +12,41 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  build-ubuntu20:
+  build-ubuntu-22:
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build and install library
+        # Configure CMake, then build and install the flexiv_rdk INTERFACE library to an external directory.
+        run: |
+          cd ${{github.workspace}}
+          rm -rf build && mkdir -p build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+          make install
+
+      - name: Build examples
+        # Find and link to the flexiv_rdk INTERFACE library, then build all examples.
+        run: |
+          cd ${{github.workspace}}/example
+          rm -rf build && mkdir -p build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+          make -j$(nproc)
+
+      - name: Build tests
+        # Find and link to the flexiv_rdk INTERFACE library, then build all tests.
+        run: |
+          cd ${{github.workspace}}/test
+          rm -rf build && mkdir -p build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+          make -j$(nproc)
+
+  build-ubuntu-20:
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
@@ -46,7 +80,7 @@ jobs:
           cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
           make -j$(nproc)
 
-  build-ubuntu18:
+  build-ubuntu-18:
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
