@@ -21,7 +21,7 @@ namespace utility {
  * used by Move primitives.
  * @throw InputException if input is of wrong size.
  */
-std::vector<double> quat2EulerZYX(const std::vector<double>& quat)
+inline std::vector<double> quat2EulerZYX(const std::vector<double>& quat)
 {
     // Check input size
     if (quat.size() != 4) {
@@ -42,7 +42,7 @@ std::vector<double> quat2EulerZYX(const std::vector<double>& quat)
 /**
  * @brief Convert radians to degrees for a single value.
  */
-double rad2Deg(double rad)
+inline double rad2Deg(double rad)
 {
     constexpr double k_pi = 3.14159265358979323846;
     return (rad / k_pi * 180.0);
@@ -51,7 +51,7 @@ double rad2Deg(double rad)
 /**
  * @brief Convert radians to degrees for a vector.
  */
-std::vector<double> rad2Deg(const std::vector<double>& radVec)
+inline std::vector<double> rad2Deg(const std::vector<double>& radVec)
 {
     std::vector<double> degVec = {};
     for (const auto& v : radVec) {
@@ -67,7 +67,7 @@ std::vector<double> rad2Deg(const std::vector<double>& radVec)
  * followed by a space, including the last one.
  */
 template <typename T>
-std::string vec2Str(const std::vector<T>& vec)
+inline std::string vec2Str(const std::vector<T>& vec)
 {
     std::string str = "";
     for (const auto& v : vec) {
@@ -84,7 +84,7 @@ std::string vec2Str(const std::vector<T>& vec)
  * @param[in] refStrs Reference strings to check against.
  * @return True if the program arguments contain one or more reference strings.
  */
-bool programArgsExistAny(
+inline bool programArgsExistAny(
     int argc, char** argv, const std::vector<std::string>& refStrs)
 {
     for (int i = 0; i < argc; i++) {
@@ -105,7 +105,7 @@ bool programArgsExistAny(
  * @param[in] refStr Reference string to check against.
  * @return True if the program arguments contain this specific reference string.
  */
-bool programArgsExist(int argc, char** argv, const std::string& refStr)
+inline bool programArgsExist(int argc, char** argv, const std::string& refStr)
 {
     return programArgsExistAny(argc, argv, {refStr});
 }
@@ -119,7 +119,7 @@ bool programArgsExist(int argc, char** argv, const std::string& refStr)
  * @return Value of the specified primitive state in string format. Empty string
  * is returned if parseTarget does not exist.
  */
-std::string parsePtStates(
+inline std::string parsePtStates(
     const std::vector<std::string>& ptStates, const std::string& parseTarget)
 {
     for (const auto& state : ptStates) {
