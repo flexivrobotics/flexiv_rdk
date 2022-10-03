@@ -124,27 +124,12 @@ def main():
                     math.sin(2 * math.pi * SWING_FREQ * loop_counter * period)
             # Otherwise robot TCP will hold at initial pose
 
-            # Online change swivel angle at 2 seconds
-            preferred_degree = 0
-            if ((loop_counter * period) % 10.0 == 2.0):
-                preferred_degree = 10
-                robot.setSwivelAngle(preferred_degree / 180 * math.pi)
-                log.info("Preferred swivel angle set to degrees: " +
-                         str(preferred_degree))
-
             # Online change stiffness to softer at 5 seconds
             if ((loop_counter * period) % 10.0 == 5.0):
                 new_kp = [2000, 2000, 2000, 200, 200, 200]
                 robot.setCartesianStiffness(new_kp)
                 log.info("Cartesian stiffness set to: ")
                 print(new_kp)
-
-            # Online change swivel angle at 7 seconds
-            if ((loop_counter * period) % 10.0 == 7.0):
-                preferred_degree = -10
-                robot.setSwivelAngle(preferred_degree / 180 * math.pi)
-                log.info("Preferred swivel angle set to degrees: "
-                         + str(preferred_degree))
 
             # Online reset stiffness to original at 9 seconds
             if ((loop_counter * period) % 10.0 == 9.0):
