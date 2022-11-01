@@ -67,14 +67,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/visual/link0.stl" />
+        <mesh filename="meshes/rizon4/visual/link0.obj" />
       </geometry>
       <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/collision/link0.stl" />
+        <mesh filename="meshes/rizon4/collision/link0.stl" />
       </geometry>
     </collision>
   </link>
@@ -87,14 +87,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/visual/link1.stl" />
+        <mesh filename="meshes/rizon4/visual/link1.obj" />
       </geometry>
       <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/collision/link1.stl" />
+        <mesh filename="meshes/rizon4/collision/link1.stl" />
       </geometry>
     </collision>
   </link>
@@ -107,14 +107,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/visual/link2.stl" />
+        <mesh filename="meshes/rizon4/visual/link2.obj" />
       </geometry>
       <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/collision/link2.stl" />
+        <mesh filename="meshes/rizon4/collision/link2.stl" />
       </geometry>
     </collision>
   </link>
@@ -127,14 +127,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/visual/link3.stl" />
+        <mesh filename="meshes/rizon4/visual/link3.obj" />
       </geometry>
       <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/collision/link3.stl" />
+        <mesh filename="meshes/rizon4/collision/link3.stl" />
       </geometry>
     </collision>
   </link>
@@ -147,14 +147,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/visual/link4.stl" />
+        <mesh filename="meshes/rizon4/visual/link4.obj" />
       </geometry>
       <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/collision/link4.stl" />
+        <mesh filename="meshes/rizon4/collision/link4.stl" />
       </geometry>
     </collision>
   </link>
@@ -167,14 +167,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/visual/link5.stl" />
+        <mesh filename="meshes/rizon4/visual/link5.obj" />
       </geometry>
       <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/collision/link5.stl" />
+        <mesh filename="meshes/rizon4/collision/link5.stl" />
       </geometry>
     </collision>
   </link>
@@ -187,14 +187,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/visual/link6.stl" />
+        <mesh filename="meshes/rizon4/visual/link6.obj" />
       </geometry>
       <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/collision/link6.stl" />
+        <mesh filename="meshes/rizon4/collision/link6.stl" />
       </geometry>
     </collision>
   </link>
@@ -207,14 +207,14 @@
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/visual/link7.stl" />
+        <mesh filename="meshes/rizon4/visual/link7.obj" />
       </geometry>
       <material name="rizon_light_grey" />
     </visual>
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0" />
       <geometry>
-        <mesh filename="meshes/collision/link7.stl" />
+        <mesh filename="meshes/rizon4/collision/link7.stl" />
       </geometry>
     </collision>
   </link>
