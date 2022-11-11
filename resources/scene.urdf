@@ -14,7 +14,7 @@
     <visual>
         <origin rpy="0 0 0" xyz="0 0 0" />
         <geometry>
-            <mesh filename="meshes/collision/link0.stl" />
+            <mesh filename="meshes/rizon4/collision/link0.stl" />
         </geometry>
         <material name="white">
             <color rgba="1.0 1.0 1.0 1.0" />
