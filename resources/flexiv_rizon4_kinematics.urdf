@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!-- ======================================================================== -->
-<!-- | Flexiv Rizon4 Arm (with approximated dynamic parameters)             | -->
+<!-- | Flexiv Rizon 4 (with blurred dynamic parameters)                     | -->
 <!-- ======================================================================== -->
 <robot name="rizon4">
   <joint name="joint1" type="revolute">
@@ -62,7 +62,7 @@
     <inertial>
       <mass value="3.7" />
       <origin rpy="0 0 0" xyz="0.0 -0.0 0.09" />
-      <inertia ixx="0.019" ixy="0.0" ixz="0.0" iyy="0.02" iyz="0.0" izz="0.009" />
+      <inertia ixx="0.02" ixy="0.0" ixz="0.0" iyy="0.02" iyz="0.0" izz="0.01" />
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -82,7 +82,7 @@
     <inertial>
       <mass value="3.7" />
       <origin rpy="0 0 0" xyz="0.0 0.01 0.15" />
-      <inertia ixx="0.028" ixy="0.0" ixz="0.0" iyy="0.027" iyz="0.002" izz="0.008" />
+      <inertia ixx="0.03" ixy="0.0" ixz="0.0" iyy="0.03" iyz="0.0" izz="0.01" />
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -102,7 +102,7 @@
     <inertial>
       <mass value="2.7" />
       <origin rpy="0 0 0" xyz="0.0 0.04 0.1" />
-      <inertia ixx="0.023" ixy="0.0" ixz="0.0" iyy="0.024" iyz="-0.0" izz="0.004" />
+      <inertia ixx="0.02" ixy="0.0" ixz="0.0" iyy="0.02" iyz="-0.0" izz="0.0" />
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -122,7 +122,7 @@
     <inertial>
       <mass value="2.4" />
       <origin rpy="0 0 0" xyz="-0.01 -0.0 0.13" />
-      <inertia ixx="0.014" ixy="0.0" ixz="-0.001" iyy="0.014" iyz="-0.001" izz="0.004" />
+      <inertia ixx="0.01" ixy="0.0" ixz="-0.0" iyy="0.01" iyz="-0.0" izz="0.0" />
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -142,7 +142,7 @@
     <inertial>
       <mass value="2.4" />
       <origin rpy="0 0 0" xyz="-0.01 0.03 0.1" />
-      <inertia ixx="0.018" ixy="0.0" ixz="-0.002" iyy="0.019" iyz="-0.001" izz="0.003" />
+      <inertia ixx="0.02" ixy="0.0" ixz="-0.0" iyy="0.02" iyz="-0.0" izz="0.0" />
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -161,8 +161,8 @@
   <link name="link5">
     <inertial>
       <mass value="2.4" />
-      <origin rpy="0 0 0" xyz="0.0 0.0 0.13" />
-      <inertia ixx="0.014" ixy="0.0" ixz="0.0" iyy="0.013" iyz="0.001" izz="0.004" />
+      <origin rpy="0 0 0" xyz="-0.0 0.0 0.13" />
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.0" />
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -182,7 +182,7 @@
     <inertial>
       <mass value="2.1" />
       <origin rpy="0 0 0" xyz="-0.01 0.06 0.07" />
-      <inertia ixx="0.008" ixy="-0.0" ixz="-0.001" iyy="0.009" iyz="0.002" izz="0.004" />
+      <inertia ixx="0.01" ixy="-0.0" ixz="-0.0" iyy="0.01" iyz="0.0" izz="0.0" />
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
@@ -201,8 +201,8 @@
   <link name="link7">
     <inertial>
       <mass value="0.8" />
-      <origin rpy="0 0 0" xyz="0.0 0.0 0.03" />
-      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
+      <origin rpy="0 0 0" xyz="0.0 -0.0 0.03" />
+      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0" />
