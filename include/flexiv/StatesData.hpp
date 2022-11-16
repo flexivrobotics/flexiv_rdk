@@ -120,13 +120,14 @@ struct RobotStates
     std::vector<double> flangePose = {};
 
     /**
-     * Measured end link pose in base frame \f$ ^{O}T_{el}~[m][] \f$.
+     * Raw reading of the force-torque (FT) sensor in flange frame (0 if no FT
+     * sensor is installed) \f$ [N][Nm] \f$.
      *
-     * Size: \f$ \mathbb{R}^{7 \times 1} \f$ = \f$ \mathbb{R}^{3 \times 1} \f$
-     * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion \f$ [x, y, z,
-     * q_w, q_x, q_y, q_z]^T \f$.
+     * Size: \f$ \mathbb{R}^{6 \times 1} \f$ = \f$ \mathbb{R}^{3 \times 1} \f$
+     * force and \f$ \mathbb{R}^{3 \times 1} \f$ moment \f$ [f_x, f_y, f_z, m_x,
+     * m_y, m_z]^T \f$.
      */
-    std::vector<double> endLinkPose = {};
+    std::vector<double> ftSensorRawReading = {};
 
     /**
      * Estimated external force applied on TCP in TCP frame
