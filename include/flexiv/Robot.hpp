@@ -41,7 +41,6 @@ public:
     /**
      * @brief Enable the robot, if E-stop is released and there's no fault, the
      * robot will release brakes, and becomes operational a few seconds later.
-     * @note Call init() before calling this method.
      * @throw ExecutionException if error occurred during execution.
      * @throw CommException if connection with robot server is lost.
      */
@@ -368,7 +367,8 @@ public:
      * @brief Set stiffness of Cartesian impedance controller.
      * @param[in] stiffness \f$ \mathbb{R}^{6 \times 1} \f$ diagonal elements of
      * the positive definite stiffness matrix. Maximum (nominal) stiffness is
-     * provided as parameter default.
+     * provided as parameter default \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry},
+     * k_{Rz}]^T~[N/m][Nm/rad] \f$.
      * @note Applicable modes: MODE_CARTESIAN_IMPEDANCE,
      * MODE_CARTESIAN_IMPEDANCE_NRT.
      * @throw ExecutionException if error occurred during execution.

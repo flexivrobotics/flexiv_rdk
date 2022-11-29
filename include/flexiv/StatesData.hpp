@@ -152,10 +152,10 @@ struct RobotStates
 
 /**
  * @brief Operator overloading to out stream all robot states in JSON format:
- * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}
- * @param[in] ostream Ostream instance
- * @param[in] robotStates RobotStates to out stream
- * @return Updated ostream instance
+ * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}.
+ * @param[in] ostream Ostream instance.
+ * @param[in] robotStates RobotStates data struct to out stream.
+ * @return Updated ostream instance.
  */
 std::ostream& operator<<(
     std::ostream& ostream, const flexiv::RobotStates& robotStates);
@@ -166,41 +166,67 @@ std::ostream& operator<<(
  */
 struct PlanInfo
 {
-    /**
-     * Current primitive name
-     */
+    /** Current primitive name */
     std::string ptName = {};
 
-    /**
-     * Current node name
-     */
+    /** Current node name */
     std::string nodeName = {};
 
-    /**
-     * Current node path
-     */
+    /** Current node path */
     std::string nodePath = {};
 
-    /**
-     * Current node path time period
-     */
+    /** Current node path time period */
     std::string nodePathTimePeriod = {};
 
-    /**
-     * Current node path number
-     */
+    /** Current node path number */
     std::string nodePathNumber = {};
 
-    /**
-     * Assigned plan name
-     */
+    /** Assigned plan name */
     std::string assignedPlanName = {};
 
-    /**
-     * Velocity scale
-     */
+    /** Velocity scale */
     double velocityScale = {};
 };
+
+/**
+ * @brief Operator overloading to out stream all plan info in JSON format:
+ * {"info_1": [val1,val2,val3,...], "info_2": [val1,val2,val3,...], ...}.
+ * @param[in] ostream Ostream instance.
+ * @param[in] planInfo PlanInfo data struct to out stream.
+ * @return Updated ostream instance.
+ */
+std::ostream& operator<<(
+    std::ostream& ostream, const flexiv::PlanInfo& planInfo);
+
+/**
+ * @struct GripperStates
+ * @brief Data struct containing the gripper states.
+ */
+struct GripperStates
+{
+    /** Measured finger opening width [m] */
+    double width = {};
+
+    /** Measured finger force. Positive: opening force, negative: closing force.
+     * 0 if the mounted gripper has no force sensing capability [N] */
+    double force = {};
+
+    /** Maximum finger opening width of the mounted gripper [m] */
+    double maxWidth = {};
+
+    /** Whether the fingers are moving */
+    bool isMoving = {};
+};
+
+/**
+ * @brief Operator overloading to out stream all gripper states in JSON format:
+ * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}.
+ * @param[in] ostream Ostream instance.
+ * @param[in] gripperStates GripperStates data struct to out stream.
+ * @return Updated ostream instance.
+ */
+std::ostream& operator<<(
+    std::ostream& ostream, const flexiv::GripperStates& gripperStates);
 
 } /* namespace flexiv */
 

@@ -29,7 +29,8 @@ public:
     /**
      * @brief Grasp with direct force control. Requires the mounted gripper to
      * support direct force control.
-     * @param[in] force Target gripping force. Positive direction: closing [N].
+     * @param[in] force Target gripping force. Positive: closing force,
+     * negative: opening force [N].
      * @note Applicable modes: all modes except MODE_IDLE.
      * @warning Target inputs outside the valid range (specified in gripper's
      * configuration file) will be saturated.
@@ -56,6 +57,16 @@ public:
      * @throw ExecutionException if error occurred during execution.
      */
     void stop(void);
+
+    /**
+     * @brief Get current gripper states.
+     * @param[out] output Reference of output data object.
+     * @throw CommException if there's no response from server.
+     * @throw ExecutionException if error occurred during execution.
+     * @warning This method will block until the request-reply operation with
+     * the server is done. The blocking time varies by communication latency.
+     */
+    void getGripperStates(GripperStates& output);
 
 private:
     class Impl;
