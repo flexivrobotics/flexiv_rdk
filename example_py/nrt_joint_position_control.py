@@ -99,8 +99,10 @@ def main():
         init_pos = robot_states.q.copy()
         print("Initial positions set to: ", init_pos)
 
-        # Initialize target vectors
+        # Robot degrees of freedom
         DOF = len(robot_states.q)
+
+        # Initialize target vectors
         target_pos = init_pos.copy()
         target_vel = [0.0] * DOF
         target_acc = [0.0] * DOF
