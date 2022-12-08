@@ -376,6 +376,28 @@ public:
     void setCartesianStiffness(const std::vector<double>& stiffness
                                = {4000, 4000, 4000, 1900, 1900, 1900});
 
+    /**
+     * @brief Set preferred joint positions of Cartesian impedance controller,
+     * for use in null-space posture control.
+     * @param[in] preferredPositions \f$ \mathbb{R}^{Dof \times 1} \f$ preferred
+     * joint positions for the null-space posture control. Nominal values (home
+     * posture) are provided as parameter default: \f$ q_{nullspace}~[rad] \f$.
+     * @par Null-space posture control
+     * Similar to human arm, a robotic arm with redundant degree(s) of
+     * freedom (DOF > 6) can change its overall posture without affecting the
+     * ongoing primary task. This is achieved through a technique called
+     * "null-space control". After the preferred joint positions for a desired
+     * robot posture is set using this method, the robot's null-space controller
+     * will try to pull the arm as close to this posture as possible without
+     * affecting the primary TCP pose control task.
+     * @note Applicable modes: MODE_CARTESIAN_IMPEDANCE,
+     * MODE_CARTESIAN_IMPEDANCE_NRT.
+     * @throw ExecutionException if error occurred during execution.
+     * @throw InputException if input is invalid.
+     */
+    void setNullSpacePosture(const std::vector<double>& preferredPositions
+                             = {0.0, -0.6981, 0.0, 1.5708, 0.0, 0.6981, 0.0});
+
     //=============================== IO CONTROL ===============================
     /**
      * @brief Set digital output on the control box.
