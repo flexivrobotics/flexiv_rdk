@@ -17,11 +17,11 @@
 #include <thread>
 
 namespace {
-/** Robot DOF */
-const int k_robotDofs = 7;
+/** Robot degrees of freedom */
+constexpr int k_robotDofs = 7;
 
 /** RT loop period [sec] */
-const double k_loopPeriod = 0.001;
+constexpr double k_loopPeriod = 0.001;
 
 /** Joint impedance control gains */
 const std::vector<double> k_impedanceKp
@@ -30,9 +30,8 @@ const std::vector<double> k_impedanceKd
     = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
 
 /** Sine-sweep trajectory amplitude and frequency */
-const std::vector<double> k_sineAmp
-    = {0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035};
-const std::vector<double> k_sineFreq = {0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3};
+constexpr double k_sineAmp = 0.035;
+constexpr double k_sineFreq = 0.3;
 
 /** Type of motion specified by user */
 std::string motionType = {};
@@ -83,8 +82,8 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
                 for (size_t i = 0; i < k_robotDofs; ++i) {
                     targetPosition[i]
                         = initPosition[i]
-                          + k_sineAmp[i]
-                                * sin(2 * M_PI * k_sineFreq[i] * sineCounter
+                          + k_sineAmp
+                                * sin(2 * M_PI * k_sineFreq * sineCounter
                                       * k_loopPeriod);
                 }
                 sineCounter++;

@@ -99,8 +99,10 @@ def main():
         init_pos = robot_states.q.copy()
         print("Initial positions set to: ", init_pos)
 
-        # Initialize target vectors
+        # Robot degrees of freedom
         DOF = len(robot_states.q)
+
+        # Initialize target vectors
         target_pos = init_pos.copy()
         target_vel = [0.0] * DOF
         target_acc = [0.0] * DOF
@@ -108,7 +110,6 @@ def main():
         # Joint motion constraints
         MAX_VEL = [2.0] * DOF
         MAX_ACC = [3.0] * DOF
-        MAX_JERK = [20.0] * DOF
 
         # Joint sine-sweep amplitude [rad]
         SWING_AMP = 0.1
@@ -134,7 +135,7 @@ def main():
 
             # Send command
             robot.sendJointPosition(
-                target_pos, target_vel, target_acc, MAX_VEL, MAX_ACC, MAX_JERK)
+                target_pos, target_vel, target_acc, MAX_VEL, MAX_ACC)
 
             # Increment loop time
             loop_time += period
