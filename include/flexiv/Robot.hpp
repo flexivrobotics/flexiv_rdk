@@ -314,8 +314,7 @@ public:
     void sendJointPosition(const std::vector<double>& positions,
         const std::vector<double>& velocities,
         const std::vector<double>& accelerations,
-        const std::vector<double>& maxVel, const std::vector<double>& maxAcc,
-        const std::vector<double>& maxJerk);
+        const std::vector<double>& maxVel, const std::vector<double>& maxAcc);
 
     /**
      * @brief Continuously command target TCP pose for the robot to track using
