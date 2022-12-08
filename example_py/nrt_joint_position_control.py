@@ -110,7 +110,6 @@ def main():
         # Joint motion constraints
         MAX_VEL = [2.0] * DOF
         MAX_ACC = [3.0] * DOF
-        MAX_JERK = [20.0] * DOF
 
         # Joint sine-sweep amplitude [rad]
         SWING_AMP = 0.1
@@ -136,7 +135,7 @@ def main():
 
             # Send command
             robot.sendJointPosition(
-                target_pos, target_vel, target_acc, MAX_VEL, MAX_ACC, MAX_JERK)
+                target_pos, target_vel, target_acc, MAX_VEL, MAX_ACC)
 
             # Increment loop time
             loop_time += period

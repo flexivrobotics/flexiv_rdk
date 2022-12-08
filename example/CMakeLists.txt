@@ -38,7 +38,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     joint_position_control
     robot_dynamics
     series_operation
-    visualization
   )
 endif()
 
