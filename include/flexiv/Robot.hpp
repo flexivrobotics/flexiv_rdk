@@ -194,6 +194,9 @@ public:
      * cannot be used to check if a primitive task is finished, use primitive
      * states like "reachedTarget" instead.
      * @see getPrimitiveStates()
+     * @warning The input parameters in ptCmd may not use SI units, please refer
+     * to the detailed [Flexiv Primitives](https://www.flexiv.com/primitives/)
+     * documentation.
      * @warning This method will block for 50 ms.
      */
     void executePrimitive(const std::string& ptCmd);
@@ -256,7 +259,7 @@ public:
     /**
      * @brief Continuously send joint torque command to robot.
      * @param[in] torques \f$ \mathbb{R}^{Dof \times 1} \f$ target torques of
-     * the joints, \f$ {\tau_J}_d~[Nm] \f$.
+     * the joints: \f$ {\tau_J}_d~[Nm] \f$.
      * @param[in] enableGravityComp Enable/disable robot gravity compensation.
      * @param[in] enableSoftLimits Enable/disable soft limits to keep the
      * joints from moving outside the allowed position range, which will
@@ -275,11 +278,11 @@ public:
      * @brief Continuously send joint position, velocity, and acceleration
      * command.
      * @param[in] positions \f$ \mathbb{R}^{Dof \times 1} \f$ target positions
-     * of the joints, \f$ q_d~[rad] \f$.
+     * of the joints: \f$ q_d~[rad] \f$.
      * @param[in] velocities \f$ \mathbb{R}^{Dof \times 1} \f$ target velocities
-     * of the joints, \f$ \dot{q}_d~[rad/s] \f$.
+     * of the joints: \f$ \dot{q}_d~[rad/s] \f$.
      * @param[in] accelerations \f$ \mathbb{R}^{Dof \times 1} \f$ target
-     * accelerations of the joints, \f$ \ddot{q}_d~[rad/s^2] \f$.
+     * accelerations of the joints: \f$ \ddot{q}_d~[rad/s^2] \f$.
      * @note Applicable mode: MODE_JOINT_POSITION.
      * @note Real-time (RT).
      * @throw ExecutionException if error occurred during execution.
@@ -296,17 +299,15 @@ public:
      * command. The internal trajectory generator will interpolate between two
      * set points and make the motion smooth.
      * @param[in] positions \f$ \mathbb{R}^{Dof \times 1} \f$ target positions
-     * of the joints, \f$ q_d~[rad] \f$.
+     * of the joints: \f$ q_d~[rad] \f$.
      * @param[in] velocities \f$ \mathbb{R}^{Dof \times 1} \f$ target velocities
-     * of the joints, \f$ \dot{q}_d~[rad/s] \f$.
+     * of the joints: \f$ \dot{q}_d~[rad/s] \f$.
      * @param[in] accelerations \f$ \mathbb{R}^{Dof \times 1} \f$ target
-     * accelerations of the joints, \f$ \ddot{q}_d~[rad/s^2] \f$.
+     * accelerations of the joints: \f$ \ddot{q}_d~[rad/s^2] \f$.
      * @param[in] maxVel \f$ \mathbb{R}^{Dof \times 1} \f$ maximum velocities
-     * of the joints, \f$ \dot{q}_{max}~[rad/s] \f$.
+     * of the joints: \f$ \dot{q}_{max}~[rad/s] \f$.
      * @param[in] maxAcc \f$ \mathbb{R}^{Dof \times 1} \f$ maximum accelerations
-     * of the joints, \f$ \ddot{q}_{max}~[rad/s^2] \f$.
-     * @param[in] maxJerk \f$ \mathbb{R}^{Dof \times 1} \f$ maximum jerk
-     * of the joints, \f$ \dddot{q}_{max}~[rad/s^3] \f$.
+     * of the joints: \f$ \ddot{q}_{max}~[rad/s^2] \f$.
      * @note Applicable mode: MODE_JOINT_POSITION_NRT.
      * @throw ExecutionException if error occurred during execution.
      * @throw InputException if input is invalid.
@@ -321,13 +322,13 @@ public:
      * its Cartesian impedance controller.
      * @param[in] pose \f$ \mathbb{R}^{7 \times 1} \f$ target TCP pose
      * in base frame, \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$
-     * \mathbb{R}^{4 \times 1} \f$ quaternion \f$ [x, y, z, q_w, q_x, q_y,
+     * \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y,
      * q_z]^T~[m][] \f$.
-     * @param[in] maxWrench (Optional) \f$ \mathbb{R}^{6 \times 1} \f$ maximum
-     * contact wrench in TCP coordinate, the controller will soften if needed to
+     * @param[in] maxWrench \f$ \mathbb{R}^{6 \times 1} \f$ maximum
+     * contact wrench in TCP coordinate. The controller will soften if needed to
      * keep the actual contact wrench under this value. Default value will be
      * used if not specified. \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
-     * \mathbb{R}^{3 \times 1} \f$ moment \f$ [f_x, f_y, f_z, m_x, m_y,
+     * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y,
      * m_z]^T~[N][Nm] \f$.
      * @note Applicable mode: MODE_CARTESIAN_IMPEDANCE.
      * @note Real-time (RT).
@@ -346,13 +347,13 @@ public:
      * smooth the discrete commands.
      * @param[in] pose \f$ \mathbb{R}^{7 \times 1} \f$ target TCP pose
      * in base frame, \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$
-     * \mathbb{R}^{4 \times 1} \f$ quaternion \f$ [x, y, z, q_w, q_x, q_y,
+     * \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y,
      * q_z]^T~[m][] \f$.
-     * @param[in] maxWrench (Optional) \f$ \mathbb{R}^{6 \times 1} \f$ maximum
-     * contact wrench in TCP coordinate, the controller will soften if needed to
+     * @param[in] maxWrench \f$ \mathbb{R}^{6 \times 1} \f$ maximum
+     * contact wrench in TCP coordinate. The controller will soften if needed to
      * keep the actual contact wrench under this value. Default value will be
      * used if not specified. \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
-     * \mathbb{R}^{3 \times 1} \f$ moment \f$ [f_x, f_y, f_z, m_x, m_y,
+     * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y,
      * m_z]^T~[N][Nm] \f$.
      * @note Applicable mode: MODE_CARTESIAN_IMPEDANCE_NRT.
      * @throw ExecutionException if error occurred during execution.
@@ -366,7 +367,7 @@ public:
      * @brief Set stiffness of Cartesian impedance controller.
      * @param[in] stiffness \f$ \mathbb{R}^{6 \times 1} \f$ diagonal elements of
      * the positive definite stiffness matrix. Maximum (nominal) stiffness is
-     * provided as parameter default \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry},
+     * provided as parameter default: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry},
      * k_{Rz}]^T~[N/m][Nm/rad] \f$.
      * @note Applicable modes: MODE_CARTESIAN_IMPEDANCE,
      * MODE_CARTESIAN_IMPEDANCE_NRT.
