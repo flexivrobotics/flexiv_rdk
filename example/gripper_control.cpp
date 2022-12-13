@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
         // Application-specific Code
         //=============================================================================
         // Instantiate gripper
-        flexiv::Gripper gripper(&robot);
+        flexiv::Gripper gripper(robot);
 
         // Position control test
         log.info("Closing gripper");

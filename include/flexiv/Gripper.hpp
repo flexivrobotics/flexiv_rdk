@@ -20,10 +20,10 @@ class Gripper
 public:
     /**
      * @brief Create a flexiv::Gripper instance for gripper control.
-     * @param[in] robot Pointer to the instance of flexiv::Robot main interface.
+     * @param[in] robot Reference to the instance of flexiv::Robot.
      * @throw InitException if the instance failed to initialize.
      */
-    Gripper(Robot* robot);
+    Gripper(const Robot& robot);
     virtual ~Gripper();
 
     /**

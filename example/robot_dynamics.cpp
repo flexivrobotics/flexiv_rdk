@@ -29,7 +29,7 @@ int periodicTask(flexiv::Robot& robot)
 
     try {
         // Initialize robot model (dynamics engine)
-        flexiv::Model model(&robot);
+        flexiv::Model model(robot);
 
         int loopCounter = 0;
         while (true) {
