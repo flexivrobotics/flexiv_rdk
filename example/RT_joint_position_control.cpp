@@ -1,7 +1,6 @@
 /**
- * @example floating_with_soft_limits.cpp
- * Run damped floating with soft limits enabled to keep joints from
- * hitting position limits.
+ * @example RT_joint_position_control.cpp
+ * Real-time joint position control to hold or sine-sweep all joints.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -14,21 +13,26 @@
 
 #include <iostream>
 #include <string>
+#include <cmath>
 #include <thread>
 
 namespace {
-/** Robot DOF */
-const int k_robotDofs = 7;
+/** RT loop period [sec] */
+constexpr double k_loopPeriod = 0.001;
 
-/** Damping gains for floating */
-const std::vector<double> k_floatingDamping
-    = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
+/** Sine-sweep trajectory amplitude and frequency */
+constexpr double k_sineAmp = 0.035;
+constexpr double k_sineFreq = 0.3;
 }
 
 /** Callback function for realtime periodic task */
 void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
-    flexiv::Log& log, flexiv::RobotStates& robotStates)
+    flexiv::Log& log, flexiv::RobotStates& robotStates,
+    const std::string& motionType, const std::vector<double>& initPos)
 {
+    // Local periodic loop counter
+    static unsigned int loopCounter = 0;
+
     try {
         // Monitor fault on robot server
         if (robot.isFault()) {
@@ -39,17 +43,34 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
         // Read robot states
         robot.getRobotStates(robotStates);
 
-        // Set 0 joint torques
-        std::vector<double> torqueDesired(k_robotDofs, 0.0);
+        // Robot degrees of freedom
+        size_t robotDOF = robotStates.q.size();
 
-        // Add some velocity damping
-        for (size_t i = 0; i < k_robotDofs; ++i) {
-            torqueDesired[i] = -k_floatingDamping[i] * robotStates.dtheta[i];
+        // Initialize target vectors to hold position
+        std::vector<double> targetPos(robotDOF, 0);
+        std::vector<double> targetVel(robotDOF, 0);
+        std::vector<double> targetAcc(robotDOF, 0);
+
+        // Set target vectors based on motion type
+        if (motionType == "hold") {
+            targetPos = initPos;
+        } else if (motionType == "sine-sweep") {
+            for (size_t i = 0; i < robotDOF; ++i) {
+                targetPos[i] = initPos[i]
+                               + k_sineAmp
+                                     * sin(2 * M_PI * k_sineFreq * loopCounter
+                                           * k_loopPeriod);
+            }
+        } else {
+            throw flexiv::InputException(
+                "periodicTask: unknown motion type. Accepted motion types: "
+                "hold, sine-sweep");
         }
 
-        // Send target joint torque to RDK server, enable gravity compensation
-        // and joint soft limits
-        robot.streamJointTorque(torqueDesired, true, true);
+        // Send target joint position to RDK server
+        robot.streamJointPosition(targetPos, targetVel, targetAcc);
+
+        loopCounter++;
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
@@ -63,7 +84,8 @@ void printHelp()
     std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
     std::cout << "    robot IP: address of the robot server" << std::endl;
     std::cout << "    local IP: address of this PC" << std::endl;
-    std::cout << "Optional arguments: None" << std::endl;
+    std::cout << "Optional arguments: [--hold]" << std::endl;
+    std::cout << "    --hold: robot holds current joint positions, otherwise do a sine-sweep" << std::endl;
     std::cout << std::endl;
     // clang-format on
 }
@@ -86,6 +108,16 @@ int main(int argc, char* argv[])
 
     // IP of the workstation PC running this program
     std::string localIP = argv[2];
+
+    // Type of motion specified by user
+    std::string motionType = "";
+    if (flexiv::utility::programArgsExist(argc, argv, "--hold")) {
+        log.info("Robot holding current pose");
+        motionType = "hold";
+    } else {
+        log.info("Robot running joint sine-sweep");
+        motionType = "sine-sweep";
+    }
 
     try {
         // RDK Initialization
@@ -128,12 +160,18 @@ int main(int argc, char* argv[])
         log.info("Robot is now operational");
 
         // Set mode after robot is operational
-        robot.setMode(flexiv::MODE_JOINT_TORQUE);
+        robot.setMode(flexiv::MODE_JOINT_POSITION);
 
         // Wait for the mode to be switched
-        while (robot.getMode() != flexiv::MODE_JOINT_TORQUE) {
+        while (robot.getMode() != flexiv::MODE_JOINT_POSITION) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
+
+        // Set initial joint positions
+        robot.getRobotStates(robotStates);
+        auto initPos = robotStates.q;
+        log.info("Initial joint positions set to: "
+                 + flexiv::utility::vec2Str(initPos));
 
         // Periodic Tasks
         //=============================================================================
@@ -141,7 +179,8 @@ int main(int argc, char* argv[])
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
             std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
-                std::ref(log), std::ref(robotStates)),
+                std::ref(log), std::ref(robotStates), std::ref(motionType),
+                std::ref(initPos)),
             "HP periodic", 1, 45);
         // Start all added tasks, this is by default a blocking method
         scheduler.start();

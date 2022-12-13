@@ -189,7 +189,7 @@ void lowPriorityTask()
             }
 
             // exit program
-            exit(1);
+            return;
         }
 
         // increment loop counter
@@ -302,17 +302,20 @@ int main(int argc, char* argv[])
 
         // Periodic Tasks
         //=============================================================================
-        // use std::thread for logging task, not joining (non-blocking)
-        std::thread lowPriorityThread(lowPriorityTask);
-
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
             std::bind(highPriorityTask, std::ref(robot), std::ref(scheduler),
                 std::ref(log), std::ref(robotStates)),
             "HP periodic", 1, 45);
-        // Start all added tasks, this is by default a blocking method
-        scheduler.start();
+        // Start all added tasks, not blocking
+        scheduler.start(false);
+
+        // Use std::thread for logging task without strict chronology
+        std::thread lowPriorityThread(lowPriorityTask);
+
+        // lowPriorityThread is responsible to release blocking
+        lowPriorityThread.join();
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());

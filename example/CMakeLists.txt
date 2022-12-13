@@ -11,7 +11,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "CMake build type" FORCE)
 endif()
 
-# Minumum example list for Windows 
+# Minumum example list for all OS
 set(EXAMPLE_LIST
   auto_recovery
   clear_fault
@@ -29,13 +29,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   )
 endif()
 
-# Additional examples for Linux only
+# Additional examples for Linux
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(EXAMPLE_LIST ${EXAMPLE_LIST}
-    cartesian_impedance_control_rt
-    floating_with_soft_limits
-    joint_impedance_control
-    joint_position_control
+    RT_cartesian_impedance_control
+    RT_joint_floating
+    RT_joint_impedance_control
+    RT_joint_position_control
     robot_dynamics
     series_operation
   )

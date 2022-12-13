@@ -1,5 +1,5 @@
 /**
- * @example cartesian_impedance_control_rt.cpp
+ * @example RT_cartesian_impedance_control.cpp
  * Real-time Cartesian impedance control to hold or sine-sweep the robot TCP.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
@@ -17,33 +17,25 @@
 
 namespace {
 /** Size of Cartesian pose vector [position 3x1 + rotation (quaternion) 4x1 ] */
-const unsigned int k_cartPoseSize = 7;
+constexpr size_t k_cartPoseSize = 7;
 
 /** RT loop period [sec] */
-const double k_loopPeriod = 0.001;
+constexpr double k_loopPeriod = 0.001;
 
 /** TCP sine-sweep amplitude [m] */
-const double k_swingAmp = 0.1;
+constexpr double k_swingAmp = 0.1;
 
 /** TCP sine-sweep frequency [Hz] */
-const double k_swingFreq = 0.3;
-
-/** Type of motion specified by user */
-std::string motionType = {};
+constexpr double k_swingFreq = 0.3;
 }
 
 /** Callback function for realtime periodic task */
 void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
-    flexiv::Log& log, flexiv::RobotStates& robotStates)
+    flexiv::Log& log, flexiv::RobotStates& robotStates,
+    const std::string& motionType, const std::vector<double>& initTcpPose)
 {
-    // Sine counter
-    static unsigned int loopCounter = 0;
-
-    // Flag whether initial Cartesian position is set
-    static bool isInitPoseSet = false;
-
-    // Initial Cartesian-space pose (position + rotation) of robot TCP
-    static std::vector<double> initTcpPose;
+    // Local periodic loop counter
+    static size_t loopCounter = 0;
 
     try {
         // Monitor fault on robot server
@@ -55,52 +47,62 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
         // Read robot states
         robot.getRobotStates(robotStates);
 
-        // Set initial TCP pose
-        if (!isInitPoseSet) {
-            // Check vector size before saving
-            if (robotStates.tcpPose.size() == k_cartPoseSize) {
-                initTcpPose = robotStates.tcpPose;
-                isInitPoseSet = true;
-                log.info(
-                    "Initial Cartesion pose of robot TCP set to [position "
-                    "3x1 + rotation (quaternion) 4x1]: "
-                    + flexiv::utility::vec2Str(initTcpPose));
-            }
+        // Set target pose based on motion type
+        if (motionType == "hold") {
+            robot.streamTcpPose(initTcpPose);
+        } else if (motionType == "sine-sweep") {
+            auto targetTcpPose = initTcpPose;
+            targetTcpPose[1] = initTcpPose[1]
+                               + k_swingAmp
+                                     * sin(2 * M_PI * k_swingFreq * loopCounter
+                                           * k_loopPeriod);
+            robot.streamTcpPose(targetTcpPose);
+        } else {
+            throw flexiv::InputException(
+                "periodicTask: unknown motion type. Accepted motion types: "
+                "hold, sine-sweep");
         }
-        // Run control only after initial pose is set
-        else {
-            // Set target position based on motion type
-            if (motionType == "hold") {
-                robot.streamTcpPose(initTcpPose);
-            } else if (motionType == "sine-sweep") {
-                auto targetTcpPose = initTcpPose;
-                targetTcpPose[1] = initTcpPose[1]
-                                   + k_swingAmp
-                                         * sin(2 * M_PI * k_swingFreq
-                                               * loopCounter * k_loopPeriod);
-                robot.streamTcpPose(targetTcpPose);
-            } else {
-                log.error("Unknown motion type");
-                log.info("Accepted motion types: hold, sine-sweep");
-                exit(1);
-            }
 
-            // online change stiffness to softer at 5 seconds
-            if (loopCounter % 10000 == 5000) {
-                std::vector<double> newKp = {2000, 2000, 2000, 200, 200, 200};
-                robot.setCartesianStiffness(newKp);
+        // Do the following operations in sequence for every 20 seconds
+        switch (static_cast<size_t>(loopCounter * k_loopPeriod) % 20) {
+            // Online change preferred joint positions at 3 seconds
+            case 3: {
+                std::vector<double> preferredJntPos
+                    = {-0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658};
+                robot.setNullSpacePosture(preferredJntPos);
+                log.info("Preferred joint positions set to: "
+                         + flexiv::utility::vec2Str(preferredJntPos));
+            } break;
+            // Online change stiffness to softer at 6 seconds
+            case 6: {
+                std::vector<double> newK = {2000, 2000, 2000, 200, 200, 200};
+                robot.setCartesianStiffness(newK);
                 log.info("Cartesian stiffness set to: "
-                         + flexiv::utility::vec2Str(newKp));
-            }
-
-            // online reset stiffness to original at 9 seconds
-            if (loopCounter % 10000 == 9000) {
+                         + flexiv::utility::vec2Str(newK));
+            } break;
+            // Online change to another preferred joint positions at 9 seconds
+            case 9: {
+                std::vector<double> preferredJntPos
+                    = {0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658};
+                robot.setNullSpacePosture(preferredJntPos);
+                log.info("Preferred joint positions set to: "
+                         + flexiv::utility::vec2Str(preferredJntPos));
+            } break;
+            // Online reset stiffness to original at 12 seconds
+            case 12: {
                 robot.setCartesianStiffness();
                 log.info("Cartesian stiffness is reset");
-            }
-
-            loopCounter++;
+            } break;
+            // Online reset preferred joint positions at 15 seconds
+            case 15: {
+                robot.setNullSpacePosture();
+                log.info("Preferred joint positions are reset");
+            } break;
+            default:
+                break;
         }
+
+        loopCounter++;
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
@@ -140,6 +142,7 @@ int main(int argc, char* argv[])
     std::string localIP = argv[2];
 
     // Type of motion specified by user
+    std::string motionType = "";
     if (flexiv::utility::programArgsExist(argc, argv, "--hold")) {
         log.info("Robot holding current TCP pose");
         motionType = "hold";
@@ -196,10 +199,13 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
-        // Choose the index of tool being used. No need to call this method if
-        // the mounted tool on the robot has only one TCP, it'll be used by
-        // default
-        robot.switchTcp(0);
+        // Set initial TCP pose
+        robot.getRobotStates(robotStates);
+        auto initTcpPose = robotStates.tcpPose;
+        log.info(
+            "Initial TCP pose set to [position 3x1, rotation (quaternion) "
+            "4x1]: "
+            + flexiv::utility::vec2Str(initTcpPose));
 
         // Periodic Tasks
         //=============================================================================
@@ -207,7 +213,8 @@ int main(int argc, char* argv[])
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
             std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
-                std::ref(log), std::ref(robotStates)),
+                std::ref(log), std::ref(robotStates), std::ref(motionType),
+                std::ref(initTcpPose)),
             "HP periodic", 1, 45);
         // Start all added tasks, this is by default a blocking method
         scheduler.start();

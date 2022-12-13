@@ -195,14 +195,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
                     robot.setMode(flexiv::MODE_JOINT_POSITION);
 
                     // Set initial joint position
-                    if (robotStates.q.size() == k_robotDofs) {
-                        initJointPos = robotStates.q;
-                    } else {
-                        log.error("Invalid size of received joint position");
-                        // Stop robot and terminate program
-                        robot.stop();
-                        exit(1);
-                    }
+                    initJointPos = robotStates.q;
 
                     // Reset sine counter
                     sineCounter = 0;
@@ -245,14 +238,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
                     robot.setMode(flexiv::MODE_JOINT_TORQUE);
 
                     // Set initial joint position
-                    if (robotStates.q.size() == k_robotDofs) {
-                        initJointPos = robotStates.q;
-                    } else {
-                        log.error("Invalid size of received joint position");
-                        // Stop robot and terminate program
-                        robot.stop();
-                        exit(1);
-                    }
+                    initJointPos = robotStates.q;
+
                     // Reset sine counter
                     sineCounter = 0;
                 } else {
@@ -299,14 +286,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
                     robot.setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
 
                     // Set initial TCP pose
-                    if (robotStates.tcpPose.size() == k_cartPoseSize) {
-                        initTcpPose = robotStates.tcpPose;
-                    } else {
-                        log.error("Invalid size of received TCP pose");
-                        // Stop robot and terminate program
-                        robot.stop();
-                        exit(1);
-                    }
+                    initTcpPose = robotStates.tcpPose;
+
                     // Reset sine counter
                     sineCounter = 0;
                 } else {

@@ -108,8 +108,8 @@ int main(int argc, char* argv[])
 
         // Periodic Tasks
         //=============================================================================
-        // Use std::thread to do scheduling since this example is used for both
-        // Linux and Windows, and the latter does not support flexiv::Scheduler
+        // Use std::thread to do scheduling so that this example can run on all
+        // OS, since not all OS support flexiv::Scheduler
         std::thread lowPriorityThread(
             std::bind(periodicTask, std::ref(robot), std::ref(log)));
 

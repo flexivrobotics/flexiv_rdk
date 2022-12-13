@@ -96,17 +96,21 @@ int main(int argc, char* argv[])
 
         // Application-specific Code
         //=============================================================================
-        // Instantiate gripper
+        // Instantiate gripper and gripper states data struct
         flexiv::Gripper gripper(robot);
+        flexiv::GripperStates gripperStates;
 
         // Position control test
         log.info("Closing gripper");
         gripper.move(0.01, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::seconds(2));
-
         log.info("Opening gripper");
         gripper.move(0.09, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        // Print current gripper states
+        gripper.getGripperStates(gripperStates);
+        std::cout << gripperStates << std::endl;
 
         // Stop test
         log.info("Closing gripper");
@@ -115,17 +119,36 @@ int main(int argc, char* argv[])
         log.info("Stopping gripper");
         gripper.stop();
         std::this_thread::sleep_for(std::chrono::seconds(2));
-
         log.info("Closing gripper");
         gripper.move(0.01, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::seconds(2));
-
         log.info("Opening gripper");
         gripper.move(0.09, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         log.info("Stopping gripper");
         gripper.stop();
         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        // Print current gripper states
+        gripper.getGripperStates(gripperStates);
+        std::cout << gripperStates << std::endl;
+
+        // Force control test, if available
+        if (fabs(gripperStates.force)
+            > std::numeric_limits<double>::epsilon()) {
+            gripper.grasp(0);
+            // Exit after 5 seconds
+            int secondsElapsed = 0;
+            while (secondsElapsed < 5) {
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+                secondsElapsed++;
+                // Print current gripper states
+                gripper.getGripperStates(gripperStates);
+                std::cout << gripperStates << std::endl;
+            }
+        }
+
+        log.info("Program finished");
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
