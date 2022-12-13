@@ -1,6 +1,6 @@
 /**
- * @example cartesian_impedance_control.cpp
- * Run Cartesian impedance control to hold or sine-sweep the robot TCP.
+ * @example cartesian_impedance_control_rt.cpp
+ * Real-time Cartesian impedance control to hold or sine-sweep the robot TCP.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -33,8 +33,8 @@ std::string motionType = {};
 }
 
 /** Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
-    flexiv::Log* log, flexiv::RobotStates& robotStates)
+void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
+    flexiv::Log& log, flexiv::RobotStates& robotStates)
 {
     // Sine counter
     static unsigned int loopCounter = 0;
@@ -47,13 +47,13 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
 
     try {
         // Monitor fault on robot server
-        if (robot->isFault()) {
+        if (robot.isFault()) {
             throw flexiv::ServerException(
                 "periodicTask: Fault occurred on robot server, exiting ...");
         }
 
         // Read robot states
-        robot->getRobotStates(robotStates);
+        robot.getRobotStates(robotStates);
 
         // Set initial TCP pose
         if (!isInitPoseSet) {
@@ -61,7 +61,7 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
             if (robotStates.tcpPose.size() == k_cartPoseSize) {
                 initTcpPose = robotStates.tcpPose;
                 isInitPoseSet = true;
-                log->info(
+                log.info(
                     "Initial Cartesion pose of robot TCP set to [position "
                     "3x1 + rotation (quaternion) 4x1]: "
                     + flexiv::utility::vec2Str(initTcpPose));
@@ -71,40 +71,40 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
         else {
             // Set target position based on motion type
             if (motionType == "hold") {
-                robot->streamTcpPose(initTcpPose);
+                robot.streamTcpPose(initTcpPose);
             } else if (motionType == "sine-sweep") {
                 auto targetTcpPose = initTcpPose;
                 targetTcpPose[1] = initTcpPose[1]
                                    + k_swingAmp
                                          * sin(2 * M_PI * k_swingFreq
                                                * loopCounter * k_loopPeriod);
-                robot->streamTcpPose(targetTcpPose);
+                robot.streamTcpPose(targetTcpPose);
             } else {
-                log->error("Unknown motion type");
-                log->info("Accepted motion types: hold, sine-sweep");
+                log.error("Unknown motion type");
+                log.info("Accepted motion types: hold, sine-sweep");
                 exit(1);
             }
 
             // online change stiffness to softer at 5 seconds
             if (loopCounter % 10000 == 5000) {
                 std::vector<double> newKp = {2000, 2000, 2000, 200, 200, 200};
-                robot->setCartesianStiffness(newKp);
-                log->info("Cartesian stiffness set to: "
-                          + flexiv::utility::vec2Str(newKp));
+                robot.setCartesianStiffness(newKp);
+                log.info("Cartesian stiffness set to: "
+                         + flexiv::utility::vec2Str(newKp));
             }
 
             // online reset stiffness to original at 9 seconds
             if (loopCounter % 10000 == 9000) {
-                robot->setCartesianStiffness();
-                log->info("Cartesian stiffness is reset");
+                robot.setCartesianStiffness();
+                log.info("Cartesian stiffness is reset");
             }
 
             loopCounter++;
         }
 
     } catch (const flexiv::Exception& e) {
-        log->error(e.what());
-        scheduler->stop();
+        log.error(e.what());
+        scheduler.stop();
     }
 }
 
@@ -206,7 +206,8 @@ int main(int argc, char* argv[])
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
-            std::bind(periodicTask, &robot, &scheduler, &log, robotStates),
+            std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
+                std::ref(log), std::ref(robotStates)),
             "HP periodic", 1, 45);
         // Start all added tasks, this is by default a blocking method
         scheduler.start();

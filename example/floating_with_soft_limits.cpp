@@ -26,18 +26,18 @@ const std::vector<double> k_floatingDamping
 }
 
 /** Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
-    flexiv::Log* log, flexiv::RobotStates& robotStates)
+void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
+    flexiv::Log& log, flexiv::RobotStates& robotStates)
 {
     try {
         // Monitor fault on robot server
-        if (robot->isFault()) {
+        if (robot.isFault()) {
             throw flexiv::ServerException(
                 "periodicTask: Fault occurred on robot server, exiting ...");
         }
 
         // Read robot states
-        robot->getRobotStates(robotStates);
+        robot.getRobotStates(robotStates);
 
         // Set 0 joint torques
         std::vector<double> torqueDesired(k_robotDofs, 0.0);
@@ -49,11 +49,11 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
 
         // Send target joint torque to RDK server, enable gravity compensation
         // and joint soft limits
-        robot->streamJointTorque(torqueDesired, true, true);
+        robot.streamJointTorque(torqueDesired, true, true);
 
     } catch (const flexiv::Exception& e) {
-        log->error(e.what());
-        scheduler->stop();
+        log.error(e.what());
+        scheduler.stop();
     }
 }
 
@@ -140,7 +140,8 @@ int main(int argc, char* argv[])
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
-            std::bind(periodicTask, &robot, &scheduler, &log, robotStates),
+            std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
+                std::ref(log), std::ref(robotStates)),
             "HP periodic", 1, 45);
         // Start all added tasks, this is by default a blocking method
         scheduler.start();

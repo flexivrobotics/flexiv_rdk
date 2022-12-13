@@ -32,7 +32,7 @@ endif()
 # Additional examples for Linux only
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(EXAMPLE_LIST ${EXAMPLE_LIST}
-    cartesian_impedance_control
+    cartesian_impedance_control_rt
     floating_with_soft_limits
     joint_impedance_control
     joint_position_control

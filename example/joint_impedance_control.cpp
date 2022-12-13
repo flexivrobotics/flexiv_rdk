@@ -38,8 +38,8 @@ std::string motionType = {};
 }
 
 /** Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
-    flexiv::Log* log, flexiv::RobotStates& robotStates)
+void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
+    flexiv::Log& log, flexiv::RobotStates& robotStates)
 {
     // Sine counter
     static unsigned int sineCounter = 0;
@@ -52,13 +52,13 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
 
     try {
         // Monitor fault on robot server
-        if (robot->isFault()) {
+        if (robot.isFault()) {
             throw flexiv::ServerException(
                 "periodicTask: Fault occurred on robot server, exiting ...");
         }
 
         // Read robot states
-        robot->getRobotStates(robotStates);
+        robot.getRobotStates(robotStates);
 
         // Set initial joint position
         if (!isInitPositionSet) {
@@ -66,7 +66,7 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
             if (robotStates.q.size() == k_robotDofs) {
                 initPosition = robotStates.q;
                 isInitPositionSet = true;
-                log->info("Initial joint position set to: "
+                log.info("Initial joint position set to: "
                           + flexiv::utility::vec2Str(initPosition));
             }
         }
@@ -88,8 +88,8 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
                 }
                 sineCounter++;
             } else {
-                log->error("Unknown motion type");
-                log->info("Accepted motion types: hold, sine-sweep");
+                log.error("Unknown motion type");
+                log.info("Accepted motion types: hold, sine-sweep");
                 exit(1);
             }
 
@@ -102,12 +102,12 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
             }
 
             // Send target joint torque to RDK server
-            robot->streamJointTorque(torqueDesired, true);
+            robot.streamJointTorque(torqueDesired, true);
         }
 
     } catch (const flexiv::Exception& e) {
-        log->error(e.what());
-        scheduler->stop();
+        log.error(e.what());
+        scheduler.stop();
     }
 }
 
@@ -204,7 +204,7 @@ int main(int argc, char* argv[])
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
-            std::bind(periodicTask, &robot, &scheduler, &log, robotStates),
+            std::bind(periodicTask, std::ref(robot), std::ref(scheduler), std::ref(log), std::ref(robotStates)),
             "HP periodic", 1, 45);
         // Start all added tasks, this is by default a blocking method
         scheduler.start();

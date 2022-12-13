@@ -44,12 +44,12 @@ std::mutex g_mutex;
 }
 
 /** User-defined high-priority periodic task @ 1kHz */
-void highPriorityTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
-    flexiv::Log* log, flexiv::Model* model, flexiv::RobotStates& robotStates)
+void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
+    flexiv::Log& log, flexiv::Model& model, flexiv::RobotStates& robotStates)
 {
     try {
         // Monitor fault on robot server
-        if (robot->isFault()) {
+        if (robot.isFault()) {
             throw flexiv::ServerException(
                 "highPriorityTask: Fault occurred on robot server, exiting "
                 "...");
@@ -59,15 +59,15 @@ void highPriorityTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
         auto tic = std::chrono::high_resolution_clock::now();
 
         // Get new robot states
-        robot->getRobotStates(robotStates);
+        robot.getRobotStates(robotStates);
 
         // Update robot model in dynamics engine
-        model->updateModel(robotStates.q, robotStates.dtheta);
+        model.updateModel(robotStates.q, robotStates.dtheta);
 
         // Get J, M, G from dynamic engine
-        Eigen::MatrixXd J = model->getJacobian("flange");
-        Eigen::MatrixXd M = model->getMassMatrix();
-        Eigen::VectorXd G = model->getGravityForce();
+        Eigen::MatrixXd J = model.getJacobian("flange");
+        Eigen::MatrixXd M = model.getMassMatrix();
+        Eigen::VectorXd G = model.getGravityForce();
 
         // Mark timer end point and get loop time
         auto toc = std::chrono::high_resolution_clock::now();
@@ -85,8 +85,8 @@ void highPriorityTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
         }
 
     } catch (const flexiv::Exception& e) {
-        log->error(e.what());
-        scheduler->stop();
+        log.error(e.what());
+        scheduler.stop();
     }
 }
 
@@ -262,8 +262,9 @@ int main(int argc, char* argv[])
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(highPriorityTask, &robot, &scheduler, &log,
-                              &model, robotStates),
+        scheduler.addTask(
+            std::bind(highPriorityTask, std::ref(robot), std::ref(scheduler),
+                std::ref(log), std::ref(model), std::ref(robotStates)),
             "HP periodic", 1, 45);
         // Add periodic task with 1s interval and lowest applicable priority
         scheduler.addTask(lowPriorityTask, "LP periodic", 1000, 0);

@@ -14,7 +14,7 @@
 #include <thread>
 
 /** User-defined periodic task @ 1Hz */
-void periodicTask(flexiv::Robot* robot, flexiv::Log* log)
+void periodicTask(flexiv::Robot& robot, flexiv::Log& log)
 {
     // Data struct for storing robot states
     flexiv::RobotStates robotStates;
@@ -25,16 +25,16 @@ void periodicTask(flexiv::Robot* robot, flexiv::Log* log)
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
             // Get robot states
-            robot->getRobotStates(robotStates);
+            robot.getRobotStates(robotStates);
 
             // Print all robot states in JSON format using the built-in ostream
             // operator overloading
-            log->info("");
+            log.info("");
             std::cout << robotStates << std::endl;
         }
 
     } catch (const flexiv::Exception& e) {
-        log->error(e.what());
+        log.error(e.what());
         return;
     }
 }
@@ -110,7 +110,8 @@ int main(int argc, char* argv[])
         //=============================================================================
         // Use std::thread to do scheduling since this example is used for both
         // Linux and Windows, and the latter does not support flexiv::Scheduler
-        std::thread lowPriorityThread(std::bind(periodicTask, &robot, &log));
+        std::thread lowPriorityThread(
+            std::bind(periodicTask, std::ref(robot), std::ref(log)));
 
         // Properly exit thread
         lowPriorityThread.join();

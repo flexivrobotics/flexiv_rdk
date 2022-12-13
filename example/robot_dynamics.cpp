@@ -19,7 +19,7 @@
 #include <mutex>
 
 /** Periodic task running at around 100 Hz */
-int periodicTask(flexiv::Robot* robot)
+int periodicTask(flexiv::Robot& robot)
 {
     // Log object for printing message with timestamp and coloring
     flexiv::Log log;
@@ -29,7 +29,7 @@ int periodicTask(flexiv::Robot* robot)
 
     try {
         // Initialize robot model (dynamics engine)
-        flexiv::Model model(robot);
+        flexiv::Model model(&robot);
 
         int loopCounter = 0;
         while (true) {
@@ -37,7 +37,7 @@ int periodicTask(flexiv::Robot* robot)
             loopCounter++;
 
             // Monitor fault on robot server
-            if (robot->isFault()) {
+            if (robot.isFault()) {
                 throw flexiv::ServerException(
                     "periodicTask: Fault occurred on robot server, exiting "
                     "...");
@@ -47,7 +47,7 @@ int periodicTask(flexiv::Robot* robot)
             auto tic = std::chrono::high_resolution_clock::now();
 
             // Read robot states
-            robot->getRobotStates(robotStates);
+            robot.getRobotStates(robotStates);
 
             // Update robot model in dynamics engine
             model.updateModel(robotStates.q, robotStates.dtheta);
@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
 
         // Periodic Tasks
         //=============================================================================
-        std::thread periodicTaskThread(periodicTask, &robot);
+        std::thread periodicTaskThread(periodicTask, std::ref(robot));
         periodicTaskThread.join();
 
     } catch (const flexiv::Exception& e) {

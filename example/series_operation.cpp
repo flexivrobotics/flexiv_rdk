@@ -69,8 +69,8 @@ const std::string OperationNames[OP_NUM] = {"Idle", "Stop robot", "Go home",
 }
 
 /** Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
-    flexiv::Log* log, flexiv::RobotStates& robotStates)
+void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
+    flexiv::Log& log, flexiv::RobotStates& robotStates)
 {
     // Sine counter
     static unsigned int sineCounter = 0;
@@ -92,13 +92,13 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
 
     try {
         // Monitor fault on robot server
-        if (robot->isFault()) {
+        if (robot.isFault()) {
             throw flexiv::ServerException(
                 "periodicTask: Fault occurred on robot server, exiting ...");
         }
 
         // Read robot states
-        robot->getRobotStates(robotStates);
+        robot.getRobotStates(robotStates);
 
         // State machine on the operation list
         switch (operationList[opIndex]) {
@@ -108,47 +108,47 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
                 // Reset operation timer
                 opTimer = 0;
                 // Print
-                log->info("Running operation: "
-                          + OperationNames[operationList[opIndex]]);
+                log.info("Running operation: "
+                         + OperationNames[operationList[opIndex]]);
                 break;
             }
             case OP_STOP_ROBOT: {
                 // Command robot to stop, call this once. It's recommended to
                 // call stop() when switching robot mode
                 if (opTimer == 0) {
-                    robot->stop();
+                    robot.stop();
                 }
 
                 // Wait for a while before checking if robot has come to a
                 // complete stop
                 if (++opTimer >= 1 * k_secToCount) {
-                    if (robot->isStopped()) {
+                    if (robot.isStopped()) {
                         // Done, transit to next operation in list
                         opIndex++;
                         // Reset operation timer
                         opTimer = 0;
                         // Print
-                        log->info("Running operation: "
-                                  + OperationNames[operationList[opIndex]]);
+                        log.info("Running operation: "
+                                 + OperationNames[operationList[opIndex]]);
                     }
                 }
                 break;
             }
             case OP_GO_HOME: {
                 // Must switch to the correct mode first
-                if (robot->getMode() != flexiv::MODE_PLAN_EXECUTION) {
-                    robot->setMode(flexiv::MODE_PLAN_EXECUTION);
+                if (robot.getMode() != flexiv::MODE_PLAN_EXECUTION) {
+                    robot.setMode(flexiv::MODE_PLAN_EXECUTION);
                 } else {
                     // Send plan command only once
                     if (!isPlanSent) {
-                        robot->executePlanByName("PLAN-Home");
+                        robot.executePlanByName("PLAN-Home");
                         isPlanSent = true;
                     }
 
                     // Wait for a while before checking if robot has come to a
                     // complete stop
                     if (++opTimer >= 1 * k_secToCount) {
-                        if (robot->isStopped()) {
+                        if (robot.isStopped()) {
                             // Done, transit to next operation in list
                             opIndex++;
                             // Reset operation timer
@@ -156,8 +156,8 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
                             // Reset flag
                             isPlanSent = false;
                             // Print
-                            log->info("Running operation: "
-                                      + OperationNames[operationList[opIndex]]);
+                            log.info("Running operation: "
+                                     + OperationNames[operationList[opIndex]]);
                         }
                     }
                 }
@@ -165,12 +165,12 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
             }
             case OP_MULTIDOF_SINE: {
                 // Must switch to the correct mode first
-                if (robot->getMode() != flexiv::MODE_PLAN_EXECUTION) {
-                    robot->setMode(flexiv::MODE_PLAN_EXECUTION);
+                if (robot.getMode() != flexiv::MODE_PLAN_EXECUTION) {
+                    robot.setMode(flexiv::MODE_PLAN_EXECUTION);
                 } else {
                     // Send plan command only once
                     if (!isPlanSent) {
-                        robot->executePlanByName("MultiDOFSineTest_A5");
+                        robot.executePlanByName("MultiDOFSineTest_A5");
                         isPlanSent = true;
                     }
 
@@ -183,24 +183,24 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
                         // Reset flag
                         isPlanSent = false;
                         // Print
-                        log->info("Running operation: "
-                                  + OperationNames[operationList[opIndex]]);
+                        log.info("Running operation: "
+                                 + OperationNames[operationList[opIndex]]);
                     }
                 }
                 break;
             }
             case OP_JOINT_POSITION_SINE: {
                 // Must switch to the correct mode first
-                if (robot->getMode() != flexiv::MODE_JOINT_POSITION) {
-                    robot->setMode(flexiv::MODE_JOINT_POSITION);
+                if (robot.getMode() != flexiv::MODE_JOINT_POSITION) {
+                    robot.setMode(flexiv::MODE_JOINT_POSITION);
 
                     // Set initial joint position
                     if (robotStates.q.size() == k_robotDofs) {
                         initJointPos = robotStates.q;
                     } else {
-                        log->error("Invalid size of received joint position");
+                        log.error("Invalid size of received joint position");
                         // Stop robot and terminate program
-                        robot->stop();
+                        robot.stop();
                         exit(1);
                     }
 
@@ -223,7 +223,7 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
                     sineCounter++;
 
                     // Send command
-                    robot->streamJointPosition(
+                    robot.streamJointPosition(
                         targetPosition, targetVelocity, targetAcceleration);
 
                     // Wait for operation period to timeout
@@ -233,24 +233,24 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
                         // Reset operation timer
                         opTimer = 0;
                         // Print
-                        log->info("Running operation: "
-                                  + OperationNames[operationList[opIndex]]);
+                        log.info("Running operation: "
+                                 + OperationNames[operationList[opIndex]]);
                     }
                 }
                 break;
             }
             case OP_JOINT_TORQUE_SINE: {
                 // Must switch to the correct mode first
-                if (robot->getMode() != flexiv::MODE_JOINT_TORQUE) {
-                    robot->setMode(flexiv::MODE_JOINT_TORQUE);
+                if (robot.getMode() != flexiv::MODE_JOINT_TORQUE) {
+                    robot.setMode(flexiv::MODE_JOINT_TORQUE);
 
                     // Set initial joint position
                     if (robotStates.q.size() == k_robotDofs) {
                         initJointPos = robotStates.q;
                     } else {
-                        log->error("Invalid size of received joint position");
+                        log.error("Invalid size of received joint position");
                         // Stop robot and terminate program
-                        robot->stop();
+                        robot.stop();
                         exit(1);
                     }
                     // Reset sine counter
@@ -278,7 +278,7 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
                     }
 
                     // Send command
-                    robot->streamJointTorque(torqueDesired, true);
+                    robot.streamJointTorque(torqueDesired, true);
 
                     // Wait for operation period to timeout
                     if (++opTimer >= 10 * k_secToCount) {
@@ -287,24 +287,24 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
                         // Reset operation timer
                         opTimer = 0;
                         // Print
-                        log->info("Running operation: "
-                                  + OperationNames[operationList[opIndex]]);
+                        log.info("Running operation: "
+                                 + OperationNames[operationList[opIndex]]);
                     }
                 }
                 break;
             }
             case OP_CARTESIAN_SINE: {
                 // Must switch to the correct mode first
-                if (robot->getMode() != flexiv::MODE_CARTESIAN_IMPEDANCE) {
-                    robot->setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
+                if (robot.getMode() != flexiv::MODE_CARTESIAN_IMPEDANCE) {
+                    robot.setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
 
                     // Set initial TCP pose
                     if (robotStates.tcpPose.size() == k_cartPoseSize) {
                         initTcpPose = robotStates.tcpPose;
                     } else {
-                        log->error("Invalid size of received TCP pose");
+                        log.error("Invalid size of received TCP pose");
                         // Stop robot and terminate program
-                        robot->stop();
+                        robot.stop();
                         exit(1);
                     }
                     // Reset sine counter
@@ -322,7 +322,7 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
                     sineCounter++;
 
                     // Send command
-                    robot->streamTcpPose(targetTcpPose);
+                    robot.streamTcpPose(targetTcpPose);
 
                     // Wait for operation period to timeout
                     if (++opTimer >= 20 * k_secToCount) {
@@ -331,8 +331,8 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
                         // Reset operation timer
                         opTimer = 0;
                         // Print
-                        log->info("Running operation: "
-                                  + OperationNames[operationList[opIndex]]);
+                        log.info("Running operation: "
+                                 + OperationNames[operationList[opIndex]]);
                     }
                 }
                 break;
@@ -347,8 +347,8 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
         }
 
     } catch (const flexiv::Exception& e) {
-        log->error(e.what());
-        scheduler->stop();
+        log.error(e.what());
+        scheduler.stop();
     }
 }
 
@@ -450,7 +450,8 @@ int main(int argc, char* argv[])
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
-            std::bind(periodicTask, &robot, &scheduler, &log, robotStates),
+            std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
+                std::ref(log), std::ref(robotStates)),
             "HP periodic", 1, 45);
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
