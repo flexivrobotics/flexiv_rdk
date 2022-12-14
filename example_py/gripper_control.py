@@ -2,8 +2,8 @@
 
 """clear_fault.py
 
-Position and force control with grippers that use the communication protocol
-template provided by Flexiv.
+Position and force control with grippers supported by Flexiv, while printing 
+gripper states at 1Hz.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -25,15 +25,20 @@ g_is_done = False
 
 
 def print_gripper_states(gripper, log):
+    """
+    Print gripper states data @ 1Hz.
+
+    """
 
     # Data struct storing gripper states
     gripper_states = flexivrdk.GripperStates()
 
     while (not g_is_done):
-        # Print current gripper states @ 1Hz
-        log.info("Current gripper states:")
+        # Get the latest gripper states
         gripper.getGripperStates(gripper_states)
-        # Round all float values to 2 decimals
+
+        # Print all gripper states, round all float values to 2 decimals
+        log.info("Current gripper states:")
         print("width: ", round(gripper_states.width, 2))
         print("force: ", round(gripper_states.force, 2))
         print("max_width: ", round(gripper_states.maxWidth, 2))

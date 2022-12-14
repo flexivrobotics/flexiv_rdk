@@ -1,7 +1,6 @@
 /**
  * @example gripper_control.cpp
- * Position and force control with grippers that use the communication protocol
- * template provided by Flexiv.
+ * Position and force control with grippers supported by Flexiv.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -22,6 +21,24 @@ namespace {
 std::atomic<bool> g_isDone = {false};
 }
 
+/** Print gripper states data @ 1Hz */
+void printGripperStates(flexiv::Gripper& gripper, flexiv::Log& log)
+{
+    // Data struct storing gripper states
+    flexiv::GripperStates gripperStates;
+
+    while (!g_isDone) {
+        // Get the latest gripper states
+        gripper.getGripperStates(gripperStates);
+
+        // Print all gripper states in JSON format using the built-in ostream
+        // operator overloading
+        log.info("Current gripper states:");
+        std::cout << gripperStates << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+}
+
 void printHelp()
 {
     // clang-format off
@@ -31,20 +48,6 @@ void printHelp()
     std::cout << "Optional arguments: None" << std::endl;
     std::cout << std::endl;
     // clang-format on
-}
-
-void printGripperStates(flexiv::Gripper& gripper, flexiv::Log& log)
-{
-    // Data struct storing gripper states
-    flexiv::GripperStates gripperStates;
-
-    while (!g_isDone) {
-        // Print current gripper states @ 1Hz
-        log.info("Current gripper states:");
-        gripper.getGripperStates(gripperStates);
-        std::cout << gripperStates << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
 }
 
 int main(int argc, char* argv[])
