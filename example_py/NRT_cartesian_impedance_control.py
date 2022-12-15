@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""nrt_cartesian_impedance_control.py
+"""NRT_cartesian_impedance_control.py
 
 Run non-real-time Cartesian impedance control to hold or sine-sweep the robot TCP.
 """
@@ -18,6 +18,17 @@ import sys
 sys.path.insert(0, "../lib_py")
 import flexivrdk
 # fmt: on
+
+# Global constants
+# =============================================================================
+# TCP sine-sweep amplitude [m]
+SWING_AMP = 0.1
+
+# TCP sine-sweep frequency [Hz]
+SWING_FREQ = 0.3
+
+# Maximum contact wrench
+MAX_WRENCH = [100.0, 100.0, 100.0, 30.0, 30.0, 30.0]
 
 
 def main():
@@ -97,17 +108,12 @@ def main():
         # Use current robot TCP pose as initial pose
         robot.getRobotStates(robot_states)
         init_pose = robot_states.tcpPose.copy()
-        print("Initial pose set to: ", init_pose)
+        print(
+            "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",
+            init_pose)
 
         # Initialize target vectors
         target_pose = init_pose.copy()
-        max_wrench = [100.0, 100.0, 100.0, 30.0, 30.0, 30.0]
-
-        # TCP sine-sweep amplitude [m]
-        SWING_AMP = 0.1
-
-        # TCP sine-sweep frequency [Hz]
-        SWING_FREQ = 0.3
 
         # Send command periodically at user-specified frequency
         while True:
@@ -124,22 +130,42 @@ def main():
                     math.sin(2 * math.pi * SWING_FREQ * loop_counter * period)
             # Otherwise robot TCP will hold at initial pose
 
-            # Online change stiffness to softer at 5 seconds
-            if ((loop_counter * period) % 10.0 == 5.0):
-                new_kp = [2000, 2000, 2000, 200, 200, 200]
-                robot.setCartesianStiffness(new_kp)
-                log.info("Cartesian stiffness set to: ")
-                print(new_kp)
-
-            # Online reset stiffness to original at 9 seconds
-            if ((loop_counter * period) % 10.0 == 9.0):
-                default_kp = [4000, 4000, 4000, 1900, 1900, 1900]
-                robot.setCartesianStiffness(default_kp)
-                log.info("Cartesian stiffness is reset to: ")
-                print(default_kp)
-
             # Send command
-            robot.sendTcpPose(target_pose, max_wrench)
+            robot.sendTcpPose(target_pose, MAX_WRENCH)
+
+            #  Do the following operations in sequence for every 20 seconds
+            time_elapsed = loop_counter * period
+            # Online change preferred joint positions at 3 seconds
+            if (time_elapsed % 20.0 == 3.0):
+                preferred_jnt_pos = [-0.938, -1.108,
+                                     -1.254, 1.464, 1.073, 0.278, -0.658]
+                robot.setNullSpacePosture(preferred_jnt_pos)
+                log.info("Preferred joint positions set to: ")
+                print(preferred_jnt_pos)
+            # Online change stiffness to softer at 6 seconds
+            elif (time_elapsed % 20.0 == 6.0):
+                new_K = [2000, 2000, 2000, 200, 200, 200]
+                robot.setCartesianStiffness(new_K)
+                log.info("Cartesian stiffness set to: ")
+                print(new_K)
+            # Online change to another preferred joint positions at 9 seconds
+            elif (time_elapsed % 20.0 == 9.0):
+                preferred_jnt_pos = [0.938, -1.108,
+                                     1.254, 1.464, -1.073, 0.278, 0.658]
+                robot.setNullSpacePosture(preferred_jnt_pos)
+                log.info("Preferred joint positions set to: ")
+                print(preferred_jnt_pos)
+            # Online reset stiffness to original at 12 seconds
+            elif (time_elapsed % 20.0 == 12.0):
+                default_K = [4000, 4000, 4000, 1900, 1900, 1900]
+                robot.setCartesianStiffness(default_K)
+                log.info("Cartesian stiffness is reset")
+            # Online reset preferred joint positions at 15 seconds
+            elif (time_elapsed % 20.0 == 15.0):
+                preferred_jnt_pos = [0.0, -0.6981,
+                                     0.0, 1.5708, 0.0, 0.6981, 0.0]
+                robot.setNullSpacePosture(preferred_jnt_pos)
+                log.info("Preferred joint positions are reset")
 
             # Increment loop counter
             loop_counter += 1

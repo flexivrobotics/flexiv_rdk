@@ -16,8 +16,8 @@
 #include <thread>
 
 namespace {
-/** Size of Cartesian pose vector [position 3x1 + rotation (quaternion) 4x1 ] */
-constexpr size_t k_cartPoseSize = 7;
+/** RT loop frequency [Hz] */
+constexpr size_t k_loopFreq = 1000;
 
 /** RT loop period [sec] */
 constexpr double k_loopPeriod = 0.001;
@@ -64,9 +64,9 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
         }
 
         // Do the following operations in sequence for every 20 seconds
-        switch (static_cast<size_t>(loopCounter * k_loopPeriod) % 20) {
+        switch (loopCounter % (20 * k_loopFreq)) {
             // Online change preferred joint positions at 3 seconds
-            case 3: {
+            case (3 * k_loopFreq): {
                 std::vector<double> preferredJntPos
                     = {-0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658};
                 robot.setNullSpacePosture(preferredJntPos);
@@ -74,14 +74,14 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
                          + flexiv::utility::vec2Str(preferredJntPos));
             } break;
             // Online change stiffness to softer at 6 seconds
-            case 6: {
+            case (6 * k_loopFreq): {
                 std::vector<double> newK = {2000, 2000, 2000, 200, 200, 200};
                 robot.setCartesianStiffness(newK);
                 log.info("Cartesian stiffness set to: "
                          + flexiv::utility::vec2Str(newK));
             } break;
             // Online change to another preferred joint positions at 9 seconds
-            case 9: {
+            case (9 * k_loopFreq): {
                 std::vector<double> preferredJntPos
                     = {0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658};
                 robot.setNullSpacePosture(preferredJntPos);
@@ -89,12 +89,12 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
                          + flexiv::utility::vec2Str(preferredJntPos));
             } break;
             // Online reset stiffness to original at 12 seconds
-            case 12: {
+            case (12 * k_loopFreq): {
                 robot.setCartesianStiffness();
                 log.info("Cartesian stiffness is reset");
             } break;
             // Online reset preferred joint positions at 15 seconds
-            case 15: {
+            case (15 * k_loopFreq): {
                 robot.setNullSpacePosture();
                 log.info("Preferred joint positions are reset");
             } break;
