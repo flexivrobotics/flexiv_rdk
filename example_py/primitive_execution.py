@@ -2,8 +2,9 @@
 
 """primitive_execution.py
 
-Execute various primitives using RDK's primitive execution API. For details on 
-all available primitives, refer to Flexiv RDK Manual.
+Execute various [Move] series primitives.
+For detailed documentation on all available primitives, please see
+[Flexiv Primitives](https://www.flexiv.com/primitives/).
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."

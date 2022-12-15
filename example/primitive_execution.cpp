@@ -1,6 +1,8 @@
 /**
  * @example primitive_execution.cpp
- * Execute various primitives using RDK's primitive execution API.
+ * Execute various [Move] series primitives.
+ * @note For detailed documentation on all available primitives, please see
+ * [Flexiv Primitives](https://www.flexiv.com/primitives/).
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
