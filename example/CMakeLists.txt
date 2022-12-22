@@ -14,6 +14,7 @@ endif()
 set(EXAMPLE_LIST
   auto_recovery
   clear_fault
+  contact_control
   display_robot_states
   gripper_control
   plan_execution
