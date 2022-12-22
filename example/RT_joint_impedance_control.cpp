@@ -39,9 +39,6 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
     // Local periodic loop counter
     static unsigned int loopCounter = 0;
 
-    // Whether initial joint position is set
-    static bool isInitPositionSet = false;
-
     try {
         // Monitor fault on robot server
         if (robot.isFault()) {

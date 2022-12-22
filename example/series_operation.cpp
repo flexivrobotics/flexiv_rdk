@@ -21,8 +21,7 @@
 namespace {
 /** Robot DOF */
 const int k_robotDofs = 7;
-/** Size of Cartesian pose vector [position 3x1 + rotation (quaternion) 4x1 ] */
-const unsigned int k_cartPoseSize = 7;
+
 /** Loop period [s] */
 const double k_loopPeriod = 0.001;
 
