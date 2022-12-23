@@ -1,6 +1,6 @@
 /**
  * @example contact_control.cpp
- * Various contact control scenarios achieved with different methods.
+ * Contact control using a dedicated contact primitive.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -85,9 +85,6 @@ int main(int argc, char* argv[])
 
         // Application-specific Code
         //=============================================================================
-
-        // Contact method (1): use [ContactCompliance] primitive
-        // ----------------------------------------------------------------------------
         // Set to primitive mode
         robot.setMode(flexiv::MODE_PRIMITIVE_EXECUTION);
 
@@ -113,7 +110,8 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
-        /* Description of the primitive [ContactCompliance]:
+        /*
+        Description of the primitive [ContactCompliance]:
         This primitive maintains force control and compliantly moves the robot
         in a predefined direction with a set force until it contacts with the
         environment. Based on parameter setting, the robot stops or retracts
