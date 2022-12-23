@@ -145,7 +145,7 @@ struct RobotStates
      * force and \f$ \mathbb{R}^{3 \times 1} \f$ moment \f$ [f_x, f_y, f_z, m_x,
      * m_y, m_z]^T \f$.
      */
-    std::vector<double> ftSensorRawReading = {};
+    std::vector<double> ftSensorRaw = {};
 
     /**
      * \f$ ^{TCP}F_{ext}~[N][Nm] \f$: estimated external wrench applied on TCP
@@ -156,7 +156,7 @@ struct RobotStates
      * force and \f$ \mathbb{R}^{3 \times 1} \f$ moment \f$ [f_x, f_y, f_z, m_x,
      * m_y, m_z]^T \f$.
      */
-    std::vector<double> extForceInTcpFrame = {};
+    std::vector<double> extWrenchInTcp = {};
 
     /**
      * \f$ ^{0}F_{ext}~[N][Nm] \f$: estimated external wrench applied on TCP and
@@ -166,7 +166,7 @@ struct RobotStates
      * force and \f$ \mathbb{R}^{3 \times 1} \f$ moment \f$ [f_x, f_y, f_z, m_x,
      * m_y, m_z]^T \f$.
      */
-    std::vector<double> extForceInBaseFrame = {};
+    std::vector<double> extWrenchInBase = {};
 };
 
 /**
