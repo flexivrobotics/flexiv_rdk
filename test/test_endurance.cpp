@@ -98,7 +98,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
         // save data to global buffer, not using mutex to avoid interruption on
         // RT loop from potential priority inversion
         g_logData.tcpPose = robotStates.tcpPose;
-        g_logData.tcpForce = robotStates.extForceInBaseFrame;
+        g_logData.tcpForce = robotStates.extWrenchInBase;
 
         // increment loop counter
         g_hpLoopCounter++;

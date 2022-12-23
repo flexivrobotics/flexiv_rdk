@@ -49,9 +49,9 @@ def print_robot_states(robot, log):
         print("tcp_velocity: ", ['%.2f' % i for i in robot_states.tcpVel])
         print("camera_pose: ", ['%.2f' % i for i in robot_states.camPose])
         print("flange_pose: ", ['%.2f' % i for i in robot_states.flangePose])
-        print("FT_sensor_raw_reading: ", ['%.2f' % i for i in robot_states.ftSensorRawReading])
-        print("F_ext_tcp_frame: ", ['%.2f' % i for i in robot_states.extForceInTcpFrame])
-        print("F_ext_base_frame: ", ['%.2f' % i for i in robot_states.extForceInBaseFrame])
+        print("FT_sensor_raw_reading: ", ['%.2f' % i for i in robot_states.ftSensorRaw])
+        print("F_ext_tcp_frame: ", ['%.2f' % i for i in robot_states.extWrenchInTcp])
+        print("F_ext_base_frame: ", ['%.2f' % i for i in robot_states.extWrenchInBase])
         # fmt: on
         time.sleep(1)
 

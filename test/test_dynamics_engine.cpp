@@ -231,7 +231,7 @@ int main(int argc, char* argv[])
 
         // Robot Model (Dynamics Engine) Initialization
         //=============================================================================
-        flexiv::Model model(&robot);
+        flexiv::Model model(robot);
 
         // Hard-coded Dynamics Ground Truth from MATLAB
         //=============================================================================
