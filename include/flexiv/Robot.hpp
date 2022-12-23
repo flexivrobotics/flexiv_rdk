@@ -17,8 +17,8 @@ namespace flexiv {
 
 /**
  * @class Robot
- * @brief Main interface with the robot, including system, control, motion, and
- * IO methods. Also responsible for communication.
+ * @brief Main interface with the robot, containing system, control, motion, and
+ * IO methods. This interface is also responsible for communication.
  */
 class Robot
 {
@@ -53,14 +53,22 @@ public:
     void stop(void);
 
     /**
-     * @brief Check if the robot is normally operational.
+     * @brief Check if the robot is normally operational, which requires the
+     * following conditions to be met: enabled, brakes fully released, in auto
+     * mode, no fault, and not in reduced state.
+     * @warning The robot won't execute any user command until it becomes
+     * normally operational.
      * @return True: operational, false: not operational.
      */
     bool isOperational(void) const;
 
     /**
-     * @brief Check if the robot is currently executing a task.
-     * @return True: busy, false: can take new task.
+     * @brief Check if the robot is currently executing a task. This includes
+     * any user commanded operations that requires the robot to execute. For
+     * example, plans, primitives, Cartesian and joint motions, etc.
+     * @warning Some exceptions exist for primitives, see executePrimitive()
+     * warning for more details.
+     * @return True: busy, false: idle.
      */
     bool isBusy(void) const;
 
@@ -197,6 +205,10 @@ public:
      * @warning The input parameters in ptCmd may not use SI units, please refer
      * to the detailed [Flexiv Primitives](https://www.flexiv.com/primitives/)
      * documentation.
+     * @warning Some primitives may not terminate automatically and require
+     * users to manually terminate them based on specific primitive states,
+     * for example, most [Move] primitives. In such case, isBusy() will stay
+     * true even if it seems everything is done for that primitive.
      * @warning This method will block for 50 ms.
      */
     void executePrimitive(const std::string& ptCmd);
