@@ -23,7 +23,7 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 ### C++ RDK
 
-The C++ interface of Flexiv RDK is packed into a unified modern CMake library project named ``flexiv_rdk``, which can be configured via CMake on all supported OS.
+The C++ interface of Flexiv RDK is packed into a unified modern CMake library named ``flexiv_rdk``, which can be configured via CMake on all supported OS.
 
 #### Compile and install for Linux
 
@@ -34,13 +34,13 @@ The C++ interface of Flexiv RDK is packed into a unified modern CMake library pr
         cmake-gui .. &
 
 2. *Configure* with default native compiler settings.
-3. Set ``CMAKE_INSTALL_PREFIX`` to a dedicated directory (preferably not a system path) for the ``flexiv_rdk`` library project to be installed to. For example ``~/rdk_install``.
+3. Set ``CMAKE_INSTALL_PREFIX`` to a dedicated directory (preferably not a system path) for the ``flexiv_rdk`` library to be installed to. For example ``~/rdk_install``.
 4. *Configure* and *Generate*, then back to the Terminal to compile and install:
 
         cd flexiv_rdk/build
         make install
 
-5. The user project can now find and link to the installed ``flexiv_rdk`` CMake library:
+5. The user project can now find and link to the installed ``flexiv_rdk`` library:
 
         cd flexiv_rdk/example
         mkdir build && cd build
