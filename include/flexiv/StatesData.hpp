@@ -63,7 +63,7 @@ struct RobotStates
 
     /**
      * \f$ \tau_{d}~[Nm] \f$: desired joint torques excluding nonlinearity
-     * compensation (gravity, centrifugal, and Coriolis).
+     * compensations (gravity, centrifugal, and Coriolis).
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
