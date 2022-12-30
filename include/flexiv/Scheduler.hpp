@@ -40,8 +40,7 @@ public:
      * @throw InputException if specified interval or priority is invalid.
      */
     void addTask(std::function<void(void)>&& callback,
-        const std::string& taskName, unsigned int interval = 1,
-        unsigned int priority = 45);
+        const std::string& taskName, int interval = 1, int priority = 45);
 
     /**
      * @brief Start to execute all added tasks periodically.
