@@ -153,10 +153,12 @@ public:
      * @brief Execute a plan by specifying its index.
      * @param[in] index Index of the plan to execute, can be obtained via
      * getPlanNameList().
-     * @throw ExecutionException if error occurred during execution.
      * @throw InputException if index is invalid.
+     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw ExecutionException if error occurred during execution.
      * @note isBusy() can be used to check if a plan task has finished.
-     * @warning This method will block for 50 ms.
+     * @warning This method will block for 50 ms for the non-real-time command
+     * to be transmitted and fully processed by the robot server.
      */
     void executePlanByIndex(unsigned int index);
 
@@ -164,9 +166,11 @@ public:
      * @brief Execute a plan by specifying its name.
      * @param[in] name Name of the plan to execute, can be obtained via
      * getPlanNameList().
+     * @throw LogicException if robot is not in the correct operation mode.
      * @throw ExecutionException if error occurred during execution.
      * @note isBusy() can be used to check if a plan task has finished.
-     * @warning This method will block for 50 ms.
+     * @warning This method will block for 50 ms for the non-real-time command
+     * to be transmitted and fully processed by the robot server.
      */
     void executePlanByName(const std::string& name);
 
@@ -196,8 +200,9 @@ public:
      * @brief Execute a primitive by specifying its name and parameters.
      * @param[in] ptCmd Primitive command with the format:
      * ptName(inputParam1=xxx, inputParam2=xxx, ...).
-     * @throw ExecutionException if error occurred during execution.
      * @throw InputException if size of the input string is greater than 5kb.
+     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw ExecutionException if error occurred during execution.
      * @note A primitive won't terminate itself upon finish, thus isBusy()
      * cannot be used to check if a primitive task is finished, use primitive
      * states like "reachedTarget" instead.
@@ -209,7 +214,8 @@ public:
      * users to manually terminate them based on specific primitive states,
      * for example, most [Move] primitives. In such case, isBusy() will stay
      * true even if it seems everything is done for that primitive.
-     * @warning This method will block for 50 ms.
+     * @warning This method will block for 50 ms for the non-real-time command
+     * to be transmitted and fully processed by the robot server.
      */
     void executePrimitive(const std::string& ptCmd);
 
@@ -227,8 +233,16 @@ public:
      * @brief Set global variables for the robot by specifying name and value.
      * @param[in] globalVars Command to set global variables using the format:
      * globalVar1=value(s), globalVar2=value(s), ...
-     * @throw ExecutionException if error occurred during execution.
+     * @note Applicable mode: MODE_PLAN_EXECUTION.
      * @throw InputException if size of the input string is greater than 5kb.
+     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw ExecutionException if error occurred during execution.
+     * @warning The specified global variable(s) must have already been created
+     * in the robot server, otherwise setting a nonexistent global variable will
+     * have no effect. To check if a global variable is successfully set, use
+     * getGlobalVariables().
+     * @warning This method will block for 50 ms for the non-real-time command
+     * to be transmitted and fully processed by the robot server.
      */
     void setGlobalVariables(const std::string& globalVars);
 
@@ -278,8 +292,9 @@ public:
      * trigger a safety fault that requires recovery operation.
      * @note Applicable mode: MODE_JOINT_TORQUE.
      * @note Real-time (RT).
-     * @throw ExecutionException if error occurred during execution.
      * @throw InputException if input is invalid.
+     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw ExecutionException if error occurred during execution.
      * @warning Always send smooth and continuous commands to avoid sudden
      * movements.
      */
@@ -297,8 +312,9 @@ public:
      * accelerations of the joints: \f$ \ddot{q}_d~[rad/s^2] \f$.
      * @note Applicable mode: MODE_JOINT_POSITION.
      * @note Real-time (RT).
-     * @throw ExecutionException if error occurred during execution.
      * @throw InputException if input is invalid.
+     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw ExecutionException if error occurred during execution.
      * @warning Always send smooth and continuous commands to avoid sudden
      * movements.
      */
@@ -321,8 +337,9 @@ public:
      * @param[in] maxAcc \f$ \mathbb{R}^{Dof \times 1} \f$ maximum accelerations
      * of the joints: \f$ \ddot{q}_{max}~[rad/s^2] \f$.
      * @note Applicable mode: MODE_JOINT_POSITION_NRT.
-     * @throw ExecutionException if error occurred during execution.
      * @throw InputException if input is invalid.
+     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw ExecutionException if error occurred during execution.
      */
     void sendJointPosition(const std::vector<double>& positions,
         const std::vector<double>& velocities,
@@ -344,8 +361,9 @@ public:
      * m_z]^T~[N][Nm] \f$.
      * @note Applicable mode: MODE_CARTESIAN_IMPEDANCE.
      * @note Real-time (RT).
-     * @throw ExecutionException if error occurred during execution.
      * @throw InputException if input is invalid.
+     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw ExecutionException if error occurred during execution.
      * @warning Always send smooth and continuous commands to avoid sudden
      * movements.
      */
@@ -368,8 +386,9 @@ public:
      * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y,
      * m_z]^T~[N][Nm] \f$.
      * @note Applicable mode: MODE_CARTESIAN_IMPEDANCE_NRT.
-     * @throw ExecutionException if error occurred during execution.
      * @throw InputException if input is invalid.
+     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw ExecutionException if error occurred during execution.
      */
     void sendTcpPose(const std::vector<double>& pose,
         const std::vector<double>& maxWrench
@@ -383,8 +402,9 @@ public:
      * k_{Rz}]^T~[N/m][Nm/rad] \f$.
      * @note Applicable modes: MODE_CARTESIAN_IMPEDANCE,
      * MODE_CARTESIAN_IMPEDANCE_NRT.
-     * @throw ExecutionException if error occurred during execution.
      * @throw InputException if input is invalid.
+     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw ExecutionException if error occurred during execution.
      */
     void setCartesianStiffness(const std::vector<double>& stiffness
                                = {4000, 4000, 4000, 1900, 1900, 1900});
@@ -405,8 +425,9 @@ public:
      * affecting the primary TCP pose control task.
      * @note Applicable modes: MODE_CARTESIAN_IMPEDANCE,
      * MODE_CARTESIAN_IMPEDANCE_NRT.
-     * @throw ExecutionException if error occurred during execution.
      * @throw InputException if input is invalid.
+     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw ExecutionException if error occurred during execution.
      */
     void setNullSpacePosture(const std::vector<double>& preferredPositions
                              = {0.0, -0.6981, 0.0, 1.5708, 0.0, 0.6981, 0.0});
