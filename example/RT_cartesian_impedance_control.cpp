@@ -215,7 +215,7 @@ int main(int argc, char* argv[])
             std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
                 std::ref(log), std::ref(robotStates), std::ref(motionType),
                 std::ref(initTcpPose)),
-            "HP periodic", 1, 45);
+            "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 

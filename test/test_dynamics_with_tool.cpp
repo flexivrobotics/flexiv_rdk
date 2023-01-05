@@ -227,12 +227,14 @@ int main(int argc, char* argv[])
         double mass = 0.9;
         // com is relative to tcp frame
         Eigen::Vector3d com = {0.0, 0.0, -0.093};
-        Eigen::Vector3d momentum = mass * com;
         // inertia relative to com
         Eigen::Matrix3d inertia;
         inertia << 2.768e-03, 0, 0, 0, 3.149e-03, 0, 0, 0, 5.64e-04;
-        // tcp frame relative to flange
-        Eigen::Vector3d tcpPosition = {0.0, 0.0, 0.15};
+
+        log.info("Artificial tool parameters:");
+        std::cout << "mass = " << mass << std::endl;
+        std::cout << "CoM = " << com << std::endl;
+        std::cout << "inertia = " << inertia << std::endl;
 
         // Hard-coded Dynamics Ground Truth from MATLAB
         //=============================================================================
@@ -258,7 +260,7 @@ int main(int argc, char* argv[])
         scheduler.addTask(
             std::bind(highPriorityTask, std::ref(robot), std::ref(scheduler),
                 std::ref(log), std::ref(model), std::ref(robotStates)),
-            "HP periodic", 1, 45);
+            "HP periodic", 1, scheduler.maxPriority());
         // Add periodic task with 1s interval and lowest applicable priority
         scheduler.addTask(lowPriorityTask, "LP periodic", 1000, 0);
         // Start all added tasks, this is by default a blocking method

@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
         scheduler.addTask(
             std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
                 std::ref(log), std::ref(robotStates)),
-            "HP periodic", 1, 45);
+            "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 

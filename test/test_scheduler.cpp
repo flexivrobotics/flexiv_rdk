@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
             std::bind(highPriorityTask, std::ref(scheduler), std::ref(log)),
-            "HP periodic", 1, 45);
+            "HP periodic", 1, scheduler.maxPriority());
         // Add periodic task with 1s interval and lowest applicable priority
         scheduler.addTask(
             std::bind(lowPriorityTask, std::ref(log)), "LP periodic", 1000, 0);

@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(std::bind(periodicTask, std::ref(robot),
                               std::ref(scheduler), std::ref(log)),
-            "HP periodic", 1, 45);
+            "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 
