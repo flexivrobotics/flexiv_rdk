@@ -220,15 +220,15 @@
   </link>
   <link name="flange" />
   <material name="rizon_blue">
-    <color rgba="0. 0. 1. 0.5" />
+    <color rgba="0.0 0.0 1.0 0.5" />
   </material>
   <material name="rizon_light_grey">
-    <color rgba="0.7 0.7 0.7 1" />
+    <color rgba="0.7 0.7 0.7 1.0" />
   </material>
   <material name="rizon_dark_grey">
-    <color rgba="0.2 0.2 0.2 1" />
+    <color rgba="0.4 0.4 0.4 1.0" />
   </material>
   <material name="rizon_white">
-    <color rgba="1 1 1 1" />
+    <color rgba="1.0 1.0 1.0 1.0" />
   </material>
 </robot>
