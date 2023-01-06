@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-"""nrt_joint_position_control.py
+"""NRT_joint_position_control.py
 
-Run non-real-time joint position control to hold or sine-sweep all joints.
+Non-real-time joint position control to hold or sine-sweep all joints.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."

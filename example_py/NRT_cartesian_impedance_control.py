@@ -2,7 +2,7 @@
 
 """NRT_cartesian_impedance_control.py
 
-Run non-real-time Cartesian impedance control to hold or sine-sweep the robot TCP.
+Non-real-time Cartesian impedance control to hold or sine-sweep the robot TCP.
 A simple collision detection is also included.
 """
 
