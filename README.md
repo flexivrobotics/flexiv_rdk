@@ -82,9 +82,9 @@ The C++ interface of Flexiv RDK is packed into a unified modern CMake library na
 
 ### Python RDK
 
-Python 3.8 is required to run Python RDK, see Flexiv RDK Manual for more details. The instruction below applies to all supported OS.
+Python 3.8 and 3.10 are supported by RDK, see Flexiv RDK Manual for more details. A brief instruction is provided below and applies to all supported OS.
 
-1. Check Python version is 3.8.x:
+1. Check Python version is 3.8.x or 3.10.x:
 
         python3 --version
 
