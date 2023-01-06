@@ -50,7 +50,7 @@ enum Operation
     OP_IDLE,
     OP_STOP_ROBOT,
     OP_GO_HOME,
-    OP_MULTIDOF_SINE,
+    OP_FLOATING,
     OP_JOINT_POSITION_SINE,
     OP_JOINT_TORQUE_SINE,
     OP_CARTESIAN_SINE,
@@ -61,7 +61,7 @@ std::vector<Operation> operationList;
 
 /** Name list for printing */
 const std::string OperationNames[OP_NUM] = {"Idle", "Stop robot", "Go home",
-    "Multi-dof sine", "Sine-sweep with joint position control",
+    "Floating", "Sine-sweep with joint position control",
     "Sine-sweep with joint torque control",
     "Sine-sweep with Cartesian impedance control", "Finished"};
 
@@ -162,19 +162,19 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
                 }
                 break;
             }
-            case OP_MULTIDOF_SINE: {
+            case OP_FLOATING: {
                 // Must switch to the correct mode first
                 if (robot.getMode() != flexiv::MODE_PLAN_EXECUTION) {
                     robot.setMode(flexiv::MODE_PLAN_EXECUTION);
                 } else {
                     // Send plan command only once
                     if (!isPlanSent) {
-                        robot.executePlanByName("MultiDOFSineTest_A5");
+                        robot.executePlanByName("PLAN-FloatingSoft");
                         isPlanSent = true;
                     }
 
                     // Wait for operation period to timeout
-                    if (++opTimer >= 20 * k_secToCount) {
+                    if (++opTimer >= 10 * k_secToCount) {
                         // Done, transit to next operation in list
                         opIndex++;
                         // Reset operation timer
@@ -419,7 +419,7 @@ int main(int argc, char* argv[])
             OP_STOP_ROBOT,
             OP_JOINT_TORQUE_SINE,
             OP_STOP_ROBOT,
-            OP_MULTIDOF_SINE,
+            OP_FLOATING,
             OP_STOP_ROBOT,
             OP_GO_HOME,
             OP_FINISH,

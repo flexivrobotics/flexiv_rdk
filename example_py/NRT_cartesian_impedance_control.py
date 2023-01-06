@@ -33,7 +33,7 @@ SWING_FREQ = 0.3
 MAX_WRENCH = [100.0, 100.0, 100.0, 30.0, 30.0, 30.0]
 
 # External TCP force threshold for collision detection [N]
-EXT_FORCE_THRESHOLD = 5.0
+EXT_FORCE_THRESHOLD = 10.0
 
 # External joint torque threshold for collision detection [Nm]
 EXT_TORQUE_THRESHOLD = 5.0
@@ -99,10 +99,19 @@ def main():
 
         log.info("Robot is now operational")
 
-        # Set mode after robot is operational
-        robot.setMode(mode.MODE_CARTESIAN_IMPEDANCE_NRT)
+        # IMPORTANT: must calibrate force/torque sensor for accurate collision
+        # detection
+        robot.setMode(mode.MODE_PRIMITIVE_EXECUTION)
+        while (robot.getMode() != mode.MODE_PRIMITIVE_EXECUTION):
+            time.sleep(1)
+        log.info("Executing primitive: CaliForceSensor")
+        robot.executePrimitive("CaliForceSensor()")
+        # Wait for primitive completion
+        while robot.isBusy():
+            time.sleep(1)
 
-        # Wait for the mode to be switched
+        # Set mode after sensor calibration
+        robot.setMode(mode.MODE_CARTESIAN_IMPEDANCE_NRT)
         while (robot.getMode() != mode.MODE_CARTESIAN_IMPEDANCE_NRT):
             time.sleep(1)
 
@@ -180,23 +189,20 @@ def main():
 
             # Simple collision detection: stop robot if collision is detected at
             # end-effector
+            collision_detected = False
             extForce = np.array([robot_states.extWrenchInBase[0],
                                  robot_states.extWrenchInBase[1], robot_states.extWrenchInBase[2]])
             if (np.linalg.norm(extForce) > EXT_FORCE_THRESHOLD):
-                robot.stop()
-                log.warn(
-                    "Collision detected at robot end-effector, stopping robot and "
-                    "exit program ...")
-                return
+                collision_detected = True
 
-            # Also stop robot if collision is detected on any part of robot body
             for v in robot_states.tauExt:
                 if (abs(v) > EXT_TORQUE_THRESHOLD):
-                    robot.stop()
-                    log.warn(
-                        "Collision detected on robot body, stopping robot and exit "
-                        "program ...")
-                    return
+                    collision_detected = True
+
+            if collision_detected:
+                robot.stop()
+                log.warn("Collision detected, stopping robot and exit program ...")
+                return
 
             # Increment loop counter
             loop_counter += 1

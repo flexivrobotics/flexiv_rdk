@@ -30,7 +30,7 @@ constexpr double k_swingAmp = 0.1;
 constexpr double k_swingFreq = 0.3;
 
 /** External TCP force threshold for collision detection [N] */
-constexpr double k_extForceThreshold = 5.0;
+constexpr double k_extForceThreshold = 10.0;
 
 /** External joint torque threshold for collision detection [Nm] */
 constexpr double k_extTorqueThreshold = 5.0;
@@ -109,27 +109,23 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
                 break;
         }
 
-        // Simple collision detection: stop robot if collision is detected at
-        // end-effector
+        // Simple collision detection: stop robot if collision is detected from
+        // either end-effector or robot body
+        bool collisionDetected = false;
         Eigen::Vector3d extForce = {robotStates.extWrenchInBase[0],
             robotStates.extWrenchInBase[1], robotStates.extWrenchInBase[2]};
         if (extForce.norm() > k_extForceThreshold) {
-            robot.stop();
-            log.warn(
-                "Collision detected at robot end-effector, stopping robot and "
-                "exit program ...");
-            scheduler.stop();
+            collisionDetected = true;
         }
-
-        // Also stop robot if collision is detected on any part of robot body
         for (const auto& v : robotStates.tauExt) {
             if (fabs(v) > k_extTorqueThreshold) {
-                robot.stop();
-                log.warn(
-                    "Collision detected on robot body, stopping robot and exit "
-                    "program ...");
-                scheduler.stop();
+                collisionDetected = true;
             }
+        }
+        if (collisionDetected) {
+            robot.stop();
+            log.warn("Collision detected, stopping robot and exit program ...");
+            scheduler.stop();
         }
 
         // Increment loop counter
@@ -222,10 +218,21 @@ int main(int argc, char* argv[])
         }
         log.info("Robot is now operational");
 
-        // Set mode after robot is operational
-        robot.setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
+        // IMPORTANT: must calibrate force/torque sensor for accurate collision
+        // detection
+        robot.setMode(flexiv::MODE_PRIMITIVE_EXECUTION);
+        while (robot.getMode() != flexiv::MODE_PRIMITIVE_EXECUTION) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        log.info("Executing primitive: CaliForceSensor");
+        robot.executePrimitive("CaliForceSensor()");
+        // Wait for primitive completion
+        while (robot.isBusy()) {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
 
-        // Wait for the mode to be switched
+        // Set mode after sensor calibration
+        robot.setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
         while (robot.getMode() != flexiv::MODE_CARTESIAN_IMPEDANCE) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
