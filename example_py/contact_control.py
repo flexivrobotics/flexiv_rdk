@@ -3,6 +3,8 @@
 """contact_control.py
 
 Contact control using a dedicated contact primitive.
+Note: Collision detection example can be found in 
+NRT_cartesian_impedance_control.py.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."

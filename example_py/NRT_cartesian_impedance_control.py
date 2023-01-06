@@ -3,6 +3,7 @@
 """NRT_cartesian_impedance_control.py
 
 Run non-real-time Cartesian impedance control to hold or sine-sweep the robot TCP.
+A simple collision detection is also included.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -11,6 +12,7 @@ __author__ = "Flexiv"
 import time
 import math
 import argparse
+import numpy as np
 
 # Import Flexiv RDK Python library
 # fmt: off
@@ -29,6 +31,12 @@ SWING_FREQ = 0.3
 
 # Maximum contact wrench
 MAX_WRENCH = [100.0, 100.0, 100.0, 30.0, 30.0, 30.0]
+
+# External TCP force threshold for collision detection [N]
+EXT_FORCE_THRESHOLD = 5.0
+
+# External joint torque threshold for collision detection [Nm]
+EXT_TORQUE_THRESHOLD = 5.0
 
 
 def main():
@@ -124,6 +132,9 @@ def main():
             if robot.isFault():
                 raise Exception("Fault occurred on robot server, exiting ...")
 
+            # Read robot states
+            robot.getRobotStates(robot_states)
+
             # Sine-sweep TCP along y axis
             if not args.hold:
                 target_pose[1] = init_pose[1] + SWING_AMP * \
@@ -166,6 +177,26 @@ def main():
                                      0.0, 1.5708, 0.0, 0.6981, 0.0]
                 robot.setNullSpacePosture(preferred_jnt_pos)
                 log.info("Preferred joint positions are reset")
+
+            # Simple collision detection: stop robot if collision is detected at
+            # end-effector
+            extForce = np.array([robot_states.extWrenchInBase[0],
+                                 robot_states.extWrenchInBase[1], robot_states.extWrenchInBase[2]])
+            if (np.linalg.norm(extForce) > EXT_FORCE_THRESHOLD):
+                robot.stop()
+                log.warn(
+                    "Collision detected at robot end-effector, stopping robot and "
+                    "exit program ...")
+                return
+
+            # Also stop robot if collision is detected on any part of robot body
+            for v in robot_states.tauExt:
+                if (abs(v) > EXT_TORQUE_THRESHOLD):
+                    robot.stop()
+                    log.warn(
+                        "Collision detected on robot body, stopping robot and exit "
+                        "program ...")
+                    return
 
             # Increment loop counter
             loop_counter += 1

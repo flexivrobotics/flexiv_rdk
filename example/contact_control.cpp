@@ -1,6 +1,8 @@
 /**
  * @example contact_control.cpp
  * Contact control using a dedicated contact primitive.
+ * @note Collision detection example can be found in
+ * RT_cartesian_impedance_control.cpp.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */

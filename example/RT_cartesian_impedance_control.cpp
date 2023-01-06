@@ -1,6 +1,7 @@
 /**
  * @example RT_cartesian_impedance_control.cpp
  * Real-time Cartesian impedance control to hold or sine-sweep the robot TCP.
+ * A simple collision detection is also included.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -27,6 +28,12 @@ constexpr double k_swingAmp = 0.1;
 
 /** TCP sine-sweep frequency [Hz] */
 constexpr double k_swingFreq = 0.3;
+
+/** External TCP force threshold for collision detection [N] */
+constexpr double k_extForceThreshold = 5.0;
+
+/** External joint torque threshold for collision detection [Nm] */
+constexpr double k_extTorqueThreshold = 5.0;
 }
 
 /** Callback function for realtime periodic task */
@@ -102,6 +109,30 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
                 break;
         }
 
+        // Simple collision detection: stop robot if collision is detected at
+        // end-effector
+        Eigen::Vector3d extForce = {robotStates.extWrenchInBase[0],
+            robotStates.extWrenchInBase[1], robotStates.extWrenchInBase[2]};
+        if (extForce.norm() > k_extForceThreshold) {
+            robot.stop();
+            log.warn(
+                "Collision detected at robot end-effector, stopping robot and "
+                "exit program ...");
+            scheduler.stop();
+        }
+
+        // Also stop robot if collision is detected on any part of robot body
+        for (const auto& v : robotStates.tauExt) {
+            if (fabs(v) > k_extTorqueThreshold) {
+                robot.stop();
+                log.warn(
+                    "Collision detected on robot body, stopping robot and exit "
+                    "program ...");
+                scheduler.stop();
+            }
+        }
+
+        // Increment loop counter
         loopCounter++;
 
     } catch (const flexiv::Exception& e) {
