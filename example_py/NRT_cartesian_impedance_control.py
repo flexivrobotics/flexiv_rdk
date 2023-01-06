@@ -104,7 +104,7 @@ def main():
         robot.setMode(mode.MODE_PRIMITIVE_EXECUTION)
         while (robot.getMode() != mode.MODE_PRIMITIVE_EXECUTION):
             time.sleep(1)
-        log.info("Executing primitive: CaliForceSensor")
+        log.warn("Calibrating force/torque sensors, please don't touch the robot")
         robot.executePrimitive("CaliForceSensor()")
         # Wait for primitive completion
         while robot.isBusy():

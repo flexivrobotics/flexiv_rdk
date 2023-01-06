@@ -224,7 +224,8 @@ int main(int argc, char* argv[])
         while (robot.getMode() != flexiv::MODE_PRIMITIVE_EXECUTION) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-        log.info("Executing primitive: CaliForceSensor");
+        log.warn(
+            "Calibrating force/torque sensors, please don't touch the robot");
         robot.executePrimitive("CaliForceSensor()");
         // Wait for primitive completion
         while (robot.isBusy()) {

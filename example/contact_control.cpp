@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
         log.info("Executing primitive: ContactCompliance");
         robot.executePrimitive(
             "ContactCompliance(movingDirCoord=world, movingDir=0 0 -1, "
-            "contactVel=0.02, maxContactForce=5.0, stiffnessScaling=1.0 1.0 "
+            "contactVel=0.02, maxContactForce=10.0, stiffnessScaling=1.0 1.0 "
             "1.0 1.0 1.0 1.0, holdTime=1.5, retractDist=0.1, retractVel=0.1)");
         // Wait for primitive completion
         while (robot.isBusy()) {
@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
         // A simplified call specifying only the commonly used parameters
         log.info("Executing primitive: ContactCompliance");
         robot.executePrimitive(
-            "ContactCompliance(contactVel=0.02, maxContactForce=5.0, "
+            "ContactCompliance(contactVel=0.02, maxContactForce=10.0, "
             "retractDist=0.02, retractVel=0.1)");
         // Wait for primitive completion
         while (robot.isBusy()) {
