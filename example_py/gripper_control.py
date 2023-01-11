@@ -2,8 +2,8 @@
 
 """clear_fault.py
 
-Position and force control with grippers that use the communication protocol
-template provided by Flexiv.
+Position and force control with grippers supported by Flexiv, while printing 
+gripper states at 1Hz.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -11,6 +11,7 @@ __author__ = "Flexiv"
 
 import time
 import argparse
+import threading
 
 # Import Flexiv RDK Python library
 # fmt: off
@@ -18,6 +19,31 @@ import sys
 sys.path.insert(0, "../lib_py")
 import flexivrdk
 # fmt: on
+
+# Global flag: whether the gripper control tasks are finished
+g_is_done = False
+
+
+def print_gripper_states(gripper, log):
+    """
+    Print gripper states data @ 1Hz.
+
+    """
+
+    # Data struct storing gripper states
+    gripper_states = flexivrdk.GripperStates()
+
+    while (not g_is_done):
+        # Get the latest gripper states
+        gripper.getGripperStates(gripper_states)
+
+        # Print all gripper states, round all float values to 2 decimals
+        log.info("Current gripper states:")
+        print("width: ", round(gripper_states.width, 2))
+        print("force: ", round(gripper_states.force, 2))
+        print("max_width: ", round(gripper_states.maxWidth, 2))
+        print("is_moving: ", gripper_states.isMoving)
+        time.sleep(1)
 
 
 def main():
@@ -90,11 +116,15 @@ def main():
         # Instantiate gripper
         gripper = flexivrdk.Gripper(robot)
 
-        # Move tests
+        # Thread for printing gripper states
+        print_thread = threading.Thread(
+            target=print_gripper_states, args=[gripper, log])
+        print_thread.start()
+
+        # Position control test
         log.info("Closing gripper")
         gripper.move(0.01, 0.1, 20)
         time.sleep(2)
-
         log.info("Opening gripper")
         gripper.move(0.09, 0.1, 20)
         time.sleep(2)
@@ -106,17 +136,30 @@ def main():
         log.info("Stopping gripper")
         gripper.stop()
         time.sleep(2)
-
         log.info("Closing gripper")
         gripper.move(0.01, 0.1, 20)
         time.sleep(2)
-
         log.info("Opening gripper")
         gripper.move(0.09, 0.1, 20)
         time.sleep(0.5)
         log.info("Stopping gripper")
         gripper.stop()
         time.sleep(2)
+
+        # Force control test, if available
+        gripper_states = flexivrdk.GripperStates()
+        gripper.getGripperStates(gripper_states)
+        if abs(gripper_states.force) > sys.float_info.epsilon:
+            log.info("Gripper running zero force control")
+            gripper.grasp(0)
+            # Exit after 10 seconds
+            time.sleep(10)
+
+        # Finished, exit all threads
+        global g_is_done
+        g_is_done = True
+        log.info("Program finished")
+        print_thread.join()
 
     except Exception as e:
         log.error(str(e))

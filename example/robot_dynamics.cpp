@@ -1,7 +1,7 @@
 /**
  * @example robot_dynamics.cpp
- * Demonstrate how to use RDK's built-in dynamics engine using APIs in
- * flexiv::Model.
+ * Run the integrated dynamics engine API flexiv::Model and print some results.
+ * Not running at 1kHz so that this example can also be executed on Mac.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -19,7 +19,7 @@
 #include <mutex>
 
 /** Periodic task running at around 100 Hz */
-int periodicTask(flexiv::Robot* robot)
+int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
 {
     // Log object for printing message with timestamp and coloring
     flexiv::Log log;
@@ -28,16 +28,13 @@ int periodicTask(flexiv::Robot* robot)
     flexiv::RobotStates robotStates;
 
     try {
-        // Initialize robot model (dynamics engine)
-        flexiv::Model model(robot);
-
         int loopCounter = 0;
         while (true) {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             loopCounter++;
 
             // Monitor fault on robot server
-            if (robot->isFault()) {
+            if (robot.isFault()) {
                 throw flexiv::ServerException(
                     "periodicTask: Fault occurred on robot server, exiting "
                     "...");
@@ -47,7 +44,7 @@ int periodicTask(flexiv::Robot* robot)
             auto tic = std::chrono::high_resolution_clock::now();
 
             // Read robot states
-            robot->getRobotStates(robotStates);
+            robot.getRobotStates(robotStates);
 
             // Update robot model in dynamics engine
             model.updateModel(robotStates.q, robotStates.dtheta);
@@ -180,9 +177,15 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
         } while (robot.isBusy());
 
+        // Initialize dynamics engine
+        flexiv::Model model(robot);
+
         // Periodic Tasks
         //=============================================================================
-        std::thread periodicTaskThread(periodicTask, &robot);
+        // Use std::thread to do scheduling so that this example can run on both
+        // Linux and Mac, since the latter doesn't support flexiv::Scheduler
+        std::thread periodicTaskThread(
+            periodicTask, std::ref(robot), std::ref(model));
         periodicTaskThread.join();
 
     } catch (const flexiv::Exception& e) {

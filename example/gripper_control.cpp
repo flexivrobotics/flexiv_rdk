@@ -1,7 +1,6 @@
 /**
  * @example gripper_control.cpp
- * Position and force control with grippers that use the communication protocol
- * template provided by Flexiv.
+ * Position and force control with grippers supported by Flexiv.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -15,6 +14,30 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <atomic>
+
+namespace {
+/** Global flag: whether the gripper control tasks are finished */
+std::atomic<bool> g_isDone = {false};
+}
+
+/** Print gripper states data @ 1Hz */
+void printGripperStates(flexiv::Gripper& gripper, flexiv::Log& log)
+{
+    // Data struct storing gripper states
+    flexiv::GripperStates gripperStates;
+
+    while (!g_isDone) {
+        // Get the latest gripper states
+        gripper.getGripperStates(gripperStates);
+
+        // Print all gripper states in JSON format using the built-in ostream
+        // operator overloading
+        log.info("Current gripper states:");
+        std::cout << gripperStates << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+}
 
 void printHelp()
 {
@@ -97,13 +120,16 @@ int main(int argc, char* argv[])
         // Application-specific Code
         //=============================================================================
         // Instantiate gripper
-        flexiv::Gripper gripper(&robot);
+        flexiv::Gripper gripper(robot);
+
+        // Thread for printing gripper states
+        std::thread printThread(
+            printGripperStates, std::ref(gripper), std::ref(log));
 
         // Position control test
         log.info("Closing gripper");
         gripper.move(0.01, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::seconds(2));
-
         log.info("Opening gripper");
         gripper.move(0.09, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -115,17 +141,31 @@ int main(int argc, char* argv[])
         log.info("Stopping gripper");
         gripper.stop();
         std::this_thread::sleep_for(std::chrono::seconds(2));
-
         log.info("Closing gripper");
         gripper.move(0.01, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::seconds(2));
-
         log.info("Opening gripper");
         gripper.move(0.09, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         log.info("Stopping gripper");
         gripper.stop();
         std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        // Force control test, if available
+        flexiv::GripperStates gripperStates;
+        gripper.getGripperStates(gripperStates);
+        if (fabs(gripperStates.force)
+            > std::numeric_limits<double>::epsilon()) {
+            log.info("Gripper running zero force control");
+            gripper.grasp(0);
+            // Exit after 10 seconds
+            std::this_thread::sleep_for(std::chrono::seconds(10));
+        }
+
+        // Finished, exit all threads
+        g_isDone = true;
+        log.info("Program finished");
+        printThread.join();
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());

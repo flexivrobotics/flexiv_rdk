@@ -36,14 +36,14 @@ int g_fd = 0;
 
 // callback function for realtime periodic task
 void periodicTask(
-    flexiv::Robot* robot, flexiv::Scheduler* scheduler, flexiv::Log* log)
+    flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log)
 {
     // Loop counter
     static unsigned int loopCounter = 0;
 
     try {
         // Monitor fault on robot server
-        if (robot->isFault()) {
+        if (robot.isFault()) {
             throw flexiv::ServerException(
                 "periodicTask: Fault occurred on robot server, exiting ...");
         }
@@ -51,26 +51,26 @@ void periodicTask(
         // send signal at 1Hz
         switch (loopCounter % 1000) {
             case 0: {
-                log->info(
+                log.info(
                     "Sending benchmark signal to both workstation PC's serial "
                     "port and robot server's digital out port[0]");
                 break;
             }
             case 1: {
                 // signal robot server's digital out port
-                robot->writeDigitalOutput(0, true);
+                robot.writeDigitalOutput(0, true);
 
                 // signal workstation PC's serial port
                 auto n = write(g_fd, "0", 1);
                 if (n < 0) {
-                    log->error("Failed to write to serial port");
+                    log.error("Failed to write to serial port");
                 }
 
                 break;
             }
             case 900: {
                 // reset digital out after a few seconds
-                robot->writeDigitalOutput(0, false);
+                robot.writeDigitalOutput(0, false);
                 break;
             }
             default:
@@ -79,8 +79,8 @@ void periodicTask(
         loopCounter++;
 
     } catch (const flexiv::Exception& e) {
-        log->error(e.what());
-        scheduler->stop();
+        log.error(e.what());
+        scheduler.stop();
     }
 }
 
@@ -173,8 +173,9 @@ int main(int argc, char* argv[])
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(periodicTask, &robot, &scheduler, &log),
-            "HP periodic", 1, 45);
+        scheduler.addTask(std::bind(periodicTask, std::ref(robot),
+                              std::ref(scheduler), std::ref(log)),
+            "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 

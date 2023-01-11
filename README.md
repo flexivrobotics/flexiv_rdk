@@ -11,11 +11,11 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 ## Compatibility Overview
 
-| **Supported OS**          | **Required compiler kit** | **Supported platform** | **Supported language** |
-|---------------------------|---------------------------|------------------------|------------------------|
-| Ubuntu 18.04/20.04/22.04  | build-essential           | x86_64, arm64          | C++, Python            |
-| macOS 12 (Monterey)       | Xcode Command Line Tools  | arm64                  | C++, Python            |
-| Windows 10                | MSVC 14.0+                | x86_64                 | C++, Python            |
+| **Supported OS**               | **Supported processor** | **Supported language** | **Required compiler kit** |
+| ------------------------------ | ----------------------- | ---------------------- | ------------------------- |
+| Linux (Ubuntu 18/20/22 tested) | x86_64, arm64           | C++, Python            | build-essential           |
+| macOS 12 (Monterey)            | arm64                   | C++, Python            | Xcode Command Line Tools  |
+| Windows 10                     | x86_64                  | C++, Python            | MSVC 14.0+                |
 
 ## Quick Start
 
@@ -23,7 +23,7 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 ### C++ RDK
 
-The C++ interface of Flexiv RDK is packed into a unified modern CMake project named ``flexiv_rdk``, which can be configured via CMake on all supported OS.
+The C++ interface of Flexiv RDK is packed into a unified modern CMake library named ``flexiv_rdk``, which can be configured via CMake on all supported OS.
 
 #### Compile and install for Linux
 
@@ -34,13 +34,13 @@ The C++ interface of Flexiv RDK is packed into a unified modern CMake project na
         cmake-gui .. &
 
 2. *Configure* with default native compiler settings.
-3. Choose ``BUILD_PLATFORM`` and set ``CMAKE_INSTALL_PREFIX`` to a dedicated directory (preferably not a system path), for example ``~/rdk_install``.
+3. Set ``CMAKE_INSTALL_PREFIX`` to a dedicated directory (preferably not a system path) for the ``flexiv_rdk`` library to be installed to. For example ``~/rdk_install``.
 4. *Configure* and *Generate*, then back to the Terminal to compile and install:
 
         cd flexiv_rdk/build
         make install
 
-5. The user project can now find and link to the installed ``flexiv_rdk`` CMake package:
+5. The user project can now find and link to the installed ``flexiv_rdk`` library:
 
         cd flexiv_rdk/example
         mkdir build && cd build
@@ -82,9 +82,9 @@ The C++ interface of Flexiv RDK is packed into a unified modern CMake project na
 
 ### Python RDK
 
-Python 3.8 is required to run Python RDK, see Flexiv RDK Manual for more details. The instruction below applies to all supported OS.
+Python 3.8 and 3.10 are supported by RDK, see Flexiv RDK Manual for more details. A brief instruction is provided below and applies to all supported OS.
 
-1. Check Python version is 3.8.x:
+1. Check Python version is 3.8.x or 3.10.x:
 
         python3 --version
 

@@ -22,23 +22,23 @@ public:
     virtual ~Log() = default;
 
     /**
-     * @brief Print info message with timestamp and coloring
-     * @param[in] message Info message
-     * @note Color = green
+     * @brief Print info message with timestamp and coloring.
+     * @param[in] message Info message.
+     * @note Color = green.
      */
     void info(const std::string& message) const;
 
     /**
-     * @brief Print warning message with timestamp and coloring
-     * @param[in] message Warning message
-     * @note Color = yellow
+     * @brief Print warning message with timestamp and coloring.
+     * @param[in] message Warning message.
+     * @note Color = yellow.
      */
     void warn(const std::string& message) const;
 
     /**
-     * @brief Print error message with timestamp and coloring
-     * @param[in] message Error message
-     * @note Color = red
+     * @brief Print error message with timestamp and coloring.
+     * @param[in] message Error message.
+     * @note Color = red.
      */
     void error(const std::string& message) const;
 };
