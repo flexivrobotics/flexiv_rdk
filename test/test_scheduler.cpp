@@ -29,7 +29,7 @@ std::mutex g_mutex;
 }
 
 /** User-defined high-priority periodic task @ 1kHz */
-void highPriorityTask(flexiv::Scheduler* scheduler, flexiv::Log* log)
+void highPriorityTask(flexiv::Scheduler& scheduler, flexiv::Log& log)
 {
     static unsigned int loopCounter = 0;
 
@@ -54,20 +54,20 @@ void highPriorityTask(flexiv::Scheduler* scheduler, flexiv::Log* log)
         // Stop scheduler after 5 seconds
         if (++loopCounter > 5000) {
             loopCounter = 0;
-            scheduler->stop();
+            scheduler.stop();
         }
 
         // Mark loop interval start point
         tic = std::chrono::high_resolution_clock::now();
 
     } catch (const flexiv::Exception& e) {
-        log->error(e.what());
-        scheduler->stop();
+        log.error(e.what());
+        scheduler.stop();
     }
 }
 
 /** User-defined low-priority periodic task @1Hz */
-void lowPriorityTask(flexiv::Log* log)
+void lowPriorityTask(flexiv::Log& log)
 {
     static uint64_t accumulatedTime = 0;
     static uint64_t numMeasures = 0;
@@ -86,9 +86,9 @@ void lowPriorityTask(flexiv::Log* log)
     avgInterval = (float)accumulatedTime / (float)numMeasures;
 
     // print time interval of high-priority periodic task
-    log->info("High-priority task interval (curr | avg) = "
-              + std::to_string(measuredInterval) + " | "
-              + std::to_string(avgInterval) + " us");
+    log.info("High-priority task interval (curr | avg) = "
+             + std::to_string(measuredInterval) + " | "
+             + std::to_string(avgInterval) + " us");
 }
 
 void printHelp()
@@ -117,11 +117,12 @@ int main(int argc, char* argv[])
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(highPriorityTask, &scheduler, &log),
-            "HP periodic", 1, 45);
+        scheduler.addTask(
+            std::bind(highPriorityTask, std::ref(scheduler), std::ref(log)),
+            "HP periodic", 1, scheduler.maxPriority());
         // Add periodic task with 1s interval and lowest applicable priority
         scheduler.addTask(
-            std::bind(lowPriorityTask, &log), "LP periodic", 1000, 0);
+            std::bind(lowPriorityTask, std::ref(log)), "LP periodic", 1000, 0);
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 

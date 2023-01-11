@@ -23,12 +23,12 @@ class Model
 public:
     /**
      * @brief Create a flexiv::Model instance to get robot dynamics data.
-     * @param[in] robot Pointer to the instance of flexiv::Robot main interface.
+     * @param[in] robot Reference to the instance of flexiv::Robot.
      * @param[in] gravityEarth Earth's gravity vector in base frame. Default
      * to \f$ [0.0, 0.0, -9.81]^T~[m/s^2] \f$.
      * @throw InitException if the instance failed to initialize.
      */
-    Model(Robot* robot,
+    Model(const Robot& robot,
         const Eigen::Vector3d& gravityEarth = Eigen::Vector3d(0.0, 0.0, -9.81));
     virtual ~Model();
 

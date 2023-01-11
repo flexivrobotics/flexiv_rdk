@@ -2,7 +2,7 @@
 
 """display_robot_states.py
 
-Print received robot states without enabling the robot.
+Print received robot states.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -10,6 +10,7 @@ __author__ = "Flexiv"
 
 import time
 import argparse
+import threading
 
 # Import Flexiv RDK Python library
 # fmt: off
@@ -17,6 +18,42 @@ import sys
 sys.path.insert(0, "../lib_py")
 import flexivrdk
 # fmt: on
+
+
+def print_robot_states(robot, log):
+    """
+    Print robot states data @ 1Hz.
+
+    """
+
+    # Data struct storing robot states
+    robot_states = flexivrdk.RobotStates()
+
+    while True:
+        # Get the latest robot states
+        robot.getRobotStates(robot_states)
+
+        # Print all gripper states, round all float values to 2 decimals
+        log.info("Current robot states:")
+        # fmt: off
+        print("q: ",  ['%.2f' % i for i in robot_states.q])
+        print("theta: ", ['%.2f' % i for i in robot_states.theta])
+        print("dq: ", ['%.2f' % i for i in robot_states.dq])
+        print("dtheta: ", ['%.2f' % i for i in robot_states.dtheta])
+        print("tau: ", ['%.2f' % i for i in robot_states.tau])
+        print("tau_des: ", ['%.2f' % i for i in robot_states.tauDes])
+        print("tau_dot: ", ['%.2f' % i for i in robot_states.tauDot])
+        print("tau_ext: ", ['%.2f' % i for i in robot_states.tauExt])
+        print("tcp_pose: ", ['%.2f' % i for i in robot_states.tcpPose])
+        print("tcp_pose_d: ", ['%.2f' % i for i in robot_states.tcpPoseDes])
+        print("tcp_velocity: ", ['%.2f' % i for i in robot_states.tcpVel])
+        print("camera_pose: ", ['%.2f' % i for i in robot_states.camPose])
+        print("flange_pose: ", ['%.2f' % i for i in robot_states.flangePose])
+        print("FT_sensor_raw_reading: ", ['%.2f' % i for i in robot_states.ftSensorRaw])
+        print("F_ext_tcp_frame: ", ['%.2f' % i for i in robot_states.extWrenchInTcp])
+        print("F_ext_base_frame: ", ['%.2f' % i for i in robot_states.extWrenchInBase])
+        # fmt: on
+        time.sleep(1)
 
 
 def main():
@@ -29,7 +66,6 @@ def main():
 
     # Define alias
     # =============================================================================
-    robot_states = flexivrdk.RobotStates()
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
@@ -70,29 +106,11 @@ def main():
 
         # Application-specific Code
         # =============================================================================
-        while True:
-            robot.getRobotStates(robot_states)
-            log.info(" ")
-            # Round all list values to 2 decimals
-            # fmt: off
-            print("q: ",  ['%.2f' % i for i in robot_states.q])
-            print("theta: ", ['%.2f' % i for i in robot_states.theta])
-            print("dq: ", ['%.2f' % i for i in robot_states.dq])
-            print("dtheta: ", ['%.2f' % i for i in robot_states.dtheta])
-            print("tau: ", ['%.2f' % i for i in robot_states.tau])
-            print("tau_des: ", ['%.2f' % i for i in robot_states.tauDes])
-            print("tau_dot: ", ['%.2f' % i for i in robot_states.tauDot])
-            print("tau_ext: ", ['%.2f' % i for i in robot_states.tauExt])
-            print("tcp_pose: ", ['%.2f' % i for i in robot_states.tcpPose])
-            print("tcp_pose_d: ", ['%.2f' % i for i in robot_states.tcpPoseDes])
-            print("tcp_velocity: ", ['%.2f' % i for i in robot_states.tcpVel])
-            print("camera_pose: ", ['%.2f' % i for i in robot_states.camPose])
-            print("flange_pose: ", ['%.2f' % i for i in robot_states.flangePose])
-            print("end_link_pose: ", ['%.2f' % i for i in robot_states.endLinkPose])
-            print("F_ext_tcp_frame: ", ['%.2f' % i for i in robot_states.extForceInTcpFrame])
-            print("F_ext_base_frame: ", ['%.2f' % i for i in robot_states.extForceInBaseFrame])
-            time.sleep(1)
-            # fmt: on
+        # Thread for printing robot states
+        print_thread = threading.Thread(
+            target=print_robot_states, args=[robot, log])
+        print_thread.start()
+        print_thread.join()
 
     except Exception as e:
         # Print exception error message

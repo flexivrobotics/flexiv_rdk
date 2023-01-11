@@ -43,9 +43,19 @@ class CommException : public Exception
 
 /**
  * @class ServerException
- * @brief Thrown if the robot server is in fault state.
+ * @brief Thrown if the robot server has fault.
  */
 class ServerException : public Exception
+{
+    // Using parent constructor to take in error message
+    using Exception::Exception;
+};
+
+/**
+ * @class ClientException
+ * @brief Thrown if an error is triggered by the client computer.
+ */
+class ClientException : public Exception
 {
     // Using parent constructor to take in error message
     using Exception::Exception;
@@ -73,8 +83,18 @@ class ExecutionException : public Exception
 };
 
 /**
+ * @class LogicException
+ * @brief Thrown if the logic of the program is incorrect.
+ */
+class LogicException : public Exception
+{
+    // Using parent constructor to take in error message
+    using Exception::Exception;
+};
+
+/**
  * @class CompatibilityException
- * @brief Thrown if the RDK library's version is not compatible with the robot
+ * @brief Thrown if version of the RDK client is not compatible with the robot
  * server.
  */
 class CompatibilityException : public Exception

@@ -130,17 +130,9 @@ int main(int argc, char* argv[])
                     // Print plan info while the current plan is running
                     while (robot.isBusy()) {
                         robot.getPlanInfo(planInfo);
-                        log.info(" ");
-                        // clang-format off
-                        std::cout << "assignedPlanName: " << planInfo.assignedPlanName << std::endl;
-                        std::cout << "ptName: " << planInfo.ptName << std::endl;
-                        std::cout << "nodeName: " << planInfo.nodeName << std::endl;
-                        std::cout << "nodePath: " << planInfo.nodePath << std::endl;
-                        std::cout << "nodePathTimePeriod: " << planInfo.nodePathTimePeriod << std::endl;
-                        std::cout << "nodePathNumber: " << planInfo.nodePathNumber << std::endl;
-                        std::cout << "velocityScale: " << planInfo.velocityScale << std::endl;
-                        std::cout << std::endl;
-                        // clang-format on
+                        log.info(
+                            "===============================================");
+                        std::cout << planInfo << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
                 } break;
@@ -154,17 +146,9 @@ int main(int argc, char* argv[])
                     // Print plan info while the current plan is running
                     while (robot.isBusy()) {
                         robot.getPlanInfo(planInfo);
-                        log.info(" ");
-                        // clang-format off
-                        std::cout << "assignedPlanName: " << planInfo.assignedPlanName << std::endl;
-                        std::cout << "ptName: " << planInfo.ptName << std::endl;
-                        std::cout << "nodeName: " << planInfo.nodeName << std::endl;
-                        std::cout << "nodePath: " << planInfo.nodePath << std::endl;
-                        std::cout << "nodePathTimePeriod: " << planInfo.nodePathTimePeriod << std::endl;
-                        std::cout << "nodePathNumber: " << planInfo.nodePathNumber << std::endl;
-                        std::cout << "velocityScale: " << planInfo.velocityScale << std::endl;
-                        std::cout << std::endl;
-                        // clang-format on
+                        log.info(
+                            "===============================================");
+                        std::cout << planInfo << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
                 } break;

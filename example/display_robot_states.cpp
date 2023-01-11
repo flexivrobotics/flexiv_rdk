@@ -1,6 +1,6 @@
 /**
  * @example display_robot_states.cpp
- * Print received robot states without enabling the robot.
+ * Print received robot states.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -13,29 +13,21 @@
 #include <iostream>
 #include <thread>
 
-/** User-defined periodic task @ 1Hz */
-void periodicTask(flexiv::Robot* robot, flexiv::Log* log)
+/** Print robot states data @ 1Hz */
+void printRobotStates(flexiv::Robot& robot, flexiv::Log& log)
 {
-    // Data struct for storing robot states
+    // Data struct storing robot states
     flexiv::RobotStates robotStates;
 
-    try {
-        while (true) {
-            // Wake up every second to do something
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+    while (true) {
+        // Get the latest robot states
+        robot.getRobotStates(robotStates);
 
-            // Get robot states
-            robot->getRobotStates(robotStates);
-
-            // Print all robot states in JSON format using the built-in ostream
-            // operator overloading
-            log->info("");
-            std::cout << robotStates << std::endl;
-        }
-
-    } catch (const flexiv::Exception& e) {
-        log->error(e.what());
-        return;
+        // Print all robot states in JSON format using the built-in ostream
+        // operator overloading
+        log.info("Current robot states:");
+        std::cout << robotStates << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
 
@@ -108,9 +100,10 @@ int main(int argc, char* argv[])
 
         // Periodic Tasks
         //=============================================================================
-        // Use std::thread to do scheduling since this example is used for both
-        // Linux and Windows, and the latter does not support flexiv::Scheduler
-        std::thread lowPriorityThread(std::bind(periodicTask, &robot, &log));
+        // Use std::thread to do scheduling so that this example can run on all
+        // OS, since not all OS support flexiv::Scheduler
+        std::thread lowPriorityThread(
+            std::bind(printRobotStates, std::ref(robot), std::ref(log)));
 
         // Properly exit thread
         lowPriorityThread.join();

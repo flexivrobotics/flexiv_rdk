@@ -54,8 +54,8 @@ struct LogData
 
 }
 
-void highPriorityTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
-    flexiv::Log* log, flexiv::RobotStates& robotStates)
+void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
+    flexiv::Log& log, flexiv::RobotStates& robotStates)
 {
     // flag whether initial Cartesian position is set
     static bool isInitPoseSet = false;
@@ -65,14 +65,14 @@ void highPriorityTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
 
     try {
         // Monitor fault on robot server
-        if (robot->isFault()) {
+        if (robot.isFault()) {
             throw flexiv::ServerException(
                 "highPriorityTask: Fault occurred on robot server, exiting "
                 "...");
         }
 
         // Read robot states
-        robot->getRobotStates(robotStates);
+        robot.getRobotStates(robotStates);
 
         // TCP movement control
         //=====================================================================
@@ -92,20 +92,20 @@ void highPriorityTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
                                   + k_swingAmp
                                         * sin(2 * M_PI * k_swingFreq
                                               * g_hpLoopCounter * k_loopPeriod);
-            robot->streamTcpPose(g_currentTcpPose);
+            robot.streamTcpPose(g_currentTcpPose);
         }
 
         // save data to global buffer, not using mutex to avoid interruption on
         // RT loop from potential priority inversion
         g_logData.tcpPose = robotStates.tcpPose;
-        g_logData.tcpForce = robotStates.extForceInBaseFrame;
+        g_logData.tcpForce = robotStates.extWrenchInBase;
 
         // increment loop counter
         g_hpLoopCounter++;
 
     } catch (const flexiv::Exception& e) {
-        log->error(e.what());
-        scheduler->stop();
+        log.error(e.what());
+        scheduler.stop();
     }
 }
 
@@ -189,7 +189,7 @@ void lowPriorityTask()
             }
 
             // exit program
-            exit(1);
+            return;
         }
 
         // increment loop counter
@@ -302,16 +302,20 @@ int main(int argc, char* argv[])
 
         // Periodic Tasks
         //=============================================================================
-        // use std::thread for logging task, not joining (non-blocking)
-        std::thread lowPriorityThread(lowPriorityTask);
-
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
-            std::bind(highPriorityTask, &robot, &scheduler, &log, robotStates),
-            "HP periodic", 1, 45);
-        // Start all added tasks, this is by default a blocking method
-        scheduler.start();
+            std::bind(highPriorityTask, std::ref(robot), std::ref(scheduler),
+                std::ref(log), std::ref(robotStates)),
+            "HP periodic", 1, scheduler.maxPriority());
+        // Start all added tasks, not blocking
+        scheduler.start(false);
+
+        // Use std::thread for logging task without strict chronology
+        std::thread lowPriorityThread(lowPriorityTask);
+
+        // lowPriorityThread is responsible to release blocking
+        lowPriorityThread.join();
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());

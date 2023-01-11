@@ -34,8 +34,8 @@ const std::vector<double> k_impedanceKd
 }
 
 // callback function for realtime periodic task
-void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
-    flexiv::Log* log, flexiv::RobotStates& robotStates)
+void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
+    flexiv::Log& log, flexiv::RobotStates& robotStates)
 {
     // Loop counter
     static unsigned int loopCounter = 0;
@@ -48,13 +48,13 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
 
     try {
         // Monitor fault on robot server
-        if (robot->isFault()) {
+        if (robot.isFault()) {
             throw flexiv::ServerException(
                 "periodicTask: Fault occurred on robot server, exiting ...");
         }
 
         // Read robot states
-        robot->getRobotStates(robotStates);
+        robot.getRobotStates(robotStates);
 
         // Set initial joint position
         if (!isInitPositionSet) {
@@ -78,11 +78,11 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
             }
 
             // send target joint torque to RDK server
-            robot->streamJointTorque(torqueDesired, true);
+            robot.streamJointTorque(torqueDesired, true);
         }
 
         if (loopCounter == 5000) {
-            log->warn(">>>>> Adding simulated loop delay <<<<<");
+            log.warn(">>>>> Adding simulated loop delay <<<<<");
         }
         // simulate prolonged loop time after 5 seconds
         else if (loopCounter > 5000) {
@@ -92,8 +92,8 @@ void periodicTask(flexiv::Robot* robot, flexiv::Scheduler* scheduler,
         loopCounter++;
 
     } catch (const flexiv::Exception& e) {
-        log->error(e.what());
-        scheduler->stop();
+        log.error(e.what());
+        scheduler.stop();
     }
 }
 
@@ -184,8 +184,9 @@ int main(int argc, char* argv[])
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
-            std::bind(periodicTask, &robot, &scheduler, &log, robotStates),
-            "HP periodic", 1, 45);
+            std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
+                std::ref(log), std::ref(robotStates)),
+            "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 

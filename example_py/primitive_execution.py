@@ -2,8 +2,9 @@
 
 """primitive_execution.py
 
-Execute various primitives using RDK's primitive execution API. For details on 
-all available primitives, refer to Flexiv RDK Manual.
+Execute various [Move] series primitives.
+For detailed documentation on all available primitives, please see
+[Flexiv Primitives](https://www.flexiv.com/primitives/).
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -92,13 +93,9 @@ def main():
         # Send command to robot
         robot.executePrimitive("Home()")
 
-        # Wait for robot to reach target location by checking for "reachedTarget = 1"
-        # in the list of current primitive states
-        while (parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1"):
+        # Wait for the primitive to finish
+        while (robot.isBusy()):
             time.sleep(1)
-
-        # NOTE: can also use robot.isStopped() to indirectly tell if the robot has
-        # reached target
 
         # (2) Move robot joints to target positions
         # -----------------------------------------------------------------------------
@@ -134,27 +131,33 @@ def main():
             "WORLD_ORIGIN,waypoints=0.45 0.1 0.2 180 0 180 WORLD "
             "WORLD_ORIGIN 0.45 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN, maxVel=0.2)")
 
-        # Wait for reached target
+        # The [Move] series primitive won't terminate itself, so we determine
+        # if the robot has reached target location by checking the primitive
+        # state "reachedTarget = 1" in the list of current primitive states,
+        # and terminate the current primitive manually by sending a new
+        # primitive command.
         while (parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1"):
             time.sleep(1)
 
-        # (4) Another MoveL
-        # -----------------------------------------------------------------------------
-        # An example to convert quaternion into Euler ZYX angles required by the
-        # primitive is shown below.
+        # (4) Another MoveL that uses TCP frame
+        # ----------------------------------------------------------------------------
+        # In this example the reference frame is changed from
+        # WORLD::WORLD_ORIGIN to TRAJ::START, which represents the current TCP
+        # frame
         log.info("Executing primitive: MoveL")
 
-        # Target quaternion in the general [w,x,y,z] order
-        target_quat = [-0.373286, 0.0270976, 0.83113, 0.411274]
-
-        # Convert target quaternion to Euler ZYX using scipy package's 'xyz' extrinsic rotation
+        # Example to convert target quaternion [w,x,y,z] to Euler ZYX using
+        # scipy package's 'xyz' extrinsic rotation
         # NOTE: scipy uses [x,y,z,w] order to represent quaternion
+        target_quat = [0.9185587, 0.1767767, 0.3061862, 0.1767767]
+        # ZYX = [30, 30, 30] degrees
         eulerZYX_deg = quat2eulerZYX(target_quat, degree=True)
 
-        # Send command to robot
-        robot.executePrimitive("MoveL(target=0.4 -0.1 0.2 "
+        # Send command to robot. This motion will hold current TCP position and
+        # only do TCP rotation
+        robot.executePrimitive("MoveL(target=0.0 0.0 0.0 "
                                + list2str(eulerZYX_deg)
-                               + "WORLD WORLD_ORIGIN, maxVel=0.3)")
+                               + "TRAJ START)")
 
         # Wait for reached target
         while (parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1"):

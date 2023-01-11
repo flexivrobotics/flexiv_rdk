@@ -1,6 +1,8 @@
 /**
  * @example primitive_execution.cpp
- * Execute various primitives using RDK's primitive execution API.
+ * Execute various [Move] series primitives.
+ * @note For detailed documentation on all available primitives, please see
+ * [Flexiv Primitives](https://www.flexiv.com/primitives/).
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -103,16 +105,10 @@ int main(int argc, char* argv[])
         // Send command to robot
         robot.executePrimitive("Home()");
 
-        // Wait for robot to reach target location by checking for
-        // "reachedTarget = 1" in the list of current primitive states
-        while (flexiv::utility::parsePtStates(
-                   robot.getPrimitiveStates(), "reachedTarget")
-               != "1") {
+        // Wait for the primitive to finish
+        while (robot.isBusy()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-
-        // NOTE: can also use robot.isStopped() to indirectly tell if the robot
-        // has reached target
 
         // (2) Move robot joints to target positions
         // ----------------------------------------------------------------------------
@@ -152,29 +148,37 @@ int main(int argc, char* argv[])
             "WORLD_ORIGIN 0.45 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN, "
             "maxVel=0.2)");
 
-        // Wait for reached target
+        // The [Move] series primitive won't terminate itself, so we determine
+        // if the robot has reached target location by checking the primitive
+        // state "reachedTarget = 1" in the list of current primitive states,
+        // and terminate the current primitive manually by sending a new
+        // primitive command.
         while (flexiv::utility::parsePtStates(
                    robot.getPrimitiveStates(), "reachedTarget")
                != "1") {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
-        // (4) Another MoveL
+        // (4) Another MoveL that uses TCP frame
         // ----------------------------------------------------------------------------
-        // An example to convert quaternion into Euler ZYX angles required by
-        // the primitive is shown below.
+        // In this example the reference frame is changed from
+        // WORLD::WORLD_ORIGIN to TRAJ::START, which represents the current TCP
+        // frame
         log.info("Executing primitive: MoveL");
 
-        // Convert target quaternion to Euler ZYX using utility functions
+        // Example to convert target quaternion [w,x,y,z] to Euler ZYX using
+        // utility functions
         std::vector<double> targetQuat
-            = {-0.373286, 0.0270976, 0.83113, 0.411274};
+            = {0.9185587, 0.1767767, 0.3061862, 0.1767767};
+        // ZYX = [30, 30, 30] degrees
         auto targetEulerDeg = flexiv::utility::rad2Deg(
             flexiv::utility::quat2EulerZYX(targetQuat));
 
-        // Send command to robot
-        robot.executePrimitive("MoveL(target=0.4 -0.1 0.2 "
+        // Send command to robot. This motion will hold current TCP position and
+        // only do TCP rotation
+        robot.executePrimitive("MoveL(target=0.0 0.0 0.0 "
                                + flexiv::utility::vec2Str(targetEulerDeg)
-                               + "WORLD WORLD_ORIGIN, maxVel=0.3)");
+                               + "TRAJ START)");
 
         // Wait for reached target
         while (flexiv::utility::parsePtStates(

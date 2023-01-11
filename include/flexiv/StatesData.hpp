@@ -19,63 +19,76 @@ namespace flexiv {
 struct RobotStates
 {
     /**
-     * Measured link-side joint positions \f$ q~[rad] \f$.
+     * \f$ q~[rad] \f$: measured joint positions using link-side encoder. This
+     * is the direct measurement of joint positions, preferred for most cases.
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
     std::vector<double> q = {};
 
     /**
-     * Measured motor-side joint positions \f$ \theta~[rad] \f$.
+     * \f$ \theta~[rad] \f$: measured joint positions using motor-side encoder.
+     * This is the indirect measurement of joint positions. \f$ \theta = q +
+     * \Delta \f$, where \f$ \Delta \f$ is the joint's internal deflection
+     * between motor and link.
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
     std::vector<double> theta = {};
 
     /**
-     * Measured link-side joint velocities \f$ \dot{q}~[rad/s] \f$.
+     * \f$ \dot{q}~[rad/s] \f$: measured joint velocities using link-side
+     * encoder. This is the direct but more noisy measurement of joint
+     * velocities.
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
     std::vector<double> dq = {};
 
     /**
-     * Measured motor-side joint velocities \f$ \dot{\theta}~[rad/s] \f$.
+     * \f$ \dot{\theta}~[rad/s] \f$: measured joint velocities using motor-side
+     * encoder. This is the indirect but less noisy measurement of joint
+     * velocities, preferred for most cases.
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
     std::vector<double> dtheta = {};
 
     /**
-     * Measured joint torques \f$ \tau~[Nm] \f$.
+     * \f$ \tau~[Nm] \f$: measured joint torques.
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
     std::vector<double> tau = {};
 
     /**
-     * Desired joint torques \f$ \tau_{d}~[Nm] \f$.
+     * \f$ \tau_{d}~[Nm] \f$: desired joint torques excluding nonlinearity
+     * compensation (gravity, centrifugal, and Coriolis).
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
     std::vector<double> tauDes = {};
 
     /**
-     * Numerical derivative of joint torques \f$ \dot{\tau}~[Nm/s] \f$.
+     * \f$ \dot{\tau}~[Nm/s] \f$: numerical derivative of measured joint
+     * torques.
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
     std::vector<double> tauDot = {};
 
     /**
-     * Estimated external joint torques \f$ \hat \tau_{ext}~[Nm] \f$.
+     * \f$ \hat \tau_{ext}~[Nm] \f$: estimated external joint torques, produced
+     * by any external contact (with robot body or TCP) that does not belong to
+     * the known robot model.
      *
      * Size: \f$ \mathbb{R}^{Dof \times 1} \f$.
      */
     std::vector<double> tauExt = {};
 
     /**
-     * Measured TCP pose in base frame \f$ ^{O}T_{TCP}~[m][] \f$.
+     * \f$ ^{O}T_{TCP}~[m][] \f$: measured TCP pose expressed in base frame,
+     * consists of translation and rotation.
      *
      * Size: \f$ \mathbb{R}^{7 \times 1} \f$ = \f$ \mathbb{R}^{3 \times 1} \f$
      * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion \f$ [x, y, z,
@@ -84,7 +97,8 @@ struct RobotStates
     std::vector<double> tcpPose = {};
 
     /**
-     * Desired TCP pose in base frame \f$ {^{O}T_{TCP}}_{d}~[m][] \f$.
+     * \f$ {^{O}T_{TCP}}_{d}~[m][] \f$: desired TCP pose expressed in base
+     * frame, consists of translation and rotation.
      *
      * Size: \f$ \mathbb{R}^{7 \times 1} \f$ = \f$ \mathbb{R}^{3 \times 1} \f$
      * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion \f$ [x, y, z,
@@ -93,7 +107,8 @@ struct RobotStates
     std::vector<double> tcpPoseDes = {};
 
     /**
-     * Measured TCP velocity in base frame \f$ ^{O}\dot{X}~[m/s][rad/s] \f$.
+     * \f$ ^{O}\dot{X}~[m/s][rad/s] \f$: measured TCP velocity expressed in base
+     * frame, consists of linear and angular velocity.
      *
      * Size: \f$ \mathbb{R}^{6 \times 1} \f$ = \f$ \mathbb{R}^{3 \times 1} \f$
      * linear velocity and \f$ \mathbb{R}^{3 \times 1} \f$ angular velocity \f$
@@ -102,7 +117,8 @@ struct RobotStates
     std::vector<double> tcpVel = {};
 
     /**
-     * Measured camera pose in base frame \f$ ^{O}T_{cam}~[m][] \f$.
+     * \f$ ^{O}T_{cam}~[m][] \f$: measured camera pose expressed in base frame,
+     * consists of translation and rotation.
      *
      * Size: \f$ \mathbb{R}^{7 \times 1} \f$ = \f$ \mathbb{R}^{3 \times 1} \f$
      * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion \f$ [x, y, z,
@@ -111,7 +127,8 @@ struct RobotStates
     std::vector<double> camPose = {};
 
     /**
-     * Measured flange pose in base frame \f$ ^{O}T_{fl}~[m][] \f$.
+     * \f$ ^{O}T_{fl}~[m][] \f$: measured flange pose expressed in base frame,
+     * consists of translation and rotation.
      *
      * Size: \f$ \mathbb{R}^{7 \times 1} \f$ = \f$ \mathbb{R}^{3 \times 1} \f$
      * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion \f$ [x, y, z,
@@ -120,41 +137,44 @@ struct RobotStates
     std::vector<double> flangePose = {};
 
     /**
-     * Measured end link pose in base frame \f$ ^{O}T_{el}~[m][] \f$.
-     *
-     * Size: \f$ \mathbb{R}^{7 \times 1} \f$ = \f$ \mathbb{R}^{3 \times 1} \f$
-     * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion \f$ [x, y, z,
-     * q_w, q_x, q_y, q_z]^T \f$.
-     */
-    std::vector<double> endLinkPose = {};
-
-    /**
-     * Estimated external force applied on TCP in TCP frame
-     * \f$ ^{TCP}F_{ext}~[N][Nm] \f$.
+     * \f$ ^{flange}F_{raw}~[N][Nm] \f$: force-torque (FT) sensor raw reading in
+     * flange frame, consists of force (linear) and moment (angular). The value
+     * is 0 if no FT sensor is installed.
      *
      * Size: \f$ \mathbb{R}^{6 \times 1} \f$ = \f$ \mathbb{R}^{3 \times 1} \f$
      * force and \f$ \mathbb{R}^{3 \times 1} \f$ moment \f$ [f_x, f_y, f_z, m_x,
      * m_y, m_z]^T \f$.
      */
-    std::vector<double> extForceInTcpFrame = {};
+    std::vector<double> ftSensorRaw = {};
 
     /**
-     * Estimated external force vector applied on TCP in the base frame
-     * \f$ ^{0}F_{ext}~[N][Nm] \f$.
+     * \f$ ^{TCP}F_{ext}~[N][Nm] \f$: estimated external wrench applied on TCP
+     * and expressed in TCP frame, consists of force (linear) and moment
+     * (angular).
      *
      * Size: \f$ \mathbb{R}^{6 \times 1} \f$ = \f$ \mathbb{R}^{3 \times 1} \f$
      * force and \f$ \mathbb{R}^{3 \times 1} \f$ moment \f$ [f_x, f_y, f_z, m_x,
      * m_y, m_z]^T \f$.
      */
-    std::vector<double> extForceInBaseFrame = {};
+    std::vector<double> extWrenchInTcp = {};
+
+    /**
+     * \f$ ^{0}F_{ext}~[N][Nm] \f$: estimated external wrench applied on TCP and
+     * expressed in base frame, consists of force (linear) and moment (angular).
+     *
+     * Size: \f$ \mathbb{R}^{6 \times 1} \f$ = \f$ \mathbb{R}^{3 \times 1} \f$
+     * force and \f$ \mathbb{R}^{3 \times 1} \f$ moment \f$ [f_x, f_y, f_z, m_x,
+     * m_y, m_z]^T \f$.
+     */
+    std::vector<double> extWrenchInBase = {};
 };
 
 /**
  * @brief Operator overloading to out stream all robot states in JSON format:
- * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}
- * @param[in] ostream Ostream instance
- * @param[in] robotStates RobotStates to out stream
- * @return Updated ostream instance
+ * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}.
+ * @param[in] ostream Ostream instance.
+ * @param[in] robotStates RobotStates data struct to out stream.
+ * @return Updated ostream instance.
  */
 std::ostream& operator<<(
     std::ostream& ostream, const flexiv::RobotStates& robotStates);
@@ -165,41 +185,67 @@ std::ostream& operator<<(
  */
 struct PlanInfo
 {
-    /**
-     * Current primitive name
-     */
+    /** Current primitive name */
     std::string ptName = {};
 
-    /**
-     * Current node name
-     */
+    /** Current node name */
     std::string nodeName = {};
 
-    /**
-     * Current node path
-     */
+    /** Current node path */
     std::string nodePath = {};
 
-    /**
-     * Current node path time period
-     */
+    /** Current node path time period */
     std::string nodePathTimePeriod = {};
 
-    /**
-     * Current node path number
-     */
+    /** Current node path number */
     std::string nodePathNumber = {};
 
-    /**
-     * Assigned plan name
-     */
+    /** Assigned plan name */
     std::string assignedPlanName = {};
 
-    /**
-     * Velocity scale
-     */
+    /** Velocity scale */
     double velocityScale = {};
 };
+
+/**
+ * @brief Operator overloading to out stream all plan info in JSON format:
+ * {"info_1": [val1,val2,val3,...], "info_2": [val1,val2,val3,...], ...}.
+ * @param[in] ostream Ostream instance.
+ * @param[in] planInfo PlanInfo data struct to out stream.
+ * @return Updated ostream instance.
+ */
+std::ostream& operator<<(
+    std::ostream& ostream, const flexiv::PlanInfo& planInfo);
+
+/**
+ * @struct GripperStates
+ * @brief Data struct containing the gripper states.
+ */
+struct GripperStates
+{
+    /** Measured finger opening width [m] */
+    double width = {};
+
+    /** Measured finger force. Positive: opening force, negative: closing force.
+     * 0 if the mounted gripper has no force sensing capability [N] */
+    double force = {};
+
+    /** Maximum finger opening width of the mounted gripper [m] */
+    double maxWidth = {};
+
+    /** Whether the fingers are moving */
+    bool isMoving = {};
+};
+
+/**
+ * @brief Operator overloading to out stream all gripper states in JSON format:
+ * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}.
+ * @param[in] ostream Ostream instance.
+ * @param[in] gripperStates GripperStates data struct to out stream.
+ * @return Updated ostream instance.
+ */
+std::ostream& operator<<(
+    std::ostream& ostream, const flexiv::GripperStates& gripperStates);
 
 } /* namespace flexiv */
 
