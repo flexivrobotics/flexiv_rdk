@@ -140,7 +140,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
                 } else {
                     // Send plan command only once
                     if (!isPlanSent) {
-                        robot.executePlanByName("PLAN-Home");
+                        robot.executePlan("PLAN-Home");
                         isPlanSent = true;
                     }
 
@@ -169,7 +169,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
                 } else {
                     // Send plan command only once
                     if (!isPlanSent) {
-                        robot.executePlanByName("PLAN-FloatingSoft");
+                        robot.executePlan("PLAN-FloatingSoft");
                         isPlanSent = true;
                     }
 
@@ -302,7 +302,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
                     sineCounter++;
 
                     // Send command
-                    robot.streamTcpPose(targetTcpPose);
+                    robot.streamCartesianMotionForce(targetTcpPose);
 
                     // Wait for operation period to timeout
                     if (++opTimer >= 20 * k_secToCount) {

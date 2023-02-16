@@ -103,7 +103,7 @@ def main():
                 robot.setMode(mode.NRT_PLAN_EXECUTION)
 
                 # Robot run free drive
-                robot.executePlanByName("PLAN-FreeDriveAuto")
+                robot.executePlan("PLAN-FreeDriveAuto")
 
                 log.info("New teaching process started")
                 log.warn(
@@ -159,7 +159,7 @@ def main():
 
                 # Put robot back to free drive
                 robot.setMode(mode.NRT_PLAN_EXECUTION)
-                robot.executePlanByName("PLAN-FreeDriveAuto")
+                robot.executePlan("PLAN-FreeDriveAuto")
             else:
                 log.warn("Invalid input")
 

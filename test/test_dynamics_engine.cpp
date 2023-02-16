@@ -211,7 +211,7 @@ int main(int argc, char* argv[])
 
         // Bring Robot To Home
         //=============================================================================
-        robot.executePlanByName("PLAN-Home");
+        robot.executePlan("PLAN-Home");
 
         // Wait for the execution to finish
         do {

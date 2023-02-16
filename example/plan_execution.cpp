@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
                     log.info("Enter plan index to execute:");
                     int index;
                     std::cin >> index;
-                    robot.executePlanByIndex(index);
+                    robot.executePlan(index);
 
                     // Print plan info while the current plan is running
                     while (robot.isBusy()) {
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
                     log.info("Enter plan name to execute:");
                     std::string name;
                     std::cin >> name;
-                    robot.executePlanByName(name);
+                    robot.executePlan(name);
 
                     // Print plan info while the current plan is running
                     while (robot.isBusy()) {

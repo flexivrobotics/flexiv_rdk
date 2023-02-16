@@ -100,7 +100,7 @@ def main():
         # Set mode after robot is operational
         robot.setMode(mode.NRT_PLAN_EXECUTION)
 
-        robot.executePlanByName("PLAN-Home")
+        robot.executePlan("PLAN-Home")
         # Wait for plan to start
         time.sleep(1)
         # Wait for plan to finish

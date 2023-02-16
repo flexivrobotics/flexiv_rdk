@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
 
         // Bring robot to home
-        robot.executePlanByName("PLAN-Home");
+        robot.executePlan("PLAN-Home");
 
         // Wait for the execution to finish
         do {

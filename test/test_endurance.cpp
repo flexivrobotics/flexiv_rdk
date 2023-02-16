@@ -92,7 +92,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
                                   + k_swingAmp
                                         * sin(2 * M_PI * k_swingFreq
                                               * g_hpLoopCounter * k_loopPeriod);
-            robot.streamTcpPose(g_currentTcpPose);
+            robot.streamCartesianMotionForce(g_currentTcpPose);
         }
 
         // save data to global buffer, not using mutex to avoid interruption on
@@ -280,7 +280,7 @@ int main(int argc, char* argv[])
         // set mode after robot is operational
         robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
 
-        robot.executePlanByName("PLAN-Home");
+        robot.executePlan("PLAN-Home");
 
         // Wait fot the plan to finish
         do {

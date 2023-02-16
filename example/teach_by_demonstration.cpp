@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
                 robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
 
                 // Robot run free drive
-                robot.executePlanByName("PLAN-FreeDriveAuto");
+                robot.executePlan("PLAN-FreeDriveAuto");
 
                 log.info("New teaching process started");
                 log.warn(
@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
 
                 // Put robot back to free drive
                 robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
-                robot.executePlanByName("PLAN-FreeDriveAuto");
+                robot.executePlan("PLAN-FreeDriveAuto");
             } else {
                 log.warn("Invalid input");
             }

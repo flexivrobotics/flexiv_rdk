@@ -95,7 +95,7 @@ def main():
             # Execute plan by index
             elif user_input == 2:
                 index = int(input("Enter plan index to execute:\n"))
-                robot.executePlanByIndex(index)
+                robot.executePlan(index)
 
                 # Print plan info while the current plan is running
                 while robot.isBusy():
@@ -114,7 +114,7 @@ def main():
             # Execute plan by name
             elif user_input == 3:
                 name = str(input("Enter plan name to execute:\n"))
-                robot.executePlanByName(name)
+                robot.executePlan(name)
 
                 # Print plan info while the current plan is running
                 while robot.isBusy():

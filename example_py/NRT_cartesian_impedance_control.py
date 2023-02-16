@@ -29,9 +29,6 @@ SWING_AMP = 0.1
 # TCP sine-sweep frequency [Hz]
 SWING_FREQ = 0.3
 
-# Maximum contact wrench
-MAX_WRENCH = [100.0, 100.0, 100.0, 30.0, 30.0, 30.0]
-
 # External TCP force threshold for collision detection [N]
 EXT_FORCE_THRESHOLD = 10.0
 
@@ -147,7 +144,8 @@ def main():
             # Otherwise robot TCP will hold at initial pose
 
             # Send command
-            robot.sendTcpPose(target_pose, MAX_WRENCH)
+            # Calling this method with only pose input results in pure motion control
+            robot.sendCartesianMotionForce(target_pose)
 
             #  Do the following operations in sequence for every 20 seconds
             time_elapsed = loop_counter * period

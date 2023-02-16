@@ -56,14 +56,16 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
 
         // Set target pose based on motion type
         if (motionType == "hold") {
-            robot.streamTcpPose(initTcpPose);
+            // Calling this method with only pose input results in pure motion
+            // control
+            robot.streamCartesianMotionForce(initTcpPose);
         } else if (motionType == "sine-sweep") {
             auto targetTcpPose = initTcpPose;
             targetTcpPose[1] = initTcpPose[1]
                                + k_swingAmp
                                      * sin(2 * M_PI * k_swingFreq * loopCounter
                                            * k_loopPeriod);
-            robot.streamTcpPose(targetTcpPose);
+            robot.streamCartesianMotionForce(targetTcpPose);
         } else {
             throw flexiv::InputException(
                 "periodicTask: unknown motion type. Accepted motion types: "
