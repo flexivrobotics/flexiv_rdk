@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
                 savedPoses.clear();
 
                 // Put robot to plan execution mode
-                robot.setMode(flexiv::MODE_PLAN_EXECUTION);
+                robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
 
                 // Robot run free drive
                 robot.executePlanByName("PLAN-FreeDriveAuto");
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
                 }
 
                 // Put robot to primitive execution mode
-                robot.setMode(flexiv::MODE_PRIMITIVE_EXECUTION);
+                robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
 
                 for (size_t i = 0; i < savedPoses.size(); i++) {
                     log.info("Executing pose " + std::to_string(i + 1) + "/"
@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
                     "execution");
 
                 // Put robot back to free drive
-                robot.setMode(flexiv::MODE_PLAN_EXECUTION);
+                robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
                 robot.executePlanByName("PLAN-FreeDriveAuto");
             } else {
                 log.warn("Invalid input");

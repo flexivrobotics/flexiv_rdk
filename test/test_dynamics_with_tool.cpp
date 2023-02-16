@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
         log.info("Robot is now operational");
 
         // set mode after robot is operational
-        robot.setMode(flexiv::MODE_PLAN_EXECUTION);
+        robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
 
         // Bring Robot To Home
         //=============================================================================
@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
         } while (robot.isBusy());
 
         // put mode back to IDLE
-        robot.setMode(flexiv::MODE_IDLE);
+        robot.setMode(flexiv::Mode::IDLE);
 
         // Robot Model (Dynamics Engine) Initialization
         //=============================================================================

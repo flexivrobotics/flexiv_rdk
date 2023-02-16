@@ -135,8 +135,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
             }
             case OP_GO_HOME: {
                 // Must switch to the correct mode first
-                if (robot.getMode() != flexiv::MODE_PLAN_EXECUTION) {
-                    robot.setMode(flexiv::MODE_PLAN_EXECUTION);
+                if (robot.getMode() != flexiv::NRT_PLAN_EXECUTION) {
+                    robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
                 } else {
                     // Send plan command only once
                     if (!isPlanSent) {
@@ -164,8 +164,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
             }
             case OP_FLOATING: {
                 // Must switch to the correct mode first
-                if (robot.getMode() != flexiv::MODE_PLAN_EXECUTION) {
-                    robot.setMode(flexiv::MODE_PLAN_EXECUTION);
+                if (robot.getMode() != flexiv::NRT_PLAN_EXECUTION) {
+                    robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
                 } else {
                     // Send plan command only once
                     if (!isPlanSent) {
@@ -190,8 +190,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
             }
             case OP_JOINT_POSITION_SINE: {
                 // Must switch to the correct mode first
-                if (robot.getMode() != flexiv::MODE_JOINT_POSITION) {
-                    robot.setMode(flexiv::MODE_JOINT_POSITION);
+                if (robot.getMode() != flexiv::RT_JOINT_POSITION) {
+                    robot.setMode(flexiv::Mode::RT_JOINT_POSITION);
 
                     // Set initial joint position
                     initJointPos = robotStates.q;
@@ -233,8 +233,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
             }
             case OP_JOINT_TORQUE_SINE: {
                 // Must switch to the correct mode first
-                if (robot.getMode() != flexiv::MODE_JOINT_TORQUE) {
-                    robot.setMode(flexiv::MODE_JOINT_TORQUE);
+                if (robot.getMode() != flexiv::RT_JOINT_TORQUE) {
+                    robot.setMode(flexiv::Mode::RT_JOINT_TORQUE);
 
                     // Set initial joint position
                     initJointPos = robotStates.q;
@@ -281,8 +281,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
             }
             case OP_CARTESIAN_SINE: {
                 // Must switch to the correct mode first
-                if (robot.getMode() != flexiv::MODE_CARTESIAN_IMPEDANCE) {
-                    robot.setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
+                if (robot.getMode() != flexiv::RT_CARTESIAN_MOTION_FORCE_BASE) {
+                    robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE_BASE);
 
                     // Set initial TCP pose
                     initTcpPose = robotStates.tcpPose;

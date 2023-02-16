@@ -81,7 +81,7 @@ def main():
         log.info("Robot is now operational")
 
         # Set mode after robot is operational
-        robot.setMode(mode.MODE_JOINT_POSITION_NRT)
+        robot.setMode(mode.NRT_JOINT_POSITION)
 
         # Application-specific Code
         # =============================================================================

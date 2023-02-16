@@ -102,14 +102,14 @@ def main():
         # IMPORTANT: must calibrate force/torque sensor for accurate collision
         # detection
         log.warn("Calibrating force/torque sensors, please don't touch the robot")
-        robot.setMode(mode.MODE_PRIMITIVE_EXECUTION)
+        robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
         robot.executePrimitive("CaliForceSensor()")
         # Wait for primitive completion
         while robot.isBusy():
             time.sleep(1)
 
         # Set mode after sensor calibration
-        robot.setMode(mode.MODE_CARTESIAN_IMPEDANCE_NRT)
+        robot.setMode(mode.NRT_CARTESIAN_MOTION_FORCE_BASE)
 
         # Application-specific Code
         # =============================================================================

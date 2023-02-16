@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
         log.info("Robot is now operational");
 
         // Set mode after robot is operational
-        robot.setMode(flexiv::MODE_PRIMITIVE_EXECUTION);
+        robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
 
         // Application-specific Code
         //=============================================================================

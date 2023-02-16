@@ -76,7 +76,7 @@ def main():
         # Application-specific Code
         # =============================================================================
         # Set to primitive mode
-        robot.setMode(mode.MODE_PRIMITIVE_EXECUTION)
+        robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
 
         # Move robot to home pose first
         log.info("Executing primitive: Home")

@@ -75,7 +75,7 @@ def main():
         log.info("Robot is now operational")
 
         # Set mode after robot is operational
-        robot.setMode(mode.MODE_PRIMITIVE_EXECUTION)
+        robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
 
         # Application-specific Code
         # =============================================================================

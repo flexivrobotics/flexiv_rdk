@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
         log.info("Robot is now operational");
 
         // set mode after robot is operational
-        robot.setMode(flexiv::MODE_JOINT_TORQUE);
+        robot.setMode(flexiv::Mode::RT_JOINT_TORQUE);
 
         log.warn(
             ">>>>> Simulated loop delay will be added after 5 "

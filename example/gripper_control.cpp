@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
 
         // Gripper control is not available if the robot is in IDLE mode, so put
         // robot into some mode other than IDLE
-        robot.setMode(flexiv::MODE_PLAN_EXECUTION);
+        robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
         robot.executePlanByName("PLAN-Home");
         std::this_thread::sleep_for(std::chrono::seconds(1));
 

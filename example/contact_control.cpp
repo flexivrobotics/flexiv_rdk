@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
         // Application-specific Code
         //=============================================================================
         // Set to primitive mode
-        robot.setMode(flexiv::MODE_PRIMITIVE_EXECUTION);
+        robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
 
         // Move robot to home pose first
         log.info("Executing primitive: Home");

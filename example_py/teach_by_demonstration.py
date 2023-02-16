@@ -100,7 +100,7 @@ def main():
                 saved_poses.clear()
 
                 # Put robot to plan execution mode
-                robot.setMode(mode.MODE_PLAN_EXECUTION)
+                robot.setMode(mode.NRT_PLAN_EXECUTION)
 
                 # Robot run free drive
                 robot.executePlanByName("PLAN-FreeDriveAuto")
@@ -126,7 +126,7 @@ def main():
                     continue
 
                 # Put robot to primitive execution mode
-                robot.setMode(mode.MODE_PRIMITIVE_EXECUTION)
+                robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
 
                 for i in range(len(saved_poses)):
                     log.info("Executing pose " + str(i + 1) + "/"
@@ -158,7 +158,7 @@ def main():
                     "execution")
 
                 # Put robot back to free drive
-                robot.setMode(mode.MODE_PLAN_EXECUTION)
+                robot.setMode(mode.NRT_PLAN_EXECUTION)
                 robot.executePlanByName("PLAN-FreeDriveAuto")
             else:
                 log.warn("Invalid input")

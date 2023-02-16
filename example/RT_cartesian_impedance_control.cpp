@@ -222,7 +222,7 @@ int main(int argc, char* argv[])
         // detection
         log.warn(
             "Calibrating force/torque sensors, please don't touch the robot");
-        robot.setMode(flexiv::MODE_PRIMITIVE_EXECUTION);
+        robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
         robot.executePrimitive("CaliForceSensor()");
         // Wait for primitive completion
         while (robot.isBusy()) {
@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
         }
 
         // Set mode after sensor calibration
-        robot.setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
+        robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE_BASE);
 
         // Set initial TCP pose
         robot.getRobotStates(robotStates);

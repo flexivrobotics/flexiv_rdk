@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
         log.info("Robot is now operational");
 
         // Set mode after robot is operational
-        robot.setMode(flexiv::MODE_JOINT_TORQUE);
+        robot.setMode(flexiv::Mode::RT_JOINT_TORQUE);
 
         // Set initial joint positions
         robot.getRobotStates(robotStates);

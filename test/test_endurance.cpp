@@ -278,7 +278,7 @@ int main(int argc, char* argv[])
         // Bring Robot To Home
         //=============================================================================
         // set mode after robot is operational
-        robot.setMode(flexiv::MODE_PLAN_EXECUTION);
+        robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
 
         robot.executePlanByName("PLAN-Home");
 
@@ -288,7 +288,7 @@ int main(int argc, char* argv[])
         } while (robot.isBusy());
 
         // set mode after robot is at home
-        robot.setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
+        robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE_BASE);
 
         // Periodic Tasks
         //=============================================================================
