@@ -25,7 +25,7 @@ public:
      * @brief Create a flexiv::Model instance to get robot dynamics data.
      * @param[in] robot Reference to the instance of flexiv::Robot.
      * @param[in] gravityEarth Earth's gravity vector in base frame. Default
-     * to \f$ [0.0, 0.0, -9.81]^T~[m/s^2] \f$.
+     * to \f$ [0.0, 0.0, -9.81]^T \f$. Unit: \f$ [m/s^2] \f$.
      * @throw InitException if the instance failed to initialize.
      */
     Model(const Robot& robot,
@@ -34,10 +34,10 @@ public:
 
     /**
      * @brief Update robot model using new joint states data.
-     * @param[in] positions \f$ \mathbb{R}^{Dof \times 1} \f$ new link positions
-     * \f$ q~[rad] \f$.
-     * @param[in] velocities \f$ \mathbb{R}^{Dof \times 1} \f$ new link
-     * velocities \f$ \dot{q}~[rad/s] \f$.
+     * @param[in] positions Current joint positions: \f$ q \in \mathbb{R}^{DOF
+     * \times 1} \f$. Unit: \f$ [rad] \f$.
+     * @param[in] velocities Current joint velocities: \f$ \dot{q} \in
+     * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s] \f$.
      * @throw InputException if the input vector is of wrong size.
      */
     void updateModel(const std::vector<double>& positions,
@@ -47,8 +47,7 @@ public:
      * @brief Compute and get the Jacobian matrix at the frame of the specified
      * link \f$ i \f$, expressed in the base frame.
      * @param[in] linkName Name of the link to get Jacobian for.
-     * @return \f$ \mathbb{R}^{6 \times Dof} \f$ Jacobian matrix,
-     * \f$ ^0 J_i \f$.
+     * @return Jacobian matrix: \f$ ^{0}J_i \in \mathbb{R}^{6 \times DOF} \f$.
      * @note Call updateModel() before this method.
      * @note Available links can be found in the provided URDF. They are
      * {"base_link", "link1", "link2", "link3", "link4", "link5", "link6",
@@ -61,8 +60,8 @@ public:
      * @brief Compute and get the time derivative of Jacobian matrix at the
      * frame of the specified link \f$ i \f$, expressed in the base frame.
      * @param[in] linkName Name of the link to get Jacobian derivative for.
-     * @return \f$ \mathbb{R}^{6 \times Dof} \f$ Time derivative of Jacobian
-     * matrix, \f$ ^0 \dot{J_i} \f$.
+     * @return Time derivative of Jacobian matrix: \f$ ^{0}\dot{J_i} \in
+     * \mathbb{R}^{6 \times DOF} \f$.
      * @note Call updateModel() before this method.
      * @note Available links can be found in the provided URDF. They are
      * {"base_link", "link1", "link2", "link3", "link4", "link5", "link6",
@@ -74,8 +73,8 @@ public:
     /**
      * @brief Compute and get the mass matrix for the generalized coordinates,
      * i.e. joint space.
-     * @return \f$ \mathbb{S}^{Dof \times Dof}_{++} \f$ Symmetric positive
-     * definite mass matrix \f$ M(q)~[kgm^2] \f$.
+     * @return Symmetric positive definite mass matrix: \f$ M(q) \in
+     * \mathbb{S}^{DOF \times DOF}_{++} \f$. Unit: \f$ [kgm^2] \f$.
      * @note Call updateModel() before this method.
      */
     const Eigen::MatrixXd getMassMatrix();
@@ -83,8 +82,8 @@ public:
     /**
      * @brief Compute and get the Coriolis/centripetal matrix for the
      * generalized coordinates, i.e. joint space.
-     * @return \f$ \mathbb{R}^{Dof \times Dof} \f$ Coriolis/centripetal matrix
-     * \f$ C(q,\dot{q}) \f$.
+     * @return Coriolis/centripetal matrix: \f$ C(q,\dot{q}) \in \mathbb{R}^{DOF
+     * \times DOF} \f$.
      * @note Call updateModel() before this method.
      */
     const Eigen::MatrixXd getCoriolisMatrix();
@@ -92,8 +91,8 @@ public:
     /**
      * @brief Compute and get the gravity force vector for the generalized
      * coordinates, i.e. joint space.
-     * @return \f$ \mathbb{R}^{Dof \times 1} \f$ gravity force vector \f$
-     * g(q)~[Nm] \f$.
+     * @return Gravity force vector: \f$ g(q) \in \mathbb{R}^{DOF \times 1} \f$.
+     * Unit: \f$ [Nm] \f$.
      * @note Call updateModel() before this method.
      */
     const Eigen::VectorXd getGravityForce();
@@ -101,8 +100,8 @@ public:
     /**
      * @brief Compute and get the Coriolis force vector for the generalized
      * coordinates, i.e. joint space.
-     * @return \f$ \mathbb{R}^{Dof \times 1} \f$ Coriolis force vector \f$
-     * c(q,\dot{q})~[Nm] \f$.
+     * @return Coriolis force vector: \f$ c(q,\dot{q}) \in \mathbb{R}^{DOF
+     * \times 1} \f$. Unit: \f$ [Nm] \f$.
      * @note Call updateModel() before this method.
      */
     const Eigen::VectorXd getCoriolisForce();

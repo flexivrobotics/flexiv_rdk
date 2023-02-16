@@ -63,17 +63,29 @@ inline std::vector<double> rad2Deg(const std::vector<double>& radVec)
 /**
  * @brief Convert a std::vector to a string.
  * @param[in] vec std::vector of any type and size.
- * @return A string with format "vec[0] vec[1] ... vec[n] ", i.e. each value
- * followed by a space, including the last one.
+ * @param[in] decimal Decimal places to keep for each number in the vector.
+ * @param[in] trailingSpace Whether to include a space after the last element.
+ * @return A string with format "vec[0] vec[1] ... vec[n] ", i.e. each element
+ * followed by a space, including the last one if trailingSpace = true.
  */
 template <typename T>
-inline std::string vec2Str(const std::vector<T>& vec)
+inline std::string vec2Str(
+    const std::vector<T>& vec, size_t decimal = 3, bool trailingSpace = true)
 {
-    std::string str = "";
+    auto padding = "";
+    std::stringstream ss;
+    ss.precision(decimal);
+    ss << std::fixed;
+
     for (const auto& v : vec) {
-        str += std::to_string(v) + " ";
+        ss << padding << v;
+        padding = " ";
     }
-    return str;
+
+    if (trailingSpace) {
+        ss << " ";
+    }
+    return ss.str();
 }
 
 /**
