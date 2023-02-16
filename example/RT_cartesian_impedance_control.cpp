@@ -220,12 +220,9 @@ int main(int argc, char* argv[])
 
         // IMPORTANT: must calibrate force/torque sensor for accurate collision
         // detection
-        robot.setMode(flexiv::MODE_PRIMITIVE_EXECUTION);
-        while (robot.getMode() != flexiv::MODE_PRIMITIVE_EXECUTION) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
         log.warn(
             "Calibrating force/torque sensors, please don't touch the robot");
+        robot.setMode(flexiv::MODE_PRIMITIVE_EXECUTION);
         robot.executePrimitive("CaliForceSensor()");
         // Wait for primitive completion
         while (robot.isBusy()) {
@@ -234,9 +231,6 @@ int main(int argc, char* argv[])
 
         // Set mode after sensor calibration
         robot.setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
-        while (robot.getMode() != flexiv::MODE_CARTESIAN_IMPEDANCE) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
 
         // Set initial TCP pose
         robot.getRobotStates(robotStates);

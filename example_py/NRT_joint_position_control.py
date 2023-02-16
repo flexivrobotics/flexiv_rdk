@@ -83,10 +83,6 @@ def main():
         # Set mode after robot is operational
         robot.setMode(mode.MODE_JOINT_POSITION_NRT)
 
-        # Wait for the mode to be switched
-        while (robot.getMode() != mode.MODE_JOINT_POSITION_NRT):
-            time.sleep(1)
-
         # Application-specific Code
         # =============================================================================
         period = 1.0/frequency

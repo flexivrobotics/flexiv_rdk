@@ -7,7 +7,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/StatesData.hpp>
 #include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Utility.hpp>
@@ -122,11 +121,6 @@ int main(int argc, char* argv[])
                 // Put robot to plan execution mode
                 robot.setMode(flexiv::MODE_PLAN_EXECUTION);
 
-                // Wait for the mode to be switched
-                while (robot.getMode() != flexiv::MODE_PLAN_EXECUTION) {
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
-                }
-
                 // Robot run free drive
                 robot.executePlanByName("PLAN-FreeDriveAuto");
 
@@ -158,11 +152,6 @@ int main(int argc, char* argv[])
 
                 // Put robot to primitive execution mode
                 robot.setMode(flexiv::MODE_PRIMITIVE_EXECUTION);
-
-                // Wait for the mode to be switched
-                while (robot.getMode() != flexiv::MODE_PRIMITIVE_EXECUTION) {
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
-                }
 
                 for (size_t i = 0; i < savedPoses.size(); i++) {
                     log.info("Executing pose " + std::to_string(i + 1) + "/"
@@ -198,9 +187,6 @@ int main(int argc, char* argv[])
 
                 // Put robot back to free drive
                 robot.setMode(flexiv::MODE_PLAN_EXECUTION);
-                while (robot.getMode() != flexiv::MODE_PLAN_EXECUTION) {
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
-                }
                 robot.executePlanByName("PLAN-FreeDriveAuto");
             } else {
                 log.warn("Invalid input");

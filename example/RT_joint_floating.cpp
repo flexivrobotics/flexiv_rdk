@@ -133,11 +133,6 @@ int main(int argc, char* argv[])
         // Set mode after robot is operational
         robot.setMode(flexiv::MODE_JOINT_TORQUE);
 
-        // Wait for the mode to be switched
-        while (robot.getMode() != flexiv::MODE_JOINT_TORQUE) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-
         // Periodic Tasks
         //=============================================================================
         flexiv::Scheduler scheduler;

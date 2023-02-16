@@ -280,11 +280,6 @@ int main(int argc, char* argv[])
         // set mode after robot is operational
         robot.setMode(flexiv::MODE_PLAN_EXECUTION);
 
-        // wait for mode to be set
-        while (robot.getMode() != flexiv::MODE_PLAN_EXECUTION) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-
         robot.executePlanByName("PLAN-Home");
 
         // Wait fot the plan to finish
@@ -294,11 +289,6 @@ int main(int argc, char* argv[])
 
         // set mode after robot is at home
         robot.setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
-
-        // wait for the mode to be switched
-        while (robot.getMode() != flexiv::MODE_CARTESIAN_IMPEDANCE) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
 
         // Periodic Tasks
         //=============================================================================

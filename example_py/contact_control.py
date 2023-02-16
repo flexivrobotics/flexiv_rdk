@@ -78,10 +78,6 @@ def main():
         # Set to primitive mode
         robot.setMode(mode.MODE_PRIMITIVE_EXECUTION)
 
-        # Wait for the mode to be switched
-        while (robot.getMode() != mode.MODE_PRIMITIVE_EXECUTION):
-            time.sleep(1)
-
         # Move robot to home pose first
         log.info("Executing primitive: Home")
         robot.executePrimitive("Home()")

@@ -102,10 +102,6 @@ def main():
                 # Put robot to plan execution mode
                 robot.setMode(mode.MODE_PLAN_EXECUTION)
 
-                # Wait for the mode to be switched
-                while (robot.getMode() != mode.MODE_PLAN_EXECUTION):
-                    time.sleep(1)
-
                 # Robot run free drive
                 robot.executePlanByName("PLAN-FreeDriveAuto")
 
@@ -131,10 +127,6 @@ def main():
 
                 # Put robot to primitive execution mode
                 robot.setMode(mode.MODE_PRIMITIVE_EXECUTION)
-
-                # Wait for the mode to be switched
-                while (robot.getMode() != mode.MODE_PRIMITIVE_EXECUTION):
-                    time.sleep(1)
 
                 for i in range(len(saved_poses)):
                     log.info("Executing pose " + str(i + 1) + "/"
@@ -167,8 +159,6 @@ def main():
 
                 # Put robot back to free drive
                 robot.setMode(mode.MODE_PLAN_EXECUTION)
-                while (robot.getMode() != mode.MODE_PLAN_EXECUTION):
-                    time.sleep(1)
                 robot.executePlanByName("PLAN-FreeDriveAuto")
             else:
                 log.warn("Invalid input")

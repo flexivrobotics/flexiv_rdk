@@ -197,11 +197,6 @@ int main(int argc, char* argv[])
         // set mode after robot is operational
         robot.setMode(flexiv::MODE_PLAN_EXECUTION);
 
-        // wait for mode to be set
-        while (robot.getMode() != flexiv::MODE_PLAN_EXECUTION) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-
         // Bring Robot To Home
         //=============================================================================
         robot.executePlanByName("PLAN-Home");
@@ -213,9 +208,6 @@ int main(int argc, char* argv[])
 
         // put mode back to IDLE
         robot.setMode(flexiv::MODE_IDLE);
-        while (robot.getMode() != flexiv::MODE_IDLE) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
 
         // Robot Model (Dynamics Engine) Initialization
         //=============================================================================

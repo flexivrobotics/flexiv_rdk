@@ -100,10 +100,6 @@ def main():
         # Set mode after robot is operational
         robot.setMode(mode.MODE_PLAN_EXECUTION)
 
-        # Wait for the mode to be switched
-        while (robot.getMode() != mode.MODE_PLAN_EXECUTION):
-            time.sleep(1)
-
         robot.executePlanByName("PLAN-Home")
         # Wait for plan to start
         time.sleep(1)
