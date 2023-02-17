@@ -171,14 +171,11 @@ def main():
                 print(preferred_jnt_pos)
             # Online reset stiffness to original at 12 seconds
             elif (time_elapsed % 20.0 == 12.0):
-                default_K = [4000, 4000, 4000, 1900, 1900, 1900]
-                robot.setCartesianStiffness(default_K)
+                robot.setCartesianStiffness()
                 log.info("Cartesian stiffness is reset")
             # Online reset preferred joint positions at 15 seconds
             elif (time_elapsed % 20.0 == 15.0):
-                preferred_jnt_pos = [0.0, -0.6981,
-                                     0.0, 1.5708, 0.0, 0.6981, 0.0]
-                robot.setNullSpacePosture(preferred_jnt_pos)
+                robot.setNullSpacePosture()
                 log.info("Preferred joint positions are reset")
 
             # Simple collision detection: stop robot if collision is detected at
