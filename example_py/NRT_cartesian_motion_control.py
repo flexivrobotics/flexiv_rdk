@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-"""NRT_cartesian_impedance_control.py
+"""NRT_cartesian_motion_control.py
 
-Non-real-time Cartesian impedance control to hold or sine-sweep the robot TCP.
+Non-real-time Cartesian-space pure motion control to hold or sine-sweep the robot TCP.
 A simple collision detection is also included.
 """
 
@@ -158,7 +158,7 @@ def main():
             # Otherwise robot TCP will hold at initial pose
 
             # Send command
-            # Calling this method with only pose input results in pure motion control
+            # Calling this method with only target pose input results in pure motion control
             robot.sendCartesianMotionForce(target_pose)
 
             #  Do the following operations in sequence for every 20 seconds

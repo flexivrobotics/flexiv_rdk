@@ -1,7 +1,7 @@
 /**
- * @example RT_cartesian_impedance_control.cpp
- * Real-time Cartesian impedance control to hold or sine-sweep the robot TCP.
- * A simple collision detection is also included.
+ * @example RT_cartesian_motion_control.cpp
+ * Real-time Cartesian-space pure motion control to hold or sine-sweep the robot
+ * TCP. A simple collision detection is also included.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -57,8 +57,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
 
         // Set target pose based on motion type
         if (motionType == "hold") {
-            // Calling this method with only pose input results in pure motion
-            // control
+            // Calling this method with only target pose input results in pure
+            // motion control
             robot.streamCartesianMotionForce(initTcpPose);
         } else if (motionType == "sine-sweep") {
             auto targetTcpPose = initTcpPose;
@@ -66,6 +66,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
                                + k_swingAmp
                                      * sin(2 * M_PI * k_swingFreq * loopCounter
                                            * k_loopPeriod);
+            // Calling this method with only target pose input results in pure
+            // motion control
             robot.streamCartesianMotionForce(targetTcpPose);
         } else {
             throw flexiv::InputException(
