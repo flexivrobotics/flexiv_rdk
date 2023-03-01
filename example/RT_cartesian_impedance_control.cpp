@@ -39,7 +39,8 @@ constexpr double k_extTorqueThreshold = 5.0;
 /** Callback function for realtime periodic task */
 void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
     flexiv::Log& log, flexiv::RobotStates& robotStates,
-    const std::string& motionType, const std::vector<double>& initTcpPose)
+    const std::string& motionType, const std::vector<double>& initTcpPose,
+    bool enableCollision)
 {
     // Local periodic loop counter
     static size_t loopCounter = 0;
@@ -113,21 +114,24 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
 
         // Simple collision detection: stop robot if collision is detected from
         // either end-effector or robot body
-        bool collisionDetected = false;
-        Eigen::Vector3d extForce = {robotStates.extWrenchInBase[0],
-            robotStates.extWrenchInBase[1], robotStates.extWrenchInBase[2]};
-        if (extForce.norm() > k_extForceThreshold) {
-            collisionDetected = true;
-        }
-        for (const auto& v : robotStates.tauExt) {
-            if (fabs(v) > k_extTorqueThreshold) {
+        if (enableCollision) {
+            bool collisionDetected = false;
+            Eigen::Vector3d extForce = {robotStates.extWrenchInBase[0],
+                robotStates.extWrenchInBase[1], robotStates.extWrenchInBase[2]};
+            if (extForce.norm() > k_extForceThreshold) {
                 collisionDetected = true;
             }
-        }
-        if (collisionDetected) {
-            robot.stop();
-            log.warn("Collision detected, stopping robot and exit program ...");
-            scheduler.stop();
+            for (const auto& v : robotStates.tauExt) {
+                if (fabs(v) > k_extTorqueThreshold) {
+                    collisionDetected = true;
+                }
+            }
+            if (collisionDetected) {
+                robot.stop();
+                log.warn(
+                    "Collision detected, stopping robot and exit program ...");
+                scheduler.stop();
+            }
         }
 
         // Increment loop counter
@@ -145,8 +149,9 @@ void printHelp()
     std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
     std::cout << "    robot IP: address of the robot server" << std::endl;
     std::cout << "    local IP: address of this PC" << std::endl;
-    std::cout << "Optional arguments: [--hold]" << std::endl;
+    std::cout << "Optional arguments: [--hold] [--collision]" << std::endl;
     std::cout << "    --hold: robot holds current TCP pose, otherwise do a sine-sweep" << std::endl;
+    std::cout << "    --collision: enable collision detection, robot will stop upon collision" << std::endl;
     std::cout << std::endl;
     // clang-format on
 }
@@ -178,6 +183,15 @@ int main(int argc, char* argv[])
     } else {
         log.info("Robot running TCP sine-sweep");
         motionType = "sine-sweep";
+    }
+
+    // Whether to enable collision detection
+    bool enableCollision = false;
+    if (flexiv::utility::programArgsExist(argc, argv, "--collision")) {
+        log.info("Collision detection enabled");
+        enableCollision = true;
+    } else {
+        log.info("Collision detection disabled");
     }
 
     try {
@@ -249,7 +263,7 @@ int main(int argc, char* argv[])
         scheduler.addTask(
             std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
                 std::ref(log), std::ref(robotStates), std::ref(motionType),
-                std::ref(initTcpPose)),
+                std::ref(initTcpPose), enableCollision),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();

@@ -49,6 +49,9 @@ def main():
     argparser.add_argument(
         "--hold", action="store_true",
         help="robot holds current TCP pose, otherwise do a sine-sweep")
+    argparser.add_argument(
+        "--collision", action="store_true",
+        help="enable collision detection, robot will stop upon collision")
     args = argparser.parse_args()
 
     # Check if arguments are valid
@@ -60,6 +63,17 @@ def main():
     robot_states = flexivrdk.RobotStates()
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
+
+    # Print based on arguments
+    if args.hold:
+        log.info("Robot holding current TCP pose")
+    else:
+        log.info("Robot running TCP sine-sweep")
+
+    if args.collision:
+        log.info("Collision detection enabled")
+    else:
+        log.info("Collision detection disabled")
 
     try:
         # RDK Initialization
@@ -180,20 +194,22 @@ def main():
 
             # Simple collision detection: stop robot if collision is detected at
             # end-effector
-            collision_detected = False
-            extForce = np.array([robot_states.extWrenchInBase[0],
-                                 robot_states.extWrenchInBase[1], robot_states.extWrenchInBase[2]])
-            if (np.linalg.norm(extForce) > EXT_FORCE_THRESHOLD):
-                collision_detected = True
-
-            for v in robot_states.tauExt:
-                if (abs(v) > EXT_TORQUE_THRESHOLD):
+            if args.collision:
+                collision_detected = False
+                extForce = np.array([robot_states.extWrenchInBase[0],
+                                    robot_states.extWrenchInBase[1], robot_states.extWrenchInBase[2]])
+                if (np.linalg.norm(extForce) > EXT_FORCE_THRESHOLD):
                     collision_detected = True
 
-            if collision_detected:
-                robot.stop()
-                log.warn("Collision detected, stopping robot and exit program ...")
-                return
+                for v in robot_states.tauExt:
+                    if (abs(v) > EXT_TORQUE_THRESHOLD):
+                        collision_detected = True
+
+                if collision_detected:
+                    robot.stop()
+                    log.warn(
+                        "Collision detected, stopping robot and exit program ...")
+                    return
 
             # Increment loop counter
             loop_counter += 1
