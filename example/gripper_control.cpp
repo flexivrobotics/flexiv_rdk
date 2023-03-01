@@ -158,6 +158,7 @@ int main(int argc, char* argv[])
         }
 
         // Finished, exit all threads
+        gripper.stop();
         g_isDone = true;
         log.info("Program finished");
         printThread.join();

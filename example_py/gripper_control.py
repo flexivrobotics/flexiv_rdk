@@ -152,6 +152,7 @@ def main():
             time.sleep(10)
 
         # Finished, exit all threads
+        gripper.stop()
         global g_is_done
         g_is_done = True
         log.info("Program finished")
