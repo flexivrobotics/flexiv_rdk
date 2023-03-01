@@ -16,7 +16,6 @@ endif()
 set(EXAMPLE_LIST
   auto_recovery
   clear_fault
-  contact_control
   display_robot_states
   gripper_control
   plan_execution
@@ -33,7 +32,6 @@ if(CMAKE_HOST_UNIX)
     RT_joint_impedance_control
     RT_joint_position_control
     robot_dynamics
-    series_operation
   )
 endif()
 
