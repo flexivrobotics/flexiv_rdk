@@ -63,7 +63,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
 
         // Set sign of Fz according to reference frame to achieve a "pressing
         // down" behavior
-        double Fz;
+        double Fz = 0.0;
         if (frameStr == "BASE") {
             Fz = -k_pressingForce;
         } else if (frameStr == "TCP") {
