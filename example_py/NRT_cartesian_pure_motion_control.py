@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""NRT_cartesian_motion_control.py
+"""NRT_cartesian_pure_motion_control.py
 
 Non-real-time Cartesian-space pure motion control to hold or sine-sweep the robot TCP.
 A simple collision detection is also included.
@@ -44,7 +44,7 @@ def main():
     argparser.add_argument("robot_ip", help="IP address of the robot server")
     argparser.add_argument("local_ip", help="IP address of this PC")
     argparser.add_argument(
-        "frequency", help="command frequency, 1 to 1000 [Hz]", type=float)
+        "frequency", help="command frequency, 1 to 200 [Hz]", type=int)
     # Optional arguments
     argparser.add_argument(
         "--hold", action="store_true",
@@ -56,7 +56,7 @@ def main():
 
     # Check if arguments are valid
     frequency = args.frequency
-    assert (frequency >= 1 and frequency <= 1000), "Invalid <frequency> input"
+    assert (frequency >= 1 and frequency <= 200), "Invalid <frequency> input"
 
     # Define alias
     # =============================================================================
@@ -110,20 +110,22 @@ def main():
 
         log.info("Robot is now operational")
 
+        # Application-specific Code
+        # =============================================================================
         # IMPORTANT: must calibrate force/torque sensor for accurate collision
         # detection
-        log.warn("Calibrating force/torque sensors, please don't touch the robot")
         robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
         robot.executePrimitive("CaliForceSensor()")
         # Wait for primitive completion
+        log.warn("Calibrating force/torque sensors, please don't touch the robot")
         while robot.isBusy():
             time.sleep(1)
+        log.info("Calibration complete")
 
-        # Set mode after sensor calibration
+        # Use robot base frame as reference frame for commands
         robot.setMode(mode.NRT_CARTESIAN_MOTION_FORCE_BASE)
 
-        # Application-specific Code
-        # =============================================================================
+        # Set loop period
         period = 1.0/frequency
         loop_counter = 0
         print("Sending command to robot at", frequency,
@@ -136,7 +138,7 @@ def main():
             "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",
             init_pose)
 
-        # Initialize target vectors
+        # Initialize target vector
         target_pose = init_pose.copy()
 
         # Send command periodically at user-specified frequency
@@ -151,14 +153,14 @@ def main():
             # Read robot states
             robot.getRobotStates(robot_states)
 
-            # Sine-sweep TCP along y axis
+            # Sine-sweep TCP along Y axis
             if not args.hold:
                 target_pose[1] = init_pose[1] + SWING_AMP * \
                     math.sin(2 * math.pi * SWING_FREQ * loop_counter * period)
             # Otherwise robot TCP will hold at initial pose
 
-            # Send command
-            # Calling this method with only target pose input results in pure motion control
+            # Send command. Calling this method with only target pose input results
+            # in pure motion control
             robot.sendCartesianMotionForce(target_pose)
 
             #  Do the following operations in sequence for every 20 seconds
@@ -196,9 +198,9 @@ def main():
             # end-effector
             if args.collision:
                 collision_detected = False
-                extForce = np.array([robot_states.extWrenchInBase[0],
-                                    robot_states.extWrenchInBase[1], robot_states.extWrenchInBase[2]])
-                if (np.linalg.norm(extForce) > EXT_FORCE_THRESHOLD):
+                ext_force = np.array([robot_states.extWrenchInBase[0],
+                                      robot_states.extWrenchInBase[1], robot_states.extWrenchInBase[2]])
+                if (np.linalg.norm(ext_force) > EXT_FORCE_THRESHOLD):
                     collision_detected = True
 
                 for v in robot_states.tauExt:
