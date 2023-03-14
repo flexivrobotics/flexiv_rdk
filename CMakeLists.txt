@@ -64,7 +64,10 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 target_link_libraries(${PROJECT_NAME} INTERFACE
   ${RDK_STATIC_LIBRARY}
   Threads::Threads
-  -lrt
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    # librt is required for Linux
+    -lrt
+  endif()
 )
 
 # Use moderate compiler warning option 
