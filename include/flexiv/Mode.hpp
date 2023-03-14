@@ -15,7 +15,7 @@ namespace flexiv {
 enum Mode
 {
     /** Mode not set */
-    UNKNOWN = -1,
+    UNKNOWN = 0,
 
     /**
      * No operation to execute, the robot holds position and waits for new

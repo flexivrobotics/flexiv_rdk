@@ -34,7 +34,6 @@ public:
      * @note Applicable operation modes: all modes except IDLE.
      * @warning Target inputs outside the valid range (specified in gripper's
      * configuration file) will be saturated.
-     * @throw ExecutionException if error occurred during execution.
      */
     void grasp(double force);
 
@@ -47,24 +46,18 @@ public:
      * @note Applicable operation modes: all modes except IDLE.
      * @warning Target inputs outside the valid range (specified in gripper's
      * configuration file) will be saturated.
-     * @throw ExecutionException if error occurred during execution.
      */
     void move(double width, double velocity, double forceLimit = 0);
 
     /**
      * @brief Stop the gripper.
      * @note Applicable operation modes: all modes.
-     * @throw ExecutionException if error occurred during execution.
      */
     void stop(void);
 
     /**
      * @brief Get current gripper states.
      * @param[out] output Reference of output data object.
-     * @throw CommException if there's no response from server.
-     * @throw ExecutionException if error occurred during execution.
-     * @warning This method will block until the request-reply operation with
-     * the server is done. The blocking time varies by communication latency.
      */
     void getGripperStates(GripperStates& output);
 

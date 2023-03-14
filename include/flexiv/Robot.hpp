@@ -26,15 +26,14 @@ public:
     /**
      * @brief Create a flexiv::Robot instance as the main robot interface. RDK
      * services will start and connection with robot server will be established.
-     * @param[in] serverIP IP address of the robot server (remote).
-     * @param[in] localIP IP address of the workstation PC (local).
+     * @param[in] robotSN Serial number of the robot server to connect.
      * @throw InitException if the instance failed to initialize.
      * @throw CompatibilityException if the RDK library version is incompatible
      * with robot server.
      * @throw CommException if the connection with robot server failed to
      * establish.
      */
-    Robot(const std::string& serverIP, const std::string& localIP);
+    Robot(const std::string& robotSN);
     virtual ~Robot();
 
     /**
@@ -47,8 +46,8 @@ public:
     /**
      * @brief Enable the robot, if E-stop is released and there's no fault, the
      * robot will release brakes, and becomes operational a few seconds later.
+     * @throw CommException if failed to send request to server.
      * @throw ExecutionException if error occurred during execution.
-     * @throw CommException if connection with robot server is lost.
      */
     void enable(void);
 
@@ -111,20 +110,8 @@ public:
     bool isRecoveryState(void) const;
 
     /**
-     * @brief Try establishing connection with the robot server.
-     * @throw CommException if failed to establish connection.
-     */
-    void connect(void);
-
-    /**
-     * @brief Disconnect with the robot server.
-     * @throw ExecutionException if error occurred during execution.
-     */
-    void disconnect(void);
-
-    /**
      * @brief Clear minor fault of the robot.
-     * @throw ExecutionException if error occurred during execution.
+     * @throw CommException if failed to send request to server.
      */
     void clearFault(void);
 
@@ -137,6 +124,7 @@ public:
      * before switching mode.
      * @throw InputException if requested mode is invalid.
      * @throw LogicException if robot is in an unknown operation mode.
+     * @throw CommException if failed to send request to server.
      * @throw ServerException if robot is not operational.
      * @throw ExecutionException if failed to transit the robot into specified
      * operation mode after several attempts.
@@ -164,45 +152,51 @@ public:
      * @brief Execute a plan by specifying its index.
      * @param[in] index Index of the plan to execute, can be obtained via
      * getPlanNameList().
+     * @param[in] velocityScale Percentage scale to adjust robot motion
+     * velocity, from 0 to 100. Setting to 100 means to move with 100% of
+     * configured motion velocity, and 0 means not moving at all.
      * @note Applicable operation mode: NRT_PLAN_EXECUTION.
      * @throw InputException if index is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
-     * @throw ExecutionException if error occurred during execution.
+     * @throw CommException if failed to send request to server.
      * @note isBusy() can be used to check if a plan task has finished.
-     * @warning This method will block for 50 ms for the non-real-time command
-     * to be transmitted and fully processed by the robot server.
+     * @warning This method will block for 50 ms for the request to be
+     * transmitted and fully processed by the robot server.
      */
-    void executePlan(unsigned int index);
+    void executePlan(unsigned int index, unsigned int velocityScale = 100);
 
     /**
      * @brief Execute a plan by specifying its name.
      * @param[in] name Name of the plan to execute, can be obtained via
      * getPlanNameList().
+     * @param[in] velocityScale Percentage scale to adjust robot motion
+     * velocity, from 0 to 100. Setting to 100 means to move with 100% of
+     * configured motion velocity, and 0 means not moving at all.
      * @note Applicable operation mode: NRT_PLAN_EXECUTION.
      * @throw LogicException if robot is not in the correct operation mode.
-     * @throw ExecutionException if error occurred during execution.
+     * @throw CommException if failed to send request to server.
      * @note isBusy() can be used to check if a plan task has finished.
-     * @warning This method will block for 50 ms for the non-real-time command
-     * to be transmitted and fully processed by the robot server.
+     * @warning This method will block for 50 ms for the request to be
+     * transmitted and fully processed by the robot server.
      */
-    void executePlan(const std::string& name);
+    void executePlan(const std::string& name, unsigned int velocityScale = 100);
 
     /**
      * @brief Pause or resume the execution of the current plan.
      * @param[in] pause True: pause plan, false: resume plan.
      * @note Applicable operation mode: NRT_PLAN_EXECUTION.
      * @throw LogicException if robot is not in the correct operation mode.
-     * @throw ExecutionException if error occurred during execution.
-     * @warning This method will block for 50 ms for the non-real-time command
-     * to be transmitted and fully processed by the robot server.
+     * @throw CommException if failed to send request to server.
+     * @warning This method will block for 50 ms for the request to be
+     * transmitted and fully processed by the robot server.
      */
     void pausePlan(bool pause);
 
     /**
      * @brief Get a list of all available plans.
      * @return Available plans in the format of a string list.
-     * @throw CommException if there's no response from server.
-     * @throw ExecutionException if error occurred during execution.
+     * @throw CommException if failed to send request to server or there's no
+     * reply from server.
      * @warning This method will block until the request-reply operation with
      * the server is done. The blocking time varies by communication latency.
      */
@@ -213,8 +207,8 @@ public:
      * Contains information like plan name, primitive name, node name, node
      * path, node path time period, etc.
      * @param[out] output Reference of output data object.
-     * @throw CommException if there's no response from server.
-     * @throw ExecutionException if error occurred during execution.
+     * @throw CommException if failed to send request to server or there's no
+     * reply from server.
      * @warning This method will block until the request-reply operation with
      * the server is done. The blocking time varies by communication latency.
      */
@@ -226,10 +220,13 @@ public:
      * documentation](https://www.flexiv.com/primitives/).
      * @param[in] ptCmd Primitive command with the following string format:
      * "primitiveName(inputParam1=xxx, inputParam2=xxx, ...)".
+     * @param[in] velocityScale Percentage scale to adjust robot motion
+     * velocity, from 0 to 100. Setting to 100 means to move with 100% of
+     * configured motion velocity, and 0 means not moving at all.
      * @note Applicable operation mode: NRT_PRIMITIVE_EXECUTION.
      * @throw InputException if size of the input string is greater than 5kb.
      * @throw LogicException if robot is not in the correct operation mode.
-     * @throw ExecutionException if error occurred during execution.
+     * @throw CommException if failed to send request to server.
      * @note A primitive won't terminate itself upon finish, thus isBusy()
      * cannot be used to check if a primitive task is finished, use primitive
      * states like "reachedTarget" instead.
@@ -239,16 +236,17 @@ public:
      * users to manually terminate them based on specific primitive states,
      * for example, most [Move] primitives. In such case, isBusy() will stay
      * true even if it seems everything is done for that primitive.
-     * @warning This method will block for 50 ms for the non-real-time command
-     * to be transmitted and fully processed by the robot server.
+     * @warning This method will block for 50 ms for the request to be
+     * transmitted and fully processed by the robot server.
      */
-    void executePrimitive(const std::string& ptCmd);
+    void executePrimitive(
+        const std::string& ptCmd, unsigned int velocityScale = 100);
 
     /**
      * @brief Get feedback states of the currently executing primitive.
      * @return Primitive states in the format of a string list.
-     * @throw CommException if there's no response from server.
-     * @throw ExecutionException if error occurred during execution.
+     * @throw CommException if failed to send request to server or there's no
+     * reply from server.
      * @warning This method will block until the request-reply operation with
      * the server is done. The blocking time varies by communication latency.
      */
@@ -261,21 +259,21 @@ public:
      * @note Applicable operation mode: NRT_PLAN_EXECUTION.
      * @throw InputException if size of the input string is greater than 5kb.
      * @throw LogicException if robot is not in the correct operation mode.
-     * @throw ExecutionException if error occurred during execution.
+     * @throw CommException if failed to send request to server.
      * @warning The specified global variable(s) must have already been created
      * in the robot server, otherwise setting a nonexistent global variable will
      * have no effect. To check if a global variable is successfully set, use
      * getGlobalVariables().
-     * @warning This method will block for 50 ms for the non-real-time command
-     * to be transmitted and fully processed by the robot server.
+     * @warning This method will block for 50 ms for the request to be
+     * transmitted and fully processed by the robot server.
      */
     void setGlobalVariables(const std::string& globalVars);
 
     /**
      * @brief Get available global variables from the robot.
      * @return Global variables in the format of a string list.
-     * @throw CommException if there's no response from server.
-     * @throw ExecutionException if error occurred during execution.
+     * @throw CommException if failed to send request to server or there's no
+     * reply from server.
      * @warning This method will block until the request-reply operation with
      * the server is done. The blocking time varies by communication latency.
      */
@@ -293,7 +291,8 @@ public:
      * @param[in] index Index of the TCP on the mounted tool to switch to.
      * @note No need to call this method if the mounted tool on the robot has
      * only one TCP, it'll be used by default.
-     * @throw ExecutionException if error occurred during execution.
+     * @note New TCP index will take effect upon operation mode switch, or upon
+     * sending a new primitive command.
      */
     void switchTcp(unsigned int index);
 
@@ -319,7 +318,6 @@ public:
      * @note Real-time (RT).
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
-     * @throw ExecutionException if error occurred during execution.
      * @warning Always stream smooth and continuous commands to avoid sudden
      * movements.
      */
@@ -339,7 +337,6 @@ public:
      * @note Real-time (RT).
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
-     * @throw ExecutionException if error occurred during execution.
      * @warning Always stream smooth and continuous commands to avoid sudden
      * movements.
      */
@@ -364,7 +361,6 @@ public:
      * @note Applicable operation mode: NRT_JOINT_POSITION.
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
-     * @throw ExecutionException if error occurred during execution.
      */
     void sendJointPosition(const std::vector<double>& positions,
         const std::vector<double>& velocities,
@@ -398,7 +394,6 @@ public:
      * @note Real-time (RT).
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
-     * @throw ExecutionException if error occurred during execution.
      * @warning Reference frame non-orthogonality between motion- and force-
      * controlled directions can happen when using the TCP frame mode
      * (RT_CARTESIAN_MOTION_FORCE_TCP). The reference frame for motion control
@@ -450,7 +445,6 @@ public:
      * @note Real-time (RT).
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
-     * @throw ExecutionException if error occurred during execution.
      * @warning Reference frame non-orthogonality between motion- and force-
      * controlled directions can happen when using the TCP frame mode
      * (NRT_CARTESIAN_MOTION_FORCE_TCP). The reference frame for motion control
@@ -484,7 +478,6 @@ public:
      * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
-     * @throw ExecutionException if error occurred during execution.
      */
     void setCartesianStiffness(
         const std::vector<double>& stiffness = {0, 0, 0, 0, 0, 0});
@@ -509,7 +502,6 @@ public:
      * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
-     * @throw ExecutionException if error occurred during execution.
      */
     void setNullSpacePosture(
         const std::vector<double>& preferredPositions = {0, 0, 0, 0, 0, 0, 0});
@@ -517,22 +509,19 @@ public:
     //=============================== IO CONTROL ===============================
     /**
      * @brief Set digital output on the control box.
-     * @param[in] portNumber Port to set value to [0 ~ 15].
-     * @param[in] value True: set high, false: set low.
-     * @throw ExecutionException if error occurred during execution.
-     * @throw InputException if input is invalid.
+     * @param[in] digitalOut A boolean vector whose index corresponds to the
+     * digital output port index. True: set port high, false: set port low.
+     * @throw InputException if size of input vector exceeds maximum number of
+     * physical output ports.
      */
-    void writeDigitalOutput(unsigned int portNumber, bool value);
+    void writeDigitalOutput(const std::vector<bool>& digitalOut);
 
     /**
      * @brief Read digital input on the control box.
-     * @param[in] portNumber Port to read value from [0 ~ 15].
-     * @return True: port high, false: port low.
-     * @throw CommException if there's no response from server.
-     * @throw ExecutionException if error occurred during execution.
-     * @throw InputException if input is invalid.
+     * @param[out] digitalIn A boolean vector whose index corresponds to the
+     * digital input port index. True: port high, false: port low.
      */
-    bool readDigitalInput(unsigned int portNumber);
+    void readDigitalInput(std::vector<bool>& digitalIn);
 
 private:
     class Impl;
