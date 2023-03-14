@@ -19,7 +19,7 @@ message("OS: ${CMAKE_SYSTEM_NAME}")
 message("Processor: ${CMAKE_SYSTEM_PROCESSOR}")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
-    set(RDK_STATIC_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/lib/libFlexivRdk.x86_64-linux-gnu.a")
+    set(RDK_STATIC_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/lib/libflexiv_rdk.x86_64-linux-gnu.a")
   elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
     set(RDK_STATIC_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/lib/libFlexivRdk.aarch64-linux-gnu.a")
   else()
@@ -64,6 +64,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 target_link_libraries(${PROJECT_NAME} INTERFACE
   ${RDK_STATIC_LIBRARY}
   Threads::Threads
+  -lrt
 )
 
 # Use moderate compiler warning option 
