@@ -124,7 +124,6 @@ public:
      * before switching mode.
      * @throw InputException if requested mode is invalid.
      * @throw LogicException if robot is in an unknown operation mode.
-     * @throw CommException if failed to send request to server.
      * @throw ServerException if robot is not operational.
      * @throw ExecutionException if failed to transit the robot into specified
      * operation mode after several attempts.
@@ -318,6 +317,7 @@ public:
      * @note Real-time (RT).
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
+     * @throw CommException if number of timeliness failures has reached limit.
      * @warning Always stream smooth and continuous commands to avoid sudden
      * movements.
      */
@@ -337,6 +337,7 @@ public:
      * @note Real-time (RT).
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
+     * @throw CommException if number of timeliness failures has reached limit.
      * @warning Always stream smooth and continuous commands to avoid sudden
      * movements.
      */
@@ -394,6 +395,7 @@ public:
      * @note Real-time (RT).
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
+     * @throw CommException if number of timeliness failures has reached limit.
      * @warning Reference frame non-orthogonality between motion- and force-
      * controlled directions can happen when using the TCP frame mode
      * (RT_CARTESIAN_MOTION_FORCE_TCP). The reference frame for motion control
@@ -415,7 +417,7 @@ public:
      * movements.
      */
     void streamCartesianMotionForce(const std::vector<double>& pose,
-        const std::vector<double>& wrench = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+        const std::vector<double>& wrench = std::vector<double>(6));
 
     /**
      * @brief Discretely command Cartesian motion and force command for the
@@ -464,7 +466,7 @@ public:
      * mode (NRT_CARTESIAN_MOTION_FORCE_BASE) does not have such restriction.
      */
     void sendCartesianMotionForce(const std::vector<double>& pose,
-        const std::vector<double>& wrench = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+        const std::vector<double>& wrench = std::vector<double>(6));
 
     /**
      * @brief Set motion stiffness for the Cartesian motion-force control modes.
@@ -480,7 +482,7 @@ public:
      * @throw LogicException if robot is not in the correct operation mode.
      */
     void setCartesianStiffness(
-        const std::vector<double>& stiffness = {0, 0, 0, 0, 0, 0});
+        const std::vector<double>& stiffness = std::vector<double>(6));
 
     /**
      * @brief Set preferred joint positions for the null-space posture control
@@ -504,7 +506,7 @@ public:
      * @throw LogicException if robot is not in the correct operation mode.
      */
     void setNullSpacePosture(
-        const std::vector<double>& preferredPositions = {0, 0, 0, 0, 0, 0, 0});
+        const std::vector<double>& preferredPositions = std::vector<double>(7));
 
     //=============================== IO CONTROL ===============================
     /**
