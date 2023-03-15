@@ -88,7 +88,7 @@ void printHelp()
 {
     // clang-format off
     std::cout << "Required arguments: [robot SN] [serial port name]" << std::endl;
-    std::cout << "    robot SN: serial number of the robot to connect to. "
+    std::cout << "    robot SN: Serial number of the robot to connect to. "
                  "Remove any space, for example: Rizon4s-123456" << std::endl;
     std::cout << "    serial port name: /dev/ttyS0 for COM1, /dev/ttyS1 for "
                  "COM2, /dev/ttyUSB0 for USB-serial converter" << std::endl;

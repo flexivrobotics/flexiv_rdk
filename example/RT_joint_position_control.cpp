@@ -82,7 +82,7 @@ void printHelp()
 {
     // clang-format off
     std::cout << "Required arguments: [robot SN]" << std::endl;
-    std::cout << "    robot SN: serial number of the robot to connect to. "
+    std::cout << "    robot SN: Serial number of the robot to connect to. "
                  "Remove any space, for example: Rizon4s-123456" << std::endl;
     std::cout << "Optional arguments: [--hold]" << std::endl;
     std::cout << "    --hold: robot holds current joint positions, otherwise do a sine-sweep" << std::endl;

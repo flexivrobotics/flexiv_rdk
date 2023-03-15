@@ -201,7 +201,7 @@ void printHelp()
 {
     // clang-format off
     std::cout << "Required arguments: [robot SN] [test hours]" << std::endl;
-    std::cout << "    robot SN: serial number of the robot to connect to. "
+    std::cout << "    robot SN: Serial number of the robot to connect to. "
                  "Remove any space, for example: Rizon4s-123456" << std::endl;
     std::cout << "    test hours: duration of the test, can have decimals" << std::endl;
     std::cout << "Optional arguments: None" << std::endl;
