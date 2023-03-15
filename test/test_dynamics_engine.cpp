@@ -139,9 +139,9 @@ void lowPriorityTask()
 void printHelp()
 {
     // clang-format off
-    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
-    std::cout << "    robot IP: address of the robot server" << std::endl;
-    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Required arguments: [robot SN]" << std::endl;
+    std::cout << "    robot SN: serial number of the robot to connect to. "
+                 "Remove any space, for example: Rizon4s-123456" << std::endl;
     std::cout << "Optional arguments: None" << std::endl;
     std::cout << std::endl;
     // clang-format on
@@ -154,23 +154,21 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 3
+    if (argc < 2
         || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // IP of the robot server
-    std::string robotIP = argv[1];
-
-    // IP of the workstation PC running this program
-    std::string localIP = argv[2];
+    // Serial number of the robot to connect to. Remove any space, for example:
+    // Rizon4s-123456
+    std::string robotSN = argv[1];
 
     try {
         // RDK Initialization
         //=============================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robotIP, localIP);
+        flexiv::Robot robot(robotSN);
 
         // Create data struct for storing robot states
         flexiv::RobotStates robotStates;

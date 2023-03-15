@@ -87,9 +87,9 @@ void periodicTask(
 void printHelp()
 {
     // clang-format off
-    std::cout << "Required arguments: [robot IP] [local IP] [serial port name]" << std::endl;
-    std::cout << "    robot IP: address of the robot server" << std::endl;
-    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Required arguments: [robot SN] [serial port name]" << std::endl;
+    std::cout << "    robot SN: serial number of the robot to connect to. "
+                 "Remove any space, for example: Rizon4s-123456" << std::endl;
     std::cout << "    serial port name: /dev/ttyS0 for COM1, /dev/ttyS1 for "
                  "COM2, /dev/ttyUSB0 for USB-serial converter" << std::endl;
     std::cout << "Optional arguments: None" << std::endl;
@@ -104,26 +104,24 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 4
+    if (argc < 3
         || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // IP of the robot server
-    std::string robotIP = argv[1];
-
-    // IP of the workstation PC running this program
-    std::string localIP = argv[2];
+    // Serial number of the robot to connect to. Remove any space, for example:
+    // Rizon4s-123456
+    std::string robotSN = argv[1];
 
     // serial port name
-    std::string serialPort = argv[3];
+    std::string serialPort = argv[2];
 
     try {
         // RDK Initialization
         //=============================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robotIP, localIP);
+        flexiv::Robot robot(robotSN);
 
         // Clear fault on robot server if any
         if (robot.isFault()) {
