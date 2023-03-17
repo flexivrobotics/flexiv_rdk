@@ -45,9 +45,24 @@ endif()
 # pthread
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-# Fast-DDS
-find_package(fastrtps 2.6.2 REQUIRED)
+
+# foonathan memory
+execute_process(COMMAND bash 
+    "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/install_foonathan_memory.sh" "${CMAKE_INSTALL_PREFIX}")
+
+# tinyxml2
+execute_process(COMMAND bash 
+    "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/install_tinyxml2.sh" "${CMAKE_INSTALL_PREFIX}")
+
+# Fast-CDR
+execute_process(COMMAND bash 
+    "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/install_Fast-CDR.sh" "${CMAKE_INSTALL_PREFIX}")
 find_package(fastcdr 1.0.24 REQUIRED)
+
+# Fast-DDS
+execute_process(COMMAND bash 
+    "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/install_Fast-DDS.sh" "${CMAKE_INSTALL_PREFIX}")
+find_package(fastrtps 2.6.2 REQUIRED)
 
 # ===================================================================
 #      PROJECT LIBRARIES
