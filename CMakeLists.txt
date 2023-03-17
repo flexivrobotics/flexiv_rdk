@@ -45,6 +45,9 @@ endif()
 # pthread
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
+# Fast-DDS
+find_package(fastrtps 2.6.2 REQUIRED)
+find_package(fastcdr 1.0.24 REQUIRED)
 
 # ===================================================================
 #      PROJECT LIBRARIES
@@ -64,6 +67,8 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 target_link_libraries(${PROJECT_NAME} INTERFACE
   ${RDK_STATIC_LIBRARY}
   Threads::Threads
+  fastrtps
+  fastcdr
 )
 
 # librt is required for Linux
