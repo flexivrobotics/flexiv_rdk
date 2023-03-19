@@ -1,4 +1,5 @@
 #!/bin/bash
+# Depends on: foonathan_memory, tinyxml2, Fast-CDR
 set -e
 echo "Installing Fast-DDS"
 
@@ -15,6 +16,7 @@ fi
 
 # Use specific version
 git checkout v2.6.2
+git submodule update --init --recursive
 
 # Configure CMake
 mkdir -p build && cd build

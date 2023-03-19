@@ -15,6 +15,7 @@ fi
 
 # Use specific version
 git checkout 8.0.0
+git submodule update --init --recursive
 
 # Configure CMake
 mkdir -p build && cd build

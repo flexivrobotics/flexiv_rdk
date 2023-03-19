@@ -3,5 +3,6 @@
 .DS_Store
 config.h
 build/
+cloned/
 html/
 __pycache__
