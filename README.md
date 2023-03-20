@@ -61,7 +61,7 @@ The C++ interface of Flexiv RDK is packed into a unified modern CMake library na
     Note: ``sudo`` is not required unless prompted by the program, for example:
 
         ./display_robot_states Rizon4s-123456
-        
+
 #### Compile and install for Mac
 
 1. In a Terminal, use ``xcode-select`` command to invoke the installation of Xcode Command Line Tools, then follow the prompted window to finish the installation.
