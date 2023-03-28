@@ -54,8 +54,8 @@ struct LogData
 
 }
 
-void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
-    flexiv::Log& log, flexiv::RobotStates& robotStates)
+void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
+    flexiv::RobotStates& robotStates)
 {
     // flag whether initial Cartesian position is set
     static bool isInitPoseSet = false;
@@ -88,10 +88,9 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
         // run control after initial pose is set
         else {
             // move along Z direction
-            g_currentTcpPose[2] = initTcpPose[2]
-                                  + k_swingAmp
-                                        * sin(2 * M_PI * k_swingFreq
-                                              * g_hpLoopCounter * k_loopPeriod);
+            g_currentTcpPose[2]
+                = initTcpPose[2]
+                  + k_swingAmp * sin(2 * M_PI * k_swingFreq * g_hpLoopCounter * k_loopPeriod);
             robot.streamCartesianMotionForce(g_currentTcpPose);
         }
 
@@ -148,8 +147,7 @@ void lowPriorityTask()
             fileCounter++;
 
             // create new file name using the updated counter as suffix
-            csvFileName
-                = "endurance_test_data_" + std::to_string(fileCounter) + ".csv";
+            csvFileName = "endurance_test_data_" + std::to_string(fileCounter) + ".csv";
 
             // open new log file
             csvFile.open(csvFileName);
@@ -216,8 +214,7 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 4
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 4 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
@@ -232,8 +229,8 @@ int main(int argc, char* argv[])
     double testHours = std::stof(argv[3]);
     // convert duration in hours to loop counts
     g_testDurationLoopCounts = (uint64_t)(testHours * 3600.0 * 1000.0);
-    log.info("Test duration: " + std::to_string(testHours) + " hours = "
-             + std::to_string(g_testDurationLoopCounts) + " cycles");
+    log.info("Test duration: " + std::to_string(testHours)
+             + " hours = " + std::to_string(g_testDurationLoopCounts) + " cycles");
 
     try {
         // RDK Initialization
@@ -294,9 +291,8 @@ int main(int argc, char* argv[])
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(highPriorityTask, std::ref(robot), std::ref(scheduler),
-                std::ref(log), std::ref(robotStates)),
+        scheduler.addTask(std::bind(highPriorityTask, std::ref(robot), std::ref(scheduler),
+                              std::ref(log), std::ref(robotStates)),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, not blocking
         scheduler.start(false);

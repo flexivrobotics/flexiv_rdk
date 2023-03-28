@@ -42,8 +42,7 @@ void highPriorityTask(flexiv::Scheduler& scheduler, flexiv::Log& log)
 
         // Calculate scheduler's interrupt interval and print
         auto measuredInterval
-            = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic)
-                  .count();
+            = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
 
         // Safely write shared data
         {
@@ -86,9 +85,8 @@ void lowPriorityTask(flexiv::Log& log)
     avgInterval = (float)accumulatedTime / (float)numMeasures;
 
     // print time interval of high-priority periodic task
-    log.info("High-priority task interval (curr | avg) = "
-             + std::to_string(measuredInterval) + " | "
-             + std::to_string(avgInterval) + " us");
+    log.info("High-priority task interval (curr | avg) = " + std::to_string(measuredInterval)
+             + " | " + std::to_string(avgInterval) + " us");
 }
 
 void printHelp()
@@ -117,12 +115,10 @@ int main(int argc, char* argv[])
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(highPriorityTask, std::ref(scheduler), std::ref(log)),
+        scheduler.addTask(std::bind(highPriorityTask, std::ref(scheduler), std::ref(log)),
             "HP periodic", 1, scheduler.maxPriority());
         // Add periodic task with 1s interval and lowest applicable priority
-        scheduler.addTask(
-            std::bind(lowPriorityTask, std::ref(log)), "LP periodic", 1000, 0);
+        scheduler.addTask(std::bind(lowPriorityTask, std::ref(log)), "LP periodic", 1000, 0);
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 
