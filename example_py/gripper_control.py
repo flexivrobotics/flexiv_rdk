@@ -98,13 +98,9 @@ def main():
         log.info("Robot is now operational")
 
         # Set mode after robot is operational
-        robot.setMode(mode.MODE_PLAN_EXECUTION)
+        robot.setMode(mode.NRT_PLAN_EXECUTION)
 
-        # Wait for the mode to be switched
-        while (robot.getMode() != mode.MODE_PLAN_EXECUTION):
-            time.sleep(1)
-
-        robot.executePlanByName("PLAN-Home")
+        robot.executePlan("PLAN-Home")
         # Wait for plan to start
         time.sleep(1)
         # Wait for plan to finish
@@ -156,6 +152,7 @@ def main():
             time.sleep(10)
 
         # Finished, exit all threads
+        gripper.stop()
         global g_is_done
         g_is_done = True
         log.info("Program finished")

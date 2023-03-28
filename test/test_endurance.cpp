@@ -92,7 +92,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
                                   + k_swingAmp
                                         * sin(2 * M_PI * k_swingFreq
                                               * g_hpLoopCounter * k_loopPeriod);
-            robot.streamTcpPose(g_currentTcpPose);
+            robot.streamCartesianMotionForce(g_currentTcpPose);
         }
 
         // save data to global buffer, not using mutex to avoid interruption on
@@ -278,14 +278,9 @@ int main(int argc, char* argv[])
         // Bring Robot To Home
         //=============================================================================
         // set mode after robot is operational
-        robot.setMode(flexiv::MODE_PLAN_EXECUTION);
+        robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
 
-        // wait for mode to be set
-        while (robot.getMode() != flexiv::MODE_PLAN_EXECUTION) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-
-        robot.executePlanByName("PLAN-Home");
+        robot.executePlan("PLAN-Home");
 
         // Wait fot the plan to finish
         do {
@@ -293,12 +288,7 @@ int main(int argc, char* argv[])
         } while (robot.isBusy());
 
         // set mode after robot is at home
-        robot.setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
-
-        // wait for the mode to be switched
-        while (robot.getMode() != flexiv::MODE_CARTESIAN_IMPEDANCE) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+        robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE_BASE);
 
         // Periodic Tasks
         //=============================================================================

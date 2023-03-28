@@ -28,7 +28,7 @@ def main():
     argparser.add_argument("robot_ip", help="IP address of the robot server")
     argparser.add_argument("local_ip", help="IP address of this PC")
     argparser.add_argument(
-        "frequency", help="command frequency, 1 to 1000 [Hz]", type=float)
+        "frequency", help="command frequency, 1 to 200 [Hz]", type=int)
     # Optional arguments
     argparser.add_argument(
         "--hold", action="store_true",
@@ -37,7 +37,7 @@ def main():
 
     # Check if arguments are valid
     frequency = args.frequency
-    assert (frequency >= 1 and frequency <= 1000), "Invalid <frequency> input"
+    assert (frequency >= 1 and frequency <= 200), "Invalid <frequency> input"
 
     # Define alias
     # =============================================================================
@@ -81,11 +81,7 @@ def main():
         log.info("Robot is now operational")
 
         # Set mode after robot is operational
-        robot.setMode(mode.MODE_JOINT_POSITION_NRT)
-
-        # Wait for the mode to be switched
-        while (robot.getMode() != mode.MODE_JOINT_POSITION_NRT):
-            time.sleep(1)
+        robot.setMode(mode.NRT_JOINT_POSITION)
 
         # Application-specific Code
         # =============================================================================

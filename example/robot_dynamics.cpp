@@ -162,15 +162,10 @@ int main(int argc, char* argv[])
         log.info("Robot is now operational");
 
         // Set mode after robot is operational
-        robot.setMode(flexiv::MODE_PLAN_EXECUTION);
-
-        // Wait for mode to be switched
-        while (robot.getMode() != flexiv::MODE_PLAN_EXECUTION) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+        robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
 
         // Bring robot to home
-        robot.executePlanByName("PLAN-Home");
+        robot.executePlan("PLAN-Home");
 
         // Wait for the execution to finish
         do {

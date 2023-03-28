@@ -6,7 +6,7 @@
 #ifndef FLEXIVRDK_ROBOT_HPP_
 #define FLEXIVRDK_ROBOT_HPP_
 
-#include "StatesData.hpp"
+#include "Data.hpp"
 #include "Mode.hpp"
 
 #include <vector>
@@ -36,6 +36,12 @@ public:
      */
     Robot(const std::string& serverIP, const std::string& localIP);
     virtual ~Robot();
+
+    /**
+     * @brief Access general information of the robot.
+     * @return RobotInfo struct.
+     */
+    const RobotInfo info(void);
 
     //============================= SYSTEM CONTROL =============================
     /**
@@ -123,20 +129,25 @@ public:
     void clearFault(void);
 
     /**
-     * @brief Set robot mode, call it after initialization.
-     * @param[in] mode Mode of the robot, see flexiv::Mode.
+     * @brief Set a new operation mode to the robot and wait until the mode
+     * transition is finished.
+     * @param[in] mode flexiv::Mode enum.
      * @warning To avoid unexpected behavior, it's recommended to call stop()
-     * and then check if the robot has come to a complete stop using isStopped()
+     * and check if the robot has come to a complete stop using isStopped()
      * before switching mode.
-     * @throw ExecutionException if error occurred during execution.
      * @throw InputException if requested mode is invalid.
-     *
+     * @throw LogicException if robot is in an unknown operation mode.
+     * @throw ServerException if robot is not operational.
+     * @throw ExecutionException if failed to transit the robot into specified
+     * operation mode after several attempts.
+     * @warning This method will block until the robot has successfully
+     * transited into the specified operation mode.
      */
     void setMode(Mode mode);
 
     /**
-     * @brief Get the current robot mode.
-     * @return Mode of the robot, see flexiv::Mode.
+     * @brief Get the current operation mode of the robot.
+     * @return flexiv::Mode enum.
      */
     Mode getMode(void) const;
 
@@ -153,6 +164,7 @@ public:
      * @brief Execute a plan by specifying its index.
      * @param[in] index Index of the plan to execute, can be obtained via
      * getPlanNameList().
+     * @note Applicable operation mode: NRT_PLAN_EXECUTION.
      * @throw InputException if index is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
      * @throw ExecutionException if error occurred during execution.
@@ -160,19 +172,31 @@ public:
      * @warning This method will block for 50 ms for the non-real-time command
      * to be transmitted and fully processed by the robot server.
      */
-    void executePlanByIndex(unsigned int index);
+    void executePlan(unsigned int index);
 
     /**
      * @brief Execute a plan by specifying its name.
      * @param[in] name Name of the plan to execute, can be obtained via
      * getPlanNameList().
+     * @note Applicable operation mode: NRT_PLAN_EXECUTION.
      * @throw LogicException if robot is not in the correct operation mode.
      * @throw ExecutionException if error occurred during execution.
      * @note isBusy() can be used to check if a plan task has finished.
      * @warning This method will block for 50 ms for the non-real-time command
      * to be transmitted and fully processed by the robot server.
      */
-    void executePlanByName(const std::string& name);
+    void executePlan(const std::string& name);
+
+    /**
+     * @brief Pause or resume the execution of the current plan.
+     * @param[in] pause True: pause plan, false: resume plan.
+     * @note Applicable operation mode: NRT_PLAN_EXECUTION.
+     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw ExecutionException if error occurred during execution.
+     * @warning This method will block for 50 ms for the non-real-time command
+     * to be transmitted and fully processed by the robot server.
+     */
+    void pausePlan(bool pause);
 
     /**
      * @brief Get a list of all available plans.
@@ -197,19 +221,20 @@ public:
     void getPlanInfo(PlanInfo& output);
 
     /**
-     * @brief Execute a primitive by specifying its name and parameters.
-     * @param[in] ptCmd Primitive command with the format:
-     * ptName(inputParam1=xxx, inputParam2=xxx, ...).
+     * @brief Execute a primitive by specifying its name and parameters, which
+     * can be found in the [Flexiv Primitives
+     * documentation](https://www.flexiv.com/primitives/).
+     * @param[in] ptCmd Primitive command with the following string format:
+     * "primitiveName(inputParam1=xxx, inputParam2=xxx, ...)".
+     * @note Applicable operation mode: NRT_PRIMITIVE_EXECUTION.
      * @throw InputException if size of the input string is greater than 5kb.
      * @throw LogicException if robot is not in the correct operation mode.
      * @throw ExecutionException if error occurred during execution.
      * @note A primitive won't terminate itself upon finish, thus isBusy()
      * cannot be used to check if a primitive task is finished, use primitive
      * states like "reachedTarget" instead.
-     * @see getPrimitiveStates()
-     * @warning The input parameters in ptCmd may not use SI units, please refer
-     * to the detailed [Flexiv Primitives](https://www.flexiv.com/primitives/)
-     * documentation.
+     * @warning The primitive input parameters may not use SI units, please
+     * refer to the Flexiv Primitives documentation for exact unit definition.
      * @warning Some primitives may not terminate automatically and require
      * users to manually terminate them based on specific primitive states,
      * for example, most [Move] primitives. In such case, isBusy() will stay
@@ -220,7 +245,7 @@ public:
     void executePrimitive(const std::string& ptCmd);
 
     /**
-     * @brief Get feedback states of the executing primitive.
+     * @brief Get feedback states of the currently executing primitive.
      * @return Primitive states in the format of a string list.
      * @throw CommException if there's no response from server.
      * @throw ExecutionException if error occurred during execution.
@@ -233,7 +258,7 @@ public:
      * @brief Set global variables for the robot by specifying name and value.
      * @param[in] globalVars Command to set global variables using the format:
      * globalVar1=value(s), globalVar2=value(s), ...
-     * @note Applicable mode: MODE_PLAN_EXECUTION.
+     * @note Applicable operation mode: NRT_PLAN_EXECUTION.
      * @throw InputException if size of the input string is greater than 5kb.
      * @throw LogicException if robot is not in the correct operation mode.
      * @throw ExecutionException if error occurred during execution.
@@ -281,21 +306,21 @@ public:
      */
     void startAutoRecovery(void);
 
-    //============================= MOTION CONTROL =============================
+    //====================== DIRECT MOTION/FORCE CONTROL =======================
     /**
      * @brief Continuously send joint torque command to robot.
-     * @param[in] torques \f$ \mathbb{R}^{Dof \times 1} \f$ target torques of
-     * the joints: \f$ {\tau_J}_d~[Nm] \f$.
+     * @param[in] torques Target joint torques: \f$ {\tau_J}_d \in
+     * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [Nm] \f$.
      * @param[in] enableGravityComp Enable/disable robot gravity compensation.
      * @param[in] enableSoftLimits Enable/disable soft limits to keep the
      * joints from moving outside the allowed position range, which will
      * trigger a safety fault that requires recovery operation.
-     * @note Applicable mode: MODE_JOINT_TORQUE.
+     * @note Applicable operation mode: RT_JOINT_TORQUE.
      * @note Real-time (RT).
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
      * @throw ExecutionException if error occurred during execution.
-     * @warning Always send smooth and continuous commands to avoid sudden
+     * @warning Always stream smooth and continuous commands to avoid sudden
      * movements.
      */
     void streamJointTorque(const std::vector<double>& torques,
@@ -304,18 +329,18 @@ public:
     /**
      * @brief Continuously send joint position, velocity, and acceleration
      * command.
-     * @param[in] positions \f$ \mathbb{R}^{Dof \times 1} \f$ target positions
-     * of the joints: \f$ q_d~[rad] \f$.
-     * @param[in] velocities \f$ \mathbb{R}^{Dof \times 1} \f$ target velocities
-     * of the joints: \f$ \dot{q}_d~[rad/s] \f$.
-     * @param[in] accelerations \f$ \mathbb{R}^{Dof \times 1} \f$ target
-     * accelerations of the joints: \f$ \ddot{q}_d~[rad/s^2] \f$.
-     * @note Applicable mode: MODE_JOINT_POSITION.
+     * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{DOF
+     * \times 1} \f$. Unit: \f$ [rad] \f$.
+     * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in
+     * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s] \f$.
+     * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in
+     * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
+     * @note Applicable operation mode: RT_JOINT_POSITION.
      * @note Real-time (RT).
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
      * @throw ExecutionException if error occurred during execution.
-     * @warning Always send smooth and continuous commands to avoid sudden
+     * @warning Always stream smooth and continuous commands to avoid sudden
      * movements.
      */
     void streamJointPosition(const std::vector<double>& positions,
@@ -326,17 +351,17 @@ public:
      * @brief Discretely send joint position, velocity, and acceleration
      * command. The internal trajectory generator will interpolate between two
      * set points and make the motion smooth.
-     * @param[in] positions \f$ \mathbb{R}^{Dof \times 1} \f$ target positions
-     * of the joints: \f$ q_d~[rad] \f$.
-     * @param[in] velocities \f$ \mathbb{R}^{Dof \times 1} \f$ target velocities
-     * of the joints: \f$ \dot{q}_d~[rad/s] \f$.
-     * @param[in] accelerations \f$ \mathbb{R}^{Dof \times 1} \f$ target
-     * accelerations of the joints: \f$ \ddot{q}_d~[rad/s^2] \f$.
-     * @param[in] maxVel \f$ \mathbb{R}^{Dof \times 1} \f$ maximum velocities
-     * of the joints: \f$ \dot{q}_{max}~[rad/s] \f$.
-     * @param[in] maxAcc \f$ \mathbb{R}^{Dof \times 1} \f$ maximum accelerations
-     * of the joints: \f$ \ddot{q}_{max}~[rad/s^2] \f$.
-     * @note Applicable mode: MODE_JOINT_POSITION_NRT.
+     * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{DOF
+     * \times 1} \f$. Unit: \f$ [rad] \f$.
+     * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in
+     * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s] \f$.
+     * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in
+     * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
+     * @param[in] maxVel Maximum joint velocities: \f$ \dot{q}_{max} \in
+     * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s] \f$.
+     * @param[in] maxAcc Maximum joint accelerations: \f$ \ddot{q}_{max} \in
+     * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
+     * @note Applicable operation mode: NRT_JOINT_POSITION.
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
      * @throw ExecutionException if error occurred during execution.
@@ -347,90 +372,147 @@ public:
         const std::vector<double>& maxVel, const std::vector<double>& maxAcc);
 
     /**
-     * @brief Continuously command target TCP pose for the robot to track using
-     * its Cartesian impedance controller.
-     * @param[in] pose \f$ \mathbb{R}^{7 \times 1} \f$ target TCP pose
-     * in base frame, \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$
-     * \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y,
-     * q_z]^T~[m][] \f$.
-     * @param[in] maxWrench \f$ \mathbb{R}^{6 \times 1} \f$ maximum
-     * contact wrench in TCP coordinate. The controller will soften if needed to
-     * keep the actual contact wrench under this value. Default value will be
-     * used if not specified. \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
-     * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y,
-     * m_z]^T~[N][Nm] \f$.
-     * @note Applicable mode: MODE_CARTESIAN_IMPEDANCE.
+     * @brief Continuously command Cartesian motion and force command for the
+     * robot to track using its unified motion-force controller.
+     * @param[in] pose Target TCP pose in base or TCP frame (depends on
+     * operation mode): \f$ {^{O}T_{TCP}}_{d} \f$ or \f$ {^{TCP}T_{TCP}}_{d} \in
+     * \mathbb{R}^{7 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$
+     * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x, y, z,
+     * q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
+     * @param[in] wrench  Target TCP wrench in base or TCP frame (depends on
+     * operation mode): \f$ ^{0}F_d \f$ or \f$ ^{TCP}F_d \in \mathbb{R}^{6
+     * \times 1} \f$. If TCP frame is used, unlike motion control, the reference
+     * frame for force control is always the robot's current TCP frame. When the
+     * target value of a direction is set to non-zero, this direction will
+     * smoothly transit from motion control to force control, and the robot will
+     * track the target force/moment in this direction using an explicit force
+     * controller. When the target value is reset to 0, this direction will then
+     * smoothly transit from force control back to motion control, and the robot
+     * will gently move to the target motion point even if the set point is
+     * distant. Calling with default parameter (all zeros) will result in pure
+     * motion control in all directions. Consists of \f$ \mathbb{R}^{3 \times 1}
+     * \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z,
+     * m_x, m_y, m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
+     * @note Applicable operation modes: RT_CARTESIAN_MOTION_FORCE_BASE,
+     * RT_CARTESIAN_MOTION_FORCE_TCP.
      * @note Real-time (RT).
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
      * @throw ExecutionException if error occurred during execution.
-     * @warning Always send smooth and continuous commands to avoid sudden
+     * @warning Reference frame non-orthogonality between motion- and force-
+     * controlled directions can happen when using the TCP frame mode
+     * (RT_CARTESIAN_MOTION_FORCE_TCP). The reference frame for motion control
+     * is defined as the robot TCP frame at the time point when the operation
+     * mode is switched into RT_CARTESIAN_MOTION_FORCE_TCP and is updated only
+     * upon each mode entrance, since motion control requires a fixed reference
+     * frame. The reference frame for force control is defined as the current
+     * (latest) robot TCP frame, since force control does not require a fixed
+     * reference frame. Such difference in frame definition means that, when
+     * force control is enabled for one or more directions, the force-controlled
+     * directions and motion-controlled directions are not guaranteed to stay
+     * orthogonal to each other. When non-orthogonality happens, the affected
+     * directions will see some control performance degradation. To avoid
+     * reference frame non-orthogonality and retain maximum control performance,
+     * it's recommended to keep the robot's Cartesian orientation unchanged when
+     * running motion-force control in TCP frame mode. Note that the base frame
+     * mode (RT_CARTESIAN_MOTION_FORCE_BASE) does not have such restriction.
+     * @warning Always stream smooth and continuous commands to avoid sudden
      * movements.
      */
-    void streamTcpPose(const std::vector<double>& pose,
-        const std::vector<double>& maxWrench
-        = {100.0, 100.0, 100.0, 30.0, 30.0, 30.0});
+    void streamCartesianMotionForce(const std::vector<double>& pose,
+        const std::vector<double>& wrench = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
 
     /**
-     * @brief Discretely command target TCP pose for the robot to track using
-     * its Cartesian impedance controller. An internal motion generator will
-     * smooth the discrete commands.
-     * @param[in] pose \f$ \mathbb{R}^{7 \times 1} \f$ target TCP pose
-     * in base frame, \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$
-     * \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y,
-     * q_z]^T~[m][] \f$.
-     * @param[in] maxWrench \f$ \mathbb{R}^{6 \times 1} \f$ maximum
-     * contact wrench in TCP coordinate. The controller will soften if needed to
-     * keep the actual contact wrench under this value. Default value will be
-     * used if not specified. \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
-     * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y,
-     * m_z]^T~[N][Nm] \f$.
-     * @note Applicable mode: MODE_CARTESIAN_IMPEDANCE_NRT.
+     * @brief Discretely command Cartesian motion and force command for the
+     * robot to track using its unified motion-force controller. An internal
+     * motion generator will smooth the discrete commands.
+     * @param[in] pose Target TCP pose in base or TCP frame (depends on
+     * operation mode): \f$ {^{O}T_{TCP}}_{d} \f$ or \f$ {^{TCP}T_{TCP}}_{d} \in
+     * \mathbb{R}^{7 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$
+     * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x, y, z,
+     * q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
+     * @param[in] wrench  Target TCP wrench in base or TCP frame (depends on
+     * operation mode): \f$ ^{0}F_d \f$ or \f$ ^{TCP}F_d \in \mathbb{R}^{6
+     * \times 1} \f$. If TCP frame is used, unlike motion control, the reference
+     * frame for force control is always the robot's current TCP frame. When the
+     * target value of a direction is set to non-zero, this direction will
+     * smoothly transit from motion control to force control, and the robot will
+     * track the target force/moment in this direction using an explicit force
+     * controller. When the target value is reset to 0, this direction will then
+     * smoothly transit from force control back to motion control, and the robot
+     * will gently move to the target motion point even if the set point is
+     * distant. Calling with default parameter (all zeros) will result in pure
+     * motion control in all directions. Consists of \f$ \mathbb{R}^{3 \times 1}
+     * \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z,
+     * m_x, m_y, m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
+     * @note Applicable operation modes: NRT_CARTESIAN_MOTION_FORCE_BASE,
+     * NRT_CARTESIAN_MOTION_FORCE_TCP.
+     * @note Real-time (RT).
+     * @throw InputException if input is invalid.
+     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw ExecutionException if error occurred during execution.
+     * @warning Reference frame non-orthogonality between motion- and force-
+     * controlled directions can happen when using the TCP frame mode
+     * (NRT_CARTESIAN_MOTION_FORCE_TCP). The reference frame for motion control
+     * is defined as the robot TCP frame at the time point when the operation
+     * mode is switched into NRT_CARTESIAN_MOTION_FORCE_TCP and is updated only
+     * upon each mode entrance, since motion control requires a fixed reference
+     * frame. The reference frame for force control is defined as the current
+     * (latest) robot TCP frame, since force control does not require a fixed
+     * reference frame. Such difference in frame definition means that, when
+     * force control is enabled for one or more directions, the force-controlled
+     * directions and motion-controlled directions are not guaranteed to stay
+     * orthogonal to each other. When non-orthogonality happens, the affected
+     * directions will see some control performance degradation. To avoid
+     * reference frame non-orthogonality and retain maximum control performance,
+     * it's recommended to keep the robot's Cartesian orientation unchanged when
+     * running motion-force control in TCP frame mode. Note that the base frame
+     * mode (NRT_CARTESIAN_MOTION_FORCE_BASE) does not have such restriction.
+     */
+    void sendCartesianMotionForce(const std::vector<double>& pose,
+        const std::vector<double>& wrench = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+
+    /**
+     * @brief Set motion stiffness for the Cartesian motion-force control modes.
+     * @param[in] stiffness Desired Cartesian motion stiffness: \f$ K_d \in
+     * \mathbb{R}^{6 \times 1} \f$. Calling with default parameter (all zeros)
+     * will reset to the robot's nominal stiffness. Consists of \f$
+     * \mathbb{R}^{3 \times 1} \f$ linear stiffness and \f$ \mathbb{R}^{3 \times
+     * 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry},
+     * k_{Rz}]^T \f$. Unit: \f$ [N/m]~[Nm/rad] \f$.
+     * @note Applicable operation modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
+     * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
      * @throw ExecutionException if error occurred during execution.
      */
-    void sendTcpPose(const std::vector<double>& pose,
-        const std::vector<double>& maxWrench
-        = {100.0, 100.0, 100.0, 30.0, 30.0, 30.0});
+    void setCartesianStiffness(
+        const std::vector<double>& stiffness = {0, 0, 0, 0, 0, 0});
 
     /**
-     * @brief Set stiffness of Cartesian impedance controller.
-     * @param[in] stiffness \f$ \mathbb{R}^{6 \times 1} \f$ diagonal elements of
-     * the positive definite stiffness matrix. Maximum (nominal) stiffness is
-     * provided as parameter default: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry},
-     * k_{Rz}]^T~[N/m][Nm/rad] \f$.
-     * @note Applicable modes: MODE_CARTESIAN_IMPEDANCE,
-     * MODE_CARTESIAN_IMPEDANCE_NRT.
-     * @throw InputException if input is invalid.
-     * @throw LogicException if robot is not in the correct operation mode.
-     * @throw ExecutionException if error occurred during execution.
-     */
-    void setCartesianStiffness(const std::vector<double>& stiffness
-                               = {4000, 4000, 4000, 1900, 1900, 1900});
-
-    /**
-     * @brief Set preferred joint positions of Cartesian impedance controller,
-     * for use in null-space posture control.
-     * @param[in] preferredPositions \f$ \mathbb{R}^{Dof \times 1} \f$ preferred
-     * joint positions for the null-space posture control. Nominal values (home
-     * posture) are provided as parameter default: \f$ q_{nullspace}~[rad] \f$.
+     * @brief Set preferred joint positions for the null-space posture control
+     * module used in the Cartesian motion-force control modes.
+     * @param[in] preferredPositions Preferred joint positions for the
+     * null-space posture control: \f$ q_{ns} \in \mathbb{R}^{DOF \times 1} \f$.
+     * Calling with default parameter (all zeros) will reset to the robot's
+     * nominal preferred joint positions, which is the home posture.
+     * Unit: \f$ [rad] \f$.
      * @par Null-space posture control
      * Similar to human arm, a robotic arm with redundant degree(s) of
      * freedom (DOF > 6) can change its overall posture without affecting the
      * ongoing primary task. This is achieved through a technique called
      * "null-space control". After the preferred joint positions for a desired
-     * robot posture is set using this method, the robot's null-space controller
-     * will try to pull the arm as close to this posture as possible without
-     * affecting the primary TCP pose control task.
-     * @note Applicable modes: MODE_CARTESIAN_IMPEDANCE,
-     * MODE_CARTESIAN_IMPEDANCE_NRT.
+     * robot posture is set using this method, the robot's null-space control
+     * module will try to pull the arm as close to this posture as possible
+     * without affecting the primary Cartesian motion-force control task.
+     * @note Applicable operation modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
+     * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct operation mode.
      * @throw ExecutionException if error occurred during execution.
      */
-    void setNullSpacePosture(const std::vector<double>& preferredPositions
-                             = {0.0, -0.6981, 0.0, 1.5708, 0.0, 0.6981, 0.0});
+    void setNullSpacePosture(
+        const std::vector<double>& preferredPositions = {0, 0, 0, 0, 0, 0, 0});
 
     //=============================== IO CONTROL ===============================
     /**
