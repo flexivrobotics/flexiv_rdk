@@ -24,8 +24,7 @@ std::string g_userInput;
 std::mutex g_userInputMutex;
 
 /** Maximum contact wrench [fx, fy, fz, mx, my, mz] [N][Nm]*/
-const std::vector<double> k_maxContactWrench
-    = {50.0, 50.0, 50.0, 15.0, 15.0, 15.0};
+const std::vector<double> k_maxContactWrench = {50.0, 50.0, 50.0, 15.0, 15.0, 15.0};
 }
 
 void printHelp()
@@ -46,8 +45,7 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 3
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
@@ -138,10 +136,8 @@ int main(int argc, char* argv[])
 
                 robot.getRobotStates(robotStates);
                 savedPoses.push_back(robotStates.tcpPose);
-                log.info("New pose saved: "
-                         + flexiv::utility::vec2Str(robotStates.tcpPose));
-                log.info("Number of saved poses: "
-                         + std::to_string(savedPoses.size()));
+                log.info("New pose saved: " + flexiv::utility::vec2Str(robotStates.tcpPose));
+                log.info("Number of saved poses: " + std::to_string(savedPoses.size()));
             }
             // Reproduce recorded poses
             else if (inputBuffer == "e") {
@@ -157,14 +153,14 @@ int main(int argc, char* argv[])
                     log.info("Executing pose " + std::to_string(i + 1) + "/"
                              + std::to_string(savedPoses.size()));
 
-                    std::vector<double> targetPos = {
-                        savedPoses[i][0], savedPoses[i][1], savedPoses[i][2]};
+                    std::vector<double> targetPos
+                        = {savedPoses[i][0], savedPoses[i][1], savedPoses[i][2]};
                     // Convert quaternion to Euler ZYX required by
                     // MoveCompliance primitive
-                    std::vector<double> targetQuat = {savedPoses[i][3],
-                        savedPoses[i][4], savedPoses[i][5], savedPoses[i][6]};
-                    auto targetEulerDeg = flexiv::utility::rad2Deg(
-                        flexiv::utility::quat2EulerZYX(targetQuat));
+                    std::vector<double> targetQuat
+                        = {savedPoses[i][3], savedPoses[i][4], savedPoses[i][5], savedPoses[i][6]};
+                    auto targetEulerDeg
+                        = flexiv::utility::rad2Deg(flexiv::utility::quat2EulerZYX(targetQuat));
                     robot.executePrimitive(
                         "MoveCompliance(target="
                         + flexiv::utility::vec2Str(targetPos)
@@ -173,9 +169,9 @@ int main(int argc, char* argv[])
                         + flexiv::utility::vec2Str(k_maxContactWrench)+ ")");
 
                     // Wait for reached target
-                    while (flexiv::utility::parsePtStates(
-                               robot.getPrimitiveStates(), "reachedTarget")
-                           != "1") {
+                    while (
+                        flexiv::utility::parsePtStates(robot.getPrimitiveStates(), "reachedTarget")
+                        != "1") {
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
                 }

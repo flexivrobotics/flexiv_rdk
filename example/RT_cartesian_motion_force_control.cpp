@@ -35,10 +35,9 @@ constexpr double k_pressingForce = 5.0;
 }
 
 /** Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
-    flexiv::Log& log, flexiv::RobotStates& robotStates,
-    const std::vector<double>& initPose, const std::string frameStr,
-    bool enablePolish)
+void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
+    flexiv::RobotStates& robotStates, const std::vector<double>& initPose,
+    const std::string frameStr, bool enablePolish)
 {
     // Local periodic loop counter
     static size_t loopCounter = 0;
@@ -57,8 +56,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
         robot.getRobotStates(robotStates);
 
         // Compute norm of sensed external force
-        Eigen::Vector3d extForce = {robotStates.extWrenchInBase[0],
-            robotStates.extWrenchInBase[1], robotStates.extWrenchInBase[2]};
+        Eigen::Vector3d extForce = {robotStates.extWrenchInBase[0], robotStates.extWrenchInBase[1],
+            robotStates.extWrenchInBase[2]};
         double extForceNorm = extForce.norm();
 
         // Set sign of Fz according to reference frame to achieve a "pressing
@@ -96,8 +95,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
         if (loopCounter % (20 * k_loopFreq) == 0) {
             // Print info at the beginning of action cycle
             if (enablePolish) {
-                log.info("Executing polish with pressing force [N] = "
-                         + std::to_string(Fz));
+                log.info("Executing polish with pressing force [N] = " + std::to_string(Fz));
             } else {
                 log.info("Applying constant force [N] = " + std::to_string(Fz));
             }
@@ -115,10 +113,9 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
             // Simple polish action along XY plane of chosen reference frame
             if (enablePolish) {
                 // Create motion command to sine-sweep along Y direction
-                targetPose[1] = initPose[1]
-                                + k_swingAmp
-                                      * sin(2 * M_PI * k_swingFreq * loopCounter
-                                            * k_loopPeriod);
+                targetPose[1]
+                    = initPose[1]
+                      + k_swingAmp * sin(2 * M_PI * k_swingFreq * loopCounter * k_loopPeriod);
 
                 // Send both target pose and wrench commands, the result is
                 // force control along Z axis, and motion control along other
@@ -171,8 +168,7 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 3
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
@@ -237,8 +233,7 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
         robot.executePrimitive("CaliForceSensor()");
         // Wait for primitive completion
-        log.warn(
-            "Calibrating force/torque sensors, please don't touch the robot");
+        log.warn("Calibrating force/torque sensors, please don't touch the robot");
         while (robot.isBusy()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
@@ -285,9 +280,8 @@ int main(int argc, char* argv[])
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
-            std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
-                std::ref(log), std::ref(robotStates), std::ref(initPose),
-                std::ref(frameStr), enablePolish),
+            std::bind(periodicTask, std::ref(robot), std::ref(scheduler), std::ref(log),
+                std::ref(robotStates), std::ref(initPose), std::ref(frameStr), enablePolish),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();

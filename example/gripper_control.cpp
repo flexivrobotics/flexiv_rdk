@@ -57,8 +57,7 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 3
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
@@ -118,8 +117,7 @@ int main(int argc, char* argv[])
         flexiv::Gripper gripper(robot);
 
         // Thread for printing gripper states
-        std::thread printThread(
-            printGripperStates, std::ref(gripper), std::ref(log));
+        std::thread printThread(printGripperStates, std::ref(gripper), std::ref(log));
 
         // Position control test
         log.info("Closing gripper");
@@ -149,8 +147,7 @@ int main(int argc, char* argv[])
         // Force control test, if available
         flexiv::GripperStates gripperStates;
         gripper.getGripperStates(gripperStates);
-        if (fabs(gripperStates.force)
-            > std::numeric_limits<double>::epsilon()) {
+        if (fabs(gripperStates.force) > std::numeric_limits<double>::epsilon()) {
             log.info("Gripper running zero force control");
             gripper.grasp(0);
             // Exit after 10 seconds

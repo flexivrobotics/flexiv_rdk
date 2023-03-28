@@ -33,8 +33,7 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 3
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
@@ -115,9 +114,7 @@ int main(int argc, char* argv[])
         robot.executePrimitive("MoveJ(target=30 -45 0 90 0 40 30)");
 
         // Wait for reached target
-        while (flexiv::utility::parsePtStates(
-                   robot.getPrimitiveStates(), "reachedTarget")
-               != "1") {
+        while (flexiv::utility::parsePtStates(robot.getPrimitiveStates(), "reachedTarget") != "1") {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -148,9 +145,7 @@ int main(int argc, char* argv[])
         // state "reachedTarget = 1" in the list of current primitive states,
         // and terminate the current primitive manually by sending a new
         // primitive command.
-        while (flexiv::utility::parsePtStates(
-                   robot.getPrimitiveStates(), "reachedTarget")
-               != "1") {
+        while (flexiv::utility::parsePtStates(robot.getPrimitiveStates(), "reachedTarget") != "1") {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -163,22 +158,17 @@ int main(int argc, char* argv[])
 
         // Example to convert target quaternion [w,x,y,z] to Euler ZYX using
         // utility functions
-        std::vector<double> targetQuat
-            = {0.9185587, 0.1767767, 0.3061862, 0.1767767};
+        std::vector<double> targetQuat = {0.9185587, 0.1767767, 0.3061862, 0.1767767};
         // ZYX = [30, 30, 30] degrees
-        auto targetEulerDeg = flexiv::utility::rad2Deg(
-            flexiv::utility::quat2EulerZYX(targetQuat));
+        auto targetEulerDeg = flexiv::utility::rad2Deg(flexiv::utility::quat2EulerZYX(targetQuat));
 
         // Send command to robot. This motion will hold current TCP position and
         // only do TCP rotation
-        robot.executePrimitive("MoveL(target=0.0 0.0 0.0 "
-                               + flexiv::utility::vec2Str(targetEulerDeg)
-                               + "TRAJ START)");
+        robot.executePrimitive(
+            "MoveL(target=0.0 0.0 0.0 " + flexiv::utility::vec2Str(targetEulerDeg) + "TRAJ START)");
 
         // Wait for reached target
-        while (flexiv::utility::parsePtStates(
-                   robot.getPrimitiveStates(), "reachedTarget")
-               != "1") {
+        while (flexiv::utility::parsePtStates(robot.getPrimitiveStates(), "reachedTarget") != "1") {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
