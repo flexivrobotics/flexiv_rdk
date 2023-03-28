@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.4)
 # ===================================================================
 #      PROJECT CONFIG
 # ===================================================================
-project(flexiv_rdk VERSION 0.7.0)
+project(flexiv_rdk VERSION 0.8.0)
 
 # C++14 required
 set(CMAKE_CXX_STANDARD 14)

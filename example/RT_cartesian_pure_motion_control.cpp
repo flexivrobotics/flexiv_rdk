@@ -1,7 +1,7 @@
 /**
- * @example RT_cartesian_impedance_control.cpp
- * Real-time Cartesian impedance control to hold or sine-sweep the robot TCP.
- * A simple collision detection is also included.
+ * @example RT_cartesian_pure_motion_control.cpp
+ * Real-time Cartesian-space pure motion control to hold or sine-sweep the robot
+ * TCP. A simple collision detection is also included.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -39,7 +39,8 @@ constexpr double k_extTorqueThreshold = 5.0;
 /** Callback function for realtime periodic task */
 void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
     flexiv::Log& log, flexiv::RobotStates& robotStates,
-    const std::string& motionType, const std::vector<double>& initTcpPose)
+    const std::vector<double>& initTcpPose, bool enableHold,
+    bool enableCollision)
 {
     // Local periodic loop counter
     static size_t loopCounter = 0;
@@ -54,21 +55,21 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
         // Read robot states
         robot.getRobotStates(robotStates);
 
-        // Set target pose based on motion type
-        if (motionType == "hold") {
-            robot.streamTcpPose(initTcpPose);
-        } else if (motionType == "sine-sweep") {
-            auto targetTcpPose = initTcpPose;
+        // Initialize target vector
+        auto targetTcpPose = initTcpPose;
+
+        // Sine-sweep TCP along Y axis
+        if (!enableHold) {
             targetTcpPose[1] = initTcpPose[1]
                                + k_swingAmp
                                      * sin(2 * M_PI * k_swingFreq * loopCounter
                                            * k_loopPeriod);
-            robot.streamTcpPose(targetTcpPose);
-        } else {
-            throw flexiv::InputException(
-                "periodicTask: unknown motion type. Accepted motion types: "
-                "hold, sine-sweep");
         }
+        // Otherwise robot TCP will hold at initial pose
+
+        // Send command. Calling this method with only target pose input results
+        // in pure motion control
+        robot.streamCartesianMotionForce(targetTcpPose);
 
         // Do the following operations in sequence for every 20 seconds
         switch (loopCounter % (20 * k_loopFreq)) {
@@ -111,21 +112,24 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
 
         // Simple collision detection: stop robot if collision is detected from
         // either end-effector or robot body
-        bool collisionDetected = false;
-        Eigen::Vector3d extForce = {robotStates.extWrenchInBase[0],
-            robotStates.extWrenchInBase[1], robotStates.extWrenchInBase[2]};
-        if (extForce.norm() > k_extForceThreshold) {
-            collisionDetected = true;
-        }
-        for (const auto& v : robotStates.tauExt) {
-            if (fabs(v) > k_extTorqueThreshold) {
+        if (enableCollision) {
+            bool collisionDetected = false;
+            Eigen::Vector3d extForce = {robotStates.extWrenchInBase[0],
+                robotStates.extWrenchInBase[1], robotStates.extWrenchInBase[2]};
+            if (extForce.norm() > k_extForceThreshold) {
                 collisionDetected = true;
             }
-        }
-        if (collisionDetected) {
-            robot.stop();
-            log.warn("Collision detected, stopping robot and exit program ...");
-            scheduler.stop();
+            for (const auto& v : robotStates.tauExt) {
+                if (fabs(v) > k_extTorqueThreshold) {
+                    collisionDetected = true;
+                }
+            }
+            if (collisionDetected) {
+                robot.stop();
+                log.warn(
+                    "Collision detected, stopping robot and exit program ...");
+                scheduler.stop();
+            }
         }
 
         // Increment loop counter
@@ -143,8 +147,9 @@ void printHelp()
     std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
     std::cout << "    robot IP: address of the robot server" << std::endl;
     std::cout << "    local IP: address of this PC" << std::endl;
-    std::cout << "Optional arguments: [--hold]" << std::endl;
+    std::cout << "Optional arguments: [--hold] [--collision]" << std::endl;
     std::cout << "    --hold: robot holds current TCP pose, otherwise do a sine-sweep" << std::endl;
+    std::cout << "    --collision: enable collision detection, robot will stop upon collision" << std::endl;
     std::cout << std::endl;
     // clang-format on
 }
@@ -169,13 +174,21 @@ int main(int argc, char* argv[])
     std::string localIP = argv[2];
 
     // Type of motion specified by user
-    std::string motionType = "";
+    bool enableHold = false;
     if (flexiv::utility::programArgsExist(argc, argv, "--hold")) {
         log.info("Robot holding current TCP pose");
-        motionType = "hold";
+        enableHold = true;
     } else {
         log.info("Robot running TCP sine-sweep");
-        motionType = "sine-sweep";
+    }
+
+    // Whether to enable collision detection
+    bool enableCollision = false;
+    if (flexiv::utility::programArgsExist(argc, argv, "--collision")) {
+        log.info("Collision detection enabled");
+        enableCollision = true;
+    } else {
+        log.info("Collision detection disabled");
     }
 
     try {
@@ -220,23 +233,18 @@ int main(int argc, char* argv[])
 
         // IMPORTANT: must calibrate force/torque sensor for accurate collision
         // detection
-        robot.setMode(flexiv::MODE_PRIMITIVE_EXECUTION);
-        while (robot.getMode() != flexiv::MODE_PRIMITIVE_EXECUTION) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        log.warn(
-            "Calibrating force/torque sensors, please don't touch the robot");
+        robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
         robot.executePrimitive("CaliForceSensor()");
         // Wait for primitive completion
+        log.warn(
+            "Calibrating force/torque sensors, please don't touch the robot");
         while (robot.isBusy()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
+        log.info("Calibration complete");
 
-        // Set mode after sensor calibration
-        robot.setMode(flexiv::MODE_CARTESIAN_IMPEDANCE);
-        while (robot.getMode() != flexiv::MODE_CARTESIAN_IMPEDANCE) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+        // Use robot base frame as reference frame for commands
+        robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE_BASE);
 
         // Set initial TCP pose
         robot.getRobotStates(robotStates);
@@ -252,8 +260,8 @@ int main(int argc, char* argv[])
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
             std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
-                std::ref(log), std::ref(robotStates), std::ref(motionType),
-                std::ref(initTcpPose)),
+                std::ref(log), std::ref(robotStates), std::ref(initTcpPose),
+                enableHold, enableCollision),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();

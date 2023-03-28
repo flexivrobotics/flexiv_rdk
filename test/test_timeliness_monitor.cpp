@@ -168,12 +168,7 @@ int main(int argc, char* argv[])
         log.info("Robot is now operational");
 
         // set mode after robot is operational
-        robot.setMode(flexiv::MODE_JOINT_TORQUE);
-
-        // wait for the mode to be switched
-        while (robot.getMode() != flexiv::MODE_JOINT_TORQUE) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+        robot.setMode(flexiv::Mode::RT_JOINT_TORQUE);
 
         log.warn(
             ">>>>> Simulated loop delay will be added after 5 "

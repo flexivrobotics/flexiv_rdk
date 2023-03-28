@@ -43,7 +43,7 @@ class CommException : public Exception
 
 /**
  * @class ServerException
- * @brief Thrown if the robot server has fault.
+ * @brief Thrown if the robot server is not operational or has fault.
  */
 class ServerException : public Exception
 {

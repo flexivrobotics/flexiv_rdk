@@ -75,11 +75,7 @@ def main():
         log.info("Robot is now operational")
 
         # Set mode after robot is operational
-        robot.setMode(mode.MODE_PRIMITIVE_EXECUTION)
-
-        # Wait for the mode to be switched
-        while (robot.getMode() != mode.MODE_PRIMITIVE_EXECUTION):
-            time.sleep(1)
+        robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
 
         # Application-specific Code
         # =============================================================================

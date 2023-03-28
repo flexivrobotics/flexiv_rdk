@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-"""NRT_cartesian_impedance_control.py
+"""NRT_cartesian_pure_motion_control.py
 
-Non-real-time Cartesian impedance control to hold or sine-sweep the robot TCP.
+Non-real-time Cartesian-space pure motion control to hold or sine-sweep the robot TCP.
 A simple collision detection is also included.
 """
 
@@ -29,9 +29,6 @@ SWING_AMP = 0.1
 # TCP sine-sweep frequency [Hz]
 SWING_FREQ = 0.3
 
-# Maximum contact wrench
-MAX_WRENCH = [100.0, 100.0, 100.0, 30.0, 30.0, 30.0]
-
 # External TCP force threshold for collision detection [N]
 EXT_FORCE_THRESHOLD = 10.0
 
@@ -47,22 +44,36 @@ def main():
     argparser.add_argument("robot_ip", help="IP address of the robot server")
     argparser.add_argument("local_ip", help="IP address of this PC")
     argparser.add_argument(
-        "frequency", help="command frequency, 1 to 1000 [Hz]", type=float)
+        "frequency", help="command frequency, 1 to 200 [Hz]", type=int)
     # Optional arguments
     argparser.add_argument(
         "--hold", action="store_true",
         help="robot holds current TCP pose, otherwise do a sine-sweep")
+    argparser.add_argument(
+        "--collision", action="store_true",
+        help="enable collision detection, robot will stop upon collision")
     args = argparser.parse_args()
 
     # Check if arguments are valid
     frequency = args.frequency
-    assert (frequency >= 1 and frequency <= 1000), "Invalid <frequency> input"
+    assert (frequency >= 1 and frequency <= 200), "Invalid <frequency> input"
 
     # Define alias
     # =============================================================================
     robot_states = flexivrdk.RobotStates()
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
+
+    # Print based on arguments
+    if args.hold:
+        log.info("Robot holding current TCP pose")
+    else:
+        log.info("Robot running TCP sine-sweep")
+
+    if args.collision:
+        log.info("Collision detection enabled")
+    else:
+        log.info("Collision detection disabled")
 
     try:
         # RDK Initialization
@@ -99,24 +110,22 @@ def main():
 
         log.info("Robot is now operational")
 
-        # IMPORTANT: must calibrate force/torque sensor for accurate collision
-        # detection
-        robot.setMode(mode.MODE_PRIMITIVE_EXECUTION)
-        while (robot.getMode() != mode.MODE_PRIMITIVE_EXECUTION):
-            time.sleep(1)
-        log.warn("Calibrating force/torque sensors, please don't touch the robot")
-        robot.executePrimitive("CaliForceSensor()")
-        # Wait for primitive completion
-        while robot.isBusy():
-            time.sleep(1)
-
-        # Set mode after sensor calibration
-        robot.setMode(mode.MODE_CARTESIAN_IMPEDANCE_NRT)
-        while (robot.getMode() != mode.MODE_CARTESIAN_IMPEDANCE_NRT):
-            time.sleep(1)
-
         # Application-specific Code
         # =============================================================================
+        # IMPORTANT: must calibrate force/torque sensor for accurate collision
+        # detection
+        robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
+        robot.executePrimitive("CaliForceSensor()")
+        # Wait for primitive completion
+        log.warn("Calibrating force/torque sensors, please don't touch the robot")
+        while robot.isBusy():
+            time.sleep(1)
+        log.info("Calibration complete")
+
+        # Use robot base frame as reference frame for commands
+        robot.setMode(mode.NRT_CARTESIAN_MOTION_FORCE_BASE)
+
+        # Set loop period
         period = 1.0/frequency
         loop_counter = 0
         print("Sending command to robot at", frequency,
@@ -129,7 +138,7 @@ def main():
             "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",
             init_pose)
 
-        # Initialize target vectors
+        # Initialize target vector
         target_pose = init_pose.copy()
 
         # Send command periodically at user-specified frequency
@@ -144,14 +153,15 @@ def main():
             # Read robot states
             robot.getRobotStates(robot_states)
 
-            # Sine-sweep TCP along y axis
+            # Sine-sweep TCP along Y axis
             if not args.hold:
                 target_pose[1] = init_pose[1] + SWING_AMP * \
                     math.sin(2 * math.pi * SWING_FREQ * loop_counter * period)
             # Otherwise robot TCP will hold at initial pose
 
-            # Send command
-            robot.sendTcpPose(target_pose, MAX_WRENCH)
+            # Send command. Calling this method with only target pose input results
+            # in pure motion control
+            robot.sendCartesianMotionForce(target_pose)
 
             #  Do the following operations in sequence for every 20 seconds
             time_elapsed = loop_counter * period
@@ -177,32 +187,31 @@ def main():
                 print(preferred_jnt_pos)
             # Online reset stiffness to original at 12 seconds
             elif (time_elapsed % 20.0 == 12.0):
-                default_K = [4000, 4000, 4000, 1900, 1900, 1900]
-                robot.setCartesianStiffness(default_K)
+                robot.setCartesianStiffness()
                 log.info("Cartesian stiffness is reset")
             # Online reset preferred joint positions at 15 seconds
             elif (time_elapsed % 20.0 == 15.0):
-                preferred_jnt_pos = [0.0, -0.6981,
-                                     0.0, 1.5708, 0.0, 0.6981, 0.0]
-                robot.setNullSpacePosture(preferred_jnt_pos)
+                robot.setNullSpacePosture()
                 log.info("Preferred joint positions are reset")
 
             # Simple collision detection: stop robot if collision is detected at
             # end-effector
-            collision_detected = False
-            extForce = np.array([robot_states.extWrenchInBase[0],
-                                 robot_states.extWrenchInBase[1], robot_states.extWrenchInBase[2]])
-            if (np.linalg.norm(extForce) > EXT_FORCE_THRESHOLD):
-                collision_detected = True
-
-            for v in robot_states.tauExt:
-                if (abs(v) > EXT_TORQUE_THRESHOLD):
+            if args.collision:
+                collision_detected = False
+                ext_force = np.array([robot_states.extWrenchInBase[0],
+                                      robot_states.extWrenchInBase[1], robot_states.extWrenchInBase[2]])
+                if (np.linalg.norm(ext_force) > EXT_FORCE_THRESHOLD):
                     collision_detected = True
 
-            if collision_detected:
-                robot.stop()
-                log.warn("Collision detected, stopping robot and exit program ...")
-                return
+                for v in robot_states.tauExt:
+                    if (abs(v) > EXT_TORQUE_THRESHOLD):
+                        collision_detected = True
+
+                if collision_detected:
+                    robot.stop()
+                    log.warn(
+                        "Collision detected, stopping robot and exit program ...")
+                    return
 
             # Increment loop counter
             loop_counter += 1
