@@ -32,8 +32,7 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 3
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }

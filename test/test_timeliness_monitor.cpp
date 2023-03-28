@@ -26,16 +26,14 @@ namespace {
 const int k_robotDofs = 7;
 
 // joint impedance control gains
-const std::vector<double> k_impedanceKp
-    = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
-const std::vector<double> k_impedanceKd
-    = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
+const std::vector<double> k_impedanceKp = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
+const std::vector<double> k_impedanceKd = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
 
 }
 
 // callback function for realtime periodic task
-void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
-    flexiv::Log& log, flexiv::RobotStates& robotStates)
+void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
+    flexiv::RobotStates& robotStates)
 {
     // Loop counter
     static unsigned int loopCounter = 0;
@@ -72,9 +70,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
             std::vector<double> torqueDesired(k_robotDofs);
             // impedance control on all joints
             for (size_t i = 0; i < k_robotDofs; ++i) {
-                torqueDesired[i]
-                    = k_impedanceKp[i] * (targetPosition[i] - robotStates.q[i])
-                      - k_impedanceKd[i] * robotStates.dtheta[i];
+                torqueDesired[i] = k_impedanceKp[i] * (targetPosition[i] - robotStates.q[i])
+                                   - k_impedanceKd[i] * robotStates.dtheta[i];
             }
 
             // send target joint torque to RDK server
@@ -115,8 +112,7 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 3
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
@@ -178,9 +174,8 @@ int main(int argc, char* argv[])
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
-                std::ref(log), std::ref(robotStates)),
+        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
+                              std::ref(log), std::ref(robotStates)),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
