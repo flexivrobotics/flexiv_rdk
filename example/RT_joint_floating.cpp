@@ -21,13 +21,12 @@
 
 namespace {
 /** Damping gains for floating */
-const std::vector<double> k_floatingDamping
-    = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
+const std::vector<double> k_floatingDamping = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
 }
 
 /** Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
-    flexiv::Log& log, flexiv::RobotStates& robotStates)
+void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
+    flexiv::RobotStates& robotStates)
 {
     try {
         // Monitor fault on robot server
@@ -78,8 +77,7 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 3
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
@@ -137,9 +135,8 @@ int main(int argc, char* argv[])
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
-                std::ref(log), std::ref(robotStates)),
+        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
+                              std::ref(log), std::ref(robotStates)),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();

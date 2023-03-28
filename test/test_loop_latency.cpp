@@ -35,8 +35,7 @@ int g_fd = 0;
 }
 
 // callback function for realtime periodic task
-void periodicTask(
-    flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log)
+void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log)
 {
     // Loop counter
     static unsigned int loopCounter = 0;
@@ -104,8 +103,7 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 4
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 4 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
@@ -159,8 +157,7 @@ int main(int argc, char* argv[])
         // Benchmark Signal
         //=============================================================================
         // get workstation PC's serial port ready,
-        g_fd = open(serialPort.c_str(),
-            O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL | O_CLOEXEC);
+        g_fd = open(serialPort.c_str(), O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL | O_CLOEXEC);
 
         if (g_fd == -1) {
             log.error("Unable to open serial port " + serialPort);
@@ -173,8 +170,8 @@ int main(int argc, char* argv[])
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(periodicTask, std::ref(robot),
-                              std::ref(scheduler), std::ref(log)),
+        scheduler.addTask(
+            std::bind(periodicTask, std::ref(robot), std::ref(scheduler), std::ref(log)),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();

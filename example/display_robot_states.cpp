@@ -49,8 +49,7 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 3
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
@@ -102,8 +101,7 @@ int main(int argc, char* argv[])
         //=============================================================================
         // Use std::thread to do scheduling so that this example can run on all
         // OS, since not all OS support flexiv::Scheduler
-        std::thread lowPriorityThread(
-            std::bind(printRobotStates, std::ref(robot), std::ref(log)));
+        std::thread lowPriorityThread(std::bind(printRobotStates, std::ref(robot), std::ref(log)));
 
         // Properly exit thread
         lowPriorityThread.join();

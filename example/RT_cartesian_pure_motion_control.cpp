@@ -37,9 +37,8 @@ constexpr double k_extTorqueThreshold = 5.0;
 }
 
 /** Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
-    flexiv::Log& log, flexiv::RobotStates& robotStates,
-    const std::vector<double>& initTcpPose, bool enableHold,
+void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
+    flexiv::RobotStates& robotStates, const std::vector<double>& initTcpPose, bool enableHold,
     bool enableCollision)
 {
     // Local periodic loop counter
@@ -60,10 +59,9 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
 
         // Sine-sweep TCP along Y axis
         if (!enableHold) {
-            targetTcpPose[1] = initTcpPose[1]
-                               + k_swingAmp
-                                     * sin(2 * M_PI * k_swingFreq * loopCounter
-                                           * k_loopPeriod);
+            targetTcpPose[1]
+                = initTcpPose[1]
+                  + k_swingAmp * sin(2 * M_PI * k_swingFreq * loopCounter * k_loopPeriod);
         }
         // Otherwise robot TCP will hold at initial pose
 
@@ -85,8 +83,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
             case (6 * k_loopFreq): {
                 std::vector<double> newK = {2000, 2000, 2000, 200, 200, 200};
                 robot.setCartesianStiffness(newK);
-                log.info("Cartesian stiffness set to: "
-                         + flexiv::utility::vec2Str(newK));
+                log.info("Cartesian stiffness set to: " + flexiv::utility::vec2Str(newK));
             } break;
             // Online change to another preferred joint positions at 9 seconds
             case (9 * k_loopFreq): {
@@ -126,8 +123,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
             }
             if (collisionDetected) {
                 robot.stop();
-                log.warn(
-                    "Collision detected, stopping robot and exit program ...");
+                log.warn("Collision detected, stopping robot and exit program ...");
                 scheduler.stop();
             }
         }
@@ -161,8 +157,7 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 3
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
@@ -236,8 +231,7 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
         robot.executePrimitive("CaliForceSensor()");
         // Wait for primitive completion
-        log.warn(
-            "Calibrating force/torque sensors, please don't touch the robot");
+        log.warn("Calibrating force/torque sensors, please don't touch the robot");
         while (robot.isBusy()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
@@ -259,9 +253,8 @@ int main(int argc, char* argv[])
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
-            std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
-                std::ref(log), std::ref(robotStates), std::ref(initTcpPose),
-                enableHold, enableCollision),
+            std::bind(periodicTask, std::ref(robot), std::ref(scheduler), std::ref(log),
+                std::ref(robotStates), std::ref(initTcpPose), enableHold, enableCollision),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
