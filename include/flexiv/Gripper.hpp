@@ -27,13 +27,12 @@ public:
     virtual ~Gripper();
 
     /**
-     * @brief Grasp with direct force control. Requires the mounted gripper to
-     * support direct force control.
-     * @param[in] force Target gripping force. Positive: closing force,
-     * negative: opening force [N].
+     * @brief Grasp with direct force control. Requires the mounted gripper to support direct force
+     * control.
+     * @param[in] force Target gripping force. Positive: closing force, negative: opening force [N].
      * @note Applicable operation modes: all modes except IDLE.
-     * @warning Target inputs outside the valid range (specified in gripper's
-     * configuration file) will be saturated.
+     * @warning Target inputs outside the valid range (specified in gripper's configuration file)
+     * will be saturated.
      */
     void grasp(double force);
 
@@ -41,11 +40,11 @@ public:
      * @brief Move the gripper fingers with position control.
      * @param[in] width Target opening width [m].
      * @param[in] velocity Closing/opening velocity, cannot be 0 [m/s].
-     * @param[in] forceLimit Maximum output force during movement [N]. If not
-     * specified, default force limit of the mounted gripper will be used.
+     * @param[in] forceLimit Maximum output force during movement [N]. If not specified, default
+     * force limit of the mounted gripper will be used.
      * @note Applicable operation modes: all modes except IDLE.
-     * @warning Target inputs outside the valid range (specified in gripper's
-     * configuration file) will be saturated.
+     * @warning Target inputs outside the valid range (specified in gripper's configuration file)
+     * will be saturated.
      */
     void move(double width, double velocity, double forceLimit = 0);
 

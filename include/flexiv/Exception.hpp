@@ -32,8 +32,7 @@ class InitException : public Exception
 
 /**
  * @class CommException
- * @brief Thrown if the communication/connection with the robot server has an
- * error.
+ * @brief Thrown if the communication/connection with the robot server has an error.
  */
 class CommException : public Exception
 {
@@ -73,8 +72,7 @@ class InputException : public Exception
 
 /**
  * @class ExecutionException
- * @brief Thrown if an error occurred when executing a requested operation or
- * computation.
+ * @brief Thrown if an error occurred when executing a requested operation or computation.
  */
 class ExecutionException : public Exception
 {
@@ -94,8 +92,7 @@ class LogicException : public Exception
 
 /**
  * @class CompatibilityException
- * @brief Thrown if version of the RDK client is not compatible with the robot
- * server.
+ * @brief Thrown if version of the RDK client is not compatible with the robot server.
  */
 class CompatibilityException : public Exception
 {

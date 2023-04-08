@@ -17,16 +17,15 @@ namespace utility {
  * @brief Convert quaternion to Euler angles with ZYX axis rotations.
  * @param[in] quat Quaternion input in [w,x,y,z] order.
  * @return Euler angles in [x,y,z] order [rad].
- * @note The return value, when converted to degrees, is the same Euler angles
- * used by Move primitives.
+ * @note The return value, when converted to degrees, is the same Euler angles used by Move
+ * primitives.
  * @throw InputException if input is of wrong size.
  */
 inline std::vector<double> quat2EulerZYX(const std::vector<double>& quat)
 {
     // Check input size
     if (quat.size() != 4) {
-        throw InputException(
-            "[flexiv::utility] quat2EulerZYX: input vector is not size 4");
+        throw InputException("[flexiv::utility] quat2EulerZYX: input vector is not size 4");
     }
 
     // Form quaternion
@@ -65,12 +64,11 @@ inline std::vector<double> rad2Deg(const std::vector<double>& radVec)
  * @param[in] vec std::vector of any type and size.
  * @param[in] decimal Decimal places to keep for each number in the vector.
  * @param[in] trailingSpace Whether to include a space after the last element.
- * @return A string with format "vec[0] vec[1] ... vec[n] ", i.e. each element
- * followed by a space, including the last one if trailingSpace = true.
+ * @return A string with format "vec[0] vec[1] ... vec[n] ", i.e. each element followed by a space,
+ * including the last one if trailingSpace = true.
  */
 template <typename T>
-inline std::string vec2Str(
-    const std::vector<T>& vec, size_t decimal = 3, bool trailingSpace = true)
+inline std::string vec2Str(const std::vector<T>& vec, size_t decimal = 3, bool trailingSpace = true)
 {
     auto padding = "";
     std::stringstream ss;
@@ -91,13 +89,12 @@ inline std::string vec2Str(
 /**
  * @brief Check if any provided strings exist in the program arguments.
  * @param[in] argc Argument count passed to main() of the program.
- * @param[in] argv Argument vector passed to main() of the program, where
- * argv[0] is the program name.
+ * @param[in] argv Argument vector passed to main() of the program, where argv[0] is the program
+ * name.
  * @param[in] refStrs Reference strings to check against.
  * @return True if the program arguments contain one or more reference strings.
  */
-inline bool programArgsExistAny(
-    int argc, char** argv, const std::vector<std::string>& refStrs)
+inline bool programArgsExistAny(int argc, char** argv, const std::vector<std::string>& refStrs)
 {
     for (int i = 0; i < argc; i++) {
         for (const auto& v : refStrs) {
@@ -112,8 +109,8 @@ inline bool programArgsExistAny(
 /**
  * @brief Check if one specific string exists in the program arguments.
  * @param[in] argc Argument count passed to main() of the program.
- * @param[in] argv Argument vector passed to main() of the program, where
- * argv[0] is the program name.
+ * @param[in] argv Argument vector passed to main() of the program, where argv[0] is the program
+ * name.
  * @param[in] refStr Reference string to check against.
  * @return True if the program arguments contain this specific reference string.
  */
@@ -123,13 +120,11 @@ inline bool programArgsExist(int argc, char** argv, const std::string& refStr)
 }
 
 /**
- * @brief Parse the value of a specified primitive state from the ptStates
- * string list.
- * @param[in] ptStates Primitive states string list returned from
- * Robot::getPrimitiveStates().
+ * @brief Parse the value of a specified primitive state from the ptStates string list.
+ * @param[in] ptStates Primitive states string list returned from Robot::getPrimitiveStates().
  * @param[in] parseTarget Name of the primitive state to parse for.
- * @return Value of the specified primitive state in string format. Empty string
- * is returned if parseTarget does not exist.
+ * @return Value of the specified primitive state in string format. Empty string is returned if
+ * parseTarget does not exist.
  */
 inline std::string parsePtStates(
     const std::vector<std::string>& ptStates, const std::string& parseTarget)

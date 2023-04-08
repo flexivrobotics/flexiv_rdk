@@ -1,7 +1,7 @@
 ---
 Language: Proto
 BasedOnStyle: Google
-...
+---
 Language: Cpp
 AccessModifierOffset: -4
 AlignAfterOpenBracket: false
@@ -9,7 +9,7 @@ AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
 AlignEscapedNewlinesLeft: false
 AlignOperands: true
-AlignTrailingComments: false
+AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
@@ -19,15 +19,15 @@ AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: true
-AlwaysBreakTemplateDeclarations: false
+AlwaysBreakTemplateDeclarations: true
 BasedOnStyle: WebKit
 BinPackArguments: true
 BinPackParameters: true
 BreakBeforeBraces: Mozilla
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializersBeforeComma: true
-ColumnLimit: 80
-CommentPragmas: '^ IWYU pragma:'
+ColumnLimit: 100
+CommentPragmas: "^ IWYU pragma:"
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ConstructorInitializerIndentWidth: 0
 ContinuationIndentWidth: 4
@@ -35,13 +35,13 @@ Cpp11BracedListStyle: true
 DerivePointerAlignment: false
 DisableFormat: false
 ExperimentalAutoDetectBinPacking: false
-ForEachMacros: [ foreach, Q_FOREACH, BOOST_FOREACH ]
+ForEachMacros: [foreach, Q_FOREACH, BOOST_FOREACH]
 IndentCaseLabels: true
 IndentWidth: 4
 IndentWrappedFunctionNames: false
 KeepEmptyLinesAtTheStartOfBlocks: true
-MacroBlockBegin: ''
-MacroBlockEnd: ''
+MacroBlockBegin: ""
+MacroBlockEnd: ""
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: None
 PenaltyBreakBeforeFirstCallParameter: 100
