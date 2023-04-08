@@ -7,6 +7,11 @@ set -e
 
 # Get dependencies install directory from script argument, 
 # should be the same as the install directory of flexiv_rdk
+if [ "$#" -ne 1 ]; then
+    echo "Error: path to install directory is not provided"
+    echo "Usage: bash build_and_install_dependencies.sh [install_directory_path]"
+    exit
+fi
 INSTALL_DIR=$1
 echo "Dependencies will be installed to: $INSTALL_DIR"
 
