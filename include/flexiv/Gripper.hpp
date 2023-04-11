@@ -30,7 +30,7 @@ public:
      * @brief Grasp with direct force control. Requires the mounted gripper to support direct force
      * control.
      * @param[in] force Target gripping force. Positive: closing force, negative: opening force [N].
-     * @note Applicable operation modes: all modes except IDLE.
+     * @note Applicable control modes: all modes except IDLE.
      * @warning Target inputs outside the valid range (specified in gripper's configuration file)
      * will be saturated.
      */
@@ -42,7 +42,7 @@ public:
      * @param[in] velocity Closing/opening velocity, cannot be 0 [m/s].
      * @param[in] forceLimit Maximum output force during movement [N]. If not specified, default
      * force limit of the mounted gripper will be used.
-     * @note Applicable operation modes: all modes except IDLE.
+     * @note Applicable control modes: all modes except IDLE.
      * @warning Target inputs outside the valid range (specified in gripper's configuration file)
      * will be saturated.
      */
@@ -50,7 +50,7 @@ public:
 
     /**
      * @brief Stop the gripper.
-     * @note Applicable operation modes: all modes.
+     * @note Applicable control modes: all modes.
      */
     void stop(void);
 
