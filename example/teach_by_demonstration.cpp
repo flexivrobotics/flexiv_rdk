@@ -1,7 +1,7 @@
 /**
  * @example teach_by_demonstration.cpp
- * Free-drive the robot and record a series of Cartesian poses, which are then
- * reproduced by the robot.
+ * Free-drive the robot and record a series of Cartesian poses, which are then reproduced by the
+ * robot.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -24,8 +24,7 @@ std::string g_userInput;
 std::mutex g_userInputMutex;
 
 /** Maximum contact wrench [fx, fy, fz, mx, my, mz] [N][Nm]*/
-const std::vector<double> k_maxContactWrench
-    = {50.0, 50.0, 50.0, 15.0, 15.0, 15.0};
+const std::vector<double> k_maxContactWrench = {50.0, 50.0, 50.0, 15.0, 15.0, 15.0};
 }
 
 void printHelp()
@@ -45,20 +44,18 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse Parameters
-    //=============================================================================
-    if (argc < 2
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    //==============================================================================================
+    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // Serial number of the robot to connect to. Remove any space, for example:
-    // Rizon4s-123456
+    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
     std::string robotSN = argv[1];
 
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
@@ -86,15 +83,14 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is booted into Auto mode");
             }
         }
         log.info("Robot is now operational");
 
         // Application-specific Code
-        // =============================================================================
+        //==========================================================================================
         // Recorded robot poses
         std::vector<std::vector<double>> savedPoses = {};
 
@@ -123,9 +119,7 @@ int main(int argc, char* argv[])
                 robot.executePlan("PLAN-FreeDriveAuto");
 
                 log.info("New teaching process started");
-                log.warn(
-                    "Hold down the enabling button on the motion bar to "
-                    "activate free drive");
+                log.warn("Hold down the enabling button on the motion bar to activate free drive");
             }
             // Save current robot pose
             else if (inputBuffer == "r") {
@@ -136,10 +130,8 @@ int main(int argc, char* argv[])
 
                 robot.getRobotStates(robotStates);
                 savedPoses.push_back(robotStates.tcpPose);
-                log.info("New pose saved: "
-                         + flexiv::utility::vec2Str(robotStates.tcpPose));
-                log.info("Number of saved poses: "
-                         + std::to_string(savedPoses.size()));
+                log.info("New pose saved: " + flexiv::utility::vec2Str(robotStates.tcpPose));
+                log.info("Number of saved poses: " + std::to_string(savedPoses.size()));
             }
             // Reproduce recorded poses
             else if (inputBuffer == "e") {
@@ -155,14 +147,14 @@ int main(int argc, char* argv[])
                     log.info("Executing pose " + std::to_string(i + 1) + "/"
                              + std::to_string(savedPoses.size()));
 
-                    std::vector<double> targetPos = {
-                        savedPoses[i][0], savedPoses[i][1], savedPoses[i][2]};
+                    std::vector<double> targetPos
+                        = {savedPoses[i][0], savedPoses[i][1], savedPoses[i][2]};
                     // Convert quaternion to Euler ZYX required by
                     // MoveCompliance primitive
-                    std::vector<double> targetQuat = {savedPoses[i][3],
-                        savedPoses[i][4], savedPoses[i][5], savedPoses[i][6]};
-                    auto targetEulerDeg = flexiv::utility::rad2Deg(
-                        flexiv::utility::quat2EulerZYX(targetQuat));
+                    std::vector<double> targetQuat
+                        = {savedPoses[i][3], savedPoses[i][4], savedPoses[i][5], savedPoses[i][6]};
+                    auto targetEulerDeg
+                        = flexiv::utility::rad2Deg(flexiv::utility::quat2EulerZYX(targetQuat));
                     robot.executePrimitive(
                         "MoveCompliance(target="
                         + flexiv::utility::vec2Str(targetPos)
@@ -171,17 +163,16 @@ int main(int argc, char* argv[])
                         + flexiv::utility::vec2Str(k_maxContactWrench)+ ")");
 
                     // Wait for reached target
-                    while (flexiv::utility::parsePtStates(
-                               robot.getPrimitiveStates(), "reachedTarget")
-                           != "1") {
+                    while (
+                        flexiv::utility::parsePtStates(robot.getPrimitiveStates(), "reachedTarget")
+                        != "1") {
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
                 }
 
                 log.info(
-                    "All saved poses are executed, enter 'n' to start a new "
-                    "teaching process, 'r' to record more poses, 'e' to repeat "
-                    "execution");
+                    "All saved poses are executed, enter 'n' to start a new teaching process, 'r' "
+                    "to record more poses, 'e' to repeat execution");
 
                 // Put robot back to free drive
                 robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);

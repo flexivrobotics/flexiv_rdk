@@ -1,8 +1,8 @@
 /**
  * @test test_loop_latency.cpp
- * A test to benchmark RDK's loop latency, including communication, computation,
- * etc. The workstation PC's serial port is used as reference, and the robot
- * server's digital out port is used as test target.
+ * A test to benchmark RDK's loop latency, including communication, computation, etc. The
+ * workstation PC's serial port is used as reference, and the robot server's digital out port is
+ * used as test target.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -35,8 +35,7 @@ int g_fd = 0;
 }
 
 // callback function for realtime periodic task
-void periodicTask(
-    flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log)
+void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log)
 {
     // Loop counter
     static unsigned int loopCounter = 0;
@@ -58,7 +57,9 @@ void periodicTask(
             }
             case 1: {
                 // signal robot server's digital out port
-                robot.writeDigitalOutput(0, true);
+                std::vector<bool> digitalOut(16);
+                digitalOut[0] = true;
+                robot.writeDigitalOutput(digitalOut);
 
                 // signal workstation PC's serial port
                 auto n = write(g_fd, "0", 1);
@@ -70,7 +71,8 @@ void periodicTask(
             }
             case 900: {
                 // reset digital out after a few seconds
-                robot.writeDigitalOutput(0, false);
+                std::vector<bool> digitalOut(16);
+                robot.writeDigitalOutput(digitalOut);
                 break;
             }
             default:
@@ -104,14 +106,12 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 3
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // Serial number of the robot to connect to. Remove any space, for example:
-    // Rizon4s-123456
+    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
     std::string robotSN = argv[1];
 
     // serial port name
@@ -147,9 +147,8 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is booted into Auto mode");
             }
         }
         log.info("Robot is now operational");
@@ -157,8 +156,7 @@ int main(int argc, char* argv[])
         // Benchmark Signal
         //=============================================================================
         // get workstation PC's serial port ready,
-        g_fd = open(serialPort.c_str(),
-            O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL | O_CLOEXEC);
+        g_fd = open(serialPort.c_str(), O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL | O_CLOEXEC);
 
         if (g_fd == -1) {
             log.error("Unable to open serial port " + serialPort);
@@ -171,8 +169,8 @@ int main(int argc, char* argv[])
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(periodicTask, std::ref(robot),
-                              std::ref(scheduler), std::ref(log)),
+        scheduler.addTask(
+            std::bind(periodicTask, std::ref(robot), std::ref(scheduler), std::ref(log)),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();

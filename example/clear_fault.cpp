@@ -31,25 +31,23 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse Parameters
-    //=============================================================================
-    if (argc < 2
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    //==============================================================================================
+    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // Serial number of the robot to connect to. Remove any space, for example:
-    // Rizon4s-123456
+    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
     std::string robotSN = argv[1];
 
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
         // Application-specific Code
-        //=============================================================================
+        //==========================================================================================
         // Clear fault on robot server if any
         if (robot.isFault()) {
             log.warn("Fault occurred on robot server, trying to clear ...");

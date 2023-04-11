@@ -1,10 +1,9 @@
 /**
  * @example RT_joint_floating.cpp
- * Real-time joint floating with gentle velocity damping, gravity compensation,
- * and soft protection against position limits. This example is ideal for
- * verifying the system's whole-loop real-timeliness, accuracy of the robot
- * dynamic mode, and joint torque control performance. If everything works well,
- * all joints should float smoothly.
+ * Real-time joint floating with gentle velocity damping, gravity compensation, and soft protection
+ * against position limits. This example is ideal for verifying the system's whole-loop
+ * real-timeliness, accuracy of the robot dynamic mode, and joint torque control performance. If
+ * everything works well, all joints should float smoothly.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -21,13 +20,12 @@
 
 namespace {
 /** Damping gains for floating */
-const std::vector<double> k_floatingDamping
-    = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
+const std::vector<double> k_floatingDamping = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
 }
 
 /** Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
-    flexiv::Log& log, flexiv::RobotStates& robotStates)
+void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
+    flexiv::RobotStates& robotStates)
 {
     try {
         // Monitor fault on robot server
@@ -50,8 +48,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
             targetTorque[i] = -k_floatingDamping[i] * robotStates.dtheta[i];
         }
 
-        // Send target joint torque to RDK server, enable gravity compensation
-        // and joint limits soft protection
+        // Send target joint torque to RDK server, enable gravity compensation and joint limits soft
+        // protection
         robot.streamJointTorque(targetTorque, true, true);
 
     } catch (const flexiv::Exception& e) {
@@ -77,20 +75,18 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse Parameters
-    //=============================================================================
-    if (argc < 2
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    //==============================================================================================
+    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // Serial number of the robot to connect to. Remove any space, for example:
-    // Rizon4s-123456
+    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
     std::string robotSN = argv[1];
 
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
@@ -121,9 +117,8 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is booted into Auto mode");
             }
         }
         log.info("Robot is now operational");
@@ -132,12 +127,11 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::RT_JOINT_TORQUE);
 
         // Periodic Tasks
-        //=============================================================================
+        //==========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
-                std::ref(log), std::ref(robotStates)),
+        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
+                              std::ref(log), std::ref(robotStates)),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();

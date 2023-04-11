@@ -1,8 +1,7 @@
 /**
  * @test test_endurance.cpp
- * Endurance test running Cartesian impedance control to slowly sine-sweep near
- * home for a duration of user-specified hours. Raw data will be logged to CSV
- * files continuously.
+ * Endurance test running Cartesian impedance control to slowly sine-sweep near home for a duration
+ * of user-specified hours. Raw data will be logged to CSV files continuously.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -54,8 +53,8 @@ struct LogData
 
 }
 
-void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
-    flexiv::Log& log, flexiv::RobotStates& robotStates)
+void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
+    flexiv::RobotStates& robotStates)
 {
     // flag whether initial Cartesian position is set
     static bool isInitPoseSet = false;
@@ -75,7 +74,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
         robot.getRobotStates(robotStates);
 
         // TCP movement control
-        //=====================================================================
+        //==========================================================================================
         // set initial TCP pose
         if (!isInitPoseSet) {
             // check vector size before saving
@@ -88,15 +87,14 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
         // run control after initial pose is set
         else {
             // move along Z direction
-            g_currentTcpPose[2] = initTcpPose[2]
-                                  + k_swingAmp
-                                        * sin(2 * M_PI * k_swingFreq
-                                              * g_hpLoopCounter * k_loopPeriod);
+            g_currentTcpPose[2]
+                = initTcpPose[2]
+                  + k_swingAmp * sin(2 * M_PI * k_swingFreq * g_hpLoopCounter * k_loopPeriod);
             robot.streamCartesianMotionForce(g_currentTcpPose);
         }
 
-        // save data to global buffer, not using mutex to avoid interruption on
-        // RT loop from potential priority inversion
+        // save data to global buffer, not using mutex to avoid interruption on RT loop from
+        // potential priority inversion
         g_logData.tcpPose = robotStates.tcpPose;
         g_logData.tcpForce = robotStates.extWrenchInBase;
 
@@ -135,7 +133,7 @@ void lowPriorityTask()
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
         // Data logging
-        //=====================================================================
+        //==========================================================================================
         // close existing log file and create a new one periodically
         if (lpLoopCounter % k_logDurationLoopCounts == 0) {
             // close file if exist
@@ -148,8 +146,7 @@ void lowPriorityTask()
             fileCounter++;
 
             // create new file name using the updated counter as suffix
-            csvFileName
-                = "endurance_test_data_" + std::to_string(fileCounter) + ".csv";
+            csvFileName = "endurance_test_data_" + std::to_string(fileCounter) + ".csv";
 
             // open new log file
             csvFile.open(csvFileName);
@@ -160,8 +157,8 @@ void lowPriorityTask()
             }
         }
 
-        // log data to file in CSV format, avoid logging too much data otherwise
-        // the RT loop will not hold
+        // log data to file in CSV format, avoid logging too much data otherwise the RT loop will
+        // not hold
         if (csvFile.is_open()) {
             // loop counter x1, TCP pose x7, TCP external force x6
             csvFile << lpLoopCounter << ",";
@@ -215,27 +212,25 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse Parameters
-    //=============================================================================
-    if (argc < 3
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    //==============================================================================================
+    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // Serial number of the robot to connect to. Remove any space, for example:
-    // Rizon4s-123456
+    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
     std::string robotSN = argv[1];
 
     // test duration in hours
     double testHours = std::stof(argv[2]);
     // convert duration in hours to loop counts
     g_testDurationLoopCounts = (uint64_t)(testHours * 3600.0 * 1000.0);
-    log.info("Test duration: " + std::to_string(testHours) + " hours = "
-             + std::to_string(g_testDurationLoopCounts) + " cycles");
+    log.info("Test duration: " + std::to_string(testHours)
+             + " hours = " + std::to_string(g_testDurationLoopCounts) + " cycles");
 
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
@@ -266,15 +261,14 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is booted into Auto mode");
             }
         }
         log.info("Robot is now operational");
 
         // Bring Robot To Home
-        //=============================================================================
+        //==========================================================================================
         // set mode after robot is operational
         robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
 
@@ -289,12 +283,11 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE_BASE);
 
         // Periodic Tasks
-        //=============================================================================
+        //==========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(highPriorityTask, std::ref(robot), std::ref(scheduler),
-                std::ref(log), std::ref(robotStates)),
+        scheduler.addTask(std::bind(highPriorityTask, std::ref(robot), std::ref(scheduler),
+                              std::ref(log), std::ref(robotStates)),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, not blocking
         scheduler.start(false);

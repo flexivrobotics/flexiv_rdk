@@ -30,20 +30,18 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse Parameters
-    //=============================================================================
-    if (argc < 2
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    //==============================================================================================
+    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // Serial number of the robot to connect to. Remove any space, for example:
-    // Rizon4s-123456
+    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
     std::string robotSN = argv[1];
 
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
@@ -71,9 +69,8 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is booted into Auto mode");
             }
         }
         log.info("Robot is now operational");
@@ -82,15 +79,14 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
 
         // Application-specific Code
-        //=============================================================================
+        //==========================================================================================
         // Plan info data
         flexiv::PlanInfo planInfo;
 
         while (true) {
             // Monitor fault on robot server
             if (robot.isFault()) {
-                throw flexiv::ServerException(
-                    "Fault occurred on robot server, exiting ...");
+                throw flexiv::ServerException("Fault occurred on robot server, exiting ...");
             }
 
             // Get user input
@@ -108,8 +104,7 @@ int main(int argc, char* argv[])
                 case 1: {
                     auto planList = robot.getPlanNameList();
                     for (size_t i = 0; i < planList.size(); i++) {
-                        std::cout << "[" << i << "] " << planList[i]
-                                  << std::endl;
+                        std::cout << "[" << i << "] " << planList[i] << std::endl;
                     }
                     std::cout << std::endl;
                 } break;
@@ -123,8 +118,7 @@ int main(int argc, char* argv[])
                     // Print plan info while the current plan is running
                     while (robot.isBusy()) {
                         robot.getPlanInfo(planInfo);
-                        log.info(
-                            "===============================================");
+                        log.info("===============================================");
                         std::cout << planInfo << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
@@ -139,8 +133,7 @@ int main(int argc, char* argv[])
                     // Print plan info while the current plan is running
                     while (robot.isBusy()) {
                         robot.getPlanInfo(planInfo);
-                        log.info(
-                            "===============================================");
+                        log.info("===============================================");
                         std::cout << planInfo << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }

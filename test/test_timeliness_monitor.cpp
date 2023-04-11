@@ -1,10 +1,9 @@
 /**
  * @test test_timeliness_monitor.cpp
- * A test to evaluate RDK's internal timeliness monitor on real-time modes. Bad
- * communication or insufficient real-time performance of the workstation PC
- * will cause the monitor's timeliness check to fail. A warning will be issued
- * first, then if the check has failed too many times, the RDK connection with
- * the server will be closed. During this test, the robot will hold its position
+ * A test to evaluate RDK's internal timeliness monitor on real-time modes. Bad communication or
+ * insufficient real-time performance of the workstation PC will cause the monitor's timeliness
+ * check to fail. A warning will be issued first, then if the check has failed too many times, the
+ * RDK connection with the server will be closed. During this test, the robot will hold its position
  * using joint torque streaming mode.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
@@ -26,16 +25,14 @@ namespace {
 const int k_robotDofs = 7;
 
 // joint impedance control gains
-const std::vector<double> k_impedanceKp
-    = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
-const std::vector<double> k_impedanceKd
-    = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
+const std::vector<double> k_impedanceKp = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
+const std::vector<double> k_impedanceKd = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
 
 }
 
 // callback function for realtime periodic task
-void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
-    flexiv::Log& log, flexiv::RobotStates& robotStates)
+void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
+    flexiv::RobotStates& robotStates)
 {
     // Loop counter
     static unsigned int loopCounter = 0;
@@ -72,9 +69,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler,
             std::vector<double> torqueDesired(k_robotDofs);
             // impedance control on all joints
             for (size_t i = 0; i < k_robotDofs; ++i) {
-                torqueDesired[i]
-                    = k_impedanceKp[i] * (targetPosition[i] - robotStates.q[i])
-                      - k_impedanceKd[i] * robotStates.dtheta[i];
+                torqueDesired[i] = k_impedanceKp[i] * (targetPosition[i] - robotStates.q[i])
+                                   - k_impedanceKd[i] * robotStates.dtheta[i];
             }
 
             // send target joint torque to RDK server
@@ -114,20 +110,18 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse Parameters
-    //=============================================================================
-    if (argc < 2
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    //==============================================================================================
+    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // Serial number of the robot to connect to. Remove any space, for example:
-    // Rizon4s-123456
+    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
     std::string robotSN = argv[1];
 
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
@@ -158,9 +152,8 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is booted into Auto mode");
             }
         }
         log.info("Robot is now operational");
@@ -173,12 +166,11 @@ int main(int argc, char* argv[])
             "seconds <<<<<");
 
         // Periodic Tasks
-        //=============================================================================
+        //==========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
-                std::ref(log), std::ref(robotStates)),
+        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
+                              std::ref(log), std::ref(robotStates)),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();

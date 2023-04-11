@@ -23,8 +23,7 @@ void printRobotStates(flexiv::Robot& robot, flexiv::Log& log)
         // Get the latest robot states
         robot.getRobotStates(robotStates);
 
-        // Print all robot states in JSON format using the built-in ostream
-        // operator overloading
+        // Print all robot states in JSON format using the built-in ostream operator overloading
         log.info("Current robot states:");
         std::cout << robotStates << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -48,20 +47,18 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse Parameters
-    //=============================================================================
-    if (argc < 2
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    //==============================================================================================
+    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // Serial number of the robot to connect to. Remove any space, for example:
-    // Rizon4s-123456
+    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
     std::string robotSN = argv[1];
 
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
@@ -89,19 +86,17 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is booted into Auto mode");
             }
         }
         log.info("Robot is now operational");
 
         // Periodic Tasks
-        //=============================================================================
-        // Use std::thread to do scheduling so that this example can run on all
-        // OS, since not all OS support flexiv::Scheduler
-        std::thread lowPriorityThread(
-            std::bind(printRobotStates, std::ref(robot), std::ref(log)));
+        //==========================================================================================
+        // Use std::thread to do scheduling so that this example can run on all OS, since not all OS
+        // support flexiv::Scheduler
+        std::thread lowPriorityThread(std::bind(printRobotStates, std::ref(robot), std::ref(log)));
 
         // Properly exit thread
         lowPriorityThread.join();

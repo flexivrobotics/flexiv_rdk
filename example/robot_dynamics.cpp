@@ -61,31 +61,23 @@ int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
             // Mark timer end point and get loop time
             auto toc = std::chrono::high_resolution_clock::now();
             auto computeTime
-                = std::chrono::duration_cast<std::chrono::microseconds>(
-                    toc - tic)
-                      .count();
+                = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
 
             // Print at 1Hz
             if (loopCounter % 100 == 0) {
                 // Print time used to compute g, M, J
-                log.info("Computation time = " + std::to_string(computeTime)
-                         + " us");
+                log.info("Computation time = " + std::to_string(computeTime) + " us");
                 std::cout << std::endl;
 
                 // Print gravity
-                std::cout << std::fixed << std::setprecision(5)
-                          << "g = " << g.transpose() << "\n"
+                std::cout << std::fixed << std::setprecision(5) << "g = " << g.transpose() << "\n"
                           << std::endl;
 
                 // Print mass matrix
-                std::cout << std::fixed << std::setprecision(5) << "M = " << M
-                          << "\n"
-                          << std::endl;
+                std::cout << std::fixed << std::setprecision(5) << "M = " << M << "\n" << std::endl;
 
                 // Print Jacobian
-                std::cout << std::fixed << std::setprecision(5) << "J = " << J
-                          << "\n"
-                          << std::endl;
+                std::cout << std::fixed << std::setprecision(5) << "J = " << J << "\n" << std::endl;
             }
         }
     } catch (const flexiv::Exception& e) {
@@ -111,20 +103,18 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse Parameters
-    //=============================================================================
-    if (argc < 2
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    //==============================================================================================
+    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // Serial number of the robot to connect to. Remove any space, for example:
-    // Rizon4s-123456
+    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
     std::string robotSN = argv[1];
 
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
@@ -152,9 +142,8 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is booted into Auto mode");
             }
         }
         log.info("Robot is now operational");
@@ -174,11 +163,10 @@ int main(int argc, char* argv[])
         flexiv::Model model(robot);
 
         // Periodic Tasks
-        //=============================================================================
-        // Use std::thread to do scheduling so that this example can run on both
-        // Linux and Mac, since the latter doesn't support flexiv::Scheduler
-        std::thread periodicTaskThread(
-            periodicTask, std::ref(robot), std::ref(model));
+        //==========================================================================================
+        // Use std::thread to do scheduling so that this example can run on both Linux and Mac,
+        // since the latter doesn't support flexiv::Scheduler
+        std::thread periodicTaskThread(periodicTask, std::ref(robot), std::ref(model));
         periodicTaskThread.join();
 
     } catch (const flexiv::Exception& e) {

@@ -31,8 +31,7 @@ void printGripperStates(flexiv::Gripper& gripper, flexiv::Log& log)
         // Get the latest gripper states
         gripper.getGripperStates(gripperStates);
 
-        // Print all gripper states in JSON format using the built-in ostream
-        // operator overloading
+        // Print all gripper states in JSON format using the built-in ostream operator overloading
         log.info("Current gripper states:");
         std::cout << gripperStates << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -56,20 +55,18 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse Parameters
-    //=============================================================================
-    if (argc < 2
-        || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    //==============================================================================================
+    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // Serial number of the robot to connect to. Remove any space, for example:
-    // Rizon4s-123456
+    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
     std::string robotSN = argv[1];
 
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
@@ -97,9 +94,8 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is booted into Auto mode");
             }
         }
         log.info("Robot is now operational");
@@ -111,13 +107,12 @@ int main(int argc, char* argv[])
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
         // Application-specific Code
-        //=============================================================================
+        //==========================================================================================
         // Instantiate gripper
         flexiv::Gripper gripper(robot);
 
         // Thread for printing gripper states
-        std::thread printThread(
-            printGripperStates, std::ref(gripper), std::ref(log));
+        std::thread printThread(printGripperStates, std::ref(gripper), std::ref(log));
 
         // Position control test
         log.info("Closing gripper");
@@ -147,8 +142,7 @@ int main(int argc, char* argv[])
         // Force control test, if available
         flexiv::GripperStates gripperStates;
         gripper.getGripperStates(gripperStates);
-        if (fabs(gripperStates.force)
-            > std::numeric_limits<double>::epsilon()) {
+        if (fabs(gripperStates.force) > std::numeric_limits<double>::epsilon()) {
             log.info("Gripper running zero force control");
             gripper.grasp(0);
             // Exit after 10 seconds
