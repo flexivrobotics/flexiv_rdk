@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.4)
 # ===================================================================
 #      PROJECT CONFIG
 # ===================================================================
-project(flexiv_rdk VERSION 0.8.0)
+project(flexiv_rdk VERSION 1.0.0)
 
 # C++14 required
 set(CMAKE_CXX_STANDARD 14)
@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "CMake build type" FORCE)
 endif()
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "RelWithDebInfo")
 
 # Set static library
 message("OS: ${CMAKE_SYSTEM_NAME}")
