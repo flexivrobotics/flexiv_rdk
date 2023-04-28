@@ -1,10 +1,9 @@
 /**
- * @example RT_joint_floating.cpp
- * Real-time joint floating with gentle velocity damping, gravity compensation,
- * and soft protection against position limits. This example is ideal for
- * verifying the system's whole-loop real-timeliness, accuracy of the robot
- * dynamic mode, and joint torque control performance. If everything works well,
- * all joints should float smoothly.
+ * @example intermediate3_realtime_joint_floating.cpp
+ * This tutorial runs real-time joint floating with gentle velocity damping, gravity compensation,
+ * and soft protection against position limits. This example is ideal for verifying the system's
+ * whole-loop real-timeliness, accuracy of the robot dynamics model, and joint torque control
+ * performance. If everything works well, all joints should float smoothly.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -20,11 +19,35 @@
 #include <thread>
 
 namespace {
-/** Damping gains for floating */
+/** Joint velocity damping gains for floating */
 const std::vector<double> k_floatingDamping = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
 }
 
-/** Callback function for realtime periodic task */
+/** @brief Print tutorial description */
+void printDescription()
+{
+    std::cout << "This tutorial runs real-time joint floating with gentle velocity damping, "
+                 "gravity compensation, and soft protection against position limits. This example "
+                 "is ideal for verifying the system's whole-loop real-timeliness, accuracy of the "
+                 "robot dynamics model, and joint torque control performance. If everything works "
+                 "well, all joints should float smoothly."
+              << std::endl
+              << std::endl;
+}
+
+/** @brief Print program usage help */
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
+    std::cout << "    robot IP: address of the robot server" << std::endl;
+    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Optional arguments: None" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
+}
+
+/** @brief Callback function for realtime periodic task */
 void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
     flexiv::RobotStates& robotStates)
 {
@@ -59,38 +82,30 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
     }
 }
 
-void printHelp()
-{
-    // clang-format off
-    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
-    std::cout << "    robot IP: address of the robot server" << std::endl;
-    std::cout << "    local IP: address of this PC" << std::endl;
-    std::cout << "Optional arguments: None" << std::endl;
-    std::cout << std::endl;
-    // clang-format on
-}
-
 int main(int argc, char* argv[])
 {
-    // Log object for printing message with timestamp and coloring
+    // Program Startup
+    //==============================================================================================
+    // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
-    // Parse Parameters
-    //=============================================================================
+    // Parse parameters
     if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
-
     // IP of the robot server
     std::string robotIP = argv[1];
-
     // IP of the workstation PC running this program
     std::string localIP = argv[2];
 
+    // Print description
+    log.info("Tutorial description:");
+    printDescription();
+
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotIP, localIP);
 
@@ -121,9 +136,8 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is in [Auto (remote)] mode");
             }
         }
         log.info("Robot is now operational");
@@ -132,7 +146,7 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::RT_JOINT_TORQUE);
 
         // Periodic Tasks
-        //=============================================================================
+        //==========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(scheduler),

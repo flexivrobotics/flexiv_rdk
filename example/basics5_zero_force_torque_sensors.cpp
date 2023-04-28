@@ -1,6 +1,7 @@
 /**
- * @example display_robot_states.cpp
- * Print received robot states.
+ * @example basics5_zero_force_torque_sensors.cpp
+ * This tutorial zeros the robot's force and torque sensors, which is an important step before any
+ * operations that require accurate force/torque measurement.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -13,24 +14,16 @@
 #include <iostream>
 #include <thread>
 
-/** Print robot states data @ 1Hz */
-void printRobotStates(flexiv::Robot& robot, flexiv::Log& log)
+/** @brief Print tutorial description */
+void printDescription()
 {
-    // Data struct storing robot states
-    flexiv::RobotStates robotStates;
-
-    while (true) {
-        // Get the latest robot states
-        robot.getRobotStates(robotStates);
-
-        // Print all robot states in JSON format using the built-in ostream
-        // operator overloading
-        log.info("Current robot states:");
-        std::cout << robotStates << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
+    std::cout << "This tutorial zeros the robot's force and torque sensors, which is an important "
+                 "step before any operations that require accurate force/torque measurement."
+              << std::endl
+              << std::endl;
 }
 
+/** @brief Print program usage help */
 void printHelp()
 {
     // clang-format off
@@ -44,25 +37,28 @@ void printHelp()
 
 int main(int argc, char* argv[])
 {
-    // Log object for printing message with timestamp and coloring
+    // Program Startup
+    //==============================================================================================
+    // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
-    // Parse Parameters
-    //=============================================================================
+    // Parse parameters
     if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
-
     // IP of the robot server
     std::string robotIP = argv[1];
-
     // IP of the workstation PC running this program
     std::string localIP = argv[2];
 
+    // Print description
+    log.info("Tutorial description:");
+    printDescription();
+
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotIP, localIP);
 
@@ -90,21 +86,27 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is in [Auto (remote)] mode");
             }
         }
         log.info("Robot is now operational");
 
-        // Periodic Tasks
-        //=============================================================================
-        // Use std::thread to do scheduling so that this example can run on all
-        // OS, since not all OS support flexiv::Scheduler
-        std::thread lowPriorityThread(std::bind(printRobotStates, std::ref(robot), std::ref(log)));
+        // Zero Sensors
+        //==========================================================================================
+        // Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
+        robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
+        robot.executePrimitive("ZeroFTSensor()");
 
-        // Properly exit thread
-        lowPriorityThread.join();
+        // WARNING: during the process, the robot must not contact anything, otherwise the result
+        // will be inaccurate and affect following operations
+        log.warn("Zeroing force/torque sensors, make sure nothing is in contact with the robot");
+
+        // Wait for primitive completion
+        while (robot.isBusy()) {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+        log.info("Sensor zeroing complete");
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());

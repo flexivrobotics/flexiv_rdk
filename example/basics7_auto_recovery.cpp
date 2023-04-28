@@ -1,9 +1,7 @@
 /**
- * @example auto_recovery.cpp
- * Run auto-recovery if the robot's safety system is in recovery state,
- * otherwise run damped floating with joint soft limit disabled, so that the
- * user can manually trigger a safety system recovery state by moving any joint
- * close to its limit. See flexiv::Robot::isRecoveryState() for more details.
+ * @example basics7_auto_recovery.cpp
+ * This tutorial runs an automatic recovery process if the robot's safety system is in recovery
+ * state. See flexiv::Robot::isRecoveryState() and RDK manual for more details.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -17,6 +15,17 @@
 #include <string>
 #include <thread>
 
+/** @brief Print tutorial description */
+void printDescription()
+{
+    std::cout
+        << "This tutorial runs an automatic recovery process if the robot's safety system is in "
+           "recovery state. See flexiv::Robot::isRecoveryState() and RDK manual for more details."
+        << std::endl
+        << std::endl;
+}
+
+/** @brief Print program usage help */
 void printHelp()
 {
     // clang-format off
@@ -30,25 +39,28 @@ void printHelp()
 
 int main(int argc, char* argv[])
 {
-    // Log object for printing message with timestamp and coloring
+    // Program Startup
+    //==============================================================================================
+    // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
-    // Parse Parameters
-    //=============================================================================
+    // Parse parameters
     if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
-
     // IP of the robot server
     std::string robotIP = argv[1];
-
     // IP of the workstation PC running this program
     std::string localIP = argv[2];
 
+    // Print description
+    log.info("Tutorial description:");
+    printDescription();
+
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotIP, localIP);
 
@@ -59,28 +71,24 @@ int main(int argc, char* argv[])
         log.info("Enabling robot ...");
         robot.enable();
 
-        // Application-specific Code
-        //=============================================================================
-        // If the system is in recovery state, we can't use isOperational to
-        // tell if the enabling process is done, so just wait long enough for
-        // the process to finish
+        // Run Auto-recovery
+        //==========================================================================================
+        // If the system is in recovery state, we can't use isOperational to tell if the enabling
+        // process is done, so just wait long enough for the process to finish
         std::this_thread::sleep_for(std::chrono::seconds(8));
 
-        // Start auto recovery if the system is in recovery state, the involved
-        // Joints will start to move back into allowed position range
+        // Start auto recovery if the system is in recovery state, the involved joints will start to
+        // move back into allowed position range
         if (robot.isRecoveryState()) {
             robot.startAutoRecovery();
-            // Block forever, must reboot the robot and restart user program
-            // after auto recovery is done
+            // Block forever, must reboot the robot and restart user program after recovery is done
             while (true) {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
             }
         }
         // Otherwise the system is normal, do nothing
         else {
-            log.info(
-                "Robot system is not in recovery state, nothing to be done, "
-                "exiting ...");
+            log.info("Robot system is not in recovery state, nothing to be done, exiting ...");
         }
     } catch (const flexiv::Exception& e) {
         log.error(e.what());

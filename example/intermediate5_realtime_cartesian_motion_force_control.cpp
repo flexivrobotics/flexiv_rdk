@@ -1,8 +1,8 @@
 /**
- * @example RT_cartesian_motion_force_control.cpp
- * Real-time Cartesian-space unified motion-force control to apply force along
- * Z axis of the chosen reference frame, or to execute a simple polish action
- * along XY plane of the chosen reference frame.
+ * @example intermediate5_realtime_cartesian_motion_force_control.cpp
+ * This tutorial runs real-time Cartesian-space unified motion-force control to apply force along
+ * Z axis of the chosen reference frame, or to execute a simple polish action along XY plane of the
+ * chosen reference frame.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -34,6 +34,31 @@ constexpr double k_swingFreq = 0.3;
 constexpr double k_pressingForce = 5.0;
 }
 
+/** @brief Print tutorial description */
+void printDescription()
+{
+    std::cout << "This tutorial runs real-time Cartesian-space unified motion-force control to "
+                 "apply force along Z axis of the chosen reference frame, or to execute a simple "
+                 "polish action along XY plane of the chosen reference frame."
+              << std::endl
+              << std::endl;
+}
+
+/** @brief Print program usage help */
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
+    std::cout << "    robot IP: address of the robot server" << std::endl;
+    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Optional arguments: [--hold] [--collision]" << std::endl;
+    std::cout << "    --polish: execute a simple polish action along XY plane, "
+                 "otherwise apply a constant force along Z axis"
+              << std::endl
+              << std::endl;
+    // clang-format on
+}
+
 /** Callback function for realtime periodic task */
 void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
     flexiv::RobotStates& robotStates, const std::vector<double>& initPose,
@@ -60,8 +85,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             robotStates.extWrenchInBase[2]};
         double extForceNorm = extForce.norm();
 
-        // Set sign of Fz according to reference frame to achieve a "pressing
-        // down" behavior
+        // Set sign of Fz according to reference frame to achieve a "pressing down" behavior
         double Fz = 0.0;
         if (frameStr == "BASE") {
             Fz = -k_pressingForce;
@@ -75,8 +99,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 
         // Search for contact
         if (!isContacted) {
-            // Send both initial pose and wrench commands, the result is
-            // force control along Z axis, and motion hold along other axes
+            // Send both initial pose and wrench commands, the result is force control along Z axis,
+            // and motion hold along other axes
             robot.streamCartesianMotionForce(initPose, targetWrench);
 
             // Contact is made
@@ -89,9 +113,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             return;
         }
 
-        // Repeat the following actions in a 20-second cycle: first 15 seconds
-        // do unified motion-force control, the rest 5 seconds trigger smooth
-        // transition to pure motion control
+        // Repeat the following actions in a 20-second cycle: first 15 seconds do unified
+        // motion-force control, the rest 5 seconds trigger smooth transition to pure motion control
         if (loopCounter % (20 * k_loopFreq) == 0) {
             // Print info at the beginning of action cycle
             if (enablePolish) {
@@ -101,9 +124,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             }
 
         } else if (loopCounter % (20 * k_loopFreq) == (15 * k_loopFreq)) {
-            log.info(
-                "Disabling force control and transiting smoothly to pure "
-                "motion control");
+            log.info("Disabling force control and transiting smoothly to pure motion control");
 
         } else if (loopCounter % (20 * k_loopFreq) == (20 * k_loopFreq - 1)) {
             // Reset contact flag at the end of action cycle
@@ -117,24 +138,22 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
                     = initPose[1]
                       + k_swingAmp * sin(2 * M_PI * k_swingFreq * loopCounter * k_loopPeriod);
 
-                // Send both target pose and wrench commands, the result is
-                // force control along Z axis, and motion control along other
-                // axes
+                // Send both target pose and wrench commands, the result is force control along Z
+                // axis, and motion control along other axes
                 robot.streamCartesianMotionForce(targetPose, targetWrench);
             }
             // Apply constant force along Z axis of chosen reference frame
             else {
-                // Send both initial pose and wrench commands, the result is
-                // force control along Z axis, and motion hold along other axes
+                // Send both initial pose and wrench commands, the result is force control along Z
+                // axis, and motion hold along other axes
                 robot.streamCartesianMotionForce(initPose, targetWrench);
             }
 
         } else {
-            // By not passing in targetWrench parameter, the force control will
-            // be cancelled and transit smoothly back to pure motion control.
-            // The previously force-controlled axis will be gently pulled toward
-            // the motion target currently set for that axis. Here we use
-            // initPose for example.
+            // By not passing in targetWrench parameter, the force control will be cancelled and
+            // transit smoothly back to pure motion control. The previously force-controlled axis
+            // will be gently pulled toward the motion target currently set for that axis. Here we
+            // use initPose for example.
             robot.streamCartesianMotionForce(initPose);
         }
 
@@ -147,39 +166,28 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
     }
 }
 
-void printHelp()
-{
-    // clang-format off
-    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
-    std::cout << "    robot IP: address of the robot server" << std::endl;
-    std::cout << "    local IP: address of this PC" << std::endl;
-    std::cout << "Optional arguments: [--hold] [--collision]" << std::endl;
-    std::cout << "    --polish: execute a simple polish action along XY plane, "
-                 "otherwise apply a constant force along Z axis"
-              << std::endl
-              << std::endl;
-    // clang-format on
-}
-
 int main(int argc, char* argv[])
 {
-    // Log object for printing message with timestamp and coloring
+    // Program Startup
+    //==============================================================================================
+    // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
-    // Parse Parameters
-    //=============================================================================
+    // Parse parameters
     if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
-
     // IP of the robot server
     std::string robotIP = argv[1];
-
     // IP of the workstation PC running this program
     std::string localIP = argv[2];
 
-    // Whether to enable collision detection
+    // Print description
+    log.info("Tutorial description:");
+    printDescription();
+
+    // Whether to enable polish action
     bool enablePolish = false;
     if (flexiv::utility::programArgsExist(argc, argv, "--polish")) {
         log.info("Robot will execute a polish action along XY plane");
@@ -190,7 +198,7 @@ int main(int argc, char* argv[])
 
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotIP, localIP);
 
@@ -221,23 +229,25 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is in [Auto (remote)] mode");
             }
         }
         log.info("Robot is now operational");
 
-        // IMPORTANT: must calibrate force/torque sensor for accurate force
-        // control
+        // IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
         robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
-        robot.executePrimitive("CaliForceSensor()");
+        robot.executePrimitive("ZeroFTSensor()");
+
+        // WARNING: during the process, the robot must not contact anything, otherwise the result
+        // will be inaccurate and affect following operations
+        log.warn("Zeroing force/torque sensors, make sure nothing is in contact with the robot");
+
         // Wait for primitive completion
-        log.warn("Calibrating force/torque sensors, please don't touch the robot");
         while (robot.isBusy()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.info("Calibration complete");
+        log.info("Sensor zeroing complete");
 
         // Ask to specify reference frame for motion force control, see
         // Robot::streamCartesianMotionForce() for more details
@@ -276,7 +286,7 @@ int main(int argc, char* argv[])
             + flexiv::utility::vec2Str(initPose));
 
         // Periodic Tasks
-        //=============================================================================
+        //==========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(

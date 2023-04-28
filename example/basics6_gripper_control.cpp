@@ -1,6 +1,6 @@
 /**
- * @example gripper_control.cpp
- * Position and force control with grippers supported by Flexiv.
+ * @example basics6_gripper_control.cpp
+ * This tutorial does position and force control (if available) for grippers supported by Flexiv.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -21,7 +21,28 @@ namespace {
 std::atomic<bool> g_isDone = {false};
 }
 
-/** Print gripper states data @ 1Hz */
+/** @brief Print tutorial description */
+void printDescription()
+{
+    std::cout << "This tutorial does position and force control (if available) for grippers "
+                 "supported by Flexiv."
+              << std::endl
+              << std::endl;
+}
+
+/** @brief Print program usage help */
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
+    std::cout << "    robot IP: address of the robot server" << std::endl;
+    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Optional arguments: None" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
+}
+
+/** @brief Print gripper states data @ 1Hz */
 void printGripperStates(flexiv::Gripper& gripper, flexiv::Log& log)
 {
     // Data struct storing gripper states
@@ -39,38 +60,30 @@ void printGripperStates(flexiv::Gripper& gripper, flexiv::Log& log)
     }
 }
 
-void printHelp()
-{
-    // clang-format off
-    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
-    std::cout << "    robot IP: address of the robot server" << std::endl;
-    std::cout << "    local IP: address of this PC" << std::endl;
-    std::cout << "Optional arguments: None" << std::endl;
-    std::cout << std::endl;
-    // clang-format on
-}
-
 int main(int argc, char* argv[])
 {
-    // Log object for printing message with timestamp and coloring
+    // Program Startup
+    //==============================================================================================
+    // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
-    // Parse Parameters
-    //=============================================================================
+    // Parse parameters
     if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
-
     // IP of the robot server
     std::string robotIP = argv[1];
-
     // IP of the workstation PC running this program
     std::string localIP = argv[2];
 
+    // Print description
+    log.info("Tutorial description:");
+    printDescription();
+
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotIP, localIP);
 
@@ -98,28 +111,27 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is in [Auto (remote)] mode");
             }
         }
         log.info("Robot is now operational");
 
-        // Gripper control is not available if the robot is in IDLE mode, so put
-        // robot into some mode other than IDLE
+        // Gripper Control
+        //==========================================================================================
+        // Gripper control is not available if the robot is in IDLE mode, so switch to some mode
+        // other than IDLE
         robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
         robot.executePlan("PLAN-Home");
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
-        // Application-specific Code
-        //=============================================================================
-        // Instantiate gripper
+        // Instantiate gripper control interface
         flexiv::Gripper gripper(robot);
 
         // Thread for printing gripper states
         std::thread printThread(printGripperStates, std::ref(gripper), std::ref(log));
 
-        // Position control test
+        // Position control
         log.info("Closing gripper");
         gripper.move(0.01, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -127,7 +139,7 @@ int main(int argc, char* argv[])
         gripper.move(0.09, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        // Stop test
+        // Stop
         log.info("Closing gripper");
         gripper.move(0.01, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -144,7 +156,7 @@ int main(int argc, char* argv[])
         gripper.stop();
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
-        // Force control test, if available
+        // Force control, if available (sensed force is not zero)
         flexiv::GripperStates gripperStates;
         gripper.getGripperStates(gripperStates);
         if (fabs(gripperStates.force) > std::numeric_limits<double>::epsilon()) {
