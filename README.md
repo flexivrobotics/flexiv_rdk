@@ -31,40 +31,45 @@ The C++ interface of Flexiv RDK is packed into a unified modern CMake library na
 
         sudo apt install build-essential git cmake cmake-qt-gui -y
 
-2. Choose a directory for installing ``flexiv_rdk`` library and all its dependencies, for example ``~/rdk_install``.
+2. Choose a directory for installing ``flexiv_rdk`` library and all its dependencies. For example, a new folder named ``rdk_install`` under the home directory.
 3. In a new Terminal, run the provided script to compile and install all dependencies to the installation directory chosen in step 1:
 
         cd flexiv_rdk/thirdparty
         bash build_and_install_dependencies.sh ~/rdk_install
 
-4. In a new Terminal, use ``cmake-gui`` to configure the top-level ``flexiv_rdk`` CMake project:
+4. In a new Terminal, use CMake to configure ``flexiv_rdk``:
 
         cd flexiv_rdk
         mkdir build && cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
 
-   Note: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` tells CMake the path of the installation directory chosen in step 1.
+   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` is a CMake parameter specifying the path of the chosen installation directory.
+
 5. Compile and install ``flexiv_rdk`` library:
 
         cd flexiv_rdk/build
         cmake --build . --target install --config Release
 
-6. The user project can now find and link to the installed ``flexiv_rdk`` library:
+   NOTE: the installation of ``flexiv_rdk`` library is complete now. The following steps show how to link to the installed library from a user project.
+
+6. To find and link to the installed ``flexiv_rdk`` library from a user project, using the provided example project for instance:
 
         cd flexiv_rdk/example
         mkdir build && cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
         cmake --build . --config Release -j 4
 
-   Note: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` tells user project's CMake where to find the installed ``flexiv_rdk`` library.
+   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` tells user project's CMake where to find the installed ``flexiv_rdk`` library.
+
 7. Assuming the system setup detailed in the Flexiv RDK Manual is done, to run an compiled example program:
 
-        cd flexiv_rdk/example/build
         ./<program_name> [robot_serial_number]
 
-    Note: ``sudo`` is not required unless prompted by the program, for example:
+   For example:
 
         ./display_robot_states Rizon4s-123456
+
+   Note: ``sudo`` is not required unless prompted by the program.
 
 #### Compile and install for Mac
 
