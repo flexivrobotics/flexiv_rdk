@@ -29,10 +29,10 @@ constexpr double k_swingAmp = 0.1;
 /** TCP sine-sweep frequency [Hz] */
 constexpr double k_swingFreq = 0.3;
 
-/** External TCP force threshold for collision detection, value is for demo purpose only [N] */
+/** External TCP force threshold for collision detection, value is only for demo purpose [N] */
 constexpr double k_extForceThreshold = 10.0;
 
-/** External joint torque threshold for collision detection, value is for demo purpose only [Nm] */
+/** External joint torque threshold for collision detection, value is only for demo purpose [Nm] */
 constexpr double k_extTorqueThreshold = 5.0;
 }
 
@@ -162,7 +162,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 
 int main(int argc, char* argv[])
 {
-    // Program Startup
+    // Program Setup
     //==============================================================================================
     // Logger for printing message with timestamp and coloring
     flexiv::Log log;

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-"""NRT_cartesian_motion_force_control.py
+"""intermediate3_non_realtime_cartesian_motion_force_control.py
 
-Non-real-time Cartesian-space unified motion-force control to apply force along
-Z axis of the chosen reference frame, or to execute a simple polish action 
-along XY plane of the chosen reference frame.
+This tutorial runs non-real-time Cartesian-space unified motion-force control to apply force along
+Z axis of the chosen reference frame, or to execute a simple polish action along XY plane of the
+chosen reference frame.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -23,7 +23,7 @@ import flexivrdk
 # fmt: on
 
 # Global constants
-# =============================================================================
+# ==================================================================================================
 # TCP sine-sweep amplitude [m]
 SWING_AMP = 0.1
 
@@ -34,9 +34,21 @@ SWING_FREQ = 0.3
 PRESSING_FORCE = 5.0
 
 
+def print_description():
+    """
+    Print tutorial description.
+
+    """
+    print("This tutorial runs non-real-time Cartesian-space unified motion-force control to "
+          "apply force along Z axis of the chosen reference frame, or to execute a simple "
+          "polish action along XY plane of the chosen reference frame.")
+    print()
+
+
 def main():
-    # Parse Arguments
-    # =============================================================================
+    # Program Setup
+    # ==============================================================================================
+    # Parse arguments
     argparser = argparse.ArgumentParser()
     # Required arguments
     argparser.add_argument("robot_ip", help="IP address of the robot server")
@@ -54,10 +66,13 @@ def main():
     assert (frequency >= 1 and frequency <= 200), "Invalid <frequency> input"
 
     # Define alias
-    # =============================================================================
     robot_states = flexivrdk.RobotStates()
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
+
+    # Print description
+    log.info("Tutorial description:")
+    print_description()
 
     # Print based on arguments
     if args.polish:
@@ -67,7 +82,7 @@ def main():
 
     try:
         # RDK Initialization
-        # =============================================================================
+        # ==========================================================================================
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_ip, args.local_ip)
 
@@ -94,23 +109,26 @@ def main():
             seconds_waited += 1
             if seconds_waited == 10:
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode")
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is in [Auto (remote)] mode")
 
         log.info("Robot is now operational")
 
-        # Application-specific Code
-        # =============================================================================
-        # IMPORTANT: must calibrate force/torque sensor for accurate collision
-        # detection
+        # Non-real-time Cartesian Motion-force Control
+        # ==========================================================================================
+        # IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
         robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
-        robot.executePrimitive("CaliForceSensor()")
+        robot.executePrimitive("ZeroFTSensor()")
+
+        # WARNING: during the process, the robot must not contact anything, otherwise the result
+        # will be inaccurate and affect following operations
+        log.warn(
+            "Zeroing force/torque sensors, make sure nothing is in contact with the robot")
+
         # Wait for primitive completion
-        log.warn("Calibrating force/torque sensors, please don't touch the robot")
         while robot.isBusy():
             time.sleep(1)
-        log.info("Calibration complete")
+        log.info("Sensor zeroing complete")
 
         # Ask to specify reference frame for motion force control, see
         # Robot::streamCartesianMotionForce() for more details

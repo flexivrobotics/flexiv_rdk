@@ -62,7 +62,7 @@ void printGripperStates(flexiv::Gripper& gripper, flexiv::Log& log)
 
 int main(int argc, char* argv[])
 {
-    // Program Startup
+    // Program Setup
     //==============================================================================================
     // Logger for printing message with timestamp and coloring
     flexiv::Log log;

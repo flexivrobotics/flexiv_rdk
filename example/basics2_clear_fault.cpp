@@ -38,7 +38,7 @@ void printHelp()
 
 int main(int argc, char* argv[])
 {
-    // Program Startup
+    // Program Setup
     //==============================================================================================
     // Logger for printing message with timestamp and coloring
     flexiv::Log log;

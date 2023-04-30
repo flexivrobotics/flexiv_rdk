@@ -39,7 +39,7 @@ void printHelp()
 
 int main(int argc, char* argv[])
 {
-    // Program Startup
+    // Program Setup
     //==============================================================================================
     // Logger for printing message with timestamp and coloring
     flexiv::Log log;
@@ -63,9 +63,6 @@ int main(int argc, char* argv[])
         //==========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotIP, localIP);
-
-        // Create data struct for storing robot states
-        flexiv::RobotStates robotStates;
 
         // Enable the robot, make sure the E-stop is released before enabling
         log.info("Enabling robot ...");

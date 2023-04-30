@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-"""NRT_joint_position_control.py
+"""intermediate1_non_realtime_joint_position_control.py
 
-Non-real-time joint position control to hold or sine-sweep all joints.
+This tutorial runs non-real-time joint position control to hold or sine-sweep all robot joints.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -20,9 +20,20 @@ import flexivrdk
 # fmt: on
 
 
+def print_description():
+    """
+    Print tutorial description.
+
+    """
+    print("This tutorial runs non-real-time joint position control to hold or sine-sweep all "
+          "robot joints.")
+    print()
+
+
 def main():
-    # Parse Arguments
-    # =============================================================================
+    # Program Setup
+    # ==============================================================================================
+    # Parse arguments
     argparser = argparse.ArgumentParser()
     # Required arguments
     argparser.add_argument("robot_ip", help="IP address of the robot server")
@@ -40,14 +51,17 @@ def main():
     assert (frequency >= 1 and frequency <= 200), "Invalid <frequency> input"
 
     # Define alias
-    # =============================================================================
     robot_states = flexivrdk.RobotStates()
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
+    # Print description
+    log.info("Tutorial description:")
+    print_description()
+
     try:
         # RDK Initialization
-        # =============================================================================
+        # ==========================================================================================
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_ip, args.local_ip)
 
@@ -74,17 +88,16 @@ def main():
             seconds_waited += 1
             if seconds_waited == 10:
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode")
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is in [Auto (remote)] mode")
 
         log.info("Robot is now operational")
 
+        # Non-real-time Joint Position Control
+        # ==========================================================================================
         # Set mode after robot is operational
         robot.setMode(mode.NRT_JOINT_POSITION)
 
-        # Application-specific Code
-        # =============================================================================
         period = 1.0/frequency
         loop_time = 0
         print("Sending command to robot at", frequency,

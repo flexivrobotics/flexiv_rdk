@@ -22,7 +22,7 @@ namespace {
 /** RT loop period [sec] */
 constexpr double k_loopPeriod = 0.001;
 
-/** Outer position loop (impedance) gains, for demo purpose only */
+/** Outer position loop (impedance) gains, values are only for demo purpose */
 const std::vector<double> k_impedanceKp = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
 const std::vector<double> k_impedanceKd = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
 
@@ -113,7 +113,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 
 int main(int argc, char* argv[])
 {
-    // Program Startup
+    // Program Setup
     //==============================================================================================
     // Logger for printing message with timestamp and coloring
     flexiv::Log log;

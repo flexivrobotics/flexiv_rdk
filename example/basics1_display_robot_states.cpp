@@ -55,7 +55,7 @@ void printRobotStates(flexiv::Robot& robot, flexiv::Log& log)
 
 int main(int argc, char* argv[])
 {
-    // Program Startup
+    // Program Setup
     //==============================================================================================
     // Logger for printing message with timestamp and coloring
     flexiv::Log log;
@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
         }
         log.info("Robot is now operational");
 
-        // Periodic Tasks
+        // Print States
         //==========================================================================================
         // Use std::thread to do scheduling so that this example can run on all OS, since not all OS
         // support flexiv::Scheduler

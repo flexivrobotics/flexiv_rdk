@@ -51,7 +51,7 @@ void printHelp()
 
 int main(int argc, char* argv[])
 {
-    // Program Startup
+    // Program Setup
     //==============================================================================================
     // Logger for printing message with timestamp and coloring
     flexiv::Log log;
@@ -61,12 +61,14 @@ int main(int argc, char* argv[])
         printHelp();
         return 1;
     }
-
     // IP of the robot server
     std::string robotIP = argv[1];
-
     // IP of the workstation PC running this program
     std::string localIP = argv[2];
+
+    // Print description
+    log.info("Tutorial description:");
+    printDescription();
 
     try {
         // RDK Initialization
