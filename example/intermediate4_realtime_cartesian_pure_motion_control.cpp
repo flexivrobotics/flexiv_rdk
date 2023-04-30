@@ -238,8 +238,18 @@ int main(int argc, char* argv[])
         }
         log.info("Robot is now operational");
 
-        // IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
+        // Move robot to home pose
         robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
+        robot.executePrimitive("Home()");
+
+        // Wait for the primitive to finish
+        while (robot.isBusy()) {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+
+        // Real-time Cartesian Motion Control
+        // =========================================================================================
+        // IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
         robot.executePrimitive("ZeroFTSensor()");
 
         // WARNING: during the process, the robot must not contact anything, otherwise the result
@@ -258,13 +268,10 @@ int main(int argc, char* argv[])
         // Set initial TCP pose
         robot.getRobotStates(robotStates);
         auto initTcpPose = robotStates.tcpPose;
-        log.info(
-            "Initial TCP pose set to [position 3x1, rotation (quaternion) "
-            "4x1]: "
-            + flexiv::utility::vec2Str(initTcpPose));
+        log.info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
+                 + flexiv::utility::vec2Str(initTcpPose));
 
-        // Periodic Tasks
-        // =========================================================================================
+        // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(

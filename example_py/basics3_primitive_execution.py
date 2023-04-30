@@ -89,7 +89,7 @@ def main():
 
         # Execute Primitives
         # ==========================================================================================
-        # Switch to the correct mode after robot is operational
+        # Switch to primitive execution mode
         robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
 
         # (1) Go to home pose

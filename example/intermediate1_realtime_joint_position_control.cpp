@@ -168,7 +168,18 @@ int main(int argc, char* argv[])
         }
         log.info("Robot is now operational");
 
-        // Set mode after robot is operational
+        // Move robot to home pose
+        robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
+        robot.executePrimitive("Home()");
+
+        // Wait for the primitive to finish
+        while (robot.isBusy()) {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+
+        // Real-time Joint Position Control
+        // =========================================================================================
+        // Switch to real-time joint position control mode
         robot.setMode(flexiv::Mode::RT_JOINT_POSITION);
 
         // Set initial joint positions
@@ -176,8 +187,7 @@ int main(int argc, char* argv[])
         auto initPos = robotStates.q;
         log.info("Initial joint positions set to: " + flexiv::utility::vec2Str(initPos));
 
-        // Periodic Tasks
-        // =========================================================================================
+        // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(

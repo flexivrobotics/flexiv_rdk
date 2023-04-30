@@ -161,22 +161,20 @@ int main(int argc, char* argv[])
         }
         log.info("Robot is now operational");
 
-        // Set mode after robot is operational
-        robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
+        // Move robot to home pose
+        robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
+        robot.executePrimitive("Home()");
 
-        // Bring robot to home
-        robot.executePlan("PLAN-Home");
-
-        // Wait for the execution to finish
-        do {
+        // Wait for the primitive to finish
+        while (robot.isBusy()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-        } while (robot.isBusy());
+        }
 
+        // Robot Dynamics
+        // =========================================================================================
         // Initialize dynamics engine
         flexiv::Model model(robot);
 
-        // Periodic Tasks
-        // =========================================================================================
         std::thread periodicTaskThread(periodicTask, std::ref(robot), std::ref(model));
         periodicTaskThread.join();
 

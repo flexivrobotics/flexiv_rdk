@@ -87,11 +87,11 @@ def main():
 
         log.info("Robot is now operational")
 
-        # Set mode after robot is operational
-        robot.setMode(mode.NRT_PLAN_EXECUTION)
-
         # Execute Plans
         # ==========================================================================================
+        # Switch to plan execution mode
+        robot.setMode(mode.NRT_PLAN_EXECUTION)
+
         while True:
             # Monitor fault on robot server
             if robot.isFault():

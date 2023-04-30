@@ -114,10 +114,17 @@ def main():
 
         log.info("Robot is now operational")
 
+        # Move robot to home pose
+        robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
+        robot.executePrimitive("Home()")
+
+        # Wait for the primitive to finish
+        while (robot.isBusy()):
+            time.sleep(1)
+
         # Non-real-time Cartesian Motion-force Control
         # ==========================================================================================
         # IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
-        robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
         robot.executePrimitive("ZeroFTSensor()")
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result

@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
 
         // Execute Primitives
         // =========================================================================================
-        // Switch to the correct mode after robot is operational
+        // Switch to primitive execution mode
         robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
 
         // (1) Go to home pose

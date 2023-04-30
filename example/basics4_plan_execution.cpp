@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
 
         // Execute Plans
         // =========================================================================================
-        // Switch to the correct mode after robot is operational
+        // Switch to plan execution mode
         robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
 
         // Plan info data

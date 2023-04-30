@@ -93,9 +93,17 @@ def main():
 
         log.info("Robot is now operational")
 
+        # Move robot to home pose
+        robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
+        robot.executePrimitive("Home()")
+
+        # Wait for the primitive to finish
+        while (robot.isBusy()):
+            time.sleep(1)
+
         # Non-real-time Joint Position Control
         # ==========================================================================================
-        # Set mode after robot is operational
+        # Switch to non-real-time joint position control mode
         robot.setMode(mode.NRT_JOINT_POSITION)
 
         period = 1.0/frequency
