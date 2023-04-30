@@ -40,7 +40,7 @@ void printHelp()
 int main(int argc, char* argv[])
 {
     // Program Setup
-    //==============================================================================================
+    // =============================================================================================
     // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
 
     try {
         // RDK Initialization
-        //==========================================================================================
+        // =========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotIP, localIP);
 
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Run Auto-recovery
-        //==========================================================================================
+        // =========================================================================================
         // If the system is in recovery state, we can't use isOperational to tell if the enabling
         // process is done, so just wait long enough for the process to finish
         std::this_thread::sleep_for(std::chrono::seconds(8));

@@ -39,7 +39,7 @@ void printHelp()
 int main(int argc, char* argv[])
 {
     // Program Setup
-    //==============================================================================================
+    // =============================================================================================
     // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
@@ -59,12 +59,12 @@ int main(int argc, char* argv[])
 
     try {
         // RDK Initialization
-        //==========================================================================================
+        // =========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotIP, localIP);
 
         // Fault Clearing
-        //==========================================================================================
+        // =========================================================================================
         // Check if the robot has fault
         if (robot.isFault()) {
             log.warn("Fault occurred on robot server, trying to clear ...");

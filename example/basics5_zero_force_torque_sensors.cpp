@@ -38,7 +38,7 @@ void printHelp()
 int main(int argc, char* argv[])
 {
     // Program Setup
-    //==============================================================================================
+    // =============================================================================================
     // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
 
     try {
         // RDK Initialization
-        //==========================================================================================
+        // =========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotIP, localIP);
 
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
         log.info("Robot is now operational");
 
         // Zero Sensors
-        //==========================================================================================
+        // =========================================================================================
         // Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
         robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
         robot.executePrimitive("ZeroFTSensor()");

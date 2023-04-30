@@ -107,7 +107,7 @@ int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
 int main(int argc, char* argv[])
 {
     // Program Setup
-    //==============================================================================================
+    // =============================================================================================
     // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
 
     try {
         // RDK Initialization
-        //==========================================================================================
+        // =========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotIP, localIP);
 
@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
         flexiv::Model model(robot);
 
         // Periodic Tasks
-        //==========================================================================================
+        // =========================================================================================
         std::thread periodicTaskThread(periodicTask, std::ref(robot), std::ref(model));
         periodicTaskThread.join();
 

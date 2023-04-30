@@ -63,7 +63,7 @@ void printGripperStates(flexiv::Gripper& gripper, flexiv::Log& log)
 int main(int argc, char* argv[])
 {
     // Program Setup
-    //==============================================================================================
+    // =============================================================================================
     // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
 
     try {
         // RDK Initialization
-        //==========================================================================================
+        // =========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotIP, localIP);
 
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
         log.info("Robot is now operational");
 
         // Gripper Control
-        //==========================================================================================
+        // =========================================================================================
         // Gripper control is not available if the robot is in IDLE mode, so switch to some mode
         // other than IDLE
         robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);

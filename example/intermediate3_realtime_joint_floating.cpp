@@ -85,7 +85,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 int main(int argc, char* argv[])
 {
     // Program Setup
-    //==============================================================================================
+    // =============================================================================================
     // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
 
     try {
         // RDK Initialization
-        //==========================================================================================
+        // =========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotIP, localIP);
 
@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::RT_JOINT_TORQUE);
 
         // Periodic Tasks
-        //==========================================================================================
+        // =========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
