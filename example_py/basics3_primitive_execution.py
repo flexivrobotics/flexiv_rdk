@@ -125,7 +125,7 @@ def main():
         #       Unit: m, deg
         # Optional parameter:
         #   waypoints: waypoints to pass before reaching final target
-        #       [same format as above, but can repeat for number of waypoints]
+        #       (same format as above, but can repeat for number of waypoints)
         #   maxVel: maximum TCP linear velocity
         #       Unit: m/s
         # NOTE: The rotations use Euler ZYX convention, rot_x means Euler ZYX angle around X axis
