@@ -52,8 +52,9 @@ void printHelp()
     std::cout << "    robot IP: address of the robot server" << std::endl;
     std::cout << "    local IP: address of this PC" << std::endl;
     std::cout << "Optional arguments: [--hold] [--collision]" << std::endl;
-    std::cout << "    --polish: execute a simple polish action along XY plane, "
-                 "otherwise apply a constant force along Z axis"
+    std::cout << "    --TCP: use TCP frame as reference frame, otherwise use base frame" << std::endl;
+    std::cout << "    --polish: execute a simple polish action along XY plane, otherwise apply a "
+                 "constant force along Z axis"
               << std::endl
               << std::endl;
     // clang-format on
@@ -187,6 +188,15 @@ int main(int argc, char* argv[])
     log.info("Tutorial description:");
     printDescription();
 
+    // The reference frame to use, see Robot::streamCartesianMotionForce() for more details
+    std::string frameStr = "BASE";
+    if (flexiv::utility::programArgsExist(argc, argv, "--TCP")) {
+        log.info("Reference frame used for motion force control: robot TCP frame");
+        frameStr = "TCP";
+    } else {
+        log.info("Reference frame used for motion force control: robot base frame");
+    }
+
     // Whether to enable polish action
     bool enablePolish = false;
     if (flexiv::utility::programArgsExist(argc, argv, "--polish")) {
@@ -259,35 +269,21 @@ int main(int argc, char* argv[])
         }
         log.info("Sensor zeroing complete");
 
-        // Ask to specify reference frame for motion force control, see
-        // Robot::streamCartesianMotionForce() for more details
-        log.info("Please specify reference frame for motion force control:");
-        std::cout << "[1] Base frame" << std::endl;
-        std::cout << "[2] TCP frame" << std::endl;
-        std::string frameStr = "";
-        int userInput = 0;
-        std::cin >> userInput;
-        if (userInput == 1) {
-            frameStr = "BASE";
-            robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE_BASE);
-        } else if (userInput == 2) {
-            frameStr = "TCP";
-            robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE_TCP);
-        } else {
-            throw flexiv::InputException("Invalid reference frame choice");
-        }
-        log.info("Using reference frame: " + frameStr);
-
-        // Set initial TCP pose according to reference frame
-        std::vector<double> initPose;
+        // Get latest robot states
         robot.getRobotStates(robotStates);
+
+        // Set control mode and initial pose based on reference frame used
+        std::vector<double> initPose;
         if (frameStr == "BASE") {
+            robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE_BASE);
             // If using base frame, directly read from robot states
             initPose = robotStates.tcpPose;
         } else if (frameStr == "TCP") {
-            // If using TCP frame, current TCP is at the reference frame's
-            // origin
+            robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE_TCP);
+            // If using TCP frame, current TCP is at the reference frame's origin
             initPose = {0, 0, 0, 1, 0, 0, 0};
+        } else {
+            throw flexiv::InputException("Invalid reference frame choice");
         }
 
         log.info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
