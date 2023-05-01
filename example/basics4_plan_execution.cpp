@@ -2,8 +2,8 @@
  * @example basics4_plan_execution.cpp
  * This tutorial executes a plan selected by the user from a list of available plans. A plan is a
  * pre-written script to execute a series of robot primitives with pre-defined transition conditions
- * between 2 adjacent primitives. Users can use Flexiv Elements to compose their own project and
- * assign to the robot, a corresponding plan will be generated and appear in the plan list.
+ * between 2 adjacent primitives. Users can use Flexiv Elements to compose their own plan and assign
+ * to the robot, which will appear in the plan list.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -22,8 +22,8 @@ void printDescription()
     std::cout << "This tutorial executes a plan selected by the user from a list of available "
                  "plans. A plan is a pre-written script to execute a series of robot primitives "
                  "with pre-defined transition conditions between 2 adjacent primitives. Users can "
-                 "use Flexiv Elements to compose their own project and assign to the robot, a "
-                 "corresponding plan will be generated and appear in the plan list."
+                 "use Flexiv Elements to compose their own plan and assign to the robot, which "
+                 "will appear in the plan list."
               << std::endl
               << std::endl;
 }

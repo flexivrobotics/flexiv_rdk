@@ -2,8 +2,8 @@
 
 """basics5_zero_force_torque_sensors.py
 
-This tutorial zeros the robot's force and torque sensors, which is an important step before any
-operations that require accurate force/torque measurement.
+This tutorial zeros the robot's force and torque sensors, which is a recommended (but not
+mandatory) step before any operations that require accurate force/torque measurement.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -25,8 +25,9 @@ def print_description():
     Print tutorial description.
 
     """
-    print("This tutorial zeros the robot's force and torque sensors, which is an important "
-          "step before any operations that require accurate force/torque measurement.")
+    print("This tutorial zeros the robot's force and torque sensors, which is a recommended "
+          "(but not mandatory) step before any operations that require accurate "
+          "force/torque measurement.")
     print()
 
 
