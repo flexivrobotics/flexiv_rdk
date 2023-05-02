@@ -95,6 +95,12 @@ int main(int argc, char* argv[])
 
         // Zero Sensors
         // =========================================================================================
+        // Get and print the current TCP force/moment readings
+        flexiv::RobotStates robotStates;
+        robot.getRobotStates(robotStates);
+        log.info("TCP force and moment reading in base frame BEFORE sensor zeroing: "
+                 + flexiv::utility::vec2Str(robotStates.extWrenchInBase) + "[N][Nm]");
+
         // Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
         robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
         robot.executePrimitive("ZeroFTSensor()");
@@ -108,6 +114,11 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         log.info("Sensor zeroing complete");
+
+        // Get and print the current TCP force/moment readings
+        robot.getRobotStates(robotStates);
+        log.info("TCP force and moment reading in base frame AFTER sensor zeroing: "
+                 + flexiv::utility::vec2Str(robotStates.extWrenchInBase) + "[N][Nm]");
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());

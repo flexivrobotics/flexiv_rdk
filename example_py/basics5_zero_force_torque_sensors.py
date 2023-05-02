@@ -11,6 +11,7 @@ __author__ = "Flexiv"
 
 import time
 import argparse
+from utility import list2str
 
 # Import Flexiv RDK Python library
 # fmt: off
@@ -84,6 +85,13 @@ def main():
 
         # Zero Sensors
         # ==========================================================================================
+        # Get and print the current TCP force/moment readings
+        robot_states = flexivrdk.RobotStates()
+        robot.getRobotStates(robot_states)
+        log.info(
+            "TCP force and moment reading in base frame BEFORE sensor zeroing: " +
+            list2str(robot_states.extWrenchInBase) + "[N][Nm]")
+
         # Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
         robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
         robot.executePrimitive("ZeroFTSensor()")
@@ -97,6 +105,12 @@ def main():
         while (robot.isBusy()):
             time.sleep(1)
         log.info("Sensor zeroing complete")
+
+        # Get and print the current TCP force/moment readings
+        robot.getRobotStates(robot_states)
+        log.info(
+            "TCP force and moment reading in base frame AFTER sensor zeroing: " +
+            list2str(robot_states.extWrenchInBase) + "[N][Nm]")
 
     except Exception as e:
         # Print exception error message
