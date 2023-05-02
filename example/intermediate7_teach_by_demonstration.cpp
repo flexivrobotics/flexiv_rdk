@@ -1,7 +1,7 @@
 /**
- * @example teach_by_demonstration.cpp
- * Free-drive the robot and record a series of Cartesian poses, which are then
- * reproduced by the robot.
+ * @example intermediate7_teach_by_demonstration.cpp
+ * This tutorial shows a demo implementation for teach by demonstration: free-drive the robot and
+ * record a series of Cartesian poses, which are then reproduced by the robot.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -27,6 +27,17 @@ std::mutex g_userInputMutex;
 const std::vector<double> k_maxContactWrench = {50.0, 50.0, 50.0, 15.0, 15.0, 15.0};
 }
 
+/** @brief Print tutorial description */
+void printDescription()
+{
+    std::cout
+        << "This tutorial shows a demo implementation for teach by demonstration: free-drive the "
+           "robot and record a series of Cartesian poses, which are then reproduced by the robot."
+        << std::endl
+        << std::endl;
+}
+
+/** @brief Print program usage help */
 void printHelp()
 {
     // clang-format off
@@ -40,25 +51,28 @@ void printHelp()
 
 int main(int argc, char* argv[])
 {
-    // Log object for printing message with timestamp and coloring
+    // Program Setup
+    // =============================================================================================
+    // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
-    // Parse Parameters
-    //=============================================================================
+    // Parse parameters
     if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
-
     // IP of the robot server
     std::string robotIP = argv[1];
-
     // IP of the workstation PC running this program
     std::string localIP = argv[2];
 
+    // Print description
+    log.info("Tutorial description:");
+    printDescription();
+
     try {
         // RDK Initialization
-        //=============================================================================
+        // =========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotIP, localIP);
 
@@ -86,15 +100,14 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is in [Auto (remote)] mode");
             }
         }
         log.info("Robot is now operational");
 
-        // Application-specific Code
-        // =============================================================================
+        // Teach By Demonstration
+        // =========================================================================================
         // Recorded robot poses
         std::vector<std::vector<double>> savedPoses = {};
 
@@ -123,9 +136,7 @@ int main(int argc, char* argv[])
                 robot.executePlan("PLAN-FreeDriveAuto");
 
                 log.info("New teaching process started");
-                log.warn(
-                    "Hold down the enabling button on the motion bar to "
-                    "activate free drive");
+                log.warn("Hold down the enabling button on the motion bar to activate free drive");
             }
             // Save current robot pose
             else if (inputBuffer == "r") {
@@ -155,8 +166,7 @@ int main(int argc, char* argv[])
 
                     std::vector<double> targetPos
                         = {savedPoses[i][0], savedPoses[i][1], savedPoses[i][2]};
-                    // Convert quaternion to Euler ZYX required by
-                    // MoveCompliance primitive
+                    // Convert quaternion to Euler ZYX required by MoveCompliance primitive
                     std::vector<double> targetQuat
                         = {savedPoses[i][3], savedPoses[i][4], savedPoses[i][5], savedPoses[i][6]};
                     auto targetEulerDeg
@@ -177,9 +187,8 @@ int main(int argc, char* argv[])
                 }
 
                 log.info(
-                    "All saved poses are executed, enter 'n' to start a new "
-                    "teaching process, 'r' to record more poses, 'e' to repeat "
-                    "execution");
+                    "All saved poses are executed, enter 'n' to start a new teaching process, 'r' "
+                    "to record more poses, 'e' to repeat execution");
 
                 // Put robot back to free drive
                 robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
