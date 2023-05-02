@@ -14,25 +14,26 @@ endif()
 
 # Minumum example list for all OS
 set(EXAMPLE_LIST
-  auto_recovery
-  clear_fault
-  display_robot_states
-  gripper_control
-  plan_execution
-  primitive_execution
-  teach_by_demonstration
+  basics1_display_robot_states
+  basics2_clear_fault
+  basics3_primitive_execution
+  basics4_plan_execution
+  basics5_zero_force_torque_sensors
+  basics6_gripper_control
+  basics7_auto_recovery
+  intermediate7_teach_by_demonstration
 )
 
 
 # Additional examples for Linux and Mac
 if(CMAKE_HOST_UNIX)
   list(APPEND EXAMPLE_LIST
-    RT_cartesian_pure_motion_control
-    RT_cartesian_motion_force_control
-    RT_joint_floating
-    RT_joint_impedance_control
-    RT_joint_position_control
-    robot_dynamics
+    intermediate1_realtime_joint_position_control
+    intermediate2_realtime_joint_torque_control
+    intermediate3_realtime_joint_floating
+    intermediate4_realtime_cartesian_pure_motion_control
+    intermediate5_realtime_cartesian_motion_force_control
+    intermediate6_robot_dynamics
   )
 endif()
 

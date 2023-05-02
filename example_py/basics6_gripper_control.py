@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
-"""clear_fault.py
+"""basics6_gripper_control.py
 
-Position and force control with grippers supported by Flexiv, while printing 
-gripper states at 1Hz.
+This tutorial does position and force control (if available) for grippers supported by Flexiv.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -24,12 +23,21 @@ import flexivrdk
 g_is_done = False
 
 
+def print_description():
+    """
+    Print tutorial description.
+
+    """
+    print("This tutorial does position and force control (if available) for grippers "
+          "supported by Flexiv.")
+    print()
+
+
 def print_gripper_states(gripper, log):
     """
     Print gripper states data @ 1Hz.
 
     """
-
     # Data struct storing gripper states
     gripper_states = flexivrdk.GripperStates()
 
@@ -47,24 +55,25 @@ def print_gripper_states(gripper, log):
 
 
 def main():
-
-    # Parse Arguments
-    # =============================================================================
+    # Program Setup
+    # ==============================================================================================
+    # Parse arguments
     argparser = argparse.ArgumentParser()
-    argparser.add_argument(
-        'robot_ip', help='IP address of the robot server')
-    argparser.add_argument(
-        'local_ip', help='IP address of this PC')
+    argparser.add_argument('robot_ip', help='IP address of the robot server')
+    argparser.add_argument('local_ip', help='IP address of this PC')
     args = argparser.parse_args()
 
     # Define alias
-    # =============================================================================
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
+    # Print description
+    log.info("Tutorial description:")
+    print_description()
+
     try:
         # RDK Initialization
-        # =============================================================================
+        # ==========================================================================================
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_ip, args.local_ip)
 
@@ -91,25 +100,20 @@ def main():
             seconds_waited += 1
             if seconds_waited == 10:
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode")
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is in [Auto (remote)] mode")
 
         log.info("Robot is now operational")
 
-        # Set mode after robot is operational
+        # Gripper Control
+        # ==========================================================================================
+        # Gripper control is not available if the robot is in IDLE mode, so switch to some mode
+        # other than IDLE
         robot.setMode(mode.NRT_PLAN_EXECUTION)
-
         robot.executePlan("PLAN-Home")
-        # Wait for plan to start
         time.sleep(1)
-        # Wait for plan to finish
-        while robot.isBusy():
-            time.sleep(1)
 
-        # Application-specific Code
-        # =============================================================================
-        # Instantiate gripper
+        # Instantiate gripper control interface
         gripper = flexivrdk.Gripper(robot)
 
         # Thread for printing gripper states
@@ -117,7 +121,7 @@ def main():
             target=print_gripper_states, args=[gripper, log])
         print_thread.start()
 
-        # Position control test
+        # Position control
         log.info("Closing gripper")
         gripper.move(0.01, 0.1, 20)
         time.sleep(2)
@@ -125,7 +129,7 @@ def main():
         gripper.move(0.09, 0.1, 20)
         time.sleep(2)
 
-        # Stop tests
+        # Stop
         log.info("Closing gripper")
         gripper.move(0.01, 0.1, 20)
         time.sleep(0.5)
@@ -142,7 +146,7 @@ def main():
         gripper.stop()
         time.sleep(2)
 
-        # Force control test, if available
+        # Force control, if available (sensed force is not zero)
         gripper_states = flexivrdk.GripperStates()
         gripper.getGripperStates(gripper_states)
         if abs(gripper_states.force) > sys.float_info.epsilon:

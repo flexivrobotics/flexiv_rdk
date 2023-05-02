@@ -1,6 +1,8 @@
 /**
- * @example RT_joint_position_control.cpp
- * Real-time joint position control to hold or sine-sweep all joints.
+ * @example intermediate2_realtime_joint_torque_control.cpp
+ * This tutorial runs real-time joint torque control to hold or sine-sweep all robot joints. An
+ * outer position loop is used to generate joint torque commands. This outer position loop + inner
+ * torque loop together is also known as an impedance controller.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -20,12 +22,40 @@ namespace {
 /** RT loop period [sec] */
 constexpr double k_loopPeriod = 0.001;
 
+/** Outer position loop (impedance) gains, values are only for demo purpose */
+const std::vector<double> k_impedanceKp = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
+const std::vector<double> k_impedanceKd = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
+
 /** Sine-sweep trajectory amplitude and frequency */
 constexpr double k_sineAmp = 0.035;
 constexpr double k_sineFreq = 0.3;
 }
 
-/** Callback function for realtime periodic task */
+/** @brief Print tutorial description */
+void printDescription()
+{
+    std::cout
+        << "This tutorial runs real-time joint torque control to hold or sine-sweep all robot "
+           "joints. An outer position loop is used to generate joint torque commands. This outer "
+           "position loop + inner torque loop together is also known as an impedance controller."
+        << std::endl
+        << std::endl;
+}
+
+/** @brief Print program usage help */
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
+    std::cout << "    robot IP: address of the robot server" << std::endl;
+    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Optional arguments: [--hold]" << std::endl;
+    std::cout << "    --hold: robot holds current joint positions, otherwise do a sine-sweep" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
+}
+
+/** @brief Callback function for realtime periodic task */
 void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
     flexiv::RobotStates& robotStates, const std::string& motionType,
     const std::vector<double>& initPos)
@@ -46,12 +76,10 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
         // Robot degrees of freedom
         size_t robotDOF = robotStates.q.size();
 
-        // Initialize target vectors to hold position
+        // Target joint positions
         std::vector<double> targetPos(robotDOF, 0);
-        std::vector<double> targetVel(robotDOF, 0);
-        std::vector<double> targetAcc(robotDOF, 0);
 
-        // Set target vectors based on motion type
+        // Set target position based on motion type
         if (motionType == "hold") {
             targetPos = initPos;
         } else if (motionType == "sine-sweep") {
@@ -62,12 +90,18 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             }
         } else {
             throw flexiv::InputException(
-                "periodicTask: unknown motion type. Accepted motion types: "
-                "hold, sine-sweep");
+                "periodicTask: unknown motion type. Accepted motion types: hold, sine-sweep");
         }
 
-        // Send target joint position to RDK server
-        robot.streamJointPosition(targetPos, targetVel, targetAcc);
+        // Run impedance control on all joints
+        std::vector<double> targetTorque(robotDOF);
+        for (size_t i = 0; i < robotDOF; ++i) {
+            targetTorque[i] = k_impedanceKp[i] * (targetPos[i] - robotStates.q[i])
+                              - k_impedanceKd[i] * robotStates.dtheta[i];
+        }
+
+        // Send target joint torque to RDK server
+        robot.streamJointTorque(targetTorque, true);
 
         loopCounter++;
 
@@ -77,35 +111,26 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
     }
 }
 
-void printHelp()
-{
-    // clang-format off
-    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
-    std::cout << "    robot IP: address of the robot server" << std::endl;
-    std::cout << "    local IP: address of this PC" << std::endl;
-    std::cout << "Optional arguments: [--hold]" << std::endl;
-    std::cout << "    --hold: robot holds current joint positions, otherwise do a sine-sweep" << std::endl;
-    std::cout << std::endl;
-    // clang-format on
-}
-
 int main(int argc, char* argv[])
 {
-    // Log object for printing message with timestamp and coloring
+    // Program Setup
+    // =============================================================================================
+    // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
-    // Parse Parameters
-    //=============================================================================
+    // Parse parameters
     if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
-
     // IP of the robot server
     std::string robotIP = argv[1];
-
     // IP of the workstation PC running this program
     std::string localIP = argv[2];
+
+    // Print description
+    log.info("Tutorial description:");
+    printDescription();
 
     // Type of motion specified by user
     std::string motionType = "";
@@ -119,7 +144,7 @@ int main(int argc, char* argv[])
 
     try {
         // RDK Initialization
-        //=============================================================================
+        // =========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotIP, localIP);
 
@@ -150,23 +175,33 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is in [Auto (remote)] mode");
             }
         }
         log.info("Robot is now operational");
 
-        // Set mode after robot is operational
-        robot.setMode(flexiv::Mode::RT_JOINT_POSITION);
+        // Move robot to home pose
+        log.info("Moving to home pose");
+        robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
+        robot.executePrimitive("Home()");
+
+        // Wait for the primitive to finish
+        while (robot.isBusy()) {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+
+        // Real-time Joint Torque Control
+        // =========================================================================================
+        // Switch to real-time joint torque control mode
+        robot.setMode(flexiv::Mode::RT_JOINT_TORQUE);
 
         // Set initial joint positions
         robot.getRobotStates(robotStates);
         auto initPos = robotStates.q;
         log.info("Initial joint positions set to: " + flexiv::utility::vec2Str(initPos));
 
-        // Periodic Tasks
-        //=============================================================================
+        // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(

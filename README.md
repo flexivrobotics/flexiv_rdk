@@ -25,52 +25,58 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 The C++ interface of Flexiv RDK is packed into a unified modern CMake library named ``flexiv_rdk``, which can be configured via CMake on all supported OS.
 
+NOTE: if you will only be using Python RDK, you can skip this section and jump to [Python RDK](#python-rdk).
+
 #### Compile and install for Linux
 
-1. In a new Terminal, use ``cmake-gui`` to configure the top-level ``flexiv_rdk`` CMake project:
+1. In a new Terminal, install C++ compiler, Git, and CMake (with GUI) using the package manager:
+
+        sudo apt install build-essential git cmake cmake-qt-gui -y
+
+2. Choose a directory for installing ``flexiv_rdk`` library and all its dependencies. For example, a new folder named ``rdk_install`` under the home directory.
+3. In a new Terminal, use CMake to configure ``flexiv_rdk``:
 
         cd flexiv_rdk
         mkdir build && cd build
-        cmake-gui .. &
+        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
 
-2. *Configure* with default native compiler settings.
-3. Set ``CMAKE_INSTALL_PREFIX`` to a dedicated directory (preferably not a system path) for the ``flexiv_rdk`` library to be installed to. For example ``~/rdk_install``.
-4. *Configure* and *Generate*, then back to the Terminal to compile and install:
+   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` is a CMake parameter specifying the path of the chosen installation directory. Alternatively, this configuration step can also be done through CMake GUI.
+
+4. Compile and install ``flexiv_rdk`` library:
 
         cd flexiv_rdk/build
         cmake --build . --target install --config Release
 
-5. The user project can now find and link to the installed ``flexiv_rdk`` library:
+   NOTE: the installation of ``flexiv_rdk`` library is complete now. The following steps show how to link to the installed library from a user project.
+
+5. To find and link to the installed ``flexiv_rdk`` library from a user project, using the provided example project for instance:
 
         cd flexiv_rdk/example
         mkdir build && cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-        cmake --build . --config Release
+        cmake --build . --config Release -j 4
 
-   Note: ``CMAKE_INSTALL_PREFIX`` is set to the same directory where ``flexiv_rdk`` was installed to.
+   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` tells user project's CMake where to find the installed ``flexiv_rdk`` library.
+
 6. Assuming the system setup detailed in the Flexiv RDK Manual is done, to run an compiled example program:
 
         ./<program_name> [robot_ip] [local_ip] [...]
 
-     Note: ``sudo`` is not required unless prompted by the program.
+   Note: ``sudo`` is not required unless prompted by the program saying "root privilege is required".
 
-#### Compile and install for Mac
+#### Compile and install for macOS
 
 1. In a Terminal, use ``xcode-select`` command to invoke the installation of Xcode Command Line Tools, then follow the prompted window to finish the installation.
-2. Download ``cmake-3.x.x-macos-universal.dmg`` from [CMake download page](https://cmake.org/download/) and install the dmg file. The minimum required version is 3.4.
+2. Download ``cmake-3.x.x-macos-universal.dmg`` from [CMake download page](https://cmake.org/download/) and install the dmg file. The minimum required version is 3.16.3.
 3. When done, start CMake from Launchpad and navigate to Tools -> How to Install For Command Line Use. Then follow the instruction "Or, to install symlinks to '/usr/local/bin', run:" to install ``cmake`` and ``cmake-gui`` command for use in Terminal.
-4. The rest steps are the same as [Compile and install for Linux](#compile-and-install-for-linux).
+4. The rest steps are the same as [Compile and install for Linux](#compile-and-install-for-linux), beginning from step 2.
 
 #### Compile and install for Windows
 
-1. Install any edition of Microsoft Visual Studio with version 2010 or above. Choose the "Desktop development with C++" package during installation.
-2. Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.4. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or PowerShell.
-3. Configure the ``flexiv_rdk`` CMake project using the same steps mentioned in [Compile and install for Linux](#compile-and-install-for-linux).
-4. The rest steps are the same as [Compile and install for Linux](#compile-and-install-for-linux).
-5. To run an compiled example program:
-
-        cd Release
-        <program_name>.exe [robot_ip] [local_ip] [...]
+1. Install Microsoft Visual Studio with version 2015 or above (MSVC 14.0+). Choose the "Desktop development with C++" package during installation.
+2. Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or a bash emulator.
+3. Install a bash emulator. Git Bash that comes with Git (for Windows) installation is recommended.
+4. Within the bash emulator, the rest steps are the same as [Compile and install for Linux](#compile-and-install-for-linux), beginning from step 2.
 
 ### Python RDK
 

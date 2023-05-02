@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-"""display_robot_states.py
+"""basics1_display_robot_states.py
 
-Print received robot states.
+This tutorial does the very first thing: check connection with the robot server and print 
+received robot states.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -20,12 +21,21 @@ import flexivrdk
 # fmt: on
 
 
+def print_description():
+    """
+    Print tutorial description.
+
+    """
+    print("This tutorial does the very first thing: check connection with the robot server "
+          "and print received robot states.")
+    print()
+
+
 def print_robot_states(robot, log):
     """
     Print robot states data @ 1Hz.
 
     """
-
     # Data struct storing robot states
     robot_states = flexivrdk.RobotStates()
 
@@ -57,21 +67,25 @@ def print_robot_states(robot, log):
 
 
 def main():
-    # Parse Arguments
-    # =============================================================================
+    # Program Setup
+    # ==============================================================================================
+    # Parse arguments
     argparser = argparse.ArgumentParser()
     argparser.add_argument('robot_ip', help='IP address of the robot server')
     argparser.add_argument('local_ip', help='IP address of this PC')
     args = argparser.parse_args()
 
     # Define alias
-    # =============================================================================
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
+    # Print description
+    log.info("Tutorial description:")
+    print_description()
+
     try:
         # RDK Initialization
-        # =============================================================================
+        # ==========================================================================================
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_ip, args.local_ip)
 
@@ -98,13 +112,12 @@ def main():
             seconds_waited += 1
             if seconds_waited == 10:
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode")
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is in [Auto (remote)] mode")
 
         log.info("Robot is now operational")
 
-        # Application-specific Code
+        # Print States
         # =============================================================================
         # Thread for printing robot states
         print_thread = threading.Thread(
