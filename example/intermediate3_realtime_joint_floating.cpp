@@ -143,6 +143,7 @@ int main(int argc, char* argv[])
         log.info("Robot is now operational");
 
         // Move robot to home pose
+        log.info("Moving to home pose");
         robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
         robot.executePrimitive("Home()");
 

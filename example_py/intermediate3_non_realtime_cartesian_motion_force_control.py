@@ -126,6 +126,7 @@ def main():
         log.info("Robot is now operational")
 
         # Move robot to home pose
+        log.info("Moving to home pose")
         robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
         robot.executePrimitive("Home()")
 
