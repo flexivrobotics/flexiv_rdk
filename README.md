@@ -40,7 +40,7 @@ NOTE: if you will only be using Python RDK, you can skip this section and jump t
         mkdir build && cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
 
-   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` is a CMake parameter specifying the path of the chosen installation directory.
+   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` is a CMake parameter specifying the path of the chosen installation directory. Alternatively, this configuration step can also be done through CMake GUI.
 
 4. Compile and install ``flexiv_rdk`` library:
 
@@ -56,7 +56,7 @@ NOTE: if you will only be using Python RDK, you can skip this section and jump t
         cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
         cmake --build . --config Release -j 4
 
-   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` tells user project's CMake where to find the installed ``flexiv_rdk`` library.
+   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` tells user project's CMake where to find the installed ``flexiv_rdk`` library. Alternatively, this configuration step can also be done through CMake GUI.
 
 6. Assuming the system setup detailed in the Flexiv RDK Manual is done, to run an compiled example program:
 
