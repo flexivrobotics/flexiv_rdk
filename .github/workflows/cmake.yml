@@ -2,9 +2,9 @@ name: CMake
 
 on:
   push:
-    branches: [main]
+    branches: [main, v1.x]
   pull_request:
-    branches: [main]
+    branches: [main, v1.x]
   workflow_dispatch:
 
 env:
@@ -22,8 +22,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Build and install dependencies
+        # Build and install all dependencies to RDK installation directory.
+        run: |
+          cd ${{github.workspace}}
+          cd thirdparty
+          bash build_and_install_dependencies.sh ~/rdk_install
+
       - name: Build and install library
-        # Configure CMake, then build and install the flexiv_rdk INTERFACE library to an external directory.
+        # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
         run: |
           cd ${{github.workspace}}
           mkdir -p build && cd build
@@ -56,8 +63,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Build and install dependencies
+        # Build and install all dependencies to RDK installation directory.
+        run: |
+          cd ${{github.workspace}}
+          cd thirdparty
+          bash build_and_install_dependencies.sh ~/rdk_install
+
       - name: Build and install library
-        # Configure CMake, then build and install the flexiv_rdk INTERFACE library to an external directory.
+        # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
         run: |
           cd ${{github.workspace}}
           mkdir -p build && cd build
@@ -90,8 +104,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Build and install dependencies
+        # Build and install all dependencies to RDK installation directory.
+        run: |
+          cd ${{github.workspace}}
+          cd thirdparty
+          bash build_and_install_dependencies.sh ~/rdk_install
+
       - name: Build and install library
-        # Configure CMake, then build and install the flexiv_rdk INTERFACE library to an external directory.
+        # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
         run: |
           cd ${{github.workspace}}
           mkdir build && cd build
