@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-"""NRT_cartesian_motion_force_control.py
+"""intermediate3_non_realtime_cartesian_motion_force_control.py
 
-Non-real-time Cartesian-space unified motion-force control to apply force along
-Z axis of the chosen reference frame, or to execute a simple polish action 
-along XY plane of the chosen reference frame.
+This tutorial runs non-real-time Cartesian-space unified motion-force control to apply force along
+Z axis of the chosen reference frame, or to execute a simple polish action along XY plane of the
+chosen reference frame.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -23,7 +23,7 @@ import flexivrdk
 # fmt: on
 
 # Global constants
-# =============================================================================
+# ==================================================================================================
 # TCP sine-sweep amplitude [m]
 SWING_AMP = 0.1
 
@@ -34,16 +34,31 @@ SWING_FREQ = 0.3
 PRESSING_FORCE = 5.0
 
 
+def print_description():
+    """
+    Print tutorial description.
+
+    """
+    print("This tutorial runs non-real-time Cartesian-space unified motion-force control to "
+          "apply force along Z axis of the chosen reference frame, or to execute a simple "
+          "polish action along XY plane of the chosen reference frame.")
+    print()
+
+
 def main():
-    # Parse Arguments
-    # =============================================================================
+    # Program Setup
+    # ==============================================================================================
+    # Parse arguments
     argparser = argparse.ArgumentParser()
     # Required arguments
     argparser.add_argument(
         'robot_sn', help='Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456')
     argparser.add_argument(
-        "frequency", help="command frequency, 1 to 200 [Hz]", type=int)
+        "frequency", help="command frequency, 20 to 200 [Hz]", type=int)
     # Optional arguments
+    argparser.add_argument(
+        "--TCP", action="store_true",
+        help="use TCP frame as reference frame, otherwise use base frame")
     argparser.add_argument(
         "--polish", action="store_true",
         help="execute a simple polish action along XY plane, otherwise apply a constant force along Z axis")
@@ -51,15 +66,26 @@ def main():
 
     # Check if arguments are valid
     frequency = args.frequency
-    assert (frequency >= 1 and frequency <= 200), "Invalid <frequency> input"
+    assert (frequency >= 20 and frequency <= 200), "Invalid <frequency> input"
 
     # Define alias
-    # =============================================================================
     robot_states = flexivrdk.RobotStates()
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
-    # Print based on arguments
+    # Print description
+    log.info("Tutorial description:")
+    print_description()
+
+    # The reference frame to use, see Robot::sendCartesianMotionForce() for more details
+    frame_str = "BASE"
+    if args.TCP:
+        log.info("Reference frame used for motion force control: robot TCP frame")
+        frame_str = "TCP"
+    else:
+        log.info("Reference frame used for motion force control: robot base frame")
+
+    # Whether to enable polish action
     if args.polish:
         log.info("Robot will execute a polish action along XY plane")
     else:
@@ -67,7 +93,7 @@ def main():
 
     try:
         # RDK Initialization
-        # =============================================================================
+        # ==========================================================================================
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_sn)
 
@@ -94,51 +120,50 @@ def main():
             seconds_waited += 1
             if seconds_waited == 10:
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode")
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is in [Auto (remote)] mode")
 
         log.info("Robot is now operational")
 
-        # Application-specific Code
-        # =============================================================================
-        # IMPORTANT: must calibrate force/torque sensor for accurate collision
-        # detection
+        # Move robot to home pose
+        log.info("Moving to home pose")
         robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
-        robot.executePrimitive("CaliForceSensor()")
+        robot.executePrimitive("Home()")
+
+        # Wait for the primitive to finish
+        while (robot.isBusy()):
+            time.sleep(1)
+
+        # Non-real-time Cartesian Motion-force Control
+        # ==========================================================================================
+        # IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
+        robot.executePrimitive("ZeroFTSensor()")
+
+        # WARNING: during the process, the robot must not contact anything, otherwise the result
+        # will be inaccurate and affect following operations
+        log.warn(
+            "Zeroing force/torque sensors, make sure nothing is in contact with the robot")
+
         # Wait for primitive completion
-        log.warn("Calibrating force/torque sensors, please don't touch the robot")
         while robot.isBusy():
             time.sleep(1)
-        log.info("Calibration complete")
+        log.info("Sensor zeroing complete")
 
-        # Ask to specify reference frame for motion force control, see
-        # Robot::streamCartesianMotionForce() for more details
-        log.info("Please specify reference frame for motion force control:")
-        print("[1] Base frame")
-        print("[2] TCP frame")
-        frame_str = ""
-        user_input = int(input())
-        if user_input == 1:
-            frame_str = "BASE"
-            robot.setMode(mode.NRT_CARTESIAN_MOTION_FORCE_BASE)
-        elif user_input == 2:
-            frame_str = "TCP"
-            robot.setMode(mode.NRT_CARTESIAN_MOTION_FORCE_TCP)
-        else:
-            raise Exception("Invalid reference frame choice")
-
-        log.info("Using reference frame: " + frame_str)
-
-        # Set initial TCP pose according to reference frame
-        init_pose = []
+        # Get latest robot states
         robot.getRobotStates(robot_states)
+
+        # Set control mode and initial pose based on reference frame used
+        init_pose = []
         if frame_str == "BASE":
+            robot.setMode(mode.NRT_CARTESIAN_MOTION_FORCE_BASE)
             # If using base frame, directly read from robot states
             init_pose = robot_states.tcpPose.copy()
         elif frame_str == "TCP":
+            robot.setMode(mode.NRT_CARTESIAN_MOTION_FORCE_TCP)
             # If using TCP frame, current TCP is at the reference frame's origin
             init_pose = [0, 0, 0, 1, 0, 0, 0]
+        else:
+            raise Exception("Invalid reference frame choice")
 
         print(
             "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",

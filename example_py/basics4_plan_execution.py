@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
-"""plan_execution.py
+"""basics4_plan_execution.py
 
-Select a plan from a list to execute using RDK's plan execution API.
+This tutorial executes a plan selected by the user from a list of available plans. A plan is a
+pre-written script to execute a series of robot primitives with pre-defined transition conditions
+between 2 adjacent primitives. Users can use Flexiv Elements to compose their own plan and assign
+to the robot, which will appear in the plan list.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -19,23 +22,40 @@ import flexivrdk
 # fmt: on
 
 
+def print_description():
+    """
+    Print tutorial description.
+
+    """
+    print("This tutorial executes a plan selected by the user from a list of available "
+          "plans. A plan is a pre-written script to execute a series of robot primitives "
+          "with pre-defined transition conditions between 2 adjacent primitives. Users can "
+          "use Flexiv Elements to compose their own plan and assign to the robot, which "
+          "will appear in the plan list.")
+    print()
+
+
 def main():
-    # Parse Arguments
-    # =============================================================================
+    # Program Setup
+    # ==============================================================================================
+    # Parse arguments
     argparser = argparse.ArgumentParser()
     argparser.add_argument(
         'robot_sn', help='Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456')
     args = argparser.parse_args()
 
     # Define alias
-    # =============================================================================
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
     plan_info = flexivrdk.PlanInfo()
 
+    # Print description
+    log.info("Tutorial description:")
+    print_description()
+
     try:
         # RDK Initialization
-        # =============================================================================
+        # ==========================================================================================
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_sn)
 
@@ -62,17 +82,16 @@ def main():
             seconds_waited += 1
             if seconds_waited == 10:
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode")
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is in [Auto (remote)] mode")
 
         log.info("Robot is now operational")
 
-        # Set mode after robot is operational
+        # Execute Plans
+        # ==========================================================================================
+        # Switch to plan execution mode
         robot.setMode(mode.NRT_PLAN_EXECUTION)
 
-        # Application-specific Code
-        # =============================================================================
         while True:
             # Monitor fault on robot server
             if robot.isFault():

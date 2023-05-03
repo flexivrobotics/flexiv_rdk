@@ -25,6 +25,8 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 The C++ interface of Flexiv RDK is packed into a unified modern CMake library named ``flexiv_rdk``, which can be configured via CMake on all supported OS.
 
+NOTE: if you will only be using Python RDK, you can skip this section and jump to [Python RDK](#python-rdk).
+
 #### Compile and install for Linux
 
 1. In a new Terminal, install C++ compiler, Git, and CMake (with GUI) using the package manager:
@@ -43,7 +45,7 @@ The C++ interface of Flexiv RDK is packed into a unified modern CMake library na
         mkdir build && cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
 
-   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` is a CMake parameter specifying the path of the chosen installation directory.
+   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` is a CMake parameter specifying the path of the chosen installation directory. Alternatively, this configuration step can also be done through CMake GUI.
 
 5. Compile and install ``flexiv_rdk`` library:
 
@@ -71,7 +73,7 @@ The C++ interface of Flexiv RDK is packed into a unified modern CMake library na
 
    Note: ``sudo`` is not required unless prompted by the program.
 
-#### Compile and install for Mac
+#### Compile and install for macOS
 
 1. In a Terminal, use ``xcode-select`` command to invoke the installation of Xcode Command Line Tools, then follow the prompted window to finish the installation.
 2. Download ``cmake-3.x.x-macos-universal.dmg`` from [CMake download page](https://cmake.org/download/) and install the dmg file. The minimum required version is 3.16.3.
@@ -81,7 +83,7 @@ The C++ interface of Flexiv RDK is packed into a unified modern CMake library na
 #### Compile and install for Windows
 
 1. Install Microsoft Visual Studio with version 2015 or above (MSVC 14.0+). Choose the "Desktop development with C++" package during installation.
-2. Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or PowerShell.
+2. Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or a bash emulator.
 3. Install a bash emulator. Git Bash that comes with Git (for Windows) installation is recommended.
 4. Within the bash emulator, the rest steps are the same as [Compile and install for Linux](#compile-and-install-for-linux), beginning from step 2.
 

@@ -1,6 +1,7 @@
 /**
- * @example display_robot_states.cpp
- * Print received robot states.
+ * @example basics1_display_robot_states.cpp
+ * This tutorial does the very first thing: check connection with the robot server and print
+ * received robot states.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -13,7 +14,28 @@
 #include <iostream>
 #include <thread>
 
-/** Print robot states data @ 1Hz */
+/** @brief Print tutorial description */
+void printDescription()
+{
+    std::cout << "This tutorial does the very first thing: check connection with the robot server "
+                 "and print received robot states."
+              << std::endl
+              << std::endl;
+}
+
+/** @brief Print program usage help */
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: [robot SN]" << std::endl;
+    std::cout << "    robot SN: Serial number of the robot to connect to. "
+                 "Remove any space, for example: Rizon4s-123456" << std::endl;
+    std::cout << "Optional arguments: None" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
+}
+
+/** @brief Print robot states data @ 1Hz */
 void printRobotStates(flexiv::Robot& robot, flexiv::Log& log)
 {
     // Data struct storing robot states
@@ -30,35 +52,28 @@ void printRobotStates(flexiv::Robot& robot, flexiv::Log& log)
     }
 }
 
-void printHelp()
-{
-    // clang-format off
-    std::cout << "Required arguments: [robot SN]" << std::endl;
-    std::cout << "    robot SN: Serial number of the robot to connect to. "
-                 "Remove any space, for example: Rizon4s-123456" << std::endl;
-    std::cout << "Optional arguments: None" << std::endl;
-    std::cout << std::endl;
-    // clang-format on
-}
-
 int main(int argc, char* argv[])
 {
-    // Log object for printing message with timestamp and coloring
+    // Program Setup
+    // =============================================================================================
+    // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
-    // Parse Parameters
-    //==============================================================================================
+    // Parse parameters
     if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
-
     // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
     std::string robotSN = argv[1];
 
+    // Print description
+    log.info("Tutorial description:");
+    printDescription();
+
     try {
         // RDK Initialization
-        //==========================================================================================
+        // =========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
@@ -87,13 +102,13 @@ int main(int argc, char* argv[])
             if (++secondsWaited == 10) {
                 log.warn(
                     "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is booted into Auto mode");
+                    "has no fault, 2) is in [Auto (remote)] mode");
             }
         }
         log.info("Robot is now operational");
 
-        // Periodic Tasks
-        //==========================================================================================
+        // Print States
+        // =========================================================================================
         // Use std::thread to do scheduling so that this example can run on all OS, since not all OS
         // support flexiv::Scheduler
         std::thread lowPriorityThread(std::bind(printRobotStates, std::ref(robot), std::ref(log)));

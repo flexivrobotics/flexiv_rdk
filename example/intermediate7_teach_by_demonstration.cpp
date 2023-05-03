@@ -1,7 +1,7 @@
 /**
- * @example teach_by_demonstration.cpp
- * Free-drive the robot and record a series of Cartesian poses, which are then reproduced by the
- * robot.
+ * @example intermediate7_teach_by_demonstration.cpp
+ * This tutorial shows a demo implementation for teach by demonstration: free-drive the robot and
+ * record a series of Cartesian poses, which are then reproduced by the robot.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -27,6 +27,17 @@ std::mutex g_userInputMutex;
 const std::vector<double> k_maxContactWrench = {50.0, 50.0, 50.0, 15.0, 15.0, 15.0};
 }
 
+/** @brief Print tutorial description */
+void printDescription()
+{
+    std::cout
+        << "This tutorial shows a demo implementation for teach by demonstration: free-drive the "
+           "robot and record a series of Cartesian poses, which are then reproduced by the robot."
+        << std::endl
+        << std::endl;
+}
+
+/** @brief Print program usage help */
 void printHelp()
 {
     // clang-format off
@@ -40,22 +51,26 @@ void printHelp()
 
 int main(int argc, char* argv[])
 {
-    // Log object for printing message with timestamp and coloring
+    // Program Setup
+    // =============================================================================================
+    // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
-    // Parse Parameters
-    //==============================================================================================
+    // Parse parameters
     if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
-
     // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
     std::string robotSN = argv[1];
 
+    // Print description
+    log.info("Tutorial description:");
+    printDescription();
+
     try {
         // RDK Initialization
-        //==========================================================================================
+        // =========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
@@ -84,13 +99,13 @@ int main(int argc, char* argv[])
             if (++secondsWaited == 10) {
                 log.warn(
                     "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is booted into Auto mode");
+                    "has no fault, 2) is in [Auto (remote)] mode");
             }
         }
         log.info("Robot is now operational");
 
-        // Application-specific Code
-        //==========================================================================================
+        // Teach By Demonstration
+        // =========================================================================================
         // Recorded robot poses
         std::vector<std::vector<double>> savedPoses = {};
 
@@ -149,8 +164,7 @@ int main(int argc, char* argv[])
 
                     std::vector<double> targetPos
                         = {savedPoses[i][0], savedPoses[i][1], savedPoses[i][2]};
-                    // Convert quaternion to Euler ZYX required by
-                    // MoveCompliance primitive
+                    // Convert quaternion to Euler ZYX required by MoveCompliance primitive
                     std::vector<double> targetQuat
                         = {savedPoses[i][3], savedPoses[i][4], savedPoses[i][5], savedPoses[i][6]};
                     auto targetEulerDeg

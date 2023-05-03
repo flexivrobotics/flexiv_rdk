@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-"""teach_by_demonstration.py
+"""intermediate4_teach_by_demonstration.py
 
-Free-drive the robot and record a series of Cartesian poses, which are then
-reproduced by the robot.
+This tutorial shows a demo implementation for teach by demonstration: free-drive the robot and
+record a series of Cartesian poses, which are then reproduced by the robot.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -28,22 +28,36 @@ import flexivrdk
 MAX_CONTACT_WRENCH = [50.0, 50.0, 50.0, 15.0, 15.0, 15.0]
 
 
+def print_description():
+    """
+    Print tutorial description.
+
+    """
+    print("This tutorial shows a demo implementation for teach by demonstration: free-drive the "
+          "robot and record a series of Cartesian poses, which are then reproduced by the robot.")
+    print()
+
+
 def main():
-    # Parse Arguments
-    # =============================================================================
+    # Program Setup
+    # ==============================================================================================
+    # Parse arguments
     argparser = argparse.ArgumentParser()
     argparser.add_argument(
         'robot_sn', help='Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456')
     args = argparser.parse_args()
 
     # Define alias
-    # =============================================================================
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
+    # Print description
+    log.info("Tutorial description:")
+    print_description()
+
     try:
         # RDK Initialization
-        # =============================================================================
+        # ==========================================================================================
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_sn)
 
@@ -70,14 +84,13 @@ def main():
             seconds_waited += 1
             if seconds_waited == 10:
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode")
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is in [Auto (remote)] mode")
 
         log.info("Robot is now operational")
 
-        # Application-specific Code
-        # =============================================================================
+        # Teach By Demonstration
+        # ==========================================================================================
         # Recorded robot poses
         saved_poses = []
 
@@ -107,8 +120,7 @@ def main():
 
                 log.info("New teaching process started")
                 log.warn(
-                    "Hold down the enabling button on the motion bar to "
-                    "activate free drive")
+                    "Hold down the enabling button on the motion bar to activate free drive")
             # Save current robot pose
             elif input_buffer == "r":
                 if not robot.isBusy():
@@ -134,8 +146,7 @@ def main():
 
                     target_pos = [
                         saved_poses[i][0], saved_poses[i][1], saved_poses[i][2]]
-                    # Convert quaternion to Euler ZYX required by
-                    # MoveCompliance primitive
+                    # Convert quaternion to Euler ZYX required by MoveCompliance primitive
                     target_quat = [saved_poses[i][3],
                                    saved_poses[i][4], saved_poses[i][5], saved_poses[i][6]]
 

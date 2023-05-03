@@ -1,7 +1,7 @@
 /**
- * @example RT_cartesian_pure_motion_control.cpp
- * Real-time Cartesian-space pure motion control to hold or sine-sweep the robot TCP. A simple
- * collision detection is also included.
+ * @example intermediate4_realtime_cartesian_pure_motion_control.cpp
+ * This tutorial runs real-time Cartesian-space pure motion control to hold or sine-sweep the robot
+ * TCP. A simple collision detection is also included.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -29,14 +29,37 @@ constexpr double k_swingAmp = 0.1;
 /** TCP sine-sweep frequency [Hz] */
 constexpr double k_swingFreq = 0.3;
 
-/** External TCP force threshold for collision detection [N] */
+/** External TCP force threshold for collision detection, value is only for demo purpose [N] */
 constexpr double k_extForceThreshold = 10.0;
 
-/** External joint torque threshold for collision detection [Nm] */
+/** External joint torque threshold for collision detection, value is only for demo purpose [Nm] */
 constexpr double k_extTorqueThreshold = 5.0;
 }
 
-/** Callback function for realtime periodic task */
+/** @brief Print tutorial description */
+void printDescription()
+{
+    std::cout << "This tutorial runs real-time Cartesian-space pure motion control to hold or "
+                 "sine-sweep the robot TCP. A simple collision detection is also included."
+              << std::endl
+              << std::endl;
+}
+
+/** @brief Print program usage help */
+void printHelp()
+{
+    // clang-format off
+    std::cout << "Required arguments: [robot SN]" << std::endl;
+    std::cout << "    robot SN: Serial number of the robot to connect to. "
+                 "Remove any space, for example: Rizon4s-123456" << std::endl;
+    std::cout << "Optional arguments: [--hold] [--collision]" << std::endl;
+    std::cout << "    --hold: robot holds current TCP pose, otherwise do a sine-sweep" << std::endl;
+    std::cout << "    --collision: enable collision detection, robot will stop upon collision" << std::endl;
+    std::cout << std::endl;
+    // clang-format on
+}
+
+/** @brief Callback function for realtime periodic task */
 void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
     flexiv::RobotStates& robotStates, const std::vector<double>& initTcpPose, bool enableHold,
     bool enableCollision)
@@ -137,33 +160,24 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
     }
 }
 
-void printHelp()
-{
-    // clang-format off
-    std::cout << "Required arguments: [robot SN]" << std::endl;
-    std::cout << "    robot SN: Serial number of the robot to connect to. "
-                 "Remove any space, for example: Rizon4s-123456" << std::endl;
-    std::cout << "Optional arguments: [--hold] [--collision]" << std::endl;
-    std::cout << "    --hold: robot holds current TCP pose, otherwise do a sine-sweep" << std::endl;
-    std::cout << "    --collision: enable collision detection, robot will stop upon collision" << std::endl;
-    std::cout << std::endl;
-    // clang-format on
-}
-
 int main(int argc, char* argv[])
 {
-    // Log object for printing message with timestamp and coloring
+    // Program Setup
+    // =============================================================================================
+    // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
-    // Parse Parameters
-    //==============================================================================================
+    // Parse parameters
     if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
-
     // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
     std::string robotSN = argv[1];
+
+    // Print description
+    log.info("Tutorial description:");
+    printDescription();
 
     // Type of motion specified by user
     bool enableHold = false;
@@ -185,7 +199,7 @@ int main(int argc, char* argv[])
 
     try {
         // RDK Initialization
-        //==========================================================================================
+        // =========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
@@ -217,20 +231,35 @@ int main(int argc, char* argv[])
             if (++secondsWaited == 10) {
                 log.warn(
                     "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is booted into Auto mode");
+                    "has no fault, 2) is in [Auto (remote)] mode");
             }
         }
         log.info("Robot is now operational");
 
-        // IMPORTANT: must calibrate force/torque sensor for accurate collision detection
+        // Move robot to home pose
+        log.info("Moving to home pose");
         robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
-        robot.executePrimitive("CaliForceSensor()");
-        // Wait for primitive completion
-        log.warn("Calibrating force/torque sensors, please don't touch the robot");
+        robot.executePrimitive("Home()");
+
+        // Wait for the primitive to finish
         while (robot.isBusy()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.info("Calibration complete");
+
+        // Real-time Cartesian Motion Control
+        // =========================================================================================
+        // IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
+        robot.executePrimitive("ZeroFTSensor()");
+
+        // WARNING: during the process, the robot must not contact anything, otherwise the result
+        // will be inaccurate and affect following operations
+        log.warn("Zeroing force/torque sensors, make sure nothing is in contact with the robot");
+
+        // Wait for primitive completion
+        while (robot.isBusy()) {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+        log.info("Sensor zeroing complete");
 
         // Use robot base frame as reference frame for commands
         robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE_BASE);
@@ -238,13 +267,10 @@ int main(int argc, char* argv[])
         // Set initial TCP pose
         robot.getRobotStates(robotStates);
         auto initTcpPose = robotStates.tcpPose;
-        log.info(
-            "Initial TCP pose set to [position 3x1, rotation (quaternion) "
-            "4x1]: "
-            + flexiv::utility::vec2Str(initTcpPose));
+        log.info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
+                 + flexiv::utility::vec2Str(initTcpPose));
 
-        // Periodic Tasks
-        //==========================================================================================
+        // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(

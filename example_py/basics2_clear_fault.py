@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-"""clear_fault.py
+"""basics2_clear_fault.py
 
-Clear minor fault on the robot server side if any.
+This tutorial clears minor faults from the robot server if any. Note that critical faults cannot
+be cleared, see RDK manual for more details.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -19,27 +20,41 @@ import flexivrdk
 # fmt: on
 
 
+def print_description():
+    """
+    Print tutorial description.
+
+    """
+    print("This tutorial clears minor faults from the robot server if any. Note that "
+          "critical faults cannot be cleared, see RDK manual for more details.")
+    print()
+
+
 def main():
-    # Parse Arguments
-    # =============================================================================
+    # Program Setup
+    # ==============================================================================================
+    # Parse arguments
     argparser = argparse.ArgumentParser()
     argparser.add_argument(
         'robot_sn', help='Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456')
     args = argparser.parse_args()
 
     # Define alias
-    # =============================================================================
     log = flexivrdk.Log()
+
+    # Print description
+    log.info("Tutorial description:")
+    print_description()
 
     try:
         # RDK Initialization
-        # =============================================================================
+        # ==========================================================================================
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_sn)
 
-        # Application-specific Code
-        # =============================================================================
-        # Clear fault on robot server if any
+        # Fault Clearing
+        # ==========================================================================================
+        # Check if the robot has fault
         if robot.isFault():
             log.warn("Fault occurred on robot server, trying to clear ...")
             # Try to clear the fault
