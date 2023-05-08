@@ -1,8 +1,8 @@
 /**
  * @test test_loop_latency.cpp
- * A test to benchmark RDK's loop latency, including communication, computation,
- * etc. The workstation PC's serial port is used as reference, and the robot
- * server's digital out port is used as test target.
+ * A test to benchmark RDK's loop latency, including communication, computation, etc. The
+ * workstation PC's serial port is used as reference, and the robot server's digital out port is
+ * used as test target.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -57,7 +57,9 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             }
             case 1: {
                 // signal robot server's digital out port
-                robot.writeDigitalOutput(0, true);
+                std::vector<bool> digitalOut(16);
+                digitalOut[0] = true;
+                robot.writeDigitalOutput(digitalOut);
 
                 // signal workstation PC's serial port
                 auto n = write(g_fd, "0", 1);
@@ -69,7 +71,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             }
             case 900: {
                 // reset digital out after a few seconds
-                robot.writeDigitalOutput(0, false);
+                std::vector<bool> digitalOut(16);
+                robot.writeDigitalOutput(digitalOut);
                 break;
             }
             default:
@@ -86,9 +89,9 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 void printHelp()
 {
     // clang-format off
-    std::cout << "Required arguments: [robot IP] [local IP] [serial port name]" << std::endl;
-    std::cout << "    robot IP: address of the robot server" << std::endl;
-    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Required arguments: [robot SN] [serial port name]" << std::endl;
+    std::cout << "    robot SN: Serial number of the robot to connect to. "
+                 "Remove any space, for example: Rizon4s-123456" << std::endl;
     std::cout << "    serial port name: /dev/ttyS0 for COM1, /dev/ttyS1 for "
                  "COM2, /dev/ttyUSB0 for USB-serial converter" << std::endl;
     std::cout << "Optional arguments: None" << std::endl;
@@ -103,25 +106,22 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 4 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // IP of the robot server
-    std::string robotIP = argv[1];
-
-    // IP of the workstation PC running this program
-    std::string localIP = argv[2];
+    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
+    std::string robotSN = argv[1];
 
     // serial port name
-    std::string serialPort = argv[3];
+    std::string serialPort = argv[2];
 
     try {
         // RDK Initialization
         //=============================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robotIP, localIP);
+        flexiv::Robot robot(robotSN);
 
         // Clear fault on robot server if any
         if (robot.isFault()) {
@@ -147,9 +147,8 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is booted into Auto mode");
             }
         }
         log.info("Robot is now operational");

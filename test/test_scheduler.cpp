@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse Parameters
-    //=============================================================================
+    //==============================================================================================
     if (flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
 
     try {
         // Periodic Tasks
-        //=============================================================================
+        //==========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(std::bind(highPriorityTask, std::ref(scheduler), std::ref(log)),

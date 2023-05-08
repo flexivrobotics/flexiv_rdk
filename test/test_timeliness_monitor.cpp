@@ -1,10 +1,9 @@
 /**
  * @test test_timeliness_monitor.cpp
- * A test to evaluate RDK's internal timeliness monitor on real-time modes. Bad
- * communication or insufficient real-time performance of the workstation PC
- * will cause the monitor's timeliness check to fail. A warning will be issued
- * first, then if the check has failed too many times, the RDK connection with
- * the server will be closed. During this test, the robot will hold its position
+ * A test to evaluate RDK's internal timeliness monitor on real-time modes. Bad communication or
+ * insufficient real-time performance of the workstation PC will cause the monitor's timeliness
+ * check to fail. A warning will be issued first, then if the check has failed too many times, the
+ * RDK connection with the server will be closed. During this test, the robot will hold its position
  * using joint torque streaming mode.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
@@ -97,9 +96,9 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 void printHelp()
 {
     // clang-format off
-    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
-    std::cout << "    robot IP: address of the robot server" << std::endl;
-    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Required arguments: [robot SN]" << std::endl;
+    std::cout << "    robot SN: Serial number of the robot to connect to. "
+                 "Remove any space, for example: Rizon4s-123456" << std::endl;
     std::cout << "Optional arguments: None" << std::endl;
     std::cout << std::endl;
     // clang-format on
@@ -111,23 +110,20 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse Parameters
-    //=============================================================================
-    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    //==============================================================================================
+    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // IP of the robot server
-    std::string robotIP = argv[1];
-
-    // IP of the workstation PC running this program
-    std::string localIP = argv[2];
+    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
+    std::string robotSN = argv[1];
 
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robotIP, localIP);
+        flexiv::Robot robot(robotSN);
 
         // create data struct for storing robot states
         flexiv::RobotStates robotStates;
@@ -156,9 +152,8 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is booted into Auto mode");
             }
         }
         log.info("Robot is now operational");
@@ -171,7 +166,7 @@ int main(int argc, char* argv[])
             "seconds <<<<<");
 
         // Periodic Tasks
-        //=============================================================================
+        //==========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(scheduler),

@@ -51,17 +51,17 @@ def main():
     # Parse arguments
     argparser = argparse.ArgumentParser()
     # Required arguments
-    argparser.add_argument("robot_ip", help="IP address of the robot server")
-    argparser.add_argument("local_ip", help="IP address of this PC")
     argparser.add_argument(
-        "frequency", help="command frequency, 20 to 200 [Hz]", type=int)
+        'robot_sn', help='Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456')
+    argparser.add_argument(
+        "frequency", help="Command frequency, 20 to 200 [Hz]", type=int)
     # Optional arguments
     argparser.add_argument(
         "--TCP", action="store_true",
-        help="use TCP frame as reference frame, otherwise use base frame")
+        help="Use TCP frame as reference frame, otherwise use base frame")
     argparser.add_argument(
         "--polish", action="store_true",
-        help="execute a simple polish action along XY plane, otherwise apply a constant force along Z axis")
+        help="Execute a simple polish action along XY plane, otherwise apply a constant force along Z axis")
     args = argparser.parse_args()
 
     # Check if arguments are valid
@@ -95,7 +95,7 @@ def main():
         # RDK Initialization
         # ==========================================================================================
         # Instantiate robot interface
-        robot = flexivrdk.Robot(args.robot_ip, args.local_ip)
+        robot = flexivrdk.Robot(args.robot_sn)
 
         # Clear fault on robot server if any
         if robot.isFault():
