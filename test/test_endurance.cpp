@@ -1,8 +1,7 @@
 /**
  * @test test_endurance.cpp
- * Endurance test running Cartesian impedance control to slowly sine-sweep near
- * home for a duration of user-specified hours. Raw data will be logged to CSV
- * files continuously.
+ * Endurance test running Cartesian impedance control to slowly sine-sweep near home for a duration
+ * of user-specified hours. Raw data will be logged to CSV files continuously.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -75,7 +74,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
         robot.getRobotStates(robotStates);
 
         // TCP movement control
-        //=====================================================================
+        //==========================================================================================
         // set initial TCP pose
         if (!isInitPoseSet) {
             // check vector size before saving
@@ -94,8 +93,8 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
             robot.streamCartesianMotionForce(g_currentTcpPose);
         }
 
-        // save data to global buffer, not using mutex to avoid interruption on
-        // RT loop from potential priority inversion
+        // save data to global buffer, not using mutex to avoid interruption on RT loop from
+        // potential priority inversion
         g_logData.tcpPose = robotStates.tcpPose;
         g_logData.tcpForce = robotStates.extWrenchInBase;
 
@@ -134,7 +133,7 @@ void lowPriorityTask()
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
         // Data logging
-        //=====================================================================
+        //==========================================================================================
         // close existing log file and create a new one periodically
         if (lpLoopCounter % k_logDurationLoopCounts == 0) {
             // close file if exist
@@ -158,8 +157,8 @@ void lowPriorityTask()
             }
         }
 
-        // log data to file in CSV format, avoid logging too much data otherwise
-        // the RT loop will not hold
+        // log data to file in CSV format, avoid logging too much data otherwise the RT loop will
+        // not hold
         if (csvFile.is_open()) {
             // loop counter x1, TCP pose x7, TCP external force x6
             csvFile << lpLoopCounter << ",";
@@ -198,9 +197,9 @@ void lowPriorityTask()
 void printHelp()
 {
     // clang-format off
-    std::cout << "Required arguments: [robot IP] [local IP] [test hours]" << std::endl;
-    std::cout << "    robot IP: address of the robot server" << std::endl;
-    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Required arguments: [robot SN] [test hours]" << std::endl;
+    std::cout << "    robot SN: Serial number of the robot to connect to. "
+                 "Remove any space, for example: Rizon4s-123456" << std::endl;
     std::cout << "    test hours: duration of the test, can have decimals" << std::endl;
     std::cout << "Optional arguments: None" << std::endl;
     std::cout << std::endl;
@@ -213,20 +212,17 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse Parameters
-    //=============================================================================
-    if (argc < 4 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    //==============================================================================================
+    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // IP of the robot server
-    std::string robotIP = argv[1];
-
-    // IP of the workstation PC running this program
-    std::string localIP = argv[2];
+    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
+    std::string robotSN = argv[1];
 
     // test duration in hours
-    double testHours = std::stof(argv[3]);
+    double testHours = std::stof(argv[2]);
     // convert duration in hours to loop counts
     g_testDurationLoopCounts = (uint64_t)(testHours * 3600.0 * 1000.0);
     log.info("Test duration: " + std::to_string(testHours)
@@ -234,9 +230,9 @@ int main(int argc, char* argv[])
 
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robotIP, localIP);
+        flexiv::Robot robot(robotSN);
 
         // create data struct for storing robot states
         flexiv::RobotStates robotStates;
@@ -265,15 +261,14 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is booted into Auto mode");
             }
         }
         log.info("Robot is now operational");
 
         // Bring Robot To Home
-        //=============================================================================
+        //==========================================================================================
         // set mode after robot is operational
         robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
 
@@ -288,7 +283,7 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE_BASE);
 
         // Periodic Tasks
-        //=============================================================================
+        //==========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(std::bind(highPriorityTask, std::ref(robot), std::ref(scheduler),

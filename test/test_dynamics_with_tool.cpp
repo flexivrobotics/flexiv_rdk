@@ -47,8 +47,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
         // Monitor fault on robot server
         if (robot.isFault()) {
             throw flexiv::ServerException(
-                "highPriorityTask: Fault occurred on robot server, exiting "
-                "...");
+                "highPriorityTask: Fault occurred on robot server, exiting ...");
         }
 
         // Read robot states
@@ -108,14 +107,14 @@ void lowPriorityTask()
     auto deltaG = G - g_groundTruth.G;
 
     std::cout << std::fixed << std::setprecision(5);
-    std::cout << "Difference of M between ground truth (MATLAB) and "
-                 "integrated dynamics engine after setTool() = "
+    std::cout << "Difference of M between ground truth (MATLAB) and integrated dynamics engine "
+                 "after setTool() = "
               << std::endl
               << deltaM << std::endl;
     std::cout << "Norm of delta M: " << deltaM.norm() << '\n' << std::endl;
 
-    std::cout << "Difference of G between ground truth (MATLAB) and "
-                 "integrated dynamics engine after setTool() = "
+    std::cout << "Difference of G between ground truth (MATLAB) and integrated dynamics engine "
+                 "after setTool() = "
               << std::endl
               << deltaG.transpose() << std::endl;
     std::cout << "Norm of delta G: " << deltaG.norm() << '\n' << std::endl;
@@ -124,9 +123,9 @@ void lowPriorityTask()
 void printHelp()
 {
     // clang-format off
-    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
-    std::cout << "    robot IP: address of the robot server" << std::endl;
-    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Required arguments: [robot SN]" << std::endl;
+    std::cout << "    robot SN: Serial number of the robot to connect to. "
+                 "Remove any space, for example: Rizon4s-123456" << std::endl;
     std::cout << "Optional arguments: None" << std::endl;
     std::cout << std::endl;
     // clang-format on
@@ -138,23 +137,20 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse Parameters
-    //=============================================================================
-    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    //==============================================================================================
+    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
 
-    // IP of the robot server
-    std::string robotIP = argv[1];
-
-    // IP of the workstation PC running this program
-    std::string localIP = argv[2];
+    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
+    std::string robotSN = argv[1];
 
     try {
         // RDK Initialization
-        //=============================================================================
+        //==========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robotIP, localIP);
+        flexiv::Robot robot(robotSN);
 
         // create data struct for storing robot states
         flexiv::RobotStates robotStates;
@@ -183,9 +179,8 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
             if (++secondsWaited == 10) {
                 log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
+                    "Still waiting for robot to become operational, please check that the robot 1) "
+                    "has no fault, 2) is booted into Auto mode");
             }
         }
         log.info("Robot is now operational");
@@ -194,7 +189,7 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
 
         // Bring Robot To Home
-        //=============================================================================
+        //==========================================================================================
         robot.executePlan("PLAN-Home");
 
         // wait for the execution to finish
@@ -206,11 +201,11 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::IDLE);
 
         // Robot Model (Dynamics Engine) Initialization
-        //=============================================================================
+        //==========================================================================================
         flexiv::Model model(robot);
 
         // Set Tool
-        //=============================================================================
+        //==========================================================================================
         // artificial tool parameters for verification
         double mass = 0.9;
         // com is relative to tcp frame
@@ -225,7 +220,7 @@ int main(int argc, char* argv[])
         std::cout << "inertia = " << inertia << std::endl;
 
         // Hard-coded Dynamics Ground Truth from MATLAB
-        //=============================================================================
+        //==========================================================================================
         // clang-format off
         g_groundTruth.M << 
         2.916316686749461, -0.052869517013466,  1.903540434220357, -0.124348845003517, -0.041914639740668,  0.027649255000000, -0.001464000000000,
@@ -242,7 +237,7 @@ int main(int argc, char* argv[])
         // clang-format on
 
         // Periodic Tasks
-        //=============================================================================
+        //==========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(std::bind(highPriorityTask, std::ref(robot), std::ref(scheduler),

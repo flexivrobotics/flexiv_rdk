@@ -34,7 +34,12 @@ NOTE: if you will only be using Python RDK, you can skip this section and jump t
         sudo apt install build-essential git cmake cmake-qt-gui -y
 
 2. Choose a directory for installing ``flexiv_rdk`` library and all its dependencies. For example, a new folder named ``rdk_install`` under the home directory.
-3. In a new Terminal, use CMake to configure ``flexiv_rdk``:
+3. In a new Terminal, run the provided script to compile and install all dependencies to the installation directory chosen in step 1:
+
+        cd flexiv_rdk/thirdparty
+        bash build_and_install_dependencies.sh ~/rdk_install
+
+4. In a new Terminal, use CMake to configure ``flexiv_rdk``:
 
         cd flexiv_rdk
         mkdir build && cd build
@@ -42,14 +47,14 @@ NOTE: if you will only be using Python RDK, you can skip this section and jump t
 
    NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` is a CMake parameter specifying the path of the chosen installation directory. Alternatively, this configuration step can also be done through CMake GUI.
 
-4. Compile and install ``flexiv_rdk`` library:
+5. Compile and install ``flexiv_rdk`` library:
 
         cd flexiv_rdk/build
         cmake --build . --target install --config Release
 
    NOTE: the installation of ``flexiv_rdk`` library is complete now. The following steps show how to link to the installed library from a user project.
 
-5. To find and link to the installed ``flexiv_rdk`` library from a user project, using the provided example project for instance:
+6. To find and link to the installed ``flexiv_rdk`` library from a user project, using the provided example project for instance:
 
         cd flexiv_rdk/example
         mkdir build && cd build
@@ -58,11 +63,15 @@ NOTE: if you will only be using Python RDK, you can skip this section and jump t
 
    NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` tells user project's CMake where to find the installed ``flexiv_rdk`` library.
 
-6. Assuming the system setup detailed in the Flexiv RDK Manual is done, to run an compiled example program:
+7. Assuming the system setup detailed in the Flexiv RDK Manual is done, to run an compiled example program:
 
-        ./<program_name> [robot_ip] [local_ip] [...]
+        ./<program_name> [robot_serial_number]
 
-   Note: ``sudo`` is not required unless prompted by the program saying "root privilege is required".
+   For example:
+
+        ./display_robot_states Rizon4s-123456
+
+   Note: ``sudo`` is not required unless prompted by the program.
 
 #### Compile and install for macOS
 
@@ -89,4 +98,4 @@ Python 3.8 and 3.10 are supported by RDK, see Flexiv RDK Manual for more details
 2. Assume the system setup detailed in Flexiv RDK Manual is done, to run an example Python program:
 
         cd flexiv_rdk/example_py
-        python3 <program_name>.py [robot_ip] [local_ip] [...]
+        python3 <program_name>.py [robot_serial_number]

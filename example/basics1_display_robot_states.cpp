@@ -27,9 +27,9 @@ void printDescription()
 void printHelp()
 {
     // clang-format off
-    std::cout << "Required arguments: [robot IP] [local IP]" << std::endl;
-    std::cout << "    robot IP: address of the robot server" << std::endl;
-    std::cout << "    local IP: address of this PC" << std::endl;
+    std::cout << "Required arguments: [robot SN]" << std::endl;
+    std::cout << "    robot SN: Serial number of the robot to connect to. "
+                 "Remove any space, for example: Rizon4s-123456" << std::endl;
     std::cout << "Optional arguments: None" << std::endl;
     std::cout << std::endl;
     // clang-format on
@@ -45,8 +45,7 @@ void printRobotStates(flexiv::Robot& robot, flexiv::Log& log)
         // Get the latest robot states
         robot.getRobotStates(robotStates);
 
-        // Print all robot states in JSON format using the built-in ostream
-        // operator overloading
+        // Print all robot states in JSON format using the built-in ostream operator overloading
         log.info("Current robot states:");
         std::cout << robotStates << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -61,14 +60,12 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse parameters
-    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
         printHelp();
         return 1;
     }
-    // IP of the robot server
-    std::string robotIP = argv[1];
-    // IP of the workstation PC running this program
-    std::string localIP = argv[2];
+    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
+    std::string robotSN = argv[1];
 
     // Print description
     log.info("Tutorial description:");
@@ -78,7 +75,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robotIP, localIP);
+        flexiv::Robot robot(robotSN);
 
         // Clear fault on robot server if any
         if (robot.isFault()) {

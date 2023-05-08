@@ -59,8 +59,8 @@ def main():
     # ==============================================================================================
     # Parse arguments
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('robot_ip', help='IP address of the robot server')
-    argparser.add_argument('local_ip', help='IP address of this PC')
+    argparser.add_argument(
+        'robot_sn', help='Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456')
     args = argparser.parse_args()
 
     # Define alias
@@ -75,7 +75,7 @@ def main():
         # RDK Initialization
         # ==========================================================================================
         # Instantiate robot interface
-        robot = flexivrdk.Robot(args.robot_ip, args.local_ip)
+        robot = flexivrdk.Robot(args.robot_sn)
 
         # Clear fault on robot server if any
         if robot.isFault():
