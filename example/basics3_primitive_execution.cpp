@@ -7,7 +7,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Utility.hpp>
 
@@ -174,7 +173,7 @@ int main(int argc, char* argv[])
         // All done, stop robot and put into IDLE mode
         robot.stop();
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }

@@ -7,7 +7,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Utility.hpp>
 
@@ -118,7 +117,7 @@ int main(int argc, char* argv[])
         log.info("TCP force and moment reading in base frame AFTER sensor zeroing: "
                  + flexiv::utility::vec2Str(robotStates.extWrenchInBase) + "[N][Nm]");
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }

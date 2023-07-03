@@ -6,7 +6,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Model.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Scheduler.hpp>
@@ -75,7 +74,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
             g_data.G = G;
         }
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         scheduler.stop();
     }
@@ -248,7 +247,7 @@ int main(int argc, char* argv[])
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }

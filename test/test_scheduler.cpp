@@ -7,7 +7,6 @@
 
 #include <flexiv/Log.hpp>
 #include <flexiv/Scheduler.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Utility.hpp>
 
 #include <iostream>
@@ -59,7 +58,7 @@ void highPriorityTask(flexiv::Scheduler& scheduler, flexiv::Log& log)
         // Mark loop interval start point
         tic = std::chrono::high_resolution_clock::now();
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         scheduler.stop();
     }
@@ -127,7 +126,7 @@ int main(int argc, char* argv[])
         std::this_thread::sleep_for(std::chrono::seconds(2));
         scheduler.start();
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }

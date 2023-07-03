@@ -7,7 +7,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Scheduler.hpp>
 #include <flexiv/Utility.hpp>
@@ -101,7 +100,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
         // increment loop counter
         g_hpLoopCounter++;
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         scheduler.stop();
     }
@@ -298,7 +297,7 @@ int main(int argc, char* argv[])
         // lowPriorityThread is responsible to release blocking
         lowPriorityThread.join();
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }
