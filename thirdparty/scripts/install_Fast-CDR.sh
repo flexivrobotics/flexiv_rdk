@@ -2,8 +2,9 @@
 set -e
 echo "Installing Fast-CDR"
 
-# Get install directory as script argument
+# Get install directory and number of parallel build jobs as script arguments
 INSTALL_DIR=$1
+NUM_JOBS=$2
 
 # Clone source code
 if [ ! -d Fast-CDR ] ; then
@@ -26,6 +27,6 @@ cmake .. -DCMAKE_BUILD_TYPE=Release \
          -DCOMPILE_EXAMPLES=OFF
 
 # Build and install
-cmake --build . --target install --config Release -j 4
+cmake --build . --target install --config Release -j $NUM_JOBS
 
 echo "Installed Fast-CDR"
