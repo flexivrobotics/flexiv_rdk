@@ -505,13 +505,18 @@ public:
 
     //======================================== IO CONTROL ========================================
     /**
-     * @brief Set digital output on the control box.
-     * @param[in] digitalOut A boolean vector whose index corresponds to the digital output port
-     * index. True: set port high, false: set port low.
-     * @throw InputException if size of input vector exceeds maximum number of physical output
-     * ports.
+     * @brief [Blocking] Write specified digital output ports on the control box.
+     * @param[in] portIdx Index of port(s) to write, can be a single port or multiple ports.
+     * E.g. {0, 5, 7, 15} or {1, 3, 10} or {8}. Valid range of the index number is [0–15].
+     * @param[in] values Corresponding values to write to the specified ports. True: set port high,
+     * false: set port low. Vector size must match the size of portIdx.
+     * @throw std::invalid_argument if any index number in portIdx is not within [0–15].
+     * @throw std::length_error if the two input vectors have different sizes.
+     * @throw std::runtime_error failed to execute the request.
+     * @warning This function blocks until the request is successfully delivered to the robot.
      */
-    void writeDigitalOutput(const std::vector<bool>& digitalOut);
+    void writeDigitalOutput(
+        const std::vector<unsigned int>& portIdx, const std::vector<bool>& values);
 
     /**
      * @brief Read digital input on the control box.
