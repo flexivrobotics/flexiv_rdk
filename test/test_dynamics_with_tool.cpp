@@ -45,7 +45,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
     try {
         // Monitor fault on robot server
         if (robot.isFault()) {
-            throw flexiv::ServerException(
+            throw std::runtime_error(
                 "highPriorityTask: Fault occurred on robot server, exiting ...");
         }
 

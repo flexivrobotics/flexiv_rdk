@@ -45,8 +45,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
     try {
         // Monitor fault on robot server
         if (robot.isFault()) {
-            throw flexiv::ServerException(
-                "periodicTask: Fault occurred on robot server, exiting ...");
+            throw std::runtime_error("periodicTask: Fault occurred on robot server, exiting ...");
         }
 
         // Read robot states

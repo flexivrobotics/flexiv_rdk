@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
         while (true) {
             // Monitor fault on robot server
             if (robot.isFault()) {
-                throw flexiv::ServerException("Fault occurred on robot server, exiting ...");
+                throw std::runtime_error("Fault occurred on robot server, exiting ...");
             }
 
             // Get user input

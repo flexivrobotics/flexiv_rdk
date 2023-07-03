@@ -55,9 +55,8 @@ int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
 
             // Monitor fault on robot server
             if (robot.isFault()) {
-                throw flexiv::ServerException(
-                    "periodicTask: Fault occurred on robot server, exiting "
-                    "...");
+                throw std::runtime_error(
+                    "periodicTask: Fault occurred on robot server, exiting ...");
             }
 
             // Mark timer start point

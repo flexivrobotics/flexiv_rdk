@@ -71,10 +71,10 @@ int main(int argc, char* argv[])
         // process is done, so just wait long enough for the process to finish
         std::this_thread::sleep_for(std::chrono::seconds(8));
 
-        // Start auto recovery if the system is in recovery state, the involved joints will start to
-        // move back into allowed position range
+        // Run automatic recovery if the system is in recovery state, the involved joints will start
+        // to move back into allowed position range
         if (robot.isRecoveryState()) {
-            robot.startAutoRecovery();
+            robot.runAutoRecovery();
             // Block forever, must reboot the robot and restart user program after recovery is done
             while (true) {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
