@@ -124,7 +124,9 @@ public:
      * @throw std::logic_error if robot is in an unknown control mode or is not operational.
      * @throw std::runtime_error if failed to transit the robot into the specified control mode
      * after several attempts.
-     * @warning This method will block until the robot has successfully transited into the specified
+     * @warning If the robot is still moving when this function is called, it will automatically
+     * stop then make the mode transition.
+     * @warning This function blocks until the robot has successfully transited into the specified
      * control mode.
      */
     void setMode(Mode mode);
