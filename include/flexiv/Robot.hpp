@@ -519,11 +519,11 @@ public:
         const std::vector<unsigned int>& portIdx, const std::vector<bool>& values);
 
     /**
-     * @brief Read digital input on the control box.
-     * @param[out] digitalIn A boolean vector whose index corresponds to the digital input port
-     * index. True: port high, false: port low.
+     * @brief [Non-blocking] Read all digital input ports on the control box.
+     * @return Digital input readings array whose index corresponds to the digital input port index.
+     * True: port high, false: port low.
      */
-    void readDigitalInput(std::vector<bool>& digitalIn);
+    std::array<bool, k_IOPorts> readDigitalInput(void);
 
 private:
     class Impl;
