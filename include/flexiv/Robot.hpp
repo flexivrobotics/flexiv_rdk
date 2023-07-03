@@ -428,22 +428,28 @@ public:
         double maxAngularVel = 0.0);
 
     /**
-     * @brief Set motion stiffness for the Cartesian motion-force control modes.
+     * @brief [Non-blocking] Set motion stiffness for the Cartesian motion-force control modes.
      * @param[in] stiffness Desired Cartesian motion stiffness: \f$ K_d \in \mathbb{R}^{6 \times 1}
-     * \f$. Calling with default parameter (all zeros) will reset to the robot's nominal stiffness.
-     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and \f$ \mathbb{R}^{3 \times 1}
-     * \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry}, k_{Rz}]^T \f$. Unit: \f$
+     * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and \f$ \mathbb{R}^{3
+     * \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry}, k_{Rz}]^T \f$. Unit: \f$
      * [N/m]~[Nm/rad] \f$.
      * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
      * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
-     * @throw InputException if input is invalid.
-     * @throw LogicException if robot is not in the correct control mode.
+     * @throw std::invalid_argument if input is invalid.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @warning The robot will automatically reset to its nominal stiffness upon re-entering the
+     * below applicable control modes.
      */
-    void setCartesianStiffness(const std::vector<double>& stiffness = std::vector<double>(6));
+    void setCartesianStiffness(const std::array<double, k_cartDOF>& stiffness);
 
     /**
-     * @brief Set preferred joint positions for the null-space posture control module used in the
-     * Cartesian motion-force control modes.
+     * @brief [Non-blocking] Reset motion stiffness for the Cartesian motion-force control modes to
+     * nominal value.
+     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
+     * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
+     */
+    void resetCartesianStiffness(void);
+
      * @param[in] preferredPositions Preferred joint positions for the null-space posture control:
      * \f$ q_{ns} \in \mathbb{R}^{DOF \times 1} \f$. Calling with default parameter (all zeros) will
      * reset to the robot's nominal preferred joint positions, which is the home posture. Unit: \f$
