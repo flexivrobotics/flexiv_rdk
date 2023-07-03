@@ -475,24 +475,33 @@ public:
      */
     void resetMaxContactWrench(void);
 
+    /**
+     * @brief [Non-blocking] Set preferred joint positions for the null-space posture control module
+     * used in the Cartesian motion-force control modes.
      * @param[in] preferredPositions Preferred joint positions for the null-space posture control:
-     * \f$ q_{ns} \in \mathbb{R}^{DOF \times 1} \f$. Calling with default parameter (all zeros) will
-     * reset to the robot's nominal preferred joint positions, which is the home posture. Unit: \f$
-     * [rad] \f$.
+     * \f$ q_{ns} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad] \f$.
      * @par Null-space posture control
-     * Similar to human arm, a robotic arm with redundant degree(s) of freedom (DOF > 6) can change
-     * its overall posture without affecting the ongoing primary task. This is achieved through a
-     * technique called "null-space control". After the preferred joint positions for a desired
-     * robot posture is set using this method, the robot's null-space control module will try to
-     * pull the arm as close to this posture as possible without affecting the primary Cartesian
-     * motion-force control task.
+     * Similar to human arm, a robotic arm with redundant joint-space degree(s) of freedom (DOF > 6)
+     * can change its overall posture without affecting the ongoing primary task. This is achieved
+     * through a technique called "null-space control". After the preferred joint positions for a
+     * desired robot posture is set using this function, the robot's null-space control module will
+     * try to pull the arm as close to this posture as possible without affecting the primary
+     * Cartesian motion-force control task.
      * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
      * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
-     * @throw InputException if input is invalid.
-     * @throw LogicException if robot is not in the correct control mode.
+     * @throw std::invalid_argument if input is invalid.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @warning The robot will automatically reset to its nominal preferred joint positions upon
+     * re-entering the below applicable control modes.
      */
-    void setNullSpacePosture(
-        const std::vector<double>& preferredPositions = std::vector<double>(7));
+    void setNullSpacePosture(const std::array<double, k_jointDOF>& preferredPositions);
+
+    /**
+     * @brief [Non-blocking] Reset preferred joint positions to the robot's home posture.
+     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
+     * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
+     */
+    void resetNullSpacePosture(void);
 
     //======================================== IO CONTROL ========================================
     /**
