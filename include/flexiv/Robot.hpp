@@ -201,25 +201,23 @@ public:
     void getPlanInfo(PlanInfo& output);
 
     /**
-     * @brief Execute a primitive by specifying its name and parameters, which can be found in the
-     * [Flexiv Primitives documentation](https://www.flexiv.com/primitives/).
+     * @brief [Blocking] Execute a primitive by specifying its name and parameters, which can be
+     * found in the [Flexiv Primitives documentation](https://www.flexiv.com/primitives/).
      * @param[in] ptCmd Primitive command with the following string format:
      * "primitiveName(inputParam1=xxx, inputParam2=xxx, ...)".
      * @param[in] velocityScale Percentage scale to adjust robot motion velocity, from 0 to 100.
      * 100 means to move with 100% of configured motion velocity, and 0 means not moving at all.
      * @note Applicable control mode: NRT_PRIMITIVE_EXECUTION.
-     * @throw InputException if size of the input string is greater than 5kb.
-     * @throw LogicException if robot is not in the correct control mode.
-     * @throw CommException if failed to send request to server.
-     * @note A primitive won't terminate itself upon finish, thus isBusy() cannot be used to check
-     * if a primitive task is finished, use primitive states like "reachedTarget" instead.
+     * @throw std::length_error if size of ptCmd exceeds the limit (10 Kb).
+     * @throw std::invalid_argument if velocityScale is invalid.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to execute the request.
      * @warning The primitive input parameters may not use SI units, please refer to the Flexiv
      * Primitives documentation for exact unit definition.
      * @warning Some primitives may not terminate automatically and require users to manually
      * terminate them based on specific primitive states, for example, most [Move] primitives. In
      * such case, isBusy() will stay true even if it seems everything is done for that primitive.
-     * @warning This method will block for 50 ms for the request to be transmitted and fully
-     * processed by the robot server.
+     * @warning This function blocks until the request is successfully delivered to the robot.
      */
     void executePrimitive(const std::string& ptCmd, unsigned int velocityScale = 100);
 
