@@ -32,7 +32,7 @@ const double k_swingAmp = 0.1;
 const double k_swingFreq = 0.025; // = 10mm/s linear velocity
 
 // current Cartesian-space pose (position + rotation) of robot TCP
-std::vector<double> g_currentTcpPose;
+std::array<double, flexiv::k_poseSize> g_currentTcpPose;
 
 // high-priority task loop counter
 uint64_t g_hpLoopCounter = 0;
@@ -46,8 +46,8 @@ const unsigned int k_logDurationLoopCounts = 10 * 60 * 1000; // = 10 min/file
 // data to be logged in low-priority thread
 struct LogData
 {
-    std::vector<double> tcpPose;
-    std::vector<double> tcpForce;
+    std::array<double, flexiv::k_poseSize> tcpPose;
+    std::array<double, flexiv::k_cartDOF> tcpForce;
 } g_logData;
 
 }
@@ -59,7 +59,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
     static bool isInitPoseSet = false;
 
     // Initial Cartesian-space pose (position + rotation) of robot TCP
-    static std::vector<double> initTcpPose;
+    static std::array<double, flexiv::k_poseSize> initTcpPose;
 
     try {
         // Monitor fault on robot server

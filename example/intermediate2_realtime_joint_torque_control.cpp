@@ -22,8 +22,10 @@ namespace {
 constexpr double k_loopPeriod = 0.001;
 
 /** Outer position loop (impedance) gains, values are only for demo purpose */
-const std::vector<double> k_impedanceKp = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
-const std::vector<double> k_impedanceKd = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
+const std::array<double, flexiv::k_jointDOF> k_impedanceKp
+    = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
+const std::array<double, flexiv::k_jointDOF> k_impedanceKd
+    = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
 
 /** Sine-sweep trajectory amplitude and frequency */
 constexpr double k_sineAmp = 0.035;
@@ -57,7 +59,7 @@ void printHelp()
 /** @brief Callback function for realtime periodic task */
 void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
     flexiv::RobotStates& robotStates, const std::string& motionType,
-    const std::vector<double>& initPos)
+    const std::array<double, flexiv::k_jointDOF>& initPos)
 {
     // Local periodic loop counter
     static unsigned int loopCounter = 0;
@@ -71,29 +73,26 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
         // Read robot states
         robot.getRobotStates(robotStates);
 
-        // Robot degrees of freedom
-        size_t robotDOF = robotStates.q.size();
-
         // Target joint positions
-        std::vector<double> targetPos(robotDOF, 0);
+        std::array<double, flexiv::k_jointDOF> targetPos = {};
 
         // Set target position based on motion type
         if (motionType == "hold") {
             targetPos = initPos;
         } else if (motionType == "sine-sweep") {
-            for (size_t i = 0; i < robotDOF; ++i) {
+            for (size_t i = 0; i < flexiv::k_jointDOF; ++i) {
                 targetPos[i]
                     = initPos[i]
                       + k_sineAmp * sin(2 * M_PI * k_sineFreq * loopCounter * k_loopPeriod);
             }
         } else {
-            throw flexiv::InputException(
+            throw std::invalid_argument(
                 "periodicTask: unknown motion type. Accepted motion types: hold, sine-sweep");
         }
 
         // Run impedance control on all joints
-        std::vector<double> targetTorque(robotDOF);
-        for (size_t i = 0; i < robotDOF; ++i) {
+        std::array<double, flexiv::k_jointDOF> targetTorque = {};
+        for (size_t i = 0; i < flexiv::k_jointDOF; ++i) {
             targetTorque[i] = k_impedanceKp[i] * (targetPos[i] - robotStates.q[i])
                               - k_impedanceKd[i] * robotStates.dtheta[i];
         }
@@ -195,7 +194,7 @@ int main(int argc, char* argv[])
         // Set initial joint positions
         robot.getRobotStates(robotStates);
         auto initPos = robotStates.q;
-        log.info("Initial joint positions set to: " + flexiv::utility::vec2Str(initPos));
+        log.info("Initial joint positions set to: " + flexiv::utility::arr2Str(initPos));
 
         // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;

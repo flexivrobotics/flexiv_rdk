@@ -19,7 +19,8 @@
 
 namespace {
 /** Joint velocity damping gains for floating */
-const std::vector<double> k_floatingDamping = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
+const std::array<double, flexiv::k_jointDOF> k_floatingDamping
+    = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
 }
 
 /** @brief Print tutorial description */
@@ -59,14 +60,11 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
         // Read robot states
         robot.getRobotStates(robotStates);
 
-        // Robot degrees of freedom
-        size_t robotDOF = robotStates.tau.size();
-
         // Set 0 joint torques
-        std::vector<double> targetTorque(robotDOF, 0.0);
+        std::array<double, flexiv::k_jointDOF> targetTorque = {};
 
         // Add some velocity damping
-        for (size_t i = 0; i < robotDOF; ++i) {
+        for (size_t i = 0; i < flexiv::k_jointDOF; ++i) {
             targetTorque[i] = -k_floatingDamping[i] * robotStates.dtheta[i];
         }
 

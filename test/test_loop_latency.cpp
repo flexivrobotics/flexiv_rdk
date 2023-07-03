@@ -55,9 +55,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             }
             case 1: {
                 // signal robot server's digital out port
-                std::vector<bool> digitalOut(16);
-                digitalOut[0] = true;
-                robot.writeDigitalOutput(digitalOut);
+                robot.writeDigitalOutput(std::vector<unsigned int> {0}, std::vector<bool> {true});
 
                 // signal workstation PC's serial port
                 auto n = write(g_fd, "0", 1);
@@ -69,8 +67,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             }
             case 900: {
                 // reset digital out after a few seconds
-                std::vector<bool> digitalOut(16);
-                robot.writeDigitalOutput(digitalOut);
+                robot.writeDigitalOutput(std::vector<unsigned int> {0}, std::vector<bool> {false});
                 break;
             }
             default:

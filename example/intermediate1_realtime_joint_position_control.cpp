@@ -49,7 +49,7 @@ void printHelp()
 /** @brief Callback function for realtime periodic task */
 void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
     flexiv::RobotStates& robotStates, const std::string& motionType,
-    const std::vector<double>& initPos)
+    const std::array<double, flexiv::k_jointDOF>& initPos)
 {
     // Local periodic loop counter
     static unsigned int loopCounter = 0;
@@ -63,25 +63,22 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
         // Read robot states
         robot.getRobotStates(robotStates);
 
-        // Robot degrees of freedom
-        size_t robotDOF = robotStates.q.size();
+        // Initialize target arrays to hold position
+        std::array<double, flexiv::k_jointDOF> targetPos = {};
+        std::array<double, flexiv::k_jointDOF> targetVel = {};
+        std::array<double, flexiv::k_jointDOF> targetAcc = {};
 
-        // Initialize target vectors to hold position
-        std::vector<double> targetPos(robotDOF, 0);
-        std::vector<double> targetVel(robotDOF, 0);
-        std::vector<double> targetAcc(robotDOF, 0);
-
-        // Set target vectors based on motion type
+        // Set target arrays based on motion type
         if (motionType == "hold") {
             targetPos = initPos;
         } else if (motionType == "sine-sweep") {
-            for (size_t i = 0; i < robotDOF; ++i) {
+            for (size_t i = 0; i < flexiv::k_jointDOF; ++i) {
                 targetPos[i]
                     = initPos[i]
                       + k_sineAmp * sin(2 * M_PI * k_sineFreq * loopCounter * k_loopPeriod);
             }
         } else {
-            throw flexiv::InputException(
+            throw std::invalid_argument(
                 "periodicTask: unknown motion type. Accepted motion types: hold, sine-sweep");
         }
 
@@ -182,7 +179,7 @@ int main(int argc, char* argv[])
         // Set initial joint positions
         robot.getRobotStates(robotStates);
         auto initPos = robotStates.q;
-        log.info("Initial joint positions set to: " + flexiv::utility::vec2Str(initPos));
+        log.info("Initial joint positions set to: " + flexiv::utility::arr2Str(initPos));
 
         // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
