@@ -512,7 +512,7 @@ public:
      * false: set port low. Vector size must match the size of portIdx.
      * @throw std::invalid_argument if any index number in portIdx is not within [0–15].
      * @throw std::length_error if the two input vectors have different sizes.
-     * @throw std::runtime_error failed to execute the request.
+     * @throw std::runtime_error if failed to execute the request.
      * @warning This function blocks until the request is successfully delivered to the robot.
      */
     void writeDigitalOutput(
