@@ -2,8 +2,6 @@
 cmake_minimum_required(VERSION 3.4)
 project(flexiv_rdk-examples)
 
-set(CMAKE_CXX_STANDARD 14)
-
 message("OS: ${CMAKE_SYSTEM_NAME}")
 message("Processor: ${CMAKE_SYSTEM_PROCESSOR}")
 
@@ -44,4 +42,8 @@ find_package(flexiv_rdk REQUIRED)
 foreach(example ${EXAMPLE_LIST})
   add_executable(${example} ${example}.cpp)
   target_link_libraries(${example} flexiv::flexiv_rdk)
+  # C++17 required
+  set_target_properties(${example} PROPERTIES 
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON)
 endforeach()
