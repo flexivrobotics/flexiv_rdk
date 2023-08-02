@@ -69,7 +69,7 @@ if(fastrtps_FOUND)
 endif()
 
 # ===================================================================
-#      PROJECT LIBRARIES
+#      CREATE LIBRARY
 # ===================================================================
 # Create an INTERFACE library with no source file to compile
 add_library(${PROJECT_NAME} INTERFACE)
@@ -91,10 +91,6 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
   fastcdr
 )
 
-# librt is required for Linux
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  target_link_libraries(${PROJECT_NAME} INTERFACE -lrt)
-endif()
 
 # Use moderate compiler warning option 
 if(MSVC)
