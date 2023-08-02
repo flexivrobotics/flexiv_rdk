@@ -5,8 +5,8 @@ cmake_minimum_required(VERSION 3.18.6)
 # ===================================================================
 project(flexiv_rdk VERSION 1.1.0)
 
-# C++14 required
-set(CMAKE_CXX_STANDARD 14)
+# C++17 required
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Configure build type
@@ -93,10 +93,10 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
 
 
 # Use moderate compiler warning option 
-if(MSVC)
-  target_compile_options(${PROJECT_NAME} INTERFACE /W1)
-else()
+if(CMAKE_HOST_UNIX)
   target_compile_options(${PROJECT_NAME} INTERFACE -Wall -Wextra)
+else()
+  target_compile_options(${PROJECT_NAME} INTERFACE /W1)
 endif()
 
 # Install the INTERFACE library
