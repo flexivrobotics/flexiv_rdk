@@ -5,10 +5,6 @@ cmake_minimum_required(VERSION 3.18.6)
 # ===================================================================
 project(flexiv_rdk VERSION 1.1.0)
 
-# C++17 required
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 # Configure build type
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "CMake build type" FORCE)
@@ -90,7 +86,6 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
   fastrtps
   fastcdr
 )
-
 
 # Use moderate compiler warning option 
 if(CMAKE_HOST_UNIX)
