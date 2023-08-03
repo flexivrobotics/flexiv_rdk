@@ -1,6 +1,8 @@
-
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.18.6)
 project(flexiv_rdk-examples)
+
+# Show verbose build info
+SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 message("OS: ${CMAKE_SYSTEM_NAME}")
 message("Processor: ${CMAKE_SYSTEM_PROCESSOR}")
