@@ -9,7 +9,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Scheduler.hpp>
 #include <flexiv/Utility.hpp>
@@ -20,7 +19,8 @@
 
 namespace {
 /** Joint velocity damping gains for floating */
-const std::vector<double> k_floatingDamping = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
+const std::array<double, flexiv::k_jointDOF> k_floatingDamping
+    = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
 }
 
 /** @brief Print tutorial description */
@@ -54,21 +54,17 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
     try {
         // Monitor fault on robot server
         if (robot.isFault()) {
-            throw flexiv::ServerException(
-                "periodicTask: Fault occurred on robot server, exiting ...");
+            throw std::runtime_error("periodicTask: Fault occurred on robot server, exiting ...");
         }
 
         // Read robot states
         robot.getRobotStates(robotStates);
 
-        // Robot degrees of freedom
-        size_t robotDOF = robotStates.tau.size();
-
         // Set 0 joint torques
-        std::vector<double> targetTorque(robotDOF, 0.0);
+        std::array<double, flexiv::k_jointDOF> targetTorque = {};
 
         // Add some velocity damping
-        for (size_t i = 0; i < robotDOF; ++i) {
+        for (size_t i = 0; i < flexiv::k_jointDOF; ++i) {
             targetTorque[i] = -k_floatingDamping[i] * robotStates.dtheta[i];
         }
 
@@ -76,7 +72,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
         // protection
         robot.streamJointTorque(targetTorque, true, true);
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         scheduler.stop();
     }
@@ -164,7 +160,7 @@ int main(int argc, char* argv[])
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }

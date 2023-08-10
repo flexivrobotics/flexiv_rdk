@@ -7,7 +7,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Model.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Utility.hpp>
@@ -56,9 +55,8 @@ int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
 
             // Monitor fault on robot server
             if (robot.isFault()) {
-                throw flexiv::ServerException(
-                    "periodicTask: Fault occurred on robot server, exiting "
-                    "...");
+                throw std::runtime_error(
+                    "periodicTask: Fault occurred on robot server, exiting ...");
             }
 
             // Mark timer start point
@@ -98,7 +96,7 @@ int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
                 std::cout << std::fixed << std::setprecision(5) << "J = " << J << "\n" << std::endl;
             }
         }
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }
@@ -177,7 +175,7 @@ int main(int argc, char* argv[])
         std::thread periodicTaskThread(periodicTask, std::ref(robot), std::ref(model));
         periodicTaskThread.join();
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }

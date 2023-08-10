@@ -8,7 +8,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Scheduler.hpp>
 #include <flexiv/Utility.hpp>
@@ -43,8 +42,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
     try {
         // Monitor fault on robot server
         if (robot.isFault()) {
-            throw flexiv::ServerException(
-                "periodicTask: Fault occurred on robot server, exiting ...");
+            throw std::runtime_error("periodicTask: Fault occurred on robot server, exiting ...");
         }
 
         // send signal at 1Hz
@@ -57,9 +55,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             }
             case 1: {
                 // signal robot server's digital out port
-                std::vector<bool> digitalOut(16);
-                digitalOut[0] = true;
-                robot.writeDigitalOutput(digitalOut);
+                robot.writeDigitalOutput(std::vector<unsigned int> {0}, std::vector<bool> {true});
 
                 // signal workstation PC's serial port
                 auto n = write(g_fd, "0", 1);
@@ -71,8 +67,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             }
             case 900: {
                 // reset digital out after a few seconds
-                std::vector<bool> digitalOut(16);
-                robot.writeDigitalOutput(digitalOut);
+                robot.writeDigitalOutput(std::vector<unsigned int> {0}, std::vector<bool> {false});
                 break;
             }
             default:
@@ -80,7 +75,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
         }
         loopCounter++;
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         scheduler.stop();
     }
@@ -175,7 +170,7 @@ int main(int argc, char* argv[])
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }

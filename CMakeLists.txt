@@ -1,13 +1,9 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.18.6)
 
 # ===================================================================
-#      PROJECT CONFIG
+#      PROJECT SETUP
 # ===================================================================
-project(flexiv_rdk VERSION 1.0.0)
-
-# C++14 required
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+project(flexiv_rdk VERSION 1.1.0)
 
 # Configure build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -69,7 +65,7 @@ if(fastrtps_FOUND)
 endif()
 
 # ===================================================================
-#      PROJECT LIBRARIES
+#      CREATE LIBRARY
 # ===================================================================
 # Create an INTERFACE library with no source file to compile
 add_library(${PROJECT_NAME} INTERFACE)
@@ -91,16 +87,11 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
   fastcdr
 )
 
-# librt is required for Linux
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  target_link_libraries(${PROJECT_NAME} INTERFACE -lrt)
-endif()
-
 # Use moderate compiler warning option 
-if(MSVC)
-  target_compile_options(${PROJECT_NAME} INTERFACE /W1)
-else()
+if(CMAKE_HOST_UNIX)
   target_compile_options(${PROJECT_NAME} INTERFACE -Wall -Wextra)
+else()
+  target_compile_options(${PROJECT_NAME} INTERFACE /W1)
 endif()
 
 # Install the INTERFACE library

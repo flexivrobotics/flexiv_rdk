@@ -9,7 +9,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Utility.hpp>
 
@@ -106,7 +105,7 @@ int main(int argc, char* argv[])
         while (true) {
             // Monitor fault on robot server
             if (robot.isFault()) {
-                throw flexiv::ServerException("Fault occurred on robot server, exiting ...");
+                throw std::runtime_error("Fault occurred on robot server, exiting ...");
             }
 
             // Get user input
@@ -164,7 +163,7 @@ int main(int argc, char* argv[])
             }
         }
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }

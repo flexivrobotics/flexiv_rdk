@@ -7,7 +7,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Utility.hpp>
 
@@ -24,7 +23,8 @@ std::string g_userInput;
 std::mutex g_userInputMutex;
 
 /** Maximum contact wrench [fx, fy, fz, mx, my, mz] [N][Nm]*/
-const std::vector<double> k_maxContactWrench = {50.0, 50.0, 50.0, 15.0, 15.0, 15.0};
+const std::array<double, flexiv::k_cartDOF> k_maxContactWrench
+    = {50.0, 50.0, 50.0, 15.0, 15.0, 15.0};
 }
 
 /** @brief Print tutorial description */
@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
         // Teach By Demonstration
         // =========================================================================================
         // Recorded robot poses
-        std::vector<std::vector<double>> savedPoses = {};
+        std::vector<std::array<double, flexiv::k_poseSize>> savedPoses = {};
 
         // Robot states data
         flexiv::RobotStates robotStates = {};
@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
 
                 robot.getRobotStates(robotStates);
                 savedPoses.push_back(robotStates.tcpPose);
-                log.info("New pose saved: " + flexiv::utility::vec2Str(robotStates.tcpPose));
+                log.info("New pose saved: " + flexiv::utility::arr2Str(robotStates.tcpPose));
                 log.info("Number of saved poses: " + std::to_string(savedPoses.size()));
             }
             // Reproduce recorded poses
@@ -162,19 +162,19 @@ int main(int argc, char* argv[])
                     log.info("Executing pose " + std::to_string(i + 1) + "/"
                              + std::to_string(savedPoses.size()));
 
-                    std::vector<double> targetPos
+                    std::array<double, 3> targetPos
                         = {savedPoses[i][0], savedPoses[i][1], savedPoses[i][2]};
                     // Convert quaternion to Euler ZYX required by MoveCompliance primitive
-                    std::vector<double> targetQuat
+                    std::array<double, 4> targetQuat
                         = {savedPoses[i][3], savedPoses[i][4], savedPoses[i][5], savedPoses[i][6]};
                     auto targetEulerDeg
                         = flexiv::utility::rad2Deg(flexiv::utility::quat2EulerZYX(targetQuat));
                     robot.executePrimitive(
                         "MoveCompliance(target="
-                        + flexiv::utility::vec2Str(targetPos)
-                        + flexiv::utility::vec2Str(targetEulerDeg)
+                        + flexiv::utility::arr2Str(targetPos)
+                        + flexiv::utility::arr2Str(targetEulerDeg)
                         + "WORLD WORLD_ORIGIN, maxVel=0.3, enableMaxContactWrench=1, maxContactWrench=" 
-                        + flexiv::utility::vec2Str(k_maxContactWrench)+ ")");
+                        + flexiv::utility::arr2Str(k_maxContactWrench)+ ")");
 
                     // Wait for reached target
                     while (
@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
             }
         }
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }

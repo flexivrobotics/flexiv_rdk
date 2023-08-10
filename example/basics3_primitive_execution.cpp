@@ -7,7 +7,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Utility.hpp>
 
@@ -157,14 +156,14 @@ int main(int argc, char* argv[])
         log.info("Executing primitive: MoveL");
 
         // Example to convert target quaternion [w,x,y,z] to Euler ZYX using utility functions
-        std::vector<double> targetQuat = {0.9185587, 0.1767767, 0.3061862, 0.1767767};
+        std::array<double, 4> targetQuat = {0.9185587, 0.1767767, 0.3061862, 0.1767767};
         // ZYX = [30, 30, 30] degrees
         auto targetEulerDeg = flexiv::utility::rad2Deg(flexiv::utility::quat2EulerZYX(targetQuat));
 
         // Send command to robot. This motion will hold current TCP position and only do TCP
         // rotation
         robot.executePrimitive(
-            "MoveL(target=0.0 0.0 0.0 " + flexiv::utility::vec2Str(targetEulerDeg) + "TRAJ START)");
+            "MoveL(target=0.0 0.0 0.0 " + flexiv::utility::arr2Str(targetEulerDeg) + "TRAJ START)");
 
         // Wait for reached target
         while (flexiv::utility::parsePtStates(robot.getPrimitiveStates(), "reachedTarget") != "1") {
@@ -174,7 +173,7 @@ int main(int argc, char* argv[])
         // All done, stop robot and put into IDLE mode
         robot.stop();
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }

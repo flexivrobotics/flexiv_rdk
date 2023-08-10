@@ -21,9 +21,8 @@ class Scheduler
 {
 public:
     /**
-     * @brief Create and initialize a flexiv::Scheduler instance.
-     * @throw InitException if the instance failed to initialize.
-     * @throw ClientException if an error is triggered by the client computer.
+     * @brief Create a flexiv::Scheduler instance and initialize the real-time scheduler.
+     * @throw std::runtime_error if the initialization sequence failed.
      */
     Scheduler();
     virtual ~Scheduler();
@@ -49,10 +48,10 @@ public:
      * decide which core to run this task thread on according to the system's own strategy. The
      * common practice is to bind the high-priority task to a dedicated spare core, and bind
      * low-priority tasks to other cores or just leave them unbound (cpuAffinity = -1).
-     * @throw LogicException if the scheduler is already started or is not fully initialized yet.
-     * @throw InputException if the specified interval/priority/affinity is invalid or the specified
-     * task name is duplicate.
-     * @throw ClientException if an error is triggered by the client computer.
+     * @throw std::logic_error if the scheduler is already started or is not fully initialized yet.
+     * @throw std::invalid_argument if the specified interval/priority/affinity is invalid or the
+     * specified task name is duplicate.
+     * @throw std::runtime_error if an error is triggered by the client computer.
      * @note Setting CPU affinity on macOS has no effect, as its Mach kernel takes full control of
      * thread placement so CPU binding is not supported.
      * @warning Calling this method after start() is not allowed.
@@ -68,15 +67,15 @@ public:
      * @param[in] isBlocking Whether to block the thread from which this method is called until the
      * scheduler is stopped. A common usage is to call this method from main() with this parameter
      * set to true to keep main() from returning.
-     * @throw LogicException if the scheduler is not fully initialized yet.
-     * @throw ClientException if an error is triggered by the client computer.
+     * @throw std::logic_error if the scheduler is not fully initialized yet.
+     * @throw std::runtime_error if failed to start the scheduler.
      */
     void start(bool isBlocking = true);
 
     /**
      * @brief Stop all added tasks. start() will stop blocking and return.
-     * @throw LogicException if the scheduler is not started or is not fully initialized yet.
-     * @throw ClientException if an error is triggered by the client computer.
+     * @throw std::logic_error if the scheduler is not started or is not fully initialized yet.
+     * @throw std::runtime_error if failed to stop the scheduler.
      * @note Call start() again to restart the scheduler.
      */
     void stop();

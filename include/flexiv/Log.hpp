@@ -13,7 +13,9 @@ namespace flexiv {
 /**
  * @class Log
  * @brief Helper functions to print messages with timestamp and coloring.
- * Logging raw data to csv file coming soon.
+ * @warning For maximum portability, std::cout is used to handle the printing, which is a relatively
+ * slow process compared to dedicated performance loggers. Therefore, it's not recommended to use
+ * flexiv::Log in performance-critical loops.
  */
 class Log
 {
