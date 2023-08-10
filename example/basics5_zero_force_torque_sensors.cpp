@@ -7,7 +7,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Utility.hpp>
 
@@ -97,7 +96,7 @@ int main(int argc, char* argv[])
         flexiv::RobotStates robotStates;
         robot.getRobotStates(robotStates);
         log.info("TCP force and moment reading in base frame BEFORE sensor zeroing: "
-                 + flexiv::utility::vec2Str(robotStates.extWrenchInBase) + "[N][Nm]");
+                 + flexiv::utility::arr2Str(robotStates.extWrenchInBase) + "[N][Nm]");
 
         // Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
         robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
@@ -116,9 +115,9 @@ int main(int argc, char* argv[])
         // Get and print the current TCP force/moment readings
         robot.getRobotStates(robotStates);
         log.info("TCP force and moment reading in base frame AFTER sensor zeroing: "
-                 + flexiv::utility::vec2Str(robotStates.extWrenchInBase) + "[N][Nm]");
+                 + flexiv::utility::arr2Str(robotStates.extWrenchInBase) + "[N][Nm]");
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }

@@ -10,7 +10,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Scheduler.hpp>
 #include <flexiv/Utility.hpp>
@@ -20,62 +19,22 @@
 #include <cmath>
 #include <thread>
 
-namespace {
-// robot DOF
-const int k_robotDofs = 7;
-
-// joint impedance control gains
-const std::vector<double> k_impedanceKp = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
-const std::vector<double> k_impedanceKd = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
-
-}
-
 // callback function for realtime periodic task
 void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
-    flexiv::RobotStates& robotStates)
+    const std::array<double, flexiv::k_jointDOF>& initPos)
 {
     // Loop counter
     static unsigned int loopCounter = 0;
 
-    // Whether initial joint position is set
-    static bool isInitPositionSet = false;
-
-    // Initial position of robot joints
-    static std::vector<double> initPosition;
-
     try {
         // Monitor fault on robot server
         if (robot.isFault()) {
-            throw flexiv::ServerException(
-                "periodicTask: Fault occurred on robot server, exiting ...");
+            throw std::runtime_error("periodicTask: Fault occurred on robot server, exiting ...");
         }
-
-        // Read robot states
-        robot.getRobotStates(robotStates);
-
-        // Set initial joint position
-        if (!isInitPositionSet) {
-            // check vector size before saving
-            if (robotStates.q.size() == k_robotDofs) {
-                initPosition = robotStates.q;
-                isInitPositionSet = true;
-            }
-        }
-        // Run control after init position is set
-        else {
-            // initialize target position to hold position
-            auto targetPosition = initPosition;
-
-            std::vector<double> torqueDesired(k_robotDofs);
-            // impedance control on all joints
-            for (size_t i = 0; i < k_robotDofs; ++i) {
-                torqueDesired[i] = k_impedanceKp[i] * (targetPosition[i] - robotStates.q[i])
-                                   - k_impedanceKd[i] * robotStates.dtheta[i];
-            }
-
-            // send target joint torque to RDK server
-            robot.streamJointTorque(torqueDesired, true);
-        }
+        // Hold position
+        std::array<double, flexiv::k_jointDOF> targetVel = {};
+        std::array<double, flexiv::k_jointDOF> targetAcc = {};
+        robot.streamJointPosition(initPos, targetVel, targetAcc);
 
         if (loopCounter == 5000) {
             log.warn(">>>>> Adding simulated loop delay <<<<<");
@@ -87,7 +46,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 
         loopCounter++;
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         scheduler.stop();
     }
@@ -159,7 +118,12 @@ int main(int argc, char* argv[])
         log.info("Robot is now operational");
 
         // set mode after robot is operational
-        robot.setMode(flexiv::Mode::RT_JOINT_TORQUE);
+        robot.setMode(flexiv::Mode::RT_JOINT_POSITION);
+
+        // Set initial joint positions
+        robot.getRobotStates(robotStates);
+        auto initPos = robotStates.q;
+        log.info("Initial joint positions set to: " + flexiv::utility::arr2Str(initPos));
 
         log.warn(
             ">>>>> Simulated loop delay will be added after 5 "
@@ -170,12 +134,12 @@ int main(int argc, char* argv[])
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
-                              std::ref(log), std::ref(robotStates)),
+                              std::ref(log), std::ref(initPos)),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }

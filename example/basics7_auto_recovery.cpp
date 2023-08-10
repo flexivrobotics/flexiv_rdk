@@ -7,7 +7,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Utility.hpp>
 
@@ -72,10 +71,10 @@ int main(int argc, char* argv[])
         // process is done, so just wait long enough for the process to finish
         std::this_thread::sleep_for(std::chrono::seconds(8));
 
-        // Start auto recovery if the system is in recovery state, the involved joints will start to
-        // move back into allowed position range
+        // Run automatic recovery if the system is in recovery state, the involved joints will start
+        // to move back into allowed position range
         if (robot.isRecoveryState()) {
-            robot.startAutoRecovery();
+            robot.runAutoRecovery();
             // Block forever, must reboot the robot and restart user program after recovery is done
             while (true) {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -85,7 +84,7 @@ int main(int argc, char* argv[])
         else {
             log.info("Robot system is not in recovery state, nothing to be done, exiting ...");
         }
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }

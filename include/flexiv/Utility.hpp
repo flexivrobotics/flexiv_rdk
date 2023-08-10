@@ -6,9 +6,8 @@
 #ifndef FLEXIVRDK_UTILITY_HPP_
 #define FLEXIVRDK_UTILITY_HPP_
 
-#include <flexiv/Exception.hpp>
 #include <Eigen/Eigen>
-#include <vector>
+#include <array>
 
 namespace flexiv {
 namespace utility {
@@ -19,23 +18,17 @@ namespace utility {
  * @return Euler angles in [x,y,z] order [rad].
  * @note The return value, when converted to degrees, is the same Euler angles used by Move
  * primitives.
- * @throw InputException if input is of wrong size.
  */
-inline std::vector<double> quat2EulerZYX(const std::vector<double>& quat)
+inline std::array<double, 3> quat2EulerZYX(const std::array<double, 4>& quat)
 {
-    // Check input size
-    if (quat.size() != 4) {
-        throw InputException("[flexiv::utility] quat2EulerZYX: input vector is not size 4");
-    }
-
     // Form quaternion
     Eigen::Quaterniond q(quat[0], quat[1], quat[2], quat[3]);
 
-    // The returned vector is in [z,y,x] order
+    // The returned array is in [z,y,x] order
     auto eulerZYX = q.toRotationMatrix().eulerAngles(2, 1, 0);
 
     // Convert to general [x,y,z] order
-    return (std::vector<double> {eulerZYX[2], eulerZYX[1], eulerZYX[0]});
+    return (std::array<double, 3> {eulerZYX[2], eulerZYX[1], eulerZYX[0]});
 }
 
 /**
@@ -48,34 +41,36 @@ inline double rad2Deg(double rad)
 }
 
 /**
- * @brief Convert radians to degrees for a vector.
+ * @brief Convert radians to degrees for an array.
  */
-inline std::vector<double> rad2Deg(const std::vector<double>& radVec)
+template <size_t N>
+inline std::array<double, N> rad2Deg(const std::array<double, N>& radArr)
 {
-    std::vector<double> degVec = {};
-    for (const auto& v : radVec) {
-        degVec.push_back(rad2Deg(v));
+    std::array<double, N> degArr;
+    for (size_t i = 0; i < N; i++) {
+        degArr[i] = rad2Deg(radArr[i]);
     }
-    return degVec;
+    return degArr;
 }
 
 /**
- * @brief Convert a std::vector to a string.
- * @param[in] vec std::vector of any type and size.
- * @param[in] decimal Decimal places to keep for each number in the vector.
+ * @brief Convert a std::array to a string.
+ * @param[in] arr std::array of any type and size.
+ * @param[in] decimal Decimal places to keep for each number in the array.
  * @param[in] trailingSpace Whether to include a space after the last element.
- * @return A string with format "vec[0] vec[1] ... vec[n] ", i.e. each element followed by a space,
+ * @return A string with format "arr[0] arr[1] ... arr[n] ", i.e. each element followed by a space,
  * including the last one if trailingSpace = true.
  */
-template <typename T>
-inline std::string vec2Str(const std::vector<T>& vec, size_t decimal = 3, bool trailingSpace = true)
+template <typename T, size_t N>
+inline std::string arr2Str(
+    const std::array<T, N>& arr, size_t decimal = 3, bool trailingSpace = true)
 {
     auto padding = "";
     std::stringstream ss;
     ss.precision(decimal);
     ss << std::fixed;
 
-    for (const auto& v : vec) {
+    for (const auto& v : arr) {
         ss << padding << v;
         padding = " ";
     }

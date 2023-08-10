@@ -19,9 +19,9 @@ class Gripper
 {
 public:
     /**
-     * @brief Create a flexiv::Gripper instance for gripper control.
+     * @brief Create a flexiv::Gripper instance and initialize robot gripper control.
      * @param[in] robot Reference to the instance of flexiv::Robot.
-     * @throw InitException if the instance failed to initialize.
+     * @throw std::runtime_error if the initialization sequence failed.
      */
     Gripper(const Robot& robot);
     virtual ~Gripper();
@@ -31,6 +31,7 @@ public:
      * control.
      * @param[in] force Target gripping force. Positive: closing force, negative: opening force [N].
      * @note Applicable control modes: all modes except IDLE.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @warning Target inputs outside the valid range (specified in gripper's configuration file)
      * will be saturated.
      */
@@ -43,6 +44,7 @@ public:
      * @param[in] forceLimit Maximum output force during movement [N]. If not specified, default
      * force limit of the mounted gripper will be used.
      * @note Applicable control modes: all modes except IDLE.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @warning Target inputs outside the valid range (specified in gripper's configuration file)
      * will be saturated.
      */

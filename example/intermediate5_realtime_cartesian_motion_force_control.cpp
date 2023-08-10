@@ -8,7 +8,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Scheduler.hpp>
 #include <flexiv/Utility.hpp>
@@ -62,7 +61,7 @@ void printHelp()
 
 /** Callback function for realtime periodic task */
 void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
-    flexiv::RobotStates& robotStates, const std::vector<double>& initPose,
+    flexiv::RobotStates& robotStates, const std::array<double, flexiv::k_poseSize>& initPose,
     const std::string frameStr, bool enablePolish)
 {
     // Local periodic loop counter
@@ -74,8 +73,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
     try {
         // Monitor fault on robot server
         if (robot.isFault()) {
-            throw flexiv::ServerException(
-                "periodicTask: Fault occurred on robot server, exiting ...");
+            throw std::runtime_error("periodicTask: Fault occurred on robot server, exiting ...");
         }
 
         // Read robot states
@@ -95,8 +93,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
         }
 
         // Initialize target vectors
-        std::vector<double> targetPose = initPose;
-        std::vector<double> targetWrench = {0.0, 0.0, Fz, 0.0, 0.0, 0.0};
+        auto targetPose = initPose;
+        std::array<double, flexiv::k_cartDOF> targetWrench = {0.0, 0.0, Fz, 0.0, 0.0, 0.0};
 
         // Search for contact
         if (!isContacted) {
@@ -161,7 +159,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
         // Increment loop counter
         loopCounter++;
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         scheduler.stop();
     }
@@ -272,7 +270,7 @@ int main(int argc, char* argv[])
         robot.getRobotStates(robotStates);
 
         // Set control mode and initial pose based on reference frame used
-        std::vector<double> initPose;
+        std::array<double, flexiv::k_poseSize> initPose;
         if (frameStr == "BASE") {
             robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE_BASE);
             // If using base frame, directly read from robot states
@@ -282,11 +280,11 @@ int main(int argc, char* argv[])
             // If using TCP frame, current TCP is at the reference frame's origin
             initPose = {0, 0, 0, 1, 0, 0, 0};
         } else {
-            throw flexiv::InputException("Invalid reference frame choice");
+            throw std::invalid_argument("Invalid reference frame choice");
         }
 
         log.info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
-                 + flexiv::utility::vec2Str(initPose));
+                 + flexiv::utility::arr2Str(initPose));
 
         // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
@@ -298,7 +296,7 @@ int main(int argc, char* argv[])
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }

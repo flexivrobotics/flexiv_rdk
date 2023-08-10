@@ -125,7 +125,7 @@ jobs:
           cd ${{github.workspace}}/example
           mkdir build && cd build
           cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          cmake --build . --config Release
+          cmake --build . --config Release -j $(nproc)
 
       - name: Build tests
         # Find and link to the flexiv_rdk INTERFACE library, then build all tests.
@@ -133,4 +133,4 @@ jobs:
           cd ${{github.workspace}}/test
           mkdir build && cd build
           cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          cmake --build . --config Release
+          cmake --build . --config Release -j $(nproc)

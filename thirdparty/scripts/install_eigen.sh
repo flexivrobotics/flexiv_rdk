@@ -2,8 +2,9 @@
 set -e
 echo "Installing eigen"
 
-# Get install directory as script argument
+# Get install directory and number of parallel build jobs as script arguments
 INSTALL_DIR=$1
+NUM_JOBS=$2
 
 # Clone source code
 if [ ! -d eigen ] ; then
@@ -25,6 +26,6 @@ cmake .. -DCMAKE_BUILD_TYPE=Release \
          -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
 
 # Build and install
-cmake --build . --target install --config Release -j 4
+cmake --build . --target install --config Release -j $NUM_JOBS
 
 echo "Installed eigen"

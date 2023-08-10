@@ -7,7 +7,6 @@
  */
 
 #include <flexiv/Robot.hpp>
-#include <flexiv/Exception.hpp>
 #include <flexiv/Log.hpp>
 #include <flexiv/Scheduler.hpp>
 #include <flexiv/Utility.hpp>
@@ -33,7 +32,7 @@ const double k_swingAmp = 0.1;
 const double k_swingFreq = 0.025; // = 10mm/s linear velocity
 
 // current Cartesian-space pose (position + rotation) of robot TCP
-std::vector<double> g_currentTcpPose;
+std::array<double, flexiv::k_poseSize> g_currentTcpPose;
 
 // high-priority task loop counter
 uint64_t g_hpLoopCounter = 0;
@@ -47,8 +46,8 @@ const unsigned int k_logDurationLoopCounts = 10 * 60 * 1000; // = 10 min/file
 // data to be logged in low-priority thread
 struct LogData
 {
-    std::vector<double> tcpPose;
-    std::vector<double> tcpForce;
+    std::array<double, flexiv::k_poseSize> tcpPose;
+    std::array<double, flexiv::k_cartDOF> tcpForce;
 } g_logData;
 
 }
@@ -60,14 +59,13 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
     static bool isInitPoseSet = false;
 
     // Initial Cartesian-space pose (position + rotation) of robot TCP
-    static std::vector<double> initTcpPose;
+    static std::array<double, flexiv::k_poseSize> initTcpPose;
 
     try {
         // Monitor fault on robot server
         if (robot.isFault()) {
-            throw flexiv::ServerException(
-                "highPriorityTask: Fault occurred on robot server, exiting "
-                "...");
+            throw std::runtime_error(
+                "highPriorityTask: Fault occurred on robot server, exiting ...");
         }
 
         // Read robot states
@@ -101,7 +99,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
         // increment loop counter
         g_hpLoopCounter++;
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         scheduler.stop();
     }
@@ -298,7 +296,7 @@ int main(int argc, char* argv[])
         // lowPriorityThread is responsible to release blocking
         lowPriorityThread.join();
 
-    } catch (const flexiv::Exception& e) {
+    } catch (const std::exception& e) {
         log.error(e.what());
         return 1;
     }

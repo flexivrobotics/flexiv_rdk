@@ -3,8 +3,9 @@
 set -e
 echo "Installing Fast-DDS"
 
-# Get install directory as script argument
+# Get install directory and number of parallel build jobs as script arguments
 INSTALL_DIR=$1
+NUM_JOBS=$2
 
 # Clone source code
 if [ ! -d Fast-DDS ] ; then
@@ -30,6 +31,6 @@ cmake .. -DCMAKE_BUILD_TYPE=Release \
          -DOPENSSL_USE_STATIC_LIBS=ON
 
 # Build and install
-cmake --build . --target install --config Release -j 4
+cmake --build . --target install --config Release -j $NUM_JOBS
 
 echo "Installed Fast-DDS"
