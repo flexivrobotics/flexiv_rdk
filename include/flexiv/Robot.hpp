@@ -9,6 +9,7 @@
 #include "Data.hpp"
 #include "Mode.hpp"
 
+#include <array>
 #include <vector>
 #include <memory>
 #include <functional>
@@ -17,44 +18,50 @@ namespace flexiv {
 
 /**
  * @class Robot
- * @brief Main interface with the robot, containing system, control, motion, and
- * IO methods. This interface is also responsible for communication.
+ * @brief Main interface with the robot, containing several function categories
+ * and background services.
  */
 class Robot
 {
 public:
     /**
-     * @brief Create a flexiv::Robot instance as the main robot interface. RDK
-     * services will start and connection with robot server will be established.
-     * @param[in] serverIP IP address of the robot server (remote).
+     * @brief [Blocking] Create a flexiv::Robot instance as the main robot
+     * interface. RDK services will initialize and connection with the robot
+     * will be established.
+     * @param[in] serverIP IP address of the robot to connect (remote).
      * @param[in] localIP IP address of the workstation PC (local).
      * @throw InitException if the instance failed to initialize.
      * @throw CompatibilityException if the RDK library version is incompatible
-     * with robot server.
-     * @throw CommException if the connection with robot server failed to
-     * establish.
+     * with the connected robot.
+     * @throw CommException if failed to establish connection with the robot.
+     * @warning This constructor blocks until the initialization sequence is
+     * successfully finished and connection with the robot is established.
      */
     Robot(const std::string& serverIP, const std::string& localIP);
     virtual ~Robot();
 
     /**
-     * @brief Access general information of the robot.
+     * @brief [Non-blocking] Access general information of the robot.
      * @return RobotInfo struct.
      */
     const RobotInfo info(void);
 
     //============================= SYSTEM CONTROL =============================
     /**
-     * @brief Enable the robot, if E-stop is released and there's no fault, the
-     * robot will release brakes, and becomes operational a few seconds later.
+     * @brief [Blocking] Enable the robot, if E-stop is released and there's no
+     * fault, the robot will release brakes, and becomes operational a few
+     * seconds later.
      * @throw ExecutionException if error occurred during execution.
-     * @throw CommException if connection with robot server is lost.
+     * @throw CommException if the robot is not connected.
+     * @warning This function blocks until the request is successfully delivered
+     * to the robot.
      */
     void enable(void);
 
     /**
-     * @brief Stop the robot and transit robot mode to Idle.
+     * @brief [Blocking] Stop the robot and transit robot mode to Idle.
      * @throw ExecutionException if error occurred during execution.
+     * @warning This function blocks until the robot comes to a complete stop.
      */
     void stop(void);
 
@@ -82,20 +89,21 @@ public:
     bool isBusy(void) const;
 
     /**
-     * @brief Check if the connection with the robot server is established.
+     * @brief [Non-blocking] Check if the connection with the robot is
+     * established.
      * @return True: connected, false: disconnected.
      */
     bool isConnected(void) const;
 
     /**
-     * @brief Check if the robot is in fault state.
+     * @brief [Non-blocking] Check if the robot is in fault state.
      * @return True: robot has fault, false: robot normal.
      */
     bool isFault(void) const;
 
     /**
-     * @brief Check if the Emergency Stop is released.
-     * @note True: E-stop released, false: E-stop pressed
+     * @brief [Non-blocking] Check if the Emergency Stop is released.
+     * @note True: released, false: pressed.
      */
     bool isEstopReleased(void) const;
 
@@ -105,8 +113,10 @@ public:
      */
     bool isEnablingButtonPressed(void) const;
 
+    /**
+     * @brief [Non-blocking] Check if the robot system is in recovery state.
      * @return True: in recovery state, false: not in recovery state.
-     * @note Use startAutoRecovery() to carry out recovery operation.
+     * @note Use runAutoRecovery() to carry out automatic recovery operation.
      * @par Recovery state
      * The robot system will enter recovery state if it needs to recover
      * from joint position limit violation (a critical system fault that
@@ -118,20 +128,24 @@ public:
     bool isRecoveryState(void) const;
 
     /**
-     * @brief Try establishing connection with the robot server.
+     * @brief [Blocking] Try establishing connection with the robot.
      * @throw CommException if failed to establish connection.
+     * @warning This function blocks until the reconnection is finished.
      */
     void connect(void);
 
     /**
-     * @brief Disconnect with the robot server.
+     * @brief [Blocking] Disconnect with the robot.
      * @throw ExecutionException if error occurred during execution.
+     * @warning This function blocks until the disconnection is finished.
      */
     void disconnect(void);
 
     /**
-     * @brief Clear minor fault of the robot.
+     * @brief [Blocking] Clear minor fault of the robot.
      * @throw ExecutionException if error occurred during execution.
+     * @warning This function blocks until the request is successfully delivered
+     * to the robot.
      */
     void clearFault(void);
 
@@ -152,154 +166,153 @@ public:
     void setMode(Mode mode);
 
     /**
-     * @brief Get the current operation mode of the robot.
+     * @brief [Non-blocking] Get the current control mode of the robot.
      * @return flexiv::Mode enum.
      */
     Mode getMode(void) const;
 
-    //============================ ROBOT OPERATION =============================
+    //============================ ROBOT OPERATIONS ============================
     /**
-     * @brief Get robot states like joint position, velocity, torque, TCP
-     * pose, velocity, etc.
+     * @brief [Non-blocking] Get the latest robot states.
      * @param[out] output Reference of output data object.
-     * @note Call this method periodically to get the latest states.
+     * @note Call this function periodically to keep the output data object up
+     * to date.
      */
     void getRobotStates(RobotStates& output);
 
     /**
-     * @brief Execute a plan by specifying its index.
+     * @brief [Blocking] Execute a plan by specifying its index.
      * @param[in] index Index of the plan to execute, can be obtained via
      * getPlanNameList().
-     * @note Applicable operation mode: NRT_PLAN_EXECUTION.
+     * @note Applicable control mode: NRT_PLAN_EXECUTION.
      * @throw InputException if index is invalid.
-     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
      * @note isBusy() can be used to check if a plan task has finished.
-     * @warning This method will block for 50 ms for the non-real-time command
-     * to be transmitted and fully processed by the robot server.
+     * @warning This function blocks until the request is successfully delivered
+     * to the robot and fully processed.
      */
     void executePlan(unsigned int index);
 
     /**
-     * @brief Execute a plan by specifying its name.
+     * @brief [Blocking] Execute a plan by specifying its name.
      * @param[in] name Name of the plan to execute, can be obtained via
      * getPlanNameList().
-     * @note Applicable operation mode: NRT_PLAN_EXECUTION.
-     * @throw LogicException if robot is not in the correct operation mode.
+     * @note Applicable control mode: NRT_PLAN_EXECUTION.
+     * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
      * @note isBusy() can be used to check if a plan task has finished.
-     * @warning This method will block for 50 ms for the non-real-time command
-     * to be transmitted and fully processed by the robot server.
+     * @warning This function blocks until the request is successfully delivered
+     * to the robot and fully processed.
      */
     void executePlan(const std::string& name);
 
     /**
-     * @brief Pause or resume the execution of the current plan.
+     * @brief [Blocking] Pause or resume the execution of the current plan.
      * @param[in] pause True: pause plan, false: resume plan.
-     * @note Applicable operation mode: NRT_PLAN_EXECUTION.
-     * @throw LogicException if robot is not in the correct operation mode.
+     * @note Applicable control mode: NRT_PLAN_EXECUTION.
+     * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
-     * @warning This method will block for 50 ms for the non-real-time command
-     * to be transmitted and fully processed by the robot server.
+     * @warning This function blocks until the request is successfully delivered
+     * to the robot and fully processed.
      */
     void pausePlan(bool pause);
 
     /**
-     * @brief Get a list of all available plans.
+     * @brief [Blocking] Get a list of all available plans from the robot.
      * @return Available plans in the format of a string list.
-     * @throw CommException if there's no response from server.
+     * @throw CommException if there's no response from the robot.
      * @throw ExecutionException if error occurred during execution.
-     * @warning This method will block until the request-reply operation with
-     * the server is done. The blocking time varies by communication latency.
+     * @warning This function blocks until the reply from the robot is received.
      */
     std::vector<std::string> getPlanNameList(void) const;
 
     /**
-     * @brief Get detailed information about the currently running plan.
-     * Contains information like plan name, primitive name, node name, node
-     * path, node path time period, etc.
+     * @brief [Blocking] Get detailed information about the currently running
+     * plan. Contains information like plan name, primitive name, node name,
+     * node path, node path time period, etc.
      * @param[out] output Reference of output data object.
-     * @throw CommException if there's no response from server.
+     * @throw CommException if there's no response from the robot.
      * @throw ExecutionException if error occurred during execution.
-     * @warning This method will block until the request-reply operation with
-     * the server is done. The blocking time varies by communication latency.
+     * @warning This function blocks until the reply from the robot is received.
      */
     void getPlanInfo(PlanInfo& output);
 
     /**
-     * @brief Execute a primitive by specifying its name and parameters, which
-     * can be found in the [Flexiv Primitives
+     * @brief [Blocking] Execute a primitive by specifying its name and
+     * parameters, which can be found in the [Flexiv Primitives
      * documentation](https://www.flexiv.com/primitives/).
      * @param[in] ptCmd Primitive command with the following string format:
      * "primitiveName(inputParam1=xxx, inputParam2=xxx, ...)".
-     * @note Applicable operation mode: NRT_PRIMITIVE_EXECUTION.
+     * @note Applicable control mode: NRT_PRIMITIVE_EXECUTION.
      * @throw InputException if size of the input string is greater than 5kb.
-     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
-     * @note A primitive won't terminate itself upon finish, thus isBusy()
-     * cannot be used to check if a primitive task is finished, use primitive
-     * states like "reachedTarget" instead.
      * @warning The primitive input parameters may not use SI units, please
      * refer to the Flexiv Primitives documentation for exact unit definition.
      * @warning Some primitives may not terminate automatically and require
      * users to manually terminate them based on specific primitive states,
      * for example, most [Move] primitives. In such case, isBusy() will stay
      * true even if it seems everything is done for that primitive.
-     * @warning This method will block for 50 ms for the non-real-time command
-     * to be transmitted and fully processed by the robot server.
+     * @warning This function blocks until the request is successfully delivered
+     * to the robot and fully processed.
      */
     void executePrimitive(const std::string& ptCmd);
 
     /**
-     * @brief Get feedback states of the currently executing primitive.
+     * @brief [Blocking] Get feedback states of the currently executing
+     * primitive.
      * @return Primitive states in the format of a string list.
-     * @throw CommException if there's no response from server.
+     * @throw CommException if there's no response from the robot.
      * @throw ExecutionException if error occurred during execution.
-     * @warning This method will block until the request-reply operation with
-     * the server is done. The blocking time varies by communication latency.
+     * @warning This function blocks until the reply from the robot is received.
      */
     std::vector<std::string> getPrimitiveStates(void) const;
 
     /**
-     * @brief Set global variables for the robot by specifying name and value.
+     * @brief [Blocking] Set global variables for the robot by specifying name
+     * and value.
      * @param[in] globalVars Command to set global variables using the format:
      * globalVar1=value(s), globalVar2=value(s), ...
-     * @note Applicable operation mode: NRT_PLAN_EXECUTION.
+     * @note Applicable control mode: NRT_PLAN_EXECUTION.
      * @throw InputException if size of the input string is greater than 5kb.
-     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
      * @warning The specified global variable(s) must have already been created
-     * in the robot server, otherwise setting a nonexistent global variable will
-     * have no effect. To check if a global variable is successfully set, use
-     * getGlobalVariables().
-     * @warning This method will block for 50 ms for the non-real-time command
-     * to be transmitted and fully processed by the robot server.
+     * in the robot using Flexiv Elements, otherwise setting a nonexistent
+     * global variable will have no effect. To check if a global variable is
+     * successfully set, use getGlobalVariables().
+     * @warning This function blocks until the request is successfully delivered
+     * to the robot and fully processed.
      */
     void setGlobalVariables(const std::string& globalVars);
 
     /**
-     * @brief Get available global variables from the robot.
+     * @brief [Blocking] Get available global variables from the robot.
      * @return Global variables in the format of a string list.
-     * @throw CommException if there's no response from server.
+     * @throw CommException if there's no response from the robot.
      * @throw ExecutionException if error occurred during execution.
-     * @warning This method will block until the request-reply operation with
-     * the server is done. The blocking time varies by communication latency.
+     * @warning This function blocks until the reply from the robot is received.
      */
     std::vector<std::string> getGlobalVariables(void) const;
 
     /**
-     * @brief Check if the robot has come to a complete stop.
+     * @brief [Non-blocking] Check if the robot has come to a complete stop.
      * @return True: stopped, false: still moving.
      */
     bool isStopped(void) const;
 
     /**
-     * @brief If the mounted tool has more than one TCP, switch the TCP being
-     * used by the robot server. Default to the 1st one (index = 0).
+     * @brief [Blocking] If the mounted tool has more than one TCP, switch the
+     * TCP being used by the robot. Default to the 1st one (index = 0).
      * @param[in] index Index of the TCP on the mounted tool to switch to.
-     * @note No need to call this method if the mounted tool on the robot has
-     * only one TCP, it'll be used by default.
      * @throw ExecutionException if error occurred during execution.
+     * @note No need to call this function if the mounted tool on the robot has
+     * only one TCP, it'll be used by default.
+     * @note New TCP index will take effect upon control mode switch, or upon
+     * sending a new primitive command.
+     * @warning This function blocks until the request is successfully delivered
+     * to the robot.
      */
     void switchTcp(unsigned int index);
 
@@ -314,19 +327,20 @@ public:
      */
     void runAutoRecovery(void);
 
-    //====================== DIRECT MOTION/FORCE CONTROL =======================
+    //========================== DIRECT JOINT CONTROL ==========================
     /**
-     * @brief Continuously send joint torque command to robot.
+     * @brief [Non-blocking] Continuously stream joint torque command to the
+     * robot.
      * @param[in] torques Target joint torques: \f$ {\tau_J}_d \in
      * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [Nm] \f$.
      * @param[in] enableGravityComp Enable/disable robot gravity compensation.
      * @param[in] enableSoftLimits Enable/disable soft limits to keep the
      * joints from moving outside the allowed position range, which will
      * trigger a safety fault that requires recovery operation.
-     * @note Applicable operation mode: RT_JOINT_TORQUE.
+     * @note Applicable control mode: RT_JOINT_TORQUE.
      * @note Real-time (RT).
      * @throw InputException if input is invalid.
-     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
      * @warning Always stream smooth and continuous commands to avoid sudden
      * movements.
@@ -335,18 +349,18 @@ public:
         bool enableGravityComp = true, bool enableSoftLimits = true);
 
     /**
-     * @brief Continuously send joint position, velocity, and acceleration
-     * command.
+     * @brief [Non-blocking] Continuously stream joint position, velocity, and
+     * acceleration command to the robot.
      * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{DOF
      * \times 1} \f$. Unit: \f$ [rad] \f$.
      * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in
      * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s] \f$.
      * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in
      * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
-     * @note Applicable operation mode: RT_JOINT_POSITION.
+     * @note Applicable control mode: RT_JOINT_POSITION.
      * @note Real-time (RT).
      * @throw InputException if input is invalid.
-     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
      * @warning Always stream smooth and continuous commands to avoid sudden
      * movements.
@@ -499,25 +513,28 @@ public:
         double maxLinearVel = 0.0, double maxAngularVel = 0.0);
 
     /**
-     * @brief Set motion stiffness for the Cartesian motion-force control modes.
+     * @brief [Non-blocking] Set motion stiffness for the Cartesian motion-force
+     * control modes.
      * @param[in] stiffness Desired Cartesian motion stiffness: \f$ K_d \in
      * \mathbb{R}^{6 \times 1} \f$. Calling with default parameter (all zeros)
      * will reset to the robot's nominal stiffness. Consists of \f$
      * \mathbb{R}^{3 \times 1} \f$ linear stiffness and \f$ \mathbb{R}^{3 \times
      * 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry},
      * k_{Rz}]^T \f$. Unit: \f$ [N/m]~[Nm/rad] \f$.
-     * @note Applicable operation modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
+     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
      * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
      * @throw InputException if input is invalid.
-     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
+     * @warning The robot will automatically reset to its nominal stiffness upon
+     * re-entering the applicable control modes.
      */
     void setCartesianStiffness(
-        const std::vector<double>& stiffness = {0, 0, 0, 0, 0, 0});
+        const std::vector<double>& stiffness = std::vector<double>(6));
 
     /**
-     * @brief Set preferred joint positions for the null-space posture control
-     * module used in the Cartesian motion-force control modes.
+     * @brief [Non-blocking] Set preferred joint positions for the null-space
+     * posture control module used in the Cartesian motion-force control modes.
      * @param[in] preferredPositions Preferred joint positions for the
      * null-space posture control: \f$ q_{ns} \in \mathbb{R}^{DOF \times 1} \f$.
      * Calling with default parameter (all zeros) will reset to the robot's
@@ -528,17 +545,19 @@ public:
      * freedom (DOF > 6) can change its overall posture without affecting the
      * ongoing primary task. This is achieved through a technique called
      * "null-space control". After the preferred joint positions for a desired
-     * robot posture is set using this method, the robot's null-space control
+     * robot posture is set using this function, the robot's null-space control
      * module will try to pull the arm as close to this posture as possible
      * without affecting the primary Cartesian motion-force control task.
-     * @note Applicable operation modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
+     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
      * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
      * @throw InputException if input is invalid.
-     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
+     * @warning The robot will automatically reset to its nominal preferred
+     * joint positions upon re-entering the below applicable control modes.
      */
     void setNullSpacePosture(
-        const std::vector<double>& preferredPositions = {0, 0, 0, 0, 0, 0, 0});
+        const std::vector<double>& preferredPositions = std::vector<double>(7));
 
     //=============================== IO CONTROL ===============================
     /**
