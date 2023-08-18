@@ -298,13 +298,15 @@ public:
     void switchTcp(unsigned int index);
 
     /**
-     * @brief Start auto recovery to bring joints that are outside the allowed
-     * position range back into allowed range.
+     * @brief [Blocking] Run automatic recovery to bring joints that are outside
+     * the allowed position range back into allowed range.
      * @note Refer to user manual for more details.
      * @see isRecoveryState()
      * @throw ExecutionException if error occurred during execution.
+     * @warning This function blocks until the automatic recovery process is
+     * finished.
      */
-    void startAutoRecovery(void);
+    void runAutoRecovery(void);
 
     //====================== DIRECT MOTION/FORCE CONTROL =======================
     /**
