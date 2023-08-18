@@ -59,14 +59,16 @@ public:
     void stop(void);
 
     /**
-     * @brief Check if the robot is normally operational, which requires the
-     * following conditions to be met: enabled, brakes fully released, in auto
-     * mode, no fault, and not in reduced state.
+     * @brief [Non-blocking] Check if the robot is normally operational, which
+     * requires the following conditions to be met: enabled, brakes fully
+     * released, in auto mode, no fault, and not in reduced state.
+     * @param[in] verbose Whether to print warning message indicating why the
+     * robot is not operational when this function returns false.
+     * @return True: operational, false: not operational.
      * @warning The robot won't execute any user command until it becomes
      * normally operational.
-     * @return True: operational, false: not operational.
      */
-    bool isOperational(void) const;
+    bool isOperational(bool verbose = true) const;
 
     /**
      * @brief [Non-blocking] Check if the robot is currently executing a task.
