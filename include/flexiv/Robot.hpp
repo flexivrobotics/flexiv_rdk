@@ -388,16 +388,17 @@ public:
         const std::vector<double>& accelerations,
         const std::vector<double>& maxVel, const std::vector<double>& maxAcc);
 
+    //======================== DIRECT CARTESIAN CONTROL ========================
     /**
-     * @brief Continuously command Cartesian motion and force command for the
-     * robot to track using its unified motion-force controller.
+     * @brief [Non-blocking] Continuously stream Cartesian motion and/or force
+     * command for the robot to track using its unified motion-force controller.
      * @param[in] pose Target TCP pose in base or TCP frame (depends on
-     * operation mode): \f$ {^{O}T_{TCP}}_{d} \f$ or \f$ {^{TCP}T_{TCP}}_{d} \in
+     * control mode): \f$ {^{O}T_{TCP}}_{d} \f$ or \f$ {^{TCP}T_{TCP}}_{d} \in
      * \mathbb{R}^{7 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$
      * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x, y, z,
      * q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
      * @param[in] wrench  Target TCP wrench in base or TCP frame (depends on
-     * operation mode): \f$ ^{0}F_d \f$ or \f$ ^{TCP}F_d \in \mathbb{R}^{6
+     * control mode): \f$ ^{0}F_d \f$ or \f$ ^{TCP}F_d \in \mathbb{R}^{6
      * \times 1} \f$. If TCP frame is used, unlike motion control, the reference
      * frame for force control is always the robot's current TCP frame. When the
      * target value of a direction is set to non-zero, this direction will
@@ -410,16 +411,16 @@ public:
      * motion control in all directions. Consists of \f$ \mathbb{R}^{3 \times 1}
      * \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z,
      * m_x, m_y, m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
-     * @note Applicable operation modes: RT_CARTESIAN_MOTION_FORCE_BASE,
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE_BASE,
      * RT_CARTESIAN_MOTION_FORCE_TCP.
      * @note Real-time (RT).
      * @throw InputException if input is invalid.
-     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
      * @warning Reference frame non-orthogonality between motion- and force-
      * controlled directions can happen when using the TCP frame mode
      * (RT_CARTESIAN_MOTION_FORCE_TCP). The reference frame for motion control
-     * is defined as the robot TCP frame at the time point when the operation
+     * is defined as the robot TCP frame at the time point when the control
      * mode is switched into RT_CARTESIAN_MOTION_FORCE_TCP and is updated only
      * upon each mode entrance, since motion control requires a fixed reference
      * frame. The reference frame for force control is defined as the current
@@ -437,7 +438,7 @@ public:
      * movements.
      */
     void streamCartesianMotionForce(const std::vector<double>& pose,
-        const std::vector<double>& wrench = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+        const std::vector<double>& wrench = std::vector<double>(6));
 
     /**
      * @brief [Non-blocking] Discretely send Cartesian motion and/or force
