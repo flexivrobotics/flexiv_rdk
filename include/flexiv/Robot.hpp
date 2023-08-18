@@ -525,14 +525,11 @@ public:
     void writeDigitalOutput(unsigned int portNumber, bool value);
 
     /**
-     * @brief Read digital input on the control box.
-     * @param[in] portNumber Port to read value from [0 ~ 15].
-     * @return True: port high, false: port low.
-     * @throw CommException if there's no response from server.
-     * @throw ExecutionException if error occurred during execution.
-     * @throw InputException if input is invalid.
+     * @brief [Non-blocking] Read all digital input ports on the control box.
+     * @return Digital input readings array whose index corresponds to the
+     * digital input port index. True: port high, false: port low.
      */
-    bool readDigitalInput(unsigned int portNumber);
+    std::array<bool, k_IOPorts> readDigitalInput(void);
 
 private:
     class Impl;
