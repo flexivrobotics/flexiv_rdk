@@ -348,23 +348,32 @@ public:
         const std::vector<double>& accelerations);
 
     /**
-     * @brief Discretely send joint position, velocity, and acceleration
-     * command. The internal trajectory generator will interpolate between two
-     * set points and make the motion smooth.
+     * @brief [Non-blocking] Discretely send joint position, velocity, and
+     * acceleration command. The robot's internal motion generator will smoothen
+     * the discrete commands.
      * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{DOF
      * \times 1} \f$. Unit: \f$ [rad] \f$.
      * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in
-     * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s] \f$.
+     * \mathbb{R}^{DOF \times 1} \f$. Each joint will maintain this amount of
+     * velocity when it reaches the target position. Unit: \f$ [rad/s] \f$.
      * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in
-     * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
-     * @param[in] maxVel Maximum joint velocities: \f$ \dot{q}_{max} \in
-     * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s] \f$.
-     * @param[in] maxAcc Maximum joint accelerations: \f$ \ddot{q}_{max} \in
-     * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
-     * @note Applicable operation mode: NRT_JOINT_POSITION.
+     * \mathbb{R}^{DOF \times 1} \f$. Each joint will maintain this amount of
+     * acceleration when it reaches the target position. Unit: \f$ [rad/s^2]
+     * \f$.
+     * @param[in] maxVel Maximum joint velocities for the planned trajectory:
+     * \f$ \dot{q}_{max} \in \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s]
+     * \f$.
+     * @param[in] maxAcc Maximum joint accelerations for the planned trajectory:
+     * \f$ \ddot{q}_{max} \in \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s^2]
+     * \f$.
+     * @note Applicable control mode: NRT_JOINT_POSITION.
      * @throw InputException if input is invalid.
-     * @throw LogicException if robot is not in the correct operation mode.
+     * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
+     * @warning Calling this function a second time while the motion from the
+     * previous call is still ongoing will trigger an online re-planning of
+     * the joint trajectory, such that the previous command is aborted and the
+     * new command starts to execute.
      */
     void sendJointPosition(const std::vector<double>& positions,
         const std::vector<double>& velocities,
