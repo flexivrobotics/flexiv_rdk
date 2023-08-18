@@ -516,13 +516,22 @@ public:
 
     //=============================== IO CONTROL ===============================
     /**
-     * @brief Set digital output on the control box.
-     * @param[in] portNumber Port to set value to [0 ~ 15].
-     * @param[in] value True: set high, false: set low.
-     * @throw ExecutionException if error occurred during execution.
-     * @throw InputException if input is invalid.
+     * @brief [Blocking] Write to single or multiple digital output port(s) on
+     * the control box.
+     * @param[in] portIdx Index of port(s) to write, can be a single port or
+     * multiple ports. E.g. {0, 5, 7, 15} or {1, 3, 10} or {8}. Valid range of
+     * the index number is [0–15].
+     * @param[in] values Corresponding values to write to the specified ports.
+     * True: set port high, false: set port low. Vector size must match the size
+     * of portIdx.
+     * @throw InputException if any index number in portIdx is not within
+     * [0–15], or if the two input vectors have different sizes.
+     * @throw ExecutionException if failed to execute the request.
+     * @warning This function blocks until the request is successfully delivered
+     * to the robot.
      */
-    void writeDigitalOutput(unsigned int portNumber, bool value);
+    void writeDigitalOutput(const std::vector<unsigned int>& portIdx,
+        const std::vector<bool>& values);
 
     /**
      * @brief [Non-blocking] Read all digital input ports on the control box.
