@@ -52,9 +52,11 @@ public:
     void move(double width, double velocity, double forceLimit = 0);
 
     /**
-     * @brief Stop the gripper.
+     * @brief [Blocking] Stop the gripper.
      * @note Applicable operation modes: all modes.
      * @throw ExecutionException if error occurred during execution.
+     * @warning This function blocks until the request is successfully delivered
+     * to the robot and gripper control is transferred back to plan/primitive.
      */
     void stop(void);
 
