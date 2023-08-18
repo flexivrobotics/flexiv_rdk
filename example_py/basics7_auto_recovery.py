@@ -65,10 +65,10 @@ def main():
         # process is done, so just wait long enough for the process to finish
         time.sleep(8)
 
-        # Start auto recovery if the system is in recovery state, the involved joints will start to
+        # Run auto recovery if the system is in recovery state, the involved joints will start to
         # move back into allowed position range
         if robot.isRecoveryState():
-            robot.startAutoRecovery()
+            robot.runAutoRecovery()
             # Block forever, must reboot the robot and restart user program after recovery is done
             while True:
                 time.sleep(1)
