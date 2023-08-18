@@ -136,19 +136,18 @@ public:
     void clearFault(void);
 
     /**
-     * @brief Set a new operation mode to the robot and wait until the mode
-     * transition is finished.
+     * @brief [Blocking] Set a new control mode to the robot and wait until
+     * the mode transition is finished.
      * @param[in] mode flexiv::Mode enum.
-     * @warning To avoid unexpected behavior, it's recommended to call stop()
-     * and check if the robot has come to a complete stop using isStopped()
-     * before switching mode.
      * @throw InputException if requested mode is invalid.
-     * @throw LogicException if robot is in an unknown operation mode.
+     * @throw LogicException if robot is in an unknown control mode.
      * @throw ServerException if robot is not operational.
      * @throw ExecutionException if failed to transit the robot into specified
-     * operation mode after several attempts.
-     * @warning This method will block until the robot has successfully
-     * transited into the specified operation mode.
+     * control mode after several attempts.
+     * @warning If the robot is still moving when this function is called, it
+     * will automatically stop then make the mode transition.
+     * @warning This function blocks until the robot has successfully transited
+     * into the specified control mode.
      */
     void setMode(Mode mode);
 
