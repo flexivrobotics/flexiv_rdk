@@ -69,12 +69,13 @@ public:
     bool isOperational(void) const;
 
     /**
-     * @brief Check if the robot is currently executing a task. This includes
-     * any user commanded operations that requires the robot to execute. For
-     * example, plans, primitives, Cartesian and joint motions, etc.
+     * @brief [Non-blocking] Check if the robot is currently executing a task.
+     * This includes any user commanded operations that requires the robot to
+     * execute. For example, plans, primitives, Cartesian and joint motions,
+     * etc.
+     * @return True: busy, false: idle.
      * @warning Some exceptions exist for primitives, see executePrimitive()
      * warning for more details.
-     * @return True: busy, false: idle.
      */
     bool isBusy(void) const;
 
