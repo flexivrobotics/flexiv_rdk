@@ -1,13 +1,9 @@
 cmake_minimum_required(VERSION 3.18.6)
 
 # ===================================================================
-#      PROJECT CONFIG
+#      PROJECT SETUP
 # ===================================================================
-project(flexiv_rdk VERSION 0.8.0)
-
-# C++14 required
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+project(flexiv_rdk VERSION 0.9.0)
 
 # Configure build type
 if(NOT CMAKE_BUILD_TYPE)
