@@ -61,12 +61,8 @@ public:
     void stop(void);
 
     /**
-     * @brief Get current gripper states.
+     * @brief [Non-blocking] Get current gripper states.
      * @param[out] output Reference of output data object.
-     * @throw CommException if there's no response from server.
-     * @throw ExecutionException if error occurred during execution.
-     * @warning This method will block until the request-reply operation with
-     * the server is done. The blocking time varies by communication latency.
      */
     void getGripperStates(GripperStates& output);
 
