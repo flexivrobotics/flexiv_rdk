@@ -253,6 +253,9 @@ int main(int argc, char* argv[])
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
 
+        // Wait a bit for any last-second robot log message to arrive and get printed
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
         return 1;
