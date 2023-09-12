@@ -541,13 +541,29 @@ public:
      */
     void resetNullSpacePosture(void);
 
+    /**
+     * @brief [Non-blocking] Set whether to enable or disable active force
+     * control for the Cartesian motion-force control modes. When enabled, a
+     * closed-loop force controller will be used to track the target wrench,
+     * i.e. active force control. When disabled, an open-loop force controller
+     * will be used to feed forward the target wrench, i.e. passive force
+     * control.
+     * @param[in] isEnabled True: enable, false: disable.
      * @throw LogicException if robot is not in the correct control mode.
-     * @throw ExecutionException if error occurred during execution.
-     * @warning The robot will automatically reset to its nominal preferred
-     * joint positions upon re-entering the below applicable control modes.
+     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
+     * @warning The active force control will automatically reset to disabled
+     * upon re-entering the applicable control modes.
+     * @par Difference between active and passive force control
+     * Active force control uses a feedback loop to reduce the error between
+     * target wrench and measured wrench. This method results in better force
+     * tracking performance, but at the cost of additional Cartesian damping
+     * which could potentially decrease motion tracking performance. On the
+     * other hand, passive force control simply feeds forward the target wrench.
+     * This methods results in worse force tracking performance, but is more
+     * robust and does not introduce additional Cartesian damping. The choice of
+     * active or passive force control depends on the actual application.
      */
-    void setNullSpacePosture(
-        const std::vector<double>& preferredPositions = std::vector<double>(7));
+    void setActiveForceControl(bool isEnabled);
 
     //=============================== IO CONTROL ===============================
     /**
