@@ -510,6 +510,31 @@ public:
      */
     void resetCartesianStiffness(void);
 
+    /**
+     * @brief [Non-blocking] Set maximum contact wrench for the motion control
+     * part of the Cartesian motion-force control modes. The controller will
+     * regulate its output to maintain contact wrench (force and moment) with
+     * the environment under the set values.
+     * @param[in] maxWrench Maximum contact wrench (force and moment): \f$ F_max
+     * \in \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1}
+     * \f$ maximum force and \f$ \mathbb{R}^{3 \times 1} \f$ maximum moment: \f$
+     * [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
+     * @throw InputException if input is invalid.
+     * @throw LogicException if robot is not in the correct control mode.
+     * @note The maximum contact wrench regulation only applies to the motion
+     * control part.
+     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
+     * @warning The maximum contact wrench regulation will automatically reset
+     * to disabled upon re-entering the applicable control modes.
+     */
+    void setMaxContactWrench(const std::vector<double>& maxWrench);
+
+    /**
+     * @brief [Non-blocking] Reset max contact wrench regulation to nominal
+     * state, i.e. disabled.
+     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
+     */
+    void resetMaxContactWrench(void);
 
     /**
      * @brief [Non-blocking] Set preferred joint positions for the null-space
