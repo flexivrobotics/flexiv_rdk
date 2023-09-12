@@ -68,15 +68,7 @@ enum Mode
      * @note Real-time (RT) mode
      * @see flexiv::Robot::streamCartesianMotionForce()
      */
-    RT_CARTESIAN_MOTION_FORCE_BASE,
-
-    /**
-     * Run real-time Cartesian motion-force control to track continuous commands
-     * in TCP frame @ 1kHz.
-     * @note Real-time (RT) mode
-     * @see flexiv::Robot::streamCartesianMotionForce()
-     */
-    RT_CARTESIAN_MOTION_FORCE_TCP,
+    RT_CARTESIAN_MOTION_FORCE,
 
     /**
      * Run non-real-time Cartesian motion-force control to track discrete
@@ -84,15 +76,7 @@ enum Mode
      * @note Non-real-time (NRT) mode
      * @see flexiv::Robot::sendCartesianMotionForce()
      */
-    NRT_CARTESIAN_MOTION_FORCE_BASE,
-
-    /**
-     * Run non-real-time Cartesian motion-force control to track discrete
-     * commands (smoothened by internal motion generator) in TCP frame.
-     * @note Non-real-time (NRT) mode
-     * @see flexiv::Robot::sendCartesianMotionForce()
-     */
-    NRT_CARTESIAN_MOTION_FORCE_TCP,
+    NRT_CARTESIAN_MOTION_FORCE,
 };
 
 } /* namespace flexiv */
