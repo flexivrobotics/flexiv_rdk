@@ -184,28 +184,32 @@ public:
      * @brief [Blocking] Execute a plan by specifying its index.
      * @param[in] index Index of the plan to execute, can be obtained via
      * getPlanNameList().
-     * @note Applicable control mode: NRT_PLAN_EXECUTION.
+     * @param[in] continueExec Whether to continue executing the plan when
+     * the RDK program is closed or the connection is lost.
      * @throw InputException if index is invalid.
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
+     * @note Applicable control mode: NRT_PLAN_EXECUTION.
      * @note isBusy() can be used to check if a plan task has finished.
      * @warning This function blocks until the request is successfully delivered
      * to the robot and fully processed.
      */
-    void executePlan(unsigned int index);
+    void executePlan(unsigned int index, bool continueExec = false);
 
     /**
      * @brief [Blocking] Execute a plan by specifying its name.
      * @param[in] name Name of the plan to execute, can be obtained via
      * getPlanNameList().
-     * @note Applicable control mode: NRT_PLAN_EXECUTION.
+     * @param[in] continueExec Whether to continue executing the plan when
+     * the RDK program is closed or the connection is lost.
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
+     * @note Applicable control mode: NRT_PLAN_EXECUTION.
      * @note isBusy() can be used to check if a plan task has finished.
      * @warning This function blocks until the request is successfully delivered
      * to the robot and fully processed.
      */
-    void executePlan(const std::string& name);
+    void executePlan(const std::string& name, bool continueExec = false);
 
     /**
      * @brief [Blocking] Pause or resume the execution of the current plan.
