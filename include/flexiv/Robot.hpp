@@ -490,21 +490,26 @@ public:
      * @brief [Non-blocking] Set motion stiffness for the Cartesian motion-force
      * control modes.
      * @param[in] stiffness Desired Cartesian motion stiffness: \f$ K_d \in
-     * \mathbb{R}^{6 \times 1} \f$. Calling with default parameter (all zeros)
-     * will reset to the robot's nominal stiffness. Consists of \f$
-     * \mathbb{R}^{3 \times 1} \f$ linear stiffness and \f$ \mathbb{R}^{3 \times
-     * 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry},
-     * k_{Rz}]^T \f$. Unit: \f$ [N/m]~[Nm/rad] \f$.
-     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
-     * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
+     * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$
+     * linear stiffness and \f$ \mathbb{R}^{3 \times 1} \f$ angular stiffness:
+     * \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry}, k_{Rz}]^T \f$. Unit: \f$
+     * [N/m]~[Nm/rad] \f$.
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
+     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
      * @warning The robot will automatically reset to its nominal stiffness upon
      * re-entering the applicable control modes.
      */
-    void setCartesianStiffness(
-        const std::vector<double>& stiffness = std::vector<double>(6));
+    void setCartesianStiffness(const std::vector<double>& stiffness);
+
+    /**
+     * @brief [Non-blocking] Reset motion stiffness for the Cartesian
+     * motion-force control modes to nominal value.
+     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
+     */
+    void resetCartesianStiffness(void);
+
 
     /**
      * @brief [Non-blocking] Set preferred joint positions for the null-space
