@@ -210,9 +210,9 @@ public:
     /**
      * @brief [Blocking] Pause or resume the execution of the current plan.
      * @param[in] pause True: pause plan, false: resume plan.
-     * @note Applicable control mode: NRT_PLAN_EXECUTION.
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
+     * @note Applicable control mode: NRT_PLAN_EXECUTION.
      * @warning This function blocks until the request is successfully delivered
      * to the robot and fully processed.
      */
@@ -244,10 +244,10 @@ public:
      * documentation](https://www.flexiv.com/primitives/).
      * @param[in] ptCmd Primitive command with the following string format:
      * "primitiveName(inputParam1=xxx, inputParam2=xxx, ...)".
-     * @note Applicable control mode: NRT_PRIMITIVE_EXECUTION.
      * @throw InputException if size of the input string is greater than 5kb.
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
+     * @note Applicable control mode: NRT_PRIMITIVE_EXECUTION.
      * @warning The primitive input parameters may not use SI units, please
      * refer to the Flexiv Primitives documentation for exact unit definition.
      * @warning Some primitives may not terminate automatically and require
@@ -274,10 +274,10 @@ public:
      * and value.
      * @param[in] globalVars Command to set global variables using the format:
      * globalVar1=value(s), globalVar2=value(s), ...
-     * @note Applicable control mode: NRT_PLAN_EXECUTION.
      * @throw InputException if size of the input string is greater than 5kb.
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
+     * @note Applicable control mode: NRT_PLAN_EXECUTION.
      * @warning The specified global variable(s) must have already been created
      * in the robot using Flexiv Elements, otherwise setting a nonexistent
      * global variable will have no effect. To check if a global variable is
@@ -319,11 +319,11 @@ public:
     /**
      * @brief [Blocking] Run automatic recovery to bring joints that are outside
      * the allowed position range back into allowed range.
-     * @note Refer to user manual for more details.
-     * @see isRecoveryState()
      * @throw ExecutionException if error occurred during execution.
+     * @note Refer to user manual for more details.
      * @warning This function blocks until the automatic recovery process is
      * finished.
+     * @see isRecoveryState()
      */
     void runAutoRecovery(void);
 
@@ -337,11 +337,11 @@ public:
      * @param[in] enableSoftLimits Enable/disable soft limits to keep the
      * joints from moving outside the allowed position range, which will
      * trigger a safety fault that requires recovery operation.
-     * @note Applicable control mode: RT_JOINT_TORQUE.
-     * @note Real-time (RT).
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
+     * @note Applicable control mode: RT_JOINT_TORQUE.
+     * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden
      * movements.
      */
@@ -357,11 +357,11 @@ public:
      * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s] \f$.
      * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in
      * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
-     * @note Applicable control mode: RT_JOINT_POSITION.
-     * @note Real-time (RT).
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
+     * @note Applicable control mode: RT_JOINT_POSITION.
+     * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden
      * movements.
      */
@@ -388,10 +388,10 @@ public:
      * @param[in] maxAcc Maximum joint accelerations for the planned trajectory:
      * \f$ \ddot{q}_{max} \in \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s^2]
      * \f$.
-     * @note Applicable control mode: NRT_JOINT_POSITION.
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
+     * @note Applicable control mode: NRT_JOINT_POSITION.
      * @warning Calling this function a second time while the motion from the
      * previous call is still ongoing will trigger an online re-planning of
      * the joint trajectory, such that the previous command is aborted and the
