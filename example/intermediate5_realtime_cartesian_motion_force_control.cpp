@@ -18,9 +18,6 @@
 #include <thread>
 
 namespace {
-/** RT loop frequency [Hz] */
-constexpr size_t k_loopFreq = 1000;
-
 /** RT loop period [sec] */
 constexpr double k_loopPeriod = 0.001;
 
