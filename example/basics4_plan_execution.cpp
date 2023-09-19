@@ -136,7 +136,9 @@ int main(int argc, char* argv[])
                     log.info("Enter plan index to execute:");
                     int index;
                     std::cin >> index;
-                    robot.executePlan(index);
+                    // Allow the plan to continue its execution even if the RDK program is closed or
+                    // the connection is lost
+                    robot.executePlan(index, true);
 
                     // Print plan info while the current plan is running
                     while (robot.isBusy()) {
@@ -151,7 +153,9 @@ int main(int argc, char* argv[])
                     log.info("Enter plan name to execute:");
                     std::string name;
                     std::cin >> name;
-                    robot.executePlan(name);
+                    // Allow the plan to continue its execution even if the RDK program is closed or
+                    // the connection is lost
+                    robot.executePlan(name, true);
 
                     // Print plan info while the current plan is running
                     while (robot.isBusy()) {
