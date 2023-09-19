@@ -26,8 +26,10 @@ def print_description():
     Print tutorial description.
 
     """
-    print("This tutorial does the very first thing: check connection with the robot server "
-          "and print received robot states.")
+    print(
+        "This tutorial does the very first thing: check connection with the robot server "
+        "and print received robot states."
+    )
     print()
 
 
@@ -71,8 +73,8 @@ def main():
     # ==============================================================================================
     # Parse arguments
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('robot_ip', help='IP address of the robot server')
-    argparser.add_argument('local_ip', help='IP address of this PC')
+    argparser.add_argument("robot_ip", help="IP address of the robot server")
+    argparser.add_argument("local_ip", help="IP address of this PC")
     args = argparser.parse_args()
 
     # Define alias
@@ -106,22 +108,15 @@ def main():
         robot.enable()
 
         # Wait for the robot to become operational
-        seconds_waited = 0
         while not robot.isOperational():
             time.sleep(1)
-            seconds_waited += 1
-            if seconds_waited == 10:
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode")
 
         log.info("Robot is now operational")
 
         # Print States
         # =============================================================================
         # Thread for printing robot states
-        print_thread = threading.Thread(
-            target=print_robot_states, args=[robot, log])
+        print_thread = threading.Thread(target=print_robot_states, args=[robot, log])
         print_thread.start()
         print_thread.join()
 
