@@ -40,7 +40,7 @@ public:
      * \mathbb{R}^{DOF \times 1} \f$. Unit: \f$ [rad/s] \f$.
      * @throw InputException if the input vector is of wrong size.
      */
-    void updateModel(const std::vector<double>& positions,
+    void update(const std::vector<double>& positions,
         const std::vector<double>& velocities);
 
     /**
@@ -48,7 +48,7 @@ public:
      * the specified link \f$ i \f$, expressed in the base frame.
      * @param[in] linkName Name of the link to get Jacobian for.
      * @return Jacobian matrix: \f$ ^{0}J_i \in \mathbb{R}^{6 \times DOF} \f$.
-     * @note Call updateModel() before this method.
+     * @note Call update() before this method.
      * @note Available links can be found in the provided URDF. They are
      * {"base_link", "link1", "link2", "link3", "link4", "link5", "link6",
      * "link7", "flange"}, plus "tool" if any flange tool is mounted.
@@ -63,7 +63,7 @@ public:
      * @param[in] linkName Name of the link to get Jacobian derivative for.
      * @return Time derivative of Jacobian matrix: \f$ ^{0}\dot{J_i} \in
      * \mathbb{R}^{6 \times DOF} \f$.
-     * @note Call updateModel() before this method.
+     * @note Call update() before this method.
      * @note Available links can be found in the provided URDF. They are
      * {"base_link", "link1", "link2", "link3", "link4", "link5", "link6",
      * "link7", "flange"}, plus "tool" if any flange tool is mounted.
@@ -76,7 +76,7 @@ public:
      * coordinates, i.e. joint space.
      * @return Symmetric positive definite mass matrix: \f$ M(q) \in
      * \mathbb{S}^{DOF \times DOF}_{++} \f$. Unit: \f$ [kgm^2] \f$.
-     * @note Call updateModel() before this method.
+     * @note Call update() before this method.
      */
     const Eigen::MatrixXd getMassMatrix();
 
@@ -85,7 +85,7 @@ public:
      * the generalized coordinates, i.e. joint space.
      * @return Coriolis/centripetal matrix: \f$ C(q,\dot{q}) \in \mathbb{R}^{DOF
      * \times DOF} \f$.
-     * @note Call updateModel() before this method.
+     * @note Call update() before this method.
      */
     const Eigen::MatrixXd getCoriolisMatrix();
 
@@ -94,7 +94,7 @@ public:
      * generalized coordinates, i.e. joint space.
      * @return Gravity force vector: \f$ g(q) \in \mathbb{R}^{DOF \times 1} \f$.
      * Unit: \f$ [Nm] \f$.
-     * @note Call updateModel() before this method.
+     * @note Call update() before this method.
      */
     const Eigen::VectorXd getGravityForce();
 
@@ -103,7 +103,7 @@ public:
      * generalized coordinates, i.e. joint space.
      * @return Coriolis force vector: \f$ c(q,\dot{q}) \in \mathbb{R}^{DOF
      * \times 1} \f$. Unit: \f$ [Nm] \f$.
-     * @note Call updateModel() before this method.
+     * @note Call update() before this method.
      */
     const Eigen::VectorXd getCoriolisForce();
 
