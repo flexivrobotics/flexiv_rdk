@@ -497,11 +497,12 @@ public:
     /**
      * @brief [Non-blocking] Set motion stiffness for the Cartesian motion-force
      * control modes.
-     * @param[in] stiffness Desired Cartesian motion stiffness: \f$ K_d \in
-     * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$
-     * linear stiffness and \f$ \mathbb{R}^{3 \times 1} \f$ angular stiffness:
-     * \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry}, k_{Rz}]^T \f$. Unit: \f$
-     * [N/m]~[Nm/rad] \f$.
+     * @param[in] stiffness Cartesian motion stiffness: \f$ K_d \in
+     * \mathbb{R}^{6 \times 1} \f$. Setting motion stiffness of a
+     * motion-controlled Cartesian axis to 0 will make this axis free-floating.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and \f$
+     * \mathbb{R}^{3 \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z,
+     * k_{Rx}, k_{Ry}, k_{Rz}]^T \f$. Unit: \f$ [N/m]~[Nm/rad] \f$.
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
@@ -534,6 +535,8 @@ public:
      * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
      * @warning The maximum contact wrench regulation will automatically reset
      * to disabled upon re-entering the applicable control modes.
+     * @warning The maximum contact wrench regulation cannot be enabled if any
+     * of the rotational Cartesian axes is enabled for moment control.
      */
     void setMaxContactWrench(const std::vector<double>& maxWrench);
 
@@ -575,17 +578,58 @@ public:
     void resetNullSpacePosture(void);
 
     /**
-     * @brief [Non-blocking] Set whether to enable or disable active force
-     * control for the Cartesian motion-force control modes. When enabled, a
-     * closed-loop force controller will be used to track the target wrench,
-     * i.e. active force control. When disabled, an open-loop force controller
-     * will be used to feed forward the target wrench, i.e. passive force
-     * control.
-     * @param[in] isEnabled True: enable, false: disable.
+     * @brief [Blocking] Set force controlled Cartesian axis(s) for the
+     * Cartesian motion-force control modes. The axis(s) not enabled for force
+     * control will be motion controlled. This function can only be called when
+     * the robot is in IDLE mode.
+     * @param[in] enabledAxis Flags to enable/disable force control for certain
+     * Cartesian axis(s) in the force control reference frame (configured by
+     * setForceControlFrame()). The corresponding order is \f$ [X, Y, Z, Rx, Ry,
+     * Rz] \f$. By default, force control is disabled for all Cartesian axes.
+     * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct control mode.
-     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
-     * @warning The active force control will automatically reset to disabled
-     * upon re-entering the applicable control modes.
+     * @throw ExecutionException if failed to execute the request.
+     * @note Applicable control modes: IDLE.
+     * @note This setting will persist unless updated again.
+     * @warning This function blocks until the request is successfully delivered
+     * to the robot.
+     */
+    void setForceControlAxis(const std::vector<bool>& enabledAxis);
+
+    /**
+     * @brief [Blocking] Set the reference frame for force control. This
+     * function can only be called when the robot is in IDLE mode.
+     * @param[in] referenceFrame The reference frame to use for force control.
+     * Options are: "TCP" and "BASE". The target wrench and force control axis
+     * should also be expressed in the selected reference frame. By default,
+     * base frame is used for force control.
+     * @throw InputException if input is invalid.
+     * @throw LogicException if robot is not in the correct control mode.
+     * @throw ExecutionException if failed to execute the request.
+     * @note Applicable control modes: IDLE.
+     * @note This setting will persist unless updated again.
+     * @warning This function blocks until the request is successfully delivered
+     * to the robot.
+     * @par Force control reference frame
+     * TODO
+     */
+    void setForceControlFrame(const std::string& referenceFrame);
+
+    /**
+     * @brief [Blocking] Enable or disable passive force control for the
+     * Cartesian motion-force control modes. When enabled, an open-loop force
+     * controller will be used to feed forward the target wrench, i.e. passive
+     * force control. When disabled, a closed-loop force controller will be used
+     * to track the target wrench, i.e. active force control. This function can
+     * only be called when the robot is in IDLE mode.
+     * @param[in] isEnabled True: enable, false: disable. By default, passive
+     * force control is disabled and active force control is used.
+     * @throw LogicException if robot is not in the correct control mode.
+     * @throw ExecutionException if failed to execute the request.
+     * @note Applicable control modes: IDLE.
+     * @note This setting will persist unless updated again.
+     * @warning This function blocks until the request is successfully delivered
+     * to the robot.
      * @par Difference between active and passive force control
      * Active force control uses a feedback loop to reduce the error between
      * target wrench and measured wrench. This method results in better force
@@ -596,7 +640,7 @@ public:
      * robust and does not introduce additional Cartesian damping. The choice of
      * active or passive force control depends on the actual application.
      */
-    void setActiveForceControl(bool isEnabled);
+    void setPassiveForceControl(bool isEnabled);
 
     //=============================== IO CONTROL ===============================
     /**
