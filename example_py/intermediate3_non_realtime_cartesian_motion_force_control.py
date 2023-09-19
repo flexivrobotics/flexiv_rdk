@@ -2,9 +2,9 @@
 
 """intermediate3_non_realtime_cartesian_motion_force_control.py
 
-This tutorial runs non-real-time Cartesian-space unified motion-force control to apply force along
-Z axis of the chosen reference frame, or to execute a simple polish action along XY plane of the
-chosen reference frame.
+This tutorial runs real-time Cartesian-space unified motion-force control. The Z axis of the
+chosen reference frame will be activated for explicit force control, while the rest axes in the
+same reference frame will stay motion controlled.
 """
 
 __copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
@@ -33,15 +33,26 @@ SWING_FREQ = 0.3
 # Pressing force to apply during the unified motion-force control [N]
 PRESSING_FORCE = 5.0
 
+# Cartesian linear velocity used to search for contact [m/s]
+SEARCH_VELOCITY = 0.02
+
+# Maximum distance to travel when searching for contact [m]
+SEARCH_DISTANCE = 1.0
+
+# Maximum contact wrench during contact search for soft contact
+MAX_WRENCH_FOR_CONTACT_SEARCH = [10.0, 10.0, 10.0, 3.0, 3.0, 3.0]
+
 
 def print_description():
     """
     Print tutorial description.
 
     """
-    print("This tutorial runs non-real-time Cartesian-space unified motion-force control to "
-          "apply force along Z axis of the chosen reference frame, or to execute a simple "
-          "polish action along XY plane of the chosen reference frame.")
+    print(
+        "This tutorial runs real-time Cartesian-space unified motion-force control. The Z "
+        "axis of the chosen reference frame will be activated for explicit force control, "
+        "while the rest axes in the same reference frame will stay motion controlled."
+    )
     print()
 
 
@@ -54,19 +65,24 @@ def main():
     argparser.add_argument("robot_ip", help="IP address of the robot server")
     argparser.add_argument("local_ip", help="IP address of this PC")
     argparser.add_argument(
-        "frequency", help="command frequency, 20 to 200 [Hz]", type=int)
+        "frequency", help="command frequency, 1 to 100 [Hz]", type=int
+    )
     # Optional arguments
     argparser.add_argument(
-        "--TCP", action="store_true",
-        help="use TCP frame as reference frame, otherwise use base frame")
+        "--TCP",
+        action="store_true",
+        help="use TCP frame as reference frame for force control, otherwise use base frame",
+    )
     argparser.add_argument(
-        "--polish", action="store_true",
-        help="execute a simple polish action along XY plane, otherwise apply a constant force along Z axis")
+        "--polish",
+        action="store_true",
+        help="run a simple polish motion along XY plane in base frame, otherwise hold robot motion in non-force-control axes",
+    )
     args = argparser.parse_args()
 
     # Check if arguments are valid
     frequency = args.frequency
-    assert (frequency >= 20 and frequency <= 200), "Invalid <frequency> input"
+    assert frequency >= 1 and frequency <= 100, "Invalid <frequency> input"
 
     # Define alias
     robot_states = flexivrdk.RobotStates()
@@ -80,16 +96,16 @@ def main():
     # The reference frame to use, see Robot::sendCartesianMotionForce() for more details
     frame_str = "BASE"
     if args.TCP:
-        log.info("Reference frame used for motion force control: robot TCP frame")
+        log.info("Reference frame used for force control: robot TCP frame")
         frame_str = "TCP"
     else:
-        log.info("Reference frame used for motion force control: robot base frame")
+        log.info("Reference frame used for force control: robot base frame")
 
-    # Whether to enable polish action
+    # Whether to enable polish motion
     if args.polish:
-        log.info("Robot will execute a polish action along XY plane")
+        log.info("Robot will run a polish motion along XY plane in robot base frame")
     else:
-        log.info("Robot will apply a constant force along Z axis")
+        log.info("Robot will hold its motion in all non-force-controlled axes")
 
     try:
         # RDK Initialization
@@ -121,7 +137,8 @@ def main():
             if seconds_waited == 10:
                 log.warn(
                     "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode")
+                    "has no fault, 2) is in [Auto (remote)] mode"
+                )
 
         log.info("Robot is now operational")
 
@@ -131,54 +148,132 @@ def main():
         robot.executePrimitive("Home()")
 
         # Wait for the primitive to finish
-        while (robot.isBusy()):
+        while robot.isBusy():
             time.sleep(1)
 
-        # Non-real-time Cartesian Motion-force Control
-        # ==========================================================================================
+        # Zero Force-torque Sensor
+        # =========================================================================================
         # IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
         robot.executePrimitive("ZeroFTSensor()")
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations
         log.warn(
-            "Zeroing force/torque sensors, make sure nothing is in contact with the robot")
+            "Zeroing force/torque sensors, make sure nothing is in contact with the robot"
+        )
 
         # Wait for primitive completion
         while robot.isBusy():
             time.sleep(1)
         log.info("Sensor zeroing complete")
 
-        # Get latest robot states
+        # Search for Contact
+        # =========================================================================================
+        # NOTE: there are several ways to do contact search, such as using primitives, or real-time
+        # and non-real-time direct motion controls, etc. Here we use non-real-time direct Cartesian
+        # control for example.
+        log.info("Searching for contact ...")
+
+        # Set initial pose to current TCP pose
         robot.getRobotStates(robot_states)
-
-        # Set control mode and initial pose based on reference frame used
-        init_pose = []
-        if frame_str == "BASE":
-            robot.setMode(mode.NRT_CARTESIAN_MOTION_FORCE_BASE)
-            # If using base frame, directly read from robot states
-            init_pose = robot_states.tcpPose.copy()
-        elif frame_str == "TCP":
-            robot.setMode(mode.NRT_CARTESIAN_MOTION_FORCE_TCP)
-            # If using TCP frame, current TCP is at the reference frame's origin
-            init_pose = [0, 0, 0, 1, 0, 0, 0]
-        else:
-            raise Exception("Invalid reference frame choice")
-
+        init_pose = robot_states.tcpPose.copy()
         print(
             "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",
-            init_pose)
+            init_pose,
+        )
 
+        # Use non-real-time mode to make the robot go to a set point with its own motion generator
+        robot.setMode(mode.NRT_CARTESIAN_MOTION_FORCE)
+
+        # Search for contact with max contact wrench set to a small value for making soft contact
+        robot.setMaxContactWrench(MAX_WRENCH_FOR_CONTACT_SEARCH)
+
+        # Set target point along -Z direction and expect contact to happen during the travel
+        target_pose = init_pose.copy()
+        target_pose[2] -= SEARCH_DISTANCE
+
+        # Send target point to robot to start searching for contact and limit the velocity. Keep
+        # target wrench 0 at this stage since we are not doing force control yet
+        robot.sendCartesianMotionForce(target_pose, [0] * 6, SEARCH_VELOCITY)
+
+        # Use a while loop to poll robot states and check if a contact is made
+        is_contacted = False
+        while not is_contacted:
+            # Get the latest robot states
+            robot.getRobotStates(robot_states)
+
+            # Compute norm of sensed external force applied on robot TCP
+            ext_force = np.array(
+                [
+                    robot_states.extWrenchInBase[0],
+                    robot_states.extWrenchInBase[1],
+                    robot_states.extWrenchInBase[2],
+                ]
+            )
+            if np.linalg.norm(ext_force) > PRESSING_FORCE:
+                collision_detected = True
+
+            # Contact is considered to be made if sensed TCP force exceeds the threshold
+            if extForceNorm > k_pressingForce:
+                is_contacted = True
+                log.info("Contact detected at robot TCP")
+
+            # Check at 1ms interval
+            time.sleep(0.001)
+
+        # Configure Force Control
+        # =========================================================================================
+        # The force control configurations can only be updated when the robot is in IDLE mode
+        robot.stop()
+
+        # Set force control reference frame based on program argument. See function doc for more
+        # details
+        robot.setForceControlFrame(frame_str)
+
+        # Set which Cartesian axis(s) to activate for force control. See function doc for more
+        # details. Here we only active Z axis
+        robot.setForceControlAxis([False, False, True, False, False, False])
+
+        # Uncomment the following line to enable passive force control, otherwise active force
+        # control is used by default. See function doc for more details
+        # robot.setPassiveForceControl(True)
+
+        # NOTE: motion control always uses robot base frame, while force control can use
+        # either base or TCP frame as reference frame
+
+        # Start Unified Motion Force Control
+        # =========================================================================================
+        # Switch to non-real-time mode for discrete motion force control
+        robot.setMode(mode.NRT_CARTESIAN_MOTION_FORCE)
+
+        # Disable max contact wrench regulation. Need to do this AFTER the force control in Z axis
+        # is activated (i.e. motion control disabled in Z axis) and the motion force control mode
+        # is entered, this way the contact force along Z axis is explicitly regulated and will not
+        # spike after the max contact wrench regulation for motion control is disabled
+        robot.resetMaxContactWrench()
+
+        # Update initial pose to current TCP pose
+        robot.getRobotStates(robot_states)
+        init_pose = robot_states.tcpPose.copy()
+        print(
+            "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",
+            init_pose,
+        )
+
+        # Periodic Task
+        # =========================================================================================
         # Set loop period
-        period = 1.0/frequency
-        print("Sending command to robot at", frequency,
-              "Hz, or", period, "seconds interval")
+        period = 1.0 / frequency
+        print(
+            "Sending command to robot at",
+            frequency,
+            "Hz, or",
+            period,
+            "seconds interval",
+        )
 
         # Periodic loop counter
         loop_counter = 0
-
-        # Flag indicating the initial contact is made
-        is_contacted = False
 
         # Send command periodically at user-specified frequency
         while True:
@@ -192,84 +287,31 @@ def main():
             # Read robot states
             robot.getRobotStates(robot_states)
 
-            # Compute norm of sensed external force
-            ext_force = np.array([robot_states.extWrenchInBase[0],
-                                  robot_states.extWrenchInBase[1], robot_states.extWrenchInBase[2]])
-            ext_force_norm = np.linalg.norm(ext_force)
+            # Initialize target pose to initial pose
+            target_pose = init_pose.copy()
 
-            # Set sign of Fz according to reference frame to achieve a "pressing down" behavior
+            # Set Fz according to reference frame to achieve a "pressing down" behavior
             Fz = 0.0
             if frame_str == "BASE":
                 Fz = -PRESSING_FORCE
             elif frame_str == "TCP":
                 Fz = PRESSING_FORCE
-
-            # Initialize target vectors
-            target_pose = init_pose.copy()
             target_wrench = [0.0, 0.0, Fz, 0.0, 0.0, 0.0]
 
-            # Search for contact
-            if not is_contacted:
-                # Send both initial pose and wrench commands, the result is
-                # force control along Z axis, and motion hold along other axes
-                robot.sendCartesianMotionForce(init_pose, target_wrench)
-
-                # Contact is made
-                if ext_force_norm > PRESSING_FORCE:
-                    is_contacted = True
-                    log.warn("Contact detected at robot TCP")
-
-                # Skip the rest actions until contact is made
-                continue
-
-            # Repeat the following actions in a 20-second cycle: first 15 seconds
-            # do unified motion-force control, the rest 5 seconds trigger smooth
-            # transition to pure motion control
-            time_elapsed = loop_counter * period
-            if loop_counter % (20 * frequency) == 0:
-                # Print info at the beginning of action cycle
-                if args.polish:
-                    log.info("Executing polish with pressing force [N] = "
-                             + str(Fz))
-                else:
-                    log.info("Applying constant force [N] = " + str(Fz))
-
-            elif loop_counter % (20 * frequency) == (15 * frequency):
-                # Print info when disabling force control
-                log.info(
-                    "Disabling force control and transiting smoothly to pure "
-                    "motion control")
-
-            elif loop_counter % (20 * frequency) == (20 * frequency - 1):
-                # Reset contact flag at the end of action cycle
-                is_contacted = False
-
-            elif time_elapsed % 20.0 < 15.0:
-                # Simple polish action along XY plane of chosen reference frame
-                if args.polish:
-                    # Create motion command to sine-sweep along Y direction
-                    target_pose[1] = init_pose[1] + SWING_AMP * \
-                        math.sin(2 * math.pi * SWING_FREQ *
-                                 loop_counter * period)
-
-                    # Send both target pose and wrench commands, the result is
-                    # force control along Z axis, and motion control along other
-                    # axes
-                    robot.sendCartesianMotionForce(target_pose, target_wrench)
-
-                # Apply constant force along Z axis of chosen reference frame
-                else:
-                    # Send both initial pose and wrench commands, the result is
-                    # force control along Z axis, and motion hold along other axes
-                    robot.sendCartesianMotionForce(init_pose, target_wrench)
-
+            # Apply constant force along Z axis of chosen reference frame, and do a simple polish
+            # motion along XY plane in robot base frame
+            if args.polish:
+                # Create motion command to sine-sweep along Y direction
+                target_pose[1] = init_pose[1] + SWING_AMP * math.sin(
+                    2 * math.pi * SWING_FREQ * loop_counter * period
+                )
+                # Command target pose and target wrench
+                robot.sendCartesianMotionForce(target_pose, target_wrench)
+            # Apply constant force along Z axis of chosen reference frame, and hold motions in all
+            # other axes
             else:
-                # By not passing in targetWrench parameter, the force control will
-                # be cancelled and transit smoothly back to pure motion control.
-                # The previously force-controlled axis will be gently pulled toward
-                # the motion target currently set for that axis. Here we use
-                # initPose for example.
-                robot.sendCartesianMotionForce(init_pose)
+                # Command initial pose and target wrench
+                robot.sendCartesianMotionForce(init_pose, target_wrench)
 
             # Increment loop counter
             loop_counter += 1
