@@ -33,6 +33,17 @@ public:
     virtual ~Model();
 
     /**
+     * @brief [Blocking] Reload robot model using the latest data synced from
+     * the connected robot. Tool model is also synced.
+     * @throw CommException if failed to sync model data.
+     * @throw LogicException if the synced robot model contains invalid data.
+     * @note Call this function if the robot tool has changed.
+     * @warning This function blocks until the model data is synced and the
+     * reloading is finished.
+     */
+    void reload(void);
+
+    /**
      * @brief [Non-blocking] Update robot model using new joint states data.
      * @param[in] positions Current joint positions: \f$ q \in \mathbb{R}^{DOF
      * \times 1} \f$. Unit: \f$ [rad] \f$.
