@@ -68,7 +68,7 @@ int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
             robot.getRobotStates(robotStates);
 
             // Update robot model in dynamics engine
-            model.updateModel(robotStates.q, robotStates.dtheta);
+            model.update(robotStates.q, robotStates.dtheta);
 
             // Compute gravity vector
             auto g = model.getGravityForce();

@@ -62,7 +62,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
         robot.getRobotStates(robotStates);
 
         // Update robot model in dynamics engine
-        model.updateModel(robotStates.q, robotStates.dtheta);
+        model.update(robotStates.q, robotStates.dtheta);
 
         // Get J, M, G from dynamic engine
         Eigen::MatrixXd J = model.getJacobian("flange");

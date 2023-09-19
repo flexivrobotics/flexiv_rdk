@@ -55,7 +55,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
         robot.getRobotStates(robotStates);
 
         // Update robot model in dynamics engine
-        model.updateModel(robotStates.q, robotStates.dtheta);
+        model.update(robotStates.q, robotStates.dtheta);
 
         // Mark timer start point
         auto tic = std::chrono::high_resolution_clock::now();
