@@ -409,58 +409,61 @@ public:
     //======================== DIRECT CARTESIAN CONTROL ========================
     /**
      * @brief [Non-blocking] Continuously stream Cartesian motion and/or force
-     * command for the robot to track using its unified motion-force controller.
-     * The motion control effort and force control effort are combined together
-     * as the final controller output.
+     * command for the robot to track using its unified motion-force controller,
+     * which allows doing force control in zero or more Cartesian axes and
+     * motion control in the rest axes.
      * @param[in] pose Target TCP pose in base frame: \f$ {^{O}T_{TCP}}_{d} \in
      * \mathbb{R}^{7 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$
      * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x, y, z,
      * q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
-     * @param[in] wrench  Target TCP wrench (force and moment) in base frame:
-     * \f$ ^{0}F_d \in \mathbb{R}^{6 \times 1} \f$. The robot will track the
-     * target wrench using an explicit force controller. Consists of \f$
-     * \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$
-     * moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
+     * @param[in] wrench Target TCP wrench (force and moment) in the force
+     * control reference frame (configured by setForceControlFrame()): \f$
+     * ^{0}F_d \in \mathbb{R}^{6 \times 1} \f$. The robot will track the target
+     * wrench using an explicit force controller. Consists of \f$ \mathbb{R}^{3
+     * \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x,
+     * f_y, f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
      * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE.
      * @note Real-time (RT).
-     * @warning Always stream smooth and continuous commands to avoid sudden
-     * movements.
+     * @warning Always stream smooth and continuous motion commands to avoid
+     * sudden movements. The force commands don't need to be continuous.
      * @par How to achieve pure motion control?
-     * Setting target wrench of a certain Cartesian direction to 0 plus
-     * disabling active force control will make this direction pure
-     * motion-controlled.
-     * @par How to achieve free floating?
-     * Setting both target wrench and stiffness of a certain Cartesian direction
-     * to 0 plus disabling active force control will make this direction
-     * free-floating.
+     * Use setForceControlAxis() to disable force control for all Cartesian axes
+     * to achieve pure motion control. This function does pure motion control
+     * out of the box.
      * @par How to achieve pure force control?
-     * Setting stiffness of a certain Cartesian direction to 0 and provide a
-     * target wrench will make this direction pure force-controlled, active or
-     * passive.
+     * Use setForceControlAxis() to enable force control for all Cartesian axes
+     * to achieve pure force control, active or passive.
+     * @par How to achieve unified motion-force control?
+     * Use setForceControlAxis() to enable force control for one or more
+     * Cartesian axes and leave the rest axes motion-controlled, then provide
+     * target pose for the motion-controlled axes and target wrench for the
+     * force-controlled axes.
      * @see setCartesianStiffness(), setMaxContactWrench(),
-     * setNullSpacePosture(), setActiveForceControl().
+     * setNullSpacePosture(), setForceControlAxis(), setForceControlFrame(),
+     * setPassiveForceControl().
      */
     void streamCartesianMotionForce(const std::vector<double>& pose,
         const std::vector<double>& wrench = std::vector<double>(6));
 
     /**
      * @brief [Non-blocking] Discretely send Cartesian motion and/or force
-     * command for the robot to track using its unified motion-force controller.
-     * The robot's internal motion generator will smoothen the discrete
-     * commands. The motion control effort and force control effort are combined
-     * together as the final controller output.
+     * command for the robot to track using its unified motion-force controller,
+     * which allows doing force control in zero or more Cartesian axes and
+     * motion control in the rest axes. The robot's internal motion generator
+     * will smoothen the discrete commands.
      * @param[in] pose Target TCP pose in base frame: \f$ {^{O}T_{TCP}}_{d} \in
      * \mathbb{R}^{7 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$
      * position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x, y, z,
      * q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
-     * @param[in] wrench  Target TCP wrench (force and moment) in base frame:
-     * \f$ ^{0}F_d \in \mathbb{R}^{6 \times 1} \f$. The robot will track the
-     * target wrench using an explicit force controller. Consists of \f$
-     * \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$
-     * moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
+     * @param[in] wrench Target TCP wrench (force and moment) in the force
+     * control reference frame (configured by setForceControlFrame()): \f$
+     * ^{0}F_d \in \mathbb{R}^{6 \times 1} \f$. The robot will track the target
+     * wrench using an explicit force controller. Consists of \f$ \mathbb{R}^{3
+     * \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x,
+     * f_y, f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
      * @param[in] maxLinearVel  Maximum Cartesian linear velocity when moving to
      * the target pose. Default maximum linear velocity is used when set to 0.
      * Unit: \f$ [m/s] \f$.
@@ -472,19 +475,20 @@ public:
      * @throw ExecutionException if error occurred during execution.
      * @note Applicable control modes: NRT_CARTESIAN_MOTION_FORCE.
      * @par How to achieve pure motion control?
-     * Setting target wrench of a certain Cartesian direction to 0 plus
-     * disabling active force control will make this direction pure
-     * motion-controlled.
-     * @par How to achieve free floating?
-     * Setting both target wrench and stiffness of a certain Cartesian direction
-     * to 0 plus disabling active force control will make this direction
-     * free-floating.
+     * Use setForceControlAxis() to disable force control for all Cartesian axes
+     * to achieve pure motion control. This function does pure motion control
+     * out of the box.
      * @par How to achieve pure force control?
-     * Setting stiffness of a certain Cartesian direction to 0 and provide a
-     * target wrench will make this direction pure force-controlled, active or
-     * passive.
+     * Use setForceControlAxis() to enable force control for all Cartesian axes
+     * to achieve pure force control, active or passive.
+     * @par How to achieve unified motion-force control?
+     * Use setForceControlAxis() to enable force control for one or more
+     * Cartesian axes and leave the rest axes motion-controlled, then provide
+     * target pose for the motion-controlled axes and target wrench for the
+     * force-controlled axes.
      * @see setCartesianStiffness(), setMaxContactWrench(),
-     * setNullSpacePosture(), setActiveForceControl().
+     * setNullSpacePosture(), setForceControlAxis(), setForceControlFrame(),
+     * setPassiveForceControl().
      */
     void sendCartesianMotionForce(const std::vector<double>& pose,
         const std::vector<double>& wrench = std::vector<double>(6),
