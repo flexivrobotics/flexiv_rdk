@@ -69,7 +69,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 
         // Add some velocity damping
         for (size_t i = 0; i < robotDOF; ++i) {
-            targetTorque[i] = -k_floatingDamping[i] * robotStates.dtheta[i];
+            targetTorque[i] += -k_floatingDamping[i] * robotStates.dtheta[i];
         }
 
         // Send target joint torque to RDK server, enable gravity compensation
