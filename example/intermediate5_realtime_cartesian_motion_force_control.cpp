@@ -255,10 +255,9 @@ int main(int argc, char* argv[])
             // Compute norm of sensed external force applied on robot TCP
             Eigen::Vector3d extForce = {robotStates.extWrenchInBase[0],
                 robotStates.extWrenchInBase[1], robotStates.extWrenchInBase[2]};
-            double extForceNorm = extForce.norm();
 
             // Contact is considered to be made if sensed TCP force exceeds the threshold
-            if (extForceNorm > k_pressingForce) {
+            if (extForce.norm() > k_pressingForce) {
                 isContacted = true;
                 log.info("Contact detected at robot TCP");
             }

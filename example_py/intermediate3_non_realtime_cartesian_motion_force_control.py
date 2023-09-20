@@ -203,11 +203,9 @@ def main():
                     robot_states.extWrenchInBase[2],
                 ]
             )
-            if np.linalg.norm(ext_force) > PRESSING_FORCE:
-                collision_detected = True
 
             # Contact is considered to be made if sensed TCP force exceeds the threshold
-            if extForceNorm > k_pressingForce:
+            if np.linalg.norm(ext_force) > PRESSING_FORCE:
                 is_contacted = True
                 log.info("Contact detected at robot TCP")
 
