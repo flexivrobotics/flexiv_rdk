@@ -48,6 +48,7 @@ def print_robot_states(robot, log):
         # Print all gripper states, round all float values to 2 decimals
         log.info("Current robot states:")
         # fmt: off
+        print("{")
         print("q: ",  ['%.2f' % i for i in robot_states.q])
         print("theta: ", ['%.2f' % i for i in robot_states.theta])
         print("dq: ", ['%.2f' % i for i in robot_states.dq])
@@ -64,6 +65,7 @@ def print_robot_states(robot, log):
         print("FT_sensor_raw_reading: ", ['%.2f' % i for i in robot_states.ftSensorRaw])
         print("F_ext_tcp_frame: ", ['%.2f' % i for i in robot_states.extWrenchInTcp])
         print("F_ext_base_frame: ", ['%.2f' % i for i in robot_states.extWrenchInBase])
+        print("}")
         # fmt: on
         time.sleep(1)
 

@@ -97,7 +97,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             // Online change preferred joint positions at 3 seconds
             case (3 * k_loopFreq): {
                 std::vector<double> preferredJntPos
-                    = {-0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658};
+                    = {0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658};
                 robot.setNullSpacePosture(preferredJntPos);
                 log.info("Preferred joint positions set to: "
                          + flexiv::utility::vec2Str(preferredJntPos));
@@ -114,7 +114,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             // Online change to another preferred joint positions at 9 seconds
             case (9 * k_loopFreq): {
                 std::vector<double> preferredJntPos
-                    = {0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658};
+                    = {-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658};
                 robot.setNullSpacePosture(preferredJntPos);
                 log.info("Preferred joint positions set to: "
                          + flexiv::utility::vec2Str(preferredJntPos));

@@ -28,8 +28,10 @@ def print_description():
     Print tutorial description.
 
     """
-    print("This tutorial runs an automatic recovery process if the robot's safety system is in "
-          "recovery state. See flexiv::Robot::isRecoveryState() and RDK manual for more details.")
+    print(
+        "This tutorial runs an automatic recovery process if the robot's safety system is in "
+        "recovery state. See flexiv::Robot::isRecoveryState() and RDK manual for more details."
+    )
     print()
 
 
@@ -38,8 +40,8 @@ def main():
     # ==============================================================================================
     # Parse arguments
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('robot_ip', help='IP address of the robot server')
-    argparser.add_argument('local_ip', help='IP address of this PC')
+    argparser.add_argument("robot_ip", help="IP address of the robot server")
+    argparser.add_argument("local_ip", help="IP address of this PC")
     args = argparser.parse_args()
 
     # Define alias
@@ -76,7 +78,8 @@ def main():
         # Otherwise the system is normal, do nothing
         else:
             log.info(
-                "Robot system is not in recovery state, nothing to be done, exiting ...")
+                "Robot system is not in recovery state, nothing to be done, exiting ..."
+            )
 
     except Exception as e:
         # Print exception error message

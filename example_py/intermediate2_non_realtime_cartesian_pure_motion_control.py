@@ -213,15 +213,7 @@ def main():
             time_elapsed = loop_counter * period
             # Online change preferred joint positions at 3 seconds
             if time_elapsed % 20.0 == 3.0:
-                preferred_jnt_pos = [
-                    -0.938,
-                    -1.108,
-                    -1.254,
-                    1.464,
-                    1.073,
-                    0.278,
-                    -0.658,
-                ]
+                preferred_jnt_pos = [0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658]
                 robot.setNullSpacePosture(preferred_jnt_pos)
                 log.info("Preferred joint positions set to: ")
                 print(preferred_jnt_pos)
@@ -233,15 +225,7 @@ def main():
                 print(new_K)
             # Online change to another preferred joint positions at 9 seconds
             elif time_elapsed % 20.0 == 9.0:
-                preferred_jnt_pos = [
-                    0.938,
-                    -1.108,
-                    1.254,
-                    1.464,
-                    -1.073,
-                    0.278,
-                    0.658,
-                ]
+                preferred_jnt_pos = [-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658]
                 robot.setNullSpacePosture(preferred_jnt_pos)
                 log.info("Preferred joint positions set to: ")
                 print(preferred_jnt_pos)
