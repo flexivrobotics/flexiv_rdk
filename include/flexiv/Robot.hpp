@@ -578,7 +578,7 @@ public:
     void resetNullSpacePosture(void);
 
     /**
-     * @brief [Blocking] Set force controlled Cartesian axis(s) for the
+     * @brief [Blocking] Set force-controlled Cartesian axis(s) for the
      * Cartesian motion-force control modes. The axis(s) not enabled for force
      * control will be motion controlled. This function can only be called when
      * the robot is in IDLE mode.
@@ -590,15 +590,16 @@ public:
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if failed to execute the request.
      * @note Applicable control modes: IDLE.
-     * @note This setting will persist unless updated again.
+     * @warning This setting will reset to all axes disabled upon disconnection.
      * @warning This function blocks until the request is successfully delivered
      * to the robot.
      */
     void setForceControlAxis(const std::vector<bool>& enabledAxis);
 
     /**
-     * @brief [Blocking] Set the reference frame for force control. This
-     * function can only be called when the robot is in IDLE mode.
+     * @brief [Blocking] Set force control reference frame for the Cartesian
+     * motion-force control modes. This function can only be called when the
+     * robot is in IDLE mode.
      * @param[in] referenceFrame The reference frame to use for force control.
      * Options are: "TCP" and "BASE". The target wrench and force control axis
      * should also be expressed in the selected reference frame. By default,
@@ -607,11 +608,25 @@ public:
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if failed to execute the request.
      * @note Applicable control modes: IDLE.
-     * @note This setting will persist unless updated again.
+     * @warning This setting will reset to robot base frame upon disconnection.
      * @warning This function blocks until the request is successfully delivered
      * to the robot.
      * @par Force control reference frame
-     * TODO
+     * In Cartesian motion-force control modes, the reference frame of motion
+     * control is always the robot base frame, but the reference frame of force
+     * control can be either robot base frame or the robot's current TCP frame.
+     * While the robot base frame is the commonly used global coordinate, the
+     * current TCP frame is a dynamic local coordinate whose transformation with
+     * regard to the robot base frame changes as the robot TCP moves. When using
+     * robot base frame for force control, the force-controlled axis(s) and
+     * motion-controlled axis(s) are guaranteed to be orthogonal. However, when
+     * using current TCP frame for force control, the force-controlled axis(s)
+     * and motion-controlled axis(s) are NOT guaranteed to be orthogonal because
+     * different reference frames are used. In this case, it's recommended but
+     * not required to set the target pose such that the actual robot motion
+     * direction(s) are orthogonal to force direction(s). If they are not
+     * orthogonal, the motion control's vector component(s) in the force
+     * direction(s) will be eliminated.
      */
     void setForceControlFrame(const std::string& referenceFrame);
 
@@ -627,7 +642,7 @@ public:
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if failed to execute the request.
      * @note Applicable control modes: IDLE.
-     * @note This setting will persist unless updated again.
+     * @warning This setting will reset to disabled upon disconnection.
      * @warning This function blocks until the request is successfully delivered
      * to the robot.
      * @par Difference between active and passive force control
