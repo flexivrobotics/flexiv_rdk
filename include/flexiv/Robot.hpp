@@ -103,13 +103,13 @@ public:
 
     /**
      * @brief [Non-blocking] Check if the Emergency Stop is released.
-     * @note True: released, false: pressed.
+     * @return True: released, false: pressed.
      */
     bool isEstopReleased(void) const;
 
     /**
      * @brief [Non-blocking] Check if the enabling button is pressed.
-     * @note True: pressed, false: released.
+     * @return True: pressed, false: released.
      */
     bool isEnablingButtonPressed(void) const;
 
