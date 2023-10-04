@@ -136,21 +136,21 @@ struct RobotStates
     std::array<double, k_jointDOF> tauExt = {};
 
     /**
-     * Measured TCP pose expressed in base frame: \f$ ^{O}T_{TCP} \in \mathbb{R}^{7 \times 1} \f$.
+     * Measured TCP pose expressed in world frame: \f$ ^{O}T_{TCP} \in \mathbb{R}^{7 \times 1} \f$.
      * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
      * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
      */
     std::array<double, k_poseSize> tcpPose = {};
 
     /**
-     * Desired TCP pose expressed in base frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7 \times 1}
+     * Desired TCP pose expressed in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7 \times 1}
      * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
      * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
      */
     std::array<double, k_poseSize> tcpPoseDes = {};
 
     /**
-     * Measured TCP velocity expressed in base frame: \f$ ^{O}\dot{X} \in \mathbb{R}^{6 \times 1}
+     * Measured TCP velocity expressed in world frame: \f$ ^{O}\dot{X} \in \mathbb{R}^{6 \times 1}
      * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear velocity and \f$ \mathbb{R}^{3 \times
      * 1} \f$ angular velocity: \f$ [v_x, v_y, v_z, \omega_x, \omega_y, \omega_z]^T \f$.
      * Unit: \f$ [m/s]~[rad/s] \f$.
@@ -158,14 +158,14 @@ struct RobotStates
     std::array<double, k_cartDOF> tcpVel = {};
 
     /**
-     * Measured camera pose expressed in base frame: \f$ ^{O}T_{cam} \in \mathbb{R}^{7 \times 1}
+     * Measured camera pose expressed in world frame: \f$ ^{O}T_{cam} \in \mathbb{R}^{7 \times 1}
      * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
      * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
      */
     std::array<double, k_poseSize> camPose = {};
 
     /**
-     * Measured flange pose expressed in base frame: \f$ ^{O}T_{flange} \in \mathbb{R}^{7 \times 1}
+     * Measured flange pose expressed in world frame: \f$ ^{O}T_{flange} \in \mathbb{R}^{7 \times 1}
      * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
      * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
      */
@@ -188,12 +188,12 @@ struct RobotStates
     std::array<double, k_cartDOF> extWrenchInTcp = {};
 
     /**
-     * Estimated external wrench applied on TCP and expressed in base frame: \f$ ^{0}F_{ext} \in
+     * Estimated external wrench applied on TCP and expressed in world frame: \f$ ^{0}F_{ext} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
      * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
      * Unit: \f$ [N]~[Nm] \f$.
      */
-    std::array<double, k_cartDOF> extWrenchInBase = {};
+    std::array<double, k_cartDOF> extWrenchInWorld = {};
 };
 
 /**

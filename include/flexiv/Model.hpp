@@ -55,7 +55,7 @@ public:
 
     /**
      * @brief [Non-blocking] Compute and get the Jacobian matrix at the frame of the specified link
-     * \f$ i \f$, expressed in the base frame.
+     * \f$ i \f$, expressed in base frame.
      * @param[in] linkName Name of the link to get Jacobian for.
      * @return Jacobian matrix: \f$ ^{0}J_i \in \mathbb{R}^{m \times n} \f$.
      * @note Call update() before this method.
@@ -68,7 +68,7 @@ public:
 
     /**
      * @brief [Non-blocking] Compute and get the time derivative of Jacobian matrix at the frame of
-     * the specified link \f$ i \f$, expressed in the base frame.
+     * the specified link \f$ i \f$, expressed in base frame.
      * @param[in] linkName Name of the link to get Jacobian derivative for.
      * @return Time derivative of Jacobian matrix: \f$ ^{0}\dot{J_i} \in \mathbb{R}^{m \times n}
      * \f$.
