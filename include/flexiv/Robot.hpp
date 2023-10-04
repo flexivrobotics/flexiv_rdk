@@ -229,9 +229,16 @@ public:
     std::vector<std::string> getPlanNameList(void) const;
 
     /**
-     * @brief [Blocking] Get detailed information about the currently running plan. Contains
+     * @brief [Blocking] Get detailed information about the currently executing plan. Contains
      * information like plan name, primitive name, node name, node path, node path time period, etc.
-     * @param[out] output Reference to output data object.
+     * @return PlanInfo instance.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to get a reply from the robot.
+     * @note Applicable control mode: NRT_PLAN_EXECUTION.
+     * @warning This function blocks until the reply from the robot is received.
+     */
+    PlanInfo getPlanInfo(void) const;
+
      * @throw std::runtime_error if failed to get a reply from the robot.
      * @warning This function blocks until the reply from the robot is received.
      */
