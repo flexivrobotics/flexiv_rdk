@@ -71,10 +71,6 @@ def main():
         # move back into allowed position range
         if robot.isRecoveryState():
             robot.runAutoRecovery()
-            # Block forever, must reboot the robot and restart user program after recovery is done
-            while True:
-                time.sleep(1)
-
         # Otherwise the system is normal, do nothing
         else:
             log.info(

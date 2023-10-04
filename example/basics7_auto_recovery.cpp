@@ -78,10 +78,6 @@ int main(int argc, char* argv[])
         // move back into allowed position range
         if (robot.isRecoveryState()) {
             robot.runAutoRecovery();
-            // Block forever, must reboot the robot and restart user program after recovery is done
-            while (true) {
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-            }
         }
         // Otherwise the system is normal, do nothing
         else {
