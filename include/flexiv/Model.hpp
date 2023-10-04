@@ -32,7 +32,15 @@ public:
     virtual ~Model();
 
     /**
-     * @brief Update robot model using new joint states data.
+     * @brief [Blocking] Reload robot model using the latest data synced from the connected robot.
+     * Tool model is also synced.
+     * @throw std::runtime_error if failed to sync model data.
+     * @throw std::logic_error if the synced robot model contains invalid data.
+     * @note Call this function if the robot tool has changed.
+     * @warning This function blocks until the model data is synced and the reloading is finished.
+     */
+    void reload(void);
+
      * @param[in] positions Current joint positions: \f$ q \in \mathbb{R}^{n \times 1} \f$. Unit:
      * \f$ [rad] \f$.
      * @param[in] velocities Current joint velocities: \f$ \dot{q} \in \mathbb{R}^{n \times 1}
