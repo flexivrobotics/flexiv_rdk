@@ -28,8 +28,10 @@ def print_description():
     Print tutorial description.
 
     """
-    print("This tutorial does position and force control (if available) for grippers "
-          "supported by Flexiv.")
+    print(
+        "This tutorial does position and force control (if available) for grippers "
+        "supported by Flexiv."
+    )
     print()
 
 
@@ -41,7 +43,7 @@ def print_gripper_states(gripper, log):
     # Data struct storing gripper states
     gripper_states = flexivrdk.GripperStates()
 
-    while (not g_is_done):
+    while not g_is_done:
         # Get the latest gripper states
         gripper.getGripperStates(gripper_states)
 
@@ -60,7 +62,9 @@ def main():
     # Parse arguments
     argparser = argparse.ArgumentParser()
     argparser.add_argument(
-        'robot_sn', help='Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456')
+        "robot_sn",
+        help="Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456",
+    )
     args = argparser.parse_args()
 
     # Define alias
@@ -94,14 +98,8 @@ def main():
         robot.enable()
 
         # Wait for the robot to become operational
-        seconds_waited = 0
         while not robot.isOperational():
             time.sleep(1)
-            seconds_waited += 1
-            if seconds_waited == 10:
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode")
 
         log.info("Robot is now operational")
 
@@ -118,7 +116,8 @@ def main():
 
         # Thread for printing gripper states
         print_thread = threading.Thread(
-            target=print_gripper_states, args=[gripper, log])
+            target=print_gripper_states, args=[gripper, log]
+        )
         print_thread.start()
 
         # Position control

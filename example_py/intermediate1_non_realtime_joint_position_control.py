@@ -25,8 +25,10 @@ def print_description():
     Print tutorial description.
 
     """
-    print("This tutorial runs non-real-time joint position control to hold or sine-sweep all "
-          "robot joints.")
+    print(
+        "This tutorial runs non-real-time joint position control to hold or sine-sweep all "
+        "robot joints."
+    )
     print()
 
 
@@ -37,18 +39,23 @@ def main():
     argparser = argparse.ArgumentParser()
     # Required arguments
     argparser.add_argument(
-        'robot_sn', help='Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456')
+        "robot_sn",
+        help="Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456",
+    )
     argparser.add_argument(
-        "frequency", help="Command frequency, 20 to 200 [Hz]", type=int)
+        "frequency", help="Command frequency, 1 to 100 [Hz]", type=int
+    )
     # Optional arguments
     argparser.add_argument(
-        "--hold", action="store_true",
-        help="Robot holds current joint positions, otherwise do a sine-sweep")
+        "--hold",
+        action="store_true",
+        help="Robot holds current joint positions, otherwise do a sine-sweep",
+    )
     args = argparser.parse_args()
 
     # Check if arguments are valid
     frequency = args.frequency
-    assert (frequency >= 20 and frequency <= 200), "Invalid <frequency> input"
+    assert frequency >= 1 and frequency <= 100, "Invalid <frequency> input"
 
     # Define alias
     robot_states = flexivrdk.RobotStates()
@@ -82,14 +89,8 @@ def main():
         robot.enable()
 
         # Wait for the robot to become operational
-        seconds_waited = 0
         while not robot.isOperational():
             time.sleep(1)
-            seconds_waited += 1
-            if seconds_waited == 10:
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode")
 
         log.info("Robot is now operational")
 
@@ -99,7 +100,7 @@ def main():
         robot.executePrimitive("Home()")
 
         # Wait for the primitive to finish
-        while (robot.isBusy()):
+        while robot.isBusy():
             time.sleep(1)
 
         # Non-real-time Joint Position Control
@@ -107,10 +108,15 @@ def main():
         # Switch to non-real-time joint position control mode
         robot.setMode(mode.NRT_JOINT_POSITION)
 
-        period = 1.0/frequency
+        period = 1.0 / frequency
         loop_time = 0
-        print("Sending command to robot at", frequency,
-              "Hz, or", period, "seconds interval")
+        print(
+            "Sending command to robot at",
+            frequency,
+            "Hz, or",
+            period,
+            "seconds interval",
+        )
 
         # Use current robot joint positions as initial positions
         robot.getRobotStates(robot_states)
@@ -147,13 +153,15 @@ def main():
             # Sine-sweep all joints
             if not args.hold:
                 for i in range(DOF):
-                    target_pos[i] = init_pos[i] + SWING_AMP * \
-                        math.sin(2 * math.pi * SWING_FREQ * loop_time)
+                    target_pos[i] = init_pos[i] + SWING_AMP * math.sin(
+                        2 * math.pi * SWING_FREQ * loop_time
+                    )
             # Otherwise all joints will hold at initial positions
 
             # Send command
             robot.sendJointPosition(
-                target_pos, target_vel, target_acc, MAX_VEL, MAX_ACC)
+                target_pos, target_vel, target_acc, MAX_VEL, MAX_ACC
+            )
 
             # Increment loop time
             loop_time += period

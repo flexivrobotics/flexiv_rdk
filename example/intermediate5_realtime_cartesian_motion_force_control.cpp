@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
 
         // Send target point to robot to start searching for contact and limit the velocity. Keep
         // target wrench 0 at this stage since we are not doing force control yet
-        robot.sendCartesianMotionForce(targetPose, std::vector<double>(6), k_searchVelocity);
+        robot.sendCartesianMotionForce(targetPose, {}, k_searchVelocity);
 
         // Use a while loop to poll robot states and check if a contact is made
         bool isContacted = false;

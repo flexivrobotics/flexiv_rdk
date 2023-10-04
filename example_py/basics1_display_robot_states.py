@@ -26,8 +26,10 @@ def print_description():
     Print tutorial description.
 
     """
-    print("This tutorial does the very first thing: check connection with the robot server "
-          "and print received robot states.")
+    print(
+        "This tutorial does the very first thing: check connection with the robot server "
+        "and print received robot states."
+    )
     print()
 
 
@@ -46,6 +48,7 @@ def print_robot_states(robot, log):
         # Print all gripper states, round all float values to 2 decimals
         log.info("Current robot states:")
         # fmt: off
+        print("{")
         print("q: ",  ['%.2f' % i for i in robot_states.q])
         print("theta: ", ['%.2f' % i for i in robot_states.theta])
         print("dq: ", ['%.2f' % i for i in robot_states.dq])
@@ -62,6 +65,7 @@ def print_robot_states(robot, log):
         print("FT_sensor_raw_reading: ", ['%.2f' % i for i in robot_states.ftSensorRaw])
         print("F_ext_tcp_frame: ", ['%.2f' % i for i in robot_states.extWrenchInTcp])
         print("F_ext_base_frame: ", ['%.2f' % i for i in robot_states.extWrenchInBase])
+        print("}")
         # fmt: on
         time.sleep(1)
 
@@ -72,7 +76,9 @@ def main():
     # Parse arguments
     argparser = argparse.ArgumentParser()
     argparser.add_argument(
-        'robot_sn', help='Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456')
+        "robot_sn",
+        help="Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456",
+    )
     args = argparser.parse_args()
 
     # Define alias
@@ -106,22 +112,15 @@ def main():
         robot.enable()
 
         # Wait for the robot to become operational
-        seconds_waited = 0
         while not robot.isOperational():
             time.sleep(1)
-            seconds_waited += 1
-            if seconds_waited == 10:
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode")
 
         log.info("Robot is now operational")
 
         # Print States
         # =============================================================================
         # Thread for printing robot states
-        print_thread = threading.Thread(
-            target=print_robot_states, args=[robot, log])
+        print_thread = threading.Thread(target=print_robot_states, args=[robot, log])
         print_thread.start()
         print_thread.join()
 

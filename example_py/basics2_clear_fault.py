@@ -25,8 +25,10 @@ def print_description():
     Print tutorial description.
 
     """
-    print("This tutorial clears minor faults from the robot server if any. Note that "
-          "critical faults cannot be cleared, see RDK manual for more details.")
+    print(
+        "This tutorial clears minor faults from the robot server if any. Note that "
+        "critical faults cannot be cleared, see RDK manual for more details."
+    )
     print()
 
 
@@ -36,7 +38,9 @@ def main():
     # Parse arguments
     argparser = argparse.ArgumentParser()
     argparser.add_argument(
-        'robot_sn', help='Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456')
+        "robot_sn",
+        help="Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456",
+    )
     args = argparser.parse_args()
 
     # Define alias
