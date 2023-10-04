@@ -113,6 +113,12 @@ public:
     bool isEstopReleased(void) const;
 
     /**
+     * @brief [Non-blocking] Check if the enabling button is pressed.
+     * @return True: pressed, false: released.
+     */
+    bool isEnablingButtonPressed(void) const;
+
+    /**
      * @brief [Non-blocking] Check if the robot system is in recovery state.
      * @return True: in recovery state, false: not in recovery state.
      * @note Use runAutoRecovery() to carry out automatic recovery operation.
