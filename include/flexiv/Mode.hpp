@@ -61,36 +61,19 @@ enum Mode
     NRT_PRIMITIVE_EXECUTION,
 
     /**
-     * Run real-time Cartesian motion-force control to track continuous commands in base frame @
-     * 1kHz.
+     * Run real-time Cartesian motion-force control to track continuous commands @ 1kHz.
      * @note Real-time (RT) mode
      * @see flexiv::Robot::streamCartesianMotionForce()
      */
-    RT_CARTESIAN_MOTION_FORCE_BASE,
+    RT_CARTESIAN_MOTION_FORCE,
 
     /**
-     * Run real-time Cartesian motion-force control to track continuous commands in TCP frame @
-     * 1kHz.
-     * @note Real-time (RT) mode
-     * @see flexiv::Robot::streamCartesianMotionForce()
-     */
-    RT_CARTESIAN_MOTION_FORCE_TCP,
-
-    /**
-     * Run non-real-time Cartesian motion-force control to track discrete commands (smoothened by
-     * internal motion generator) in base frame.
+     * Run non-real-time Cartesian motion-force control to track discrete commands, smoothened by
+     * internal motion generator.
      * @note Non-real-time (NRT) mode
      * @see flexiv::Robot::sendCartesianMotionForce()
      */
-    NRT_CARTESIAN_MOTION_FORCE_BASE,
-
-    /**
-     * Run non-real-time Cartesian motion-force control to track discrete commands (smoothened by
-     * internal motion generator) in TCP frame.
-     * @note Non-real-time (NRT) mode
-     * @see flexiv::Robot::sendCartesianMotionForce()
-     */
-    NRT_CARTESIAN_MOTION_FORCE_TCP,
+    NRT_CARTESIAN_MOTION_FORCE,
 };
 
 } /* namespace flexiv */
