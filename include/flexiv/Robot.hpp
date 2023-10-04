@@ -28,8 +28,9 @@ public:
      * will initialize and connection with the robot will be established.
      * @param[in] robotSN Serial number of the robot to connect.
      * @throw std::runtime_error if the initialization sequence failed.
-     * @throw std::logic_error if this RDK library version is incompatible with the connected robot;
-     * or the connected robot model is not supported.
+     * @throw std::logic_error if the connected robot does not have a valid RDK license; or this RDK
+     * library version is incompatible with the connected robot; or model of the connected robot is
+     * not supported.
      * @warning This constructor blocks until the initialization sequence is successfully finished
      * and connection with the robot is established.
      */
@@ -38,9 +39,9 @@ public:
 
     /**
      * @brief [Non-blocking] Access general information of the robot.
-     * @return RobotInfo struct.
+     * @return RobotInfo instance.
      */
-    const RobotInfo info(void);
+    RobotInfo info(void) const;
 
     //======================================= SYSTEM CONTROL =======================================
     /**
@@ -48,7 +49,7 @@ public:
      * will release brakes, and becomes operational a few seconds later.
      * @throw std::logic_error if the robot is not connected.
      * @throw std::runtime_error if failed to execute the request.
-     * @warning This function blocks until the request is successfully delivered to the robot.
+     * @warning This function blocks until the request is successfully executed.
      */
     void enable(void);
 
@@ -60,6 +61,12 @@ public:
     void stop(void);
 
     /**
+     * @brief [Non-blocking] Check if the robot has come to a complete stop.
+     * @return True: stopped, false: still moving.
+     */
+    bool isStopped(void) const;
+
+    /**
      * @brief [Non-blocking] Check if the robot is normally operational, which requires the
      * following conditions to be met: enabled, brakes fully released, in auto mode, no fault, and
      * not in reduced state.
@@ -69,6 +76,19 @@ public:
      * @warning The robot won't execute any user command until it becomes normally operational.
      */
     bool isOperational(bool verbose = true) const;
+
+    /**
+     * @brief [Non-blocking] Check if the robot is in fault state.
+     * @return True: robot has fault, false: robot normal.
+     */
+    bool isFault(void) const;
+
+    /**
+     * @brief [Blocking] Clear minor fault of the robot.
+     * @throw std::runtime_error if failed to execute the request.
+     * @warning This function blocks until the request is successfully executed.
+     */
+    void clearFault(void);
 
     /**
      * @brief [Non-blocking] Check if the robot is currently executing a task. This includes any
@@ -87,14 +107,8 @@ public:
     bool isConnected(void) const;
 
     /**
-     * @brief [Non-blocking] Check if the robot is in fault state.
-     * @return True: robot has fault, false: robot normal.
-     */
-    bool isFault(void) const;
-
-    /**
-     * @brief [Non-blocking] Check if the Emergency Stop is released.
-     * @note True: E-stop released, false: E-stop pressed
+     * @brief [Non-blocking] Check if the emergency stop is released.
+     * @return True: released, false: pressed.
      */
     bool isEstopReleased(void) const;
 
@@ -111,16 +125,19 @@ public:
     bool isRecoveryState(void) const;
 
     /**
-     * @brief [Blocking] Clear minor fault of the robot.
-     * @throw std::runtime_error if failed to execute the request.
-     * @warning This function blocks until the request is successfully delivered to the robot.
+     * @brief [Blocking] Run automatic recovery to bring joints that are outside the allowed
+     * position range back into allowed range.
+     * @throw std::runtime_error if failed to enter automatic recovery mode.
+     * @note Refer to user manual for more details.
+     * @warning This function blocks until the automatic recovery process is finished.
+     * @see isRecoveryState()
      */
-    void clearFault(void);
+    void runAutoRecovery(void);
 
     /**
      * @brief [Blocking] Set a new control mode and wait until the mode transition is finished.
      * @param[in] mode flexiv::Mode enum.
-     * @throw std::invalid_argument if requested mode is invalid.
+     * @throw std::invalid_argument if the requested mode is invalid or unlicensed.
      * @throw std::logic_error if robot is in an unknown control mode or is not operational.
      * @throw std::runtime_error if failed to transit the robot into the specified control mode
      * after several attempts.
@@ -137,9 +154,8 @@ public:
      */
     Mode getMode(void) const;
 
-    //====================================== ROBOT OPERATIONS ======================================
     /**
-     * @brief [Non-blocking] Get the latest robot states.
+     * @brief [Non-blocking] Get the current robot states.
      * @param[out] output Reference to output data object.
      * @note Call this function periodically to keep the output data object up to date.
      */
