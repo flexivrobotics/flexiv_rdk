@@ -213,9 +213,9 @@ public:
     /**
      * @brief [Blocking] Pause or resume the execution of the current plan.
      * @param[in] pause True: pause plan, false: resume plan.
-     * @note Applicable control mode: NRT_PLAN_EXECUTION.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to execute the request.
+     * @note Applicable control mode: NRT_PLAN_EXECUTION.
      * @warning This function blocks until the request is successfully delivered to the robot.
      */
     void pausePlan(bool pause);
@@ -239,9 +239,29 @@ public:
      */
     PlanInfo getPlanInfo(void) const;
 
+    /**
+     * @brief [Blocking] Set global variables for the robot by specifying name and value.
+     * @param[in] globalVars Command to set global variables using the format:
+     * globalVar1=value(s), globalVar2=value(s), ...
+     * @throw std::length_error if size of globalVars exceeds the limit (10 Kb).
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to execute the request.
+     * @note Applicable control mode: NRT_PLAN_EXECUTION.
+     * @warning The specified global variable(s) must have already been created in the robot using
+     * Flexiv Elements, otherwise setting a nonexistent global variable will have no effect. To
+     * check if a global variable is successfully set, use getGlobalVariables().
+     * @warning This function blocks until the request is successfully delivered to the robot.
+     */
+    void setGlobalVariables(const std::string& globalVars);
+
+    /**
+     * @brief [Blocking] Get available global variables from the robot.
+     * @return Global variables in the format of a string list.
      * @throw std::runtime_error if failed to get a reply from the robot.
      * @warning This function blocks until the reply from the robot is received.
      */
+    std::vector<std::string> getGlobalVariables(void) const;
+
     /**
      * @brief [Blocking] Enable or disable the breakpoint mode during plan execution. When enabled,
      * the currently executing plan will pause at the pre-defined breakpoints. Use stepBreakpoint()
@@ -274,11 +294,11 @@ public:
      * "primitiveName(inputParam1=xxx, inputParam2=xxx, ...)".
      * @param[in] velocityScale Percentage scale to adjust robot motion velocity, from 0 to 100.
      * 100 means to move with 100% of configured motion velocity, and 0 means not moving at all.
-     * @note Applicable control mode: NRT_PRIMITIVE_EXECUTION.
      * @throw std::length_error if size of ptCmd exceeds the limit (10 Kb).
      * @throw std::invalid_argument if velocityScale is invalid.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to execute the request.
+     * @note Applicable control mode: NRT_PRIMITIVE_EXECUTION.
      * @warning The primitive input parameters may not use SI units, please refer to the Flexiv
      * Primitives documentation for exact unit definition.
      * @warning Some primitives may not terminate automatically and require users to manually
@@ -296,87 +316,37 @@ public:
      */
     std::vector<std::string> getPrimitiveStates(void) const;
 
-    /**
-     * @brief [Blocking] Set global variables for the robot by specifying name and value.
-     * @param[in] globalVars Command to set global variables using the format:
-     * globalVar1=value(s), globalVar2=value(s), ...
-     * @note Applicable control mode: NRT_PLAN_EXECUTION.
-     * @throw std::length_error if size of globalVars exceeds the limit (10 Kb).
-     * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to execute the request.
-     * @warning The specified global variable(s) must have already been created in the robot using
-     * Flexiv Elements, otherwise setting a nonexistent global variable will have no effect. To
-     * check if a global variable is successfully set, use getGlobalVariables().
-     * @warning This function blocks until the request is successfully delivered to the robot.
-     */
-    void setGlobalVariables(const std::string& globalVars);
-
-    /**
-     * @brief [Blocking] Get available global variables from the robot.
-     * @return Global variables in the format of a string list.
-     * @throw std::runtime_error if failed to get a reply from the robot.
-     * @warning This function blocks until the reply from the robot is received.
-     */
-    std::vector<std::string> getGlobalVariables(void) const;
-
-    /**
-     * @brief [Non-blocking] Check if the robot has come to a complete stop.
-     * @return True: stopped, false: still moving.
-     */
-    bool isStopped(void) const;
-
-    /**
-     * @brief [Blocking] If the mounted tool has more than one TCP, switch the TCP being used by the
-     * robot. Default to the 1st one (index = 0).
-     * @param[in] index Index of the TCP on the mounted tool to switch to.
-     * @note No need to call this function if the mounted tool on the robot has only one TCP, it'll
-     * be used by default.
-     * @note New TCP index will take effect upon control mode switch, or upon sending a new
-     * primitive command.
-     * @warning This function blocks until the request is successfully delivered to the robot.
-     */
-    void switchTcp(unsigned int index);
-
-    /**
-     * @brief [Blocking] Run automatic recovery to bring joints that are outside the allowed
-     * position range back into allowed range.
-     * @note Refer to user manual for more details.
-     * @see isRecoveryState()
-     * @throw std::runtime_error if failed to enter automatic recovery mode.
-     * @warning This function blocks until the automatic recovery process is finished.
-     */
-    void runAutoRecovery(void);
-
     //==================================== DIRECT JOINT CONTROL ====================================
     /**
-     * @brief [Non-blocking] Continuously stream joint torque command to robot.
+     * @brief [Non-blocking] Continuously stream joint torque command to the robot.
      * @param[in] torques Target joint torques: \f$ {\tau_J}_d \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [Nm] \f$.
      * @param[in] enableGravityComp Enable/disable robot gravity compensation.
      * @param[in] enableSoftLimits Enable/disable soft limits to keep the joints from moving outside
      * allowed position range, which will trigger a safety fault that requires recovery operation.
-     * @note Applicable control mode: RT_JOINT_TORQUE.
-     * @note Real-time (RT).
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
+     * @note Applicable control mode: RT_JOINT_TORQUE.
+     * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
      */
     void streamJointTorque(const std::array<double, k_jointDOF>& torques,
         bool enableGravityComp = true, bool enableSoftLimits = true);
 
     /**
-     * @brief [Non-blocking] Continuously stream joint position, velocity, and acceleration command.
+     * @brief [Non-blocking] Continuously stream joint position, velocity, and acceleration command
+     * to the robot.
      * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{n \times 1} \f$. Unit:
      * \f$ [rad] \f$.
      * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{n \times 1}
      * \f$. Unit: \f$ [rad/s] \f$.
      * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{n \times
      * 1} \f$. Unit: \f$ [rad/s^2] \f$.
-     * @note Applicable control mode: RT_JOINT_POSITION.
-     * @note Real-time (RT).
      * @throw std::invalid_argument if input is invalid.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
+     * @note Applicable control mode: RT_JOINT_POSITION.
+     * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
      */
     void streamJointPosition(const std::array<double, k_jointDOF>& positions,
@@ -386,18 +356,23 @@ public:
     /**
      * @brief [Non-blocking] Discretely send joint position, velocity, and acceleration command. The
      * robot's internal motion generator will smoothen the discrete commands.
-     * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{n \times 1} \f$. Unit:
+     * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{DOF \times 1} \f$. Unit:
      * \f$ [rad] \f$.
-     * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{n \times 1}
-     * \f$. Unit: \f$ [rad/s] \f$.
-     * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{n \times
-     * 1} \f$. Unit: \f$ [rad/s^2] \f$.
-     * @param[in] maxVel Maximum joint velocities: \f$ \dot{q}_{max} \in \mathbb{R}^{n \times 1}
-     * \f$. Unit: \f$ [rad/s] \f$.
-     * @param[in] maxAcc Maximum joint accelerations: \f$ \ddot{q}_{max} \in \mathbb{R}^{n \times
-     * 1} \f$. Unit: \f$ [rad/s^2] \f$.
-     * @note Applicable control mode: NRT_JOINT_POSITION.
+     * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{DOF \times 1}
+     * \f$. Each joint will maintain this amount of velocity when it reaches the target position.
+     * Unit: \f$ [rad/s] \f$.
+     * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{DOF
+     * \times 1} \f$. Each joint will maintain this amount of acceleration when it reaches the
+     * target position. Unit: \f$ [rad/s^2] \f$.
+     * @param[in] maxVel Maximum joint velocities for the planned trajectory: \f$ \dot{q}_{max} \in
+     * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
+     * @param[in] maxAcc Maximum joint accelerations for the planned trajectory: \f$ \ddot{q}_{max}
+     * \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
      * @throw std::logic_error if robot is not in the correct control mode.
+     * @note Applicable control mode: NRT_JOINT_POSITION.
+     * @warning Calling this function a second time while the motion from the previous call is still
+     * ongoing will trigger an online re-planning of the joint trajectory, such that the previous
+     * command is aborted and the new command starts to execute.
      */
     void sendJointPosition(const std::array<double, k_jointDOF>& positions,
         const std::array<double, k_jointDOF>& velocities,
