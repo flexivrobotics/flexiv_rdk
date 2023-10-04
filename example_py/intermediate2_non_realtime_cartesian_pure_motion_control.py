@@ -156,8 +156,8 @@ def main():
         # The Cartesian motion force modes do pure motion control out of the box, thus nothing
         # needs to be explicitly configured
 
-        # NOTE: motion control always uses robot base frame, while force control can use
-        # either base or TCP frame as reference frame
+        # NOTE: motion control always uses robot world frame, while force control can use
+        # either world or TCP frame as reference frame
 
         # Start Pure Motion Control
         # =========================================================================================

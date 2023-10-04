@@ -73,12 +73,12 @@ def main():
     argparser.add_argument(
         "--TCP",
         action="store_true",
-        help="Use TCP frame as reference frame for force control, otherwise use base frame",
+        help="Use TCP frame as reference frame for force control, otherwise use world frame",
     )
     argparser.add_argument(
         "--polish",
         action="store_true",
-        help="Run a simple polish motion along XY plane in base frame, otherwise hold robot motion in non-force-control axes",
+        help="Run a simple polish motion along XY plane in world frame, otherwise hold robot motion in non-force-control axes",
     )
     args = argparser.parse_args()
 
@@ -95,16 +95,16 @@ def main():
     print_description()
 
     # The reference frame to use, see Robot::sendCartesianMotionForce() for more details
-    frame_str = "BASE"
+    frame_str = "WORLD"
     if args.TCP:
         log.info("Reference frame used for force control: robot TCP frame")
         frame_str = "TCP"
     else:
-        log.info("Reference frame used for force control: robot base frame")
+        log.info("Reference frame used for force control: robot world frame")
 
     # Whether to enable polish motion
     if args.polish:
-        log.info("Robot will run a polish motion along XY plane in robot base frame")
+        log.info("Robot will run a polish motion along XY plane in robot world frame")
     else:
         log.info("Robot will hold its motion in all non-force-controlled axes")
 
@@ -187,7 +187,7 @@ def main():
 
         # Send target point to robot to start searching for contact and limit the velocity. Keep
         # target wrench 0 at this stage since we are not doing force control yet
-        robot.sendCartesianMotionForce(target_pose, [], SEARCH_VELOCITY)
+        robot.sendCartesianMotionForce(target_pose, [0] * 6, SEARCH_VELOCITY)
 
         # Use a while loop to poll robot states and check if a contact is made
         is_contacted = False
@@ -229,8 +229,8 @@ def main():
         # control is used by default. See function doc for more details
         # robot.setPassiveForceControl(True)
 
-        # NOTE: motion control always uses robot base frame, while force control can use
-        # either base or TCP frame as reference frame
+        # NOTE: motion control always uses robot world frame, while force control can use
+        # either world or TCP frame as reference frame
 
         # Start Unified Motion Force Control
         # =========================================================================================
@@ -279,14 +279,14 @@ def main():
 
             # Set Fz according to reference frame to achieve a "pressing down" behavior
             Fz = 0.0
-            if frame_str == "BASE":
+            if frame_str == "WORLD":
                 Fz = -PRESSING_FORCE
             elif frame_str == "TCP":
                 Fz = PRESSING_FORCE
             target_wrench = [0.0, 0.0, Fz, 0.0, 0.0, 0.0]
 
             # Apply constant force along Z axis of chosen reference frame, and do a simple polish
-            # motion along XY plane in robot base frame
+            # motion along XY plane in robot world frame
             if args.polish:
                 # Create motion command to sine-sweep along Y direction
                 target_pose[1] = init_pose[1] + SWING_AMP * math.sin(

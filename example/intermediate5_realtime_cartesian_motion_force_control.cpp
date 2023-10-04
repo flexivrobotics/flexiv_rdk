@@ -59,8 +59,8 @@ void printHelp()
     std::cout << "    robot SN: Serial number of the robot to connect to. "
                  "Remove any space, for example: Rizon4s-123456" << std::endl;
     std::cout << "Optional arguments: [--TCP] [--polish]" << std::endl;
-    std::cout << "    --TCP: use TCP frame as reference frame for force control, otherwise use base frame" << std::endl;
-    std::cout << "    --polish: run a simple polish motion along XY plane in base frame, otherwise hold robot motion in non-force-control axes"
+    std::cout << "    --TCP: use TCP frame as reference frame for force control, otherwise use world frame" << std::endl;
+    std::cout << "    --polish: run a simple polish motion along XY plane in world frame, otherwise hold robot motion in non-force-control axes"
               << std::endl
               << std::endl;
     // clang-format on
@@ -85,7 +85,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 
         // Set Fz according to reference frame to achieve a "pressing down" behavior
         double Fz = 0.0;
-        if (frameStr == "BASE") {
+        if (frameStr == "WORLD") {
             Fz = -k_pressingForce;
         } else if (frameStr == "TCP") {
             Fz = k_pressingForce;
@@ -93,7 +93,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
         std::array<double, flexiv::k_cartDOF> targetWrench = {0.0, 0.0, Fz, 0.0, 0.0, 0.0};
 
         // Apply constant force along Z axis of chosen reference frame, and do a simple polish
-        // motion along XY plane in robot base frame
+        // motion along XY plane in robot world frame
         if (enablePolish) {
             // Create motion command to sine-sweep along Y direction
             targetPose[1] = initPose[1]
@@ -138,18 +138,18 @@ int main(int argc, char* argv[])
 
     // The reference frame to use for force control, see Robot::setForceControlFrame() for more
     // details
-    std::string frameStr = "BASE";
+    std::string frameStr = "WORLD";
     if (flexiv::utility::programArgsExist(argc, argv, "--TCP")) {
         log.info("Reference frame used for force control: robot TCP frame");
         frameStr = "TCP";
     } else {
-        log.info("Reference frame used for force control: robot base frame");
+        log.info("Reference frame used for force control: robot world frame");
     }
 
     // Whether to enable polish motion
     bool enablePolish = false;
     if (flexiv::utility::programArgsExist(argc, argv, "--polish")) {
-        log.info("Robot will run a polish motion along XY plane in robot base frame");
+        log.info("Robot will run a polish motion along XY plane in robot world frame");
         enablePolish = true;
     } else {
         log.info("Robot will hold its motion in all non-force-controlled axes");
@@ -273,8 +273,8 @@ int main(int argc, char* argv[])
         // control is used by default. See function doc for more details
         /* robot.setPassiveForceControl(true); */
 
-        // NOTE: motion control always uses robot base frame, while force control can use
-        // either base or TCP frame as reference frame
+        // NOTE: motion control always uses robot world frame, while force control can use
+        // either world or TCP frame as reference frame
 
         // Start Unified Motion Force Control
         // =========================================================================================
