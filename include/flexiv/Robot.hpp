@@ -452,49 +452,48 @@ public:
 
     /**
      * @brief [Non-blocking] Set motion stiffness for the Cartesian motion-force control modes.
-     * @param[in] stiffness Desired Cartesian motion stiffness: \f$ K_d \in \mathbb{R}^{6 \times 1}
-     * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and \f$ \mathbb{R}^{3
-     * \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry}, k_{Rz}]^T \f$. Unit: \f$
-     * [N/m]~[Nm/rad] \f$.
-     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
-     * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
+     * @param[in] stiffness Cartesian motion stiffness: \f$ K_d \in \mathbb{R}^{6 \times 1} \f$.
+     * Setting motion stiffness of a motion-controlled Cartesian axis to 0 will make this axis
+     * free-floating. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and \f$
+     * \mathbb{R}^{3 \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry}, k_{Rz}]^T
+     * \f$. Unit: \f$ [N/m]~[Nm/rad] \f$.
      * @throw std::invalid_argument if input is invalid.
      * @throw std::logic_error if robot is not in the correct control mode.
+     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
      * @warning The robot will automatically reset to its nominal stiffness upon re-entering the
-     * below applicable control modes.
+     * applicable control modes.
      */
     void setCartesianStiffness(const std::array<double, k_cartDOF>& stiffness);
 
     /**
      * @brief [Non-blocking] Reset motion stiffness for the Cartesian motion-force control modes to
      * nominal value.
-     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
-     * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
+     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
      */
     void resetCartesianStiffness(void);
 
     /**
-     * @brief [Non-blocking] Set maximum contact wrench for the motion-controlled directions of the
-     * Cartesian motion-force control modes. The controller will regulate its output to maintain
-     * contact wrench (force and moment) with the environment under the set values.
+     * @brief [Non-blocking] Set maximum contact wrench for the motion control part of the Cartesian
+     * motion-force control modes. The controller will regulate its output to maintain contact
+     * wrench (force and moment) with the environment under the set values.
      * @param[in] maxWrench Maximum contact wrench (force and moment): \f$ F_max \in \mathbb{R}^{6
      * \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ maximum force and \f$
      * \mathbb{R}^{3 \times 1} \f$ maximum moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$. Unit:
      * \f$ [N]~[Nm] \f$.
-     * @note The maximum contact wrench regulation only applies to the motion-controlled directions.
-     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
-     * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
      * @throw std::invalid_argument if input is invalid.
      * @throw std::logic_error if robot is not in the correct control mode.
+     * @note The maximum contact wrench regulation only applies to the motion control part.
+     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
      * @warning The maximum contact wrench regulation will automatically reset to disabled upon
-     * re-entering the below applicable control modes.
+     * re-entering the applicable control modes.
+     * @warning The maximum contact wrench regulation cannot be enabled if any of the rotational
+     * Cartesian axes is enabled for moment control.
      */
     void setMaxContactWrench(const std::array<double, k_cartDOF>& maxWrench);
 
     /**
      * @brief [Non-blocking] Reset max contact wrench regulation to nominal state, i.e. disabled.
-     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
-     * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
+     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
      */
     void resetMaxContactWrench(void);
 
@@ -503,6 +502,11 @@ public:
      * used in the Cartesian motion-force control modes.
      * @param[in] preferredPositions Preferred joint positions for the null-space posture control:
      * \f$ q_{ns} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad] \f$.
+     * @throw std::invalid_argument if input is invalid.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
+     * @warning The robot will automatically reset to its nominal preferred joint positions upon
+     * re-entering the applicable control modes.
      * @par Null-space posture control
      * Similar to human arm, a robotic arm with redundant joint-space degree(s) of freedom (DOF > 6)
      * can change its overall posture without affecting the ongoing primary task. This is achieved
@@ -510,21 +514,82 @@ public:
      * desired robot posture is set using this function, the robot's null-space control module will
      * try to pull the arm as close to this posture as possible without affecting the primary
      * Cartesian motion-force control task.
-     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
-     * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
-     * @throw std::invalid_argument if input is invalid.
-     * @throw std::logic_error if robot is not in the correct control mode.
-     * @warning The robot will automatically reset to its nominal preferred joint positions upon
-     * re-entering the below applicable control modes.
      */
     void setNullSpacePosture(const std::array<double, k_jointDOF>& preferredPositions);
 
     /**
      * @brief [Non-blocking] Reset preferred joint positions to the robot's home posture.
-     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE_BASE,
-     * RT/NRT_CARTESIAN_MOTION_FORCE_TCP.
+     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
      */
     void resetNullSpacePosture(void);
+
+    /**
+     * @brief [Blocking] Set force-controlled Cartesian axis(s) for the Cartesian motion-force
+     * control modes. The axis(s) not enabled for force control will be motion controlled. This
+     * function can only be called when the robot is in IDLE mode.
+     * @param[in] enabledAxis Flags to enable/disable force control for certain Cartesian axis(s) in
+     * the force control reference frame (configured by setForceControlFrame()). The corresponding
+     * order is \f$ [X, Y, Z, Rx, Ry, Rz] \f$. By default, force control is disabled for all
+     * Cartesian axes.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to execute the request.
+     * @note Applicable control modes: IDLE.
+     * @warning This setting will reset to all axes disabled upon disconnection.
+     * @warning This function blocks until the request is successfully executed.
+     */
+    void setForceControlAxis(const std::array<bool, k_cartDOF>& enabledAxis);
+
+    /**
+     * @brief [Blocking] Set force control reference frame for the Cartesian motion-force control
+     * modes. This function can only be called when the robot is in IDLE mode.
+     * @param[in] referenceFrame The reference frame to use for force control. Options are: "TCP"
+     * and "WORLD". The target wrench and force control axis should also be expressed in the
+     * selected reference frame. By default, world frame is used for force control.
+     * @throw std::invalid_argument if input is invalid.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to execute the request.
+     * @note Applicable control modes: IDLE.
+     * @warning This setting will reset to world frame upon disconnection.
+     * @warning This function blocks until the request is successfully executed.
+     * @par Force control reference frame
+     * In Cartesian motion-force control modes, the reference frame of motion control is always the
+     * world frame, but the reference frame of force control can be either world frame or the
+     * robot's current TCP frame. While the world frame is the commonly used global coordinate,
+     * the current TCP frame is a dynamic local coordinate whose transformation with regard to the
+     * world frame changes as the robot TCP moves. When using world frame for force control, the
+     * force-controlled axis(s) and motion-controlled axis(s) are guaranteed to be orthogonal.
+     * However, when using current TCP frame for force control, the force-controlled axis(s) and
+     * motion-controlled axis(s) are NOT guaranteed to be orthogonal because different reference
+     * frames are used. In this case, it's recommended but not required to set the target pose such
+     * that the actual robot motion direction(s) are orthogonal to force direction(s). If they are
+     * not orthogonal, the motion control's vector component(s) in the force direction(s) will be
+     * eliminated.
+     */
+    void setForceControlFrame(const std::string& referenceFrame);
+
+    /**
+     * @brief [Blocking] Enable or disable passive force control for the Cartesian motion-force
+     * control modes. When enabled, an open-loop force controller will be used to feed forward the
+     * target wrench, i.e. passive force control. When disabled, a closed-loop force controller will
+     * be used to track the target wrench, i.e. active force control. This function can only be
+     * called when the robot is in IDLE mode.
+     * @param[in] isEnabled True: enable, false: disable. By default, passive force control is
+     * disabled and active force control is used.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to execute the request.
+     * @note Applicable control modes: IDLE.
+     * @warning This setting will reset to disabled upon disconnection.
+     * @warning This function blocks until the request is successfully executed.
+     * @par Difference between active and passive force control
+     * Active force control uses a feedback loop to reduce the error between target wrench and
+     * measured wrench. This method results in better force tracking performance, but at the cost of
+     * additional Cartesian damping which could potentially decrease motion tracking performance. On
+     * the other hand, passive force control simply feeds forward the target wrench. This methods
+     * results in worse force tracking performance, but is more robust and does not introduce
+     * additional Cartesian damping. The choice of active or passive force control depends on the
+     * actual application.
+     */
+    void setPassiveForceControl(bool isEnabled);
 
     //======================================== IO CONTROL ========================================
     /**
