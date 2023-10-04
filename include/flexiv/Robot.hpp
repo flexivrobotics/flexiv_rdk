@@ -162,11 +162,20 @@ public:
 
     /**
      * @brief [Non-blocking] Get the current robot states.
-     * @param[out] output Reference to output data object.
+     * @param[out] output Reference to an existing RobotStates instance.
      * @note Call this function periodically to keep the output data object up to date.
      */
-    void getRobotStates(RobotStates& output);
+    void getRobotStates(RobotStates& output) const;
 
+    /**
+     * @brief [Non-blocking] Get the current robot states.
+     * @return RobotStates instance.
+     * @warning This function is less efficient than the other overloaded one as additional runtime
+     * memory allocation and data copying are performed.
+     */
+    RobotStates getRobotStates(void) const;
+
+    //======================================= PLAN EXECUTION =======================================
     /**
      * @brief [Blocking] Execute a plan by specifying its index.
      * @param[in] index Index of the plan to execute, can be obtained via getPlanNameList().
