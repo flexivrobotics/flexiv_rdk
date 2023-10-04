@@ -244,6 +244,27 @@ struct GripperStates
 };
 
 /**
+ * @struct ToolParams
+ * @brief Data struct containing robot tool parameters.
+ */
+struct ToolParams
+{
+    /** Total mass. Unit: \f$ [kg] \f$ */
+    double mass = 0.0;
+
+    /** Center of mass in robot flange frame: \f$ [x, y, z] \f$. Unit: \f$ [m] \f$ */
+    std::array<double, 3> CoM = {};
+
+    /** Inertia at center of mass: \f$ [Ixx, Iyy, Izz, Ixy, Ixz, Iyz] \f$. Unit: \f$ [kg m^2] \f$ */
+    std::array<double, 6> inertia = {};
+
+    /** Position and orientation of the tool center point (TCP) in flange frame. Consists of \f$
+     * \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x,
+     * y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$ */
+    std::array<double, k_poseSize> tcpLocation = {};
+};
+
+/**
  * @brief Operator overloading to out stream all robot info in JSON format:
  * {"info_1": [val1,val2,val3,...], "info_2": [val1,val2,val3,...], ...}.
  * @param[in] ostream Ostream instance.
