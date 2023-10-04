@@ -1,5 +1,6 @@
 /**
  * @file Data.hpp
+ * @brief Header file containing various data structs.
  * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
  */
 
@@ -221,6 +222,9 @@ struct PlanInfo
 
     /** Velocity scale */
     double velocityScale = {};
+
+    /** Waiting for user signal to step the breakpoint */
+    bool waitingForStep = {};
 };
 
 /**

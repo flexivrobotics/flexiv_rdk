@@ -21,15 +21,16 @@ class Scheduler
 {
 public:
     /**
-     * @brief Create a flexiv::Scheduler instance and initialize the real-time scheduler.
+     * @brief [Blocking] Create a flexiv::Scheduler instance and initialize the real-time scheduler.
      * @throw std::runtime_error if the initialization sequence failed.
+     * @warning This constructor blocks until the initialization sequence is successfully finished.
      */
     Scheduler();
     virtual ~Scheduler();
 
     /**
-     * @brief Add a new periodic task to the scheduler's task pool. Each task in the pool is
-     * assigned to a dedicated thread with independent thread configuration.
+     * @brief [Non-blocking] Add a new periodic task to the scheduler's task pool. Each task in the
+     * pool is assigned to a dedicated thread with independent thread configuration.
      * @param[in] callback Callback function of user task.
      * @param[in] taskName A unique name for this task.
      * @param[in] interval Execution interval of this periodic task [ms]. The minimum available
@@ -63,7 +64,7 @@ public:
         int priority, int cpuAffinity = -1);
 
     /**
-     * @brief Start to execute all added tasks periodically.
+     * @brief [Blocking/Non-blocking] Start to execute all added tasks periodically.
      * @param[in] isBlocking Whether to block the thread from which this method is called until the
      * scheduler is stopped. A common usage is to call this method from main() with this parameter
      * set to true to keep main() from returning.
@@ -73,7 +74,7 @@ public:
     void start(bool isBlocking = true);
 
     /**
-     * @brief Stop all added tasks. start() will stop blocking and return.
+     * @brief [Non-blocking] Stop all added tasks. start() will stop blocking and return.
      * @throw std::logic_error if the scheduler is not started or is not fully initialized yet.
      * @throw std::runtime_error if failed to stop the scheduler.
      * @note Call start() again to restart the scheduler.
@@ -81,13 +82,13 @@ public:
     void stop();
 
     /**
-     * @brief Get maximum available priority for the user task.
+     * @brief [Non-blocking] Get maximum available priority for the user task.
      * @return The maximum priority that can be set to a user task when calling addTask().
      */
     int maxPriority() const;
 
     /**
-     * @brief Get number of tasks added to the scheduler.
+     * @brief [Non-blocking] Get number of tasks added to the scheduler.
      * @return Number of added tasks.
      */
     size_t numTasks() const;

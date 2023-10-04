@@ -198,8 +198,31 @@ public:
      * @throw std::runtime_error if failed to get a reply from the robot.
      * @warning This function blocks until the reply from the robot is received.
      */
-    void getPlanInfo(PlanInfo& output);
+    /**
+     * @brief [Blocking] Enable or disable the breakpoint mode during plan execution. When enabled,
+     * the currently executing plan will pause at the pre-defined breakpoints. Use stepBreakpoint()
+     * to continue the execution and pause at the next breakpoint.
+     * @param[in] isEnabled True: enable, false: disable. By default, breakpoint mode is disabled.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to execute the request.
+     * @note Applicable control mode: NRT_PLAN_EXECUTION.
+     * @warning This function blocks until the request is successfully executed.
+     */
+    void setBreakpointMode(bool isEnabled);
 
+    /**
+     * @brief [Blocking] If breakpoint mode is enabled, step to the next breakpoint. The plan
+     * execution will continue and pause at the next breakpoint.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to execute the request.
+     * @note Applicable control mode: NRT_PLAN_EXECUTION.
+     * @note Use PlanInfo::waitingForStep to check if the plan is currently waiting for user signal
+     * to step the breakpoint.
+     * @warning This function blocks until the request is successfully executed.
+     */
+    void stepBreakpoint();
+
+    //==================================== PRIMITIVE EXECUTION =====================================
     /**
      * @brief [Blocking] Execute a primitive by specifying its name and parameters, which can be
      * found in the [Flexiv Primitives documentation](https://www.flexiv.com/primitives/).
