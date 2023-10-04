@@ -593,7 +593,7 @@ public:
 
     //======================================== IO CONTROL ========================================
     /**
-     * @brief [Blocking] Write specified digital output ports on the control box.
+     * @brief [Blocking] Write to single or multiple digital output port(s) on the control box.
      * @param[in] portIdx Index of port(s) to write, can be a single port or multiple ports.
      * E.g. {0, 5, 7, 15} or {1, 3, 10} or {8}. Valid range of the index number is [0–15].
      * @param[in] values Corresponding values to write to the specified ports. True: set port high,
@@ -601,7 +601,7 @@ public:
      * @throw std::invalid_argument if any index number in portIdx is not within [0–15].
      * @throw std::length_error if the two input vectors have different sizes.
      * @throw std::runtime_error if failed to execute the request.
-     * @warning This function blocks until the request is successfully delivered to the robot.
+     * @warning This function blocks until the request is successfully executed.
      */
     void writeDigitalOutput(
         const std::vector<unsigned int>& portIdx, const std::vector<bool>& values);
@@ -619,6 +619,8 @@ private:
 
     friend class Model;
     friend class Gripper;
+    friend class Tool;
+    friend class FileIO;
 };
 
 } /* namespace flexiv */
