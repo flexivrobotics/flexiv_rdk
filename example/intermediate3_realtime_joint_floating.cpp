@@ -65,7 +65,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 
         // Add some velocity damping
         for (size_t i = 0; i < flexiv::k_jointDOF; ++i) {
-            targetTorque[i] = -k_floatingDamping[i] * robotStates.dtheta[i];
+            targetTorque[i] += -k_floatingDamping[i] * robotStates.dtheta[i];
         }
 
         // Send target joint torque to RDK server, enable gravity compensation and joint limits soft
@@ -125,14 +125,8 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
-        int secondsWaited = 0;
         while (!robot.isOperational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            if (++secondsWaited == 10) {
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode");
-            }
         }
         log.info("Robot is now operational");
 

@@ -48,12 +48,9 @@ void printGripperStates(flexiv::Gripper& gripper, flexiv::Log& log)
     flexiv::GripperStates gripperStates;
 
     while (!g_isDone) {
-        // Get the latest gripper states
-        gripper.getGripperStates(gripperStates);
-
         // Print all gripper states in JSON format using the built-in ostream operator overloading
         log.info("Current gripper states:");
-        std::cout << gripperStates << std::endl;
+        std::cout << gripper.getGripperStates() << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
@@ -102,14 +99,8 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
-        int secondsWaited = 0;
         while (!robot.isOperational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            if (++secondsWaited == 10) {
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode");
-            }
         }
         log.info("Robot is now operational");
 

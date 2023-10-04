@@ -83,14 +83,8 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
-        int secondsWaited = 0;
         while (!robot.isOperational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            if (++secondsWaited == 10) {
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode");
-            }
         }
         log.info("Robot is now operational");
 
@@ -98,9 +92,6 @@ int main(int argc, char* argv[])
         // =========================================================================================
         // Switch to plan execution mode
         robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
-
-        // Plan info data
-        flexiv::PlanInfo planInfo;
 
         while (true) {
             // Monitor fault on robot server
@@ -132,13 +123,14 @@ int main(int argc, char* argv[])
                     log.info("Enter plan index to execute:");
                     int index;
                     std::cin >> index;
-                    robot.executePlan(index);
+                    // Allow the plan to continue its execution even if the RDK program is closed or
+                    // the connection is lost
+                    robot.executePlan(index, true);
 
                     // Print plan info while the current plan is running
                     while (robot.isBusy()) {
-                        robot.getPlanInfo(planInfo);
                         log.info("===============================================");
-                        std::cout << planInfo << std::endl;
+                        std::cout << robot.getPlanInfo() << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
                 } break;
@@ -147,13 +139,14 @@ int main(int argc, char* argv[])
                     log.info("Enter plan name to execute:");
                     std::string name;
                     std::cin >> name;
-                    robot.executePlan(name);
+                    // Allow the plan to continue its execution even if the RDK program is closed or
+                    // the connection is lost
+                    robot.executePlan(name, true);
 
                     // Print plan info while the current plan is running
                     while (robot.isBusy()) {
-                        robot.getPlanInfo(planInfo);
                         log.info("===============================================");
-                        std::cout << planInfo << std::endl;
+                        std::cout << robot.getPlanInfo() << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
                 } break;

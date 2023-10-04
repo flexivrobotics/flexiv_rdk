@@ -150,14 +150,8 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
-        int secondsWaited = 0;
         while (!robot.isOperational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            if (++secondsWaited == 10) {
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode");
-            }
         }
         log.info("Robot is now operational");
 
@@ -177,8 +171,7 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::RT_JOINT_POSITION);
 
         // Set initial joint positions
-        robot.getRobotStates(robotStates);
-        auto initPos = robotStates.q;
+        auto initPos = robot.getRobotStates().q;
         log.info("Initial joint positions set to: " + flexiv::utility::arr2Str(initPos));
 
         // Create real-time scheduler to run periodic tasks
