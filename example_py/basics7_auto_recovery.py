@@ -19,9 +19,6 @@ sys.path.insert(0, "../lib_py")
 import flexivrdk
 # fmt: on
 
-# Global flag: whether the gripper control tasks are finished
-g_is_done = False
-
 
 def print_description():
     """

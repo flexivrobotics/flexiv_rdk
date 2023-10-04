@@ -68,8 +68,7 @@ void printHelp()
 
 /** Callback function for realtime periodic task */
 void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
-    flexiv::RobotStates& robotStates, const std::vector<double>& initPose,
-    const std::string frameStr, bool enablePolish)
+    const std::vector<double>& initPose, const std::string frameStr, bool enablePolish)
 {
     // Local periodic loop counter
     static size_t loopCounter = 0;
@@ -80,9 +79,6 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             throw flexiv::ServerException(
                 "periodicTask: Fault occurred on robot server, exiting ...");
         }
-
-        // Read robot states
-        robot.getRobotStates(robotStates);
 
         // Initialize target pose to initial pose
         std::vector<double> targetPose = initPose;
@@ -303,9 +299,8 @@ int main(int argc, char* argv[])
         // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(periodicTask, std::ref(robot), std::ref(scheduler), std::ref(log),
-                std::ref(robotStates), std::ref(initPose), std::ref(frameStr), enablePolish),
+        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
+                              std::ref(log), std::ref(initPose), std::ref(frameStr), enablePolish),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks, this is by default a blocking method
         scheduler.start();
