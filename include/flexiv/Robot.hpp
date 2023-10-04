@@ -381,89 +381,70 @@ public:
 
     //================================== DIRECT CARTESIAN CONTROL ==================================
     /**
-     * @brief [Non-blocking] Continuously stream Cartesian motion and force command for the robot
-     * to track using its unified motion-force controller.
-     * @param[in] pose Target TCP pose in base or TCP frame (depends on control mode): \f$
-     * {^{O}T_{TCP}}_{d} \f$ or \f$ {^{TCP}T_{TCP}}_{d} \in \mathbb{R}^{7 \times 1} \f$. Consists of
-     * \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion: \f$
-     * [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
-     * @param[in] wrench  Target TCP wrench (force and moment) in base or TCP frame (depends on
-     * control mode): \f$ ^{0}F_d \f$ or \f$ ^{TCP}F_d \in \mathbb{R}^{6 \times 1} \f$. If TCP frame
-     * is used, unlike motion control, the reference frame for force control is always the robot's
-     * current TCP frame. When the target value of a direction is set to non-zero, this direction
-     * will smoothly transit from motion control to force control, and the robot will track the
-     * target force/moment in this direction using an explicit force controller. When the target
-     * value is reset to 0, this direction will then smoothly transit from force control back to
-     * motion control, and the robot will gently move to the target motion point even if the set
-     * point is distant. Calling with default parameter (all zeros) will result in pure motion
-     * control in all directions. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
-     * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$. Unit: \f$
-     * [N]~[Nm] \f$.
-     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE_BASE,
-     * RT_CARTESIAN_MOTION_FORCE_TCP.
-     * @note Real-time (RT).
+     * @brief [Non-blocking] Continuously stream Cartesian motion and/or force command for the robot
+     * to track using its unified motion-force controller, which allows doing force control in zero
+     * or more Cartesian axes and motion control in the rest axes.
+     * @param[in] pose Target TCP pose in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7
+     * \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
+     * \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
+     * @param[in] wrench Target TCP wrench (force and moment) in the force control reference frame
+     * (configured by setForceControlFrame()): \f$ ^{0}F_d \in \mathbb{R}^{6 \times 1} \f$. The
+     * robot will track the target wrench using an explicit force controller. Consists of \f$
+     * \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y,
+     * f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
-     * @warning Reference frame non-orthogonality between motion- and force-controlled directions
-     * can happen when using the TCP frame mode (RT_CARTESIAN_MOTION_FORCE_TCP). The reference frame
-     * for motion control is defined as the robot TCP frame at the time point when the operation
-     * mode is switched into RT_CARTESIAN_MOTION_FORCE_TCP and is updated only upon each mode
-     * entrance, since motion control requires a fixed reference frame. The reference frame for
-     * force control is defined as the current (latest) robot TCP frame, since force control does
-     * not require a fixed reference frame. Such difference in frame definition means that, when
-     * force control is enabled for one or more directions, the force-controlled directions and
-     * motion-controlled directions are not guaranteed to stay orthogonal to each other. When
-     * non-orthogonality happens, the affected directions will see some control performance
-     * degradation. To avoid reference frame non-orthogonality and retain maximum control
-     * performance, it's recommended to keep the robot's Cartesian orientation unchanged when
-     * running motion-force control in TCP frame mode. Note that the base frame mode
-     * (RT_CARTESIAN_MOTION_FORCE_BASE) does not have such restriction.
-     * @warning Always stream smooth and continuous commands to avoid sudden movements.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE.
+     * @note Real-time (RT).
+     * @warning Always stream smooth and continuous motion commands to avoid sudden movements. The
+     * force commands don't need to be continuous.
+     * @par How to achieve pure motion control?
+     * Use setForceControlAxis() to disable force control for all Cartesian axes to achieve pure
+     * motion control. This function does pure motion control out of the box.
+     * @par How to achieve pure force control?
+     * Use setForceControlAxis() to enable force control for all Cartesian axes to achieve pure
+     * force control, active or passive.
+     * @par How to achieve unified motion-force control?
+     * Use setForceControlAxis() to enable force control for one or more Cartesian axes and leave
+     * the rest axes motion-controlled, then provide target pose for the motion-controlled axes and
+     * target wrench for the force-controlled axes.
+     * @see setCartesianStiffness(), setMaxContactWrench(), setNullSpacePosture(),
+     * setForceControlAxis(), setForceControlFrame(), setPassiveForceControl().
      */
     void streamCartesianMotionForce(const std::array<double, k_poseSize>& pose,
         const std::array<double, k_cartDOF>& wrench = {});
 
     /**
-     * @brief [Non-blocking] Discretely send Cartesian motion and force command for the robot to
-     * track using its unified motion-force controller. The robot's internal motion generator will
-     * smoothen the discrete commands.
-     * @param[in] pose Target TCP pose in base or TCP frame (depends on control mode): \f$
-     * {^{O}T_{TCP}}_{d} \f$ or \f$ {^{TCP}T_{TCP}}_{d} \in \mathbb{R}^{7 \times 1} \f$. Consists of
-     * \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion: \f$
-     * [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
-     * @param[in] wrench  Target TCP wrench (force and moment) in base or TCP frame (depends on
-     * control mode): \f$ ^{0}F_d \f$ or \f$ ^{TCP}F_d \in \mathbb{R}^{6 \times 1} \f$. If TCP frame
-     * is used, unlike motion control, the reference frame for force control is always the robot's
-     * current TCP frame. When the target value of a direction is set to non-zero, this direction
-     * will smoothly transit from motion control to force control, and the robot will track the
-     * target force/moment in this direction using an explicit force controller. When the target
-     * value is reset to 0, this direction will then smoothly transit from force control back to
-     * motion control, and the robot will gently move to the target motion point even if the set
-     * point is distant. Calling with default parameter (all zeros) will result in pure motion
-     * control in all directions. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
-     * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$. Unit: \f$
-     * [N]~[Nm] \f$.
+     * @brief [Non-blocking] Discretely send Cartesian motion and/or force command for the robot to
+     * track using its unified motion-force controller, which allows doing force control in zero or
+     * more Cartesian axes and motion control in the rest axes. The robot's internal motion
+     * generator will smoothen the discrete commands.
+     * @param[in] pose Target TCP pose in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7
+     * \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
+     * \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
+     * @param[in] wrench Target TCP wrench (force and moment) in the force control reference frame
+     * (configured by setForceControlFrame()): \f$ ^{0}F_d \in \mathbb{R}^{6 \times 1} \f$. The
+     * robot will track the target wrench using an explicit force controller. Consists of \f$
+     * \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y,
+     * f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
      * @param[in] maxLinearVel  Maximum Cartesian linear velocity when moving to the target pose.
      * Default maximum linear velocity is used when set to 0. Unit: \f$ [m/s] \f$.
      * @param[in] maxAngularVel  Maximum Cartesian angular velocity when moving to the target pose.
      * Default maximum angular velocity is used when set to 0. Unit: \f$ [rad/s] \f$.
-     * @note Applicable control modes: NRT_CARTESIAN_MOTION_FORCE_BASE,
-     * NRT_CARTESIAN_MOTION_FORCE_TCP.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @warning Reference frame non-orthogonality between motion- and force-controlled directions
-     * can happen when using the TCP frame mode (NRT_CARTESIAN_MOTION_FORCE_TCP). The reference
-     * frame for motion control is defined as the robot TCP frame at the time point when the
-     * control mode is switched into NRT_CARTESIAN_MOTION_FORCE_TCP and is updated only upon each
-     * mode entrance, since motion control requires a fixed reference frame. The reference frame for
-     * force control is defined as the current (latest) robot TCP frame, since force control does
-     * not require a fixed reference frame. Such difference in frame definition means that, when
-     * force control is enabled for one or more directions, the force-controlled directions and
-     * motion-controlled directions are not guaranteed to stay orthogonal to each other. When
-     * non-orthogonality happens, the affected directions will see some control performance
-     * degradation. To avoid reference frame non-orthogonality and retain maximum control
-     * performance, it's recommended to keep the robot's Cartesian orientation unchanged when
-     * running motion-force control in TCP frame mode. Note that the base frame mode
-     * (NRT_CARTESIAN_MOTION_FORCE_BASE) does not have such restriction.
+     * @note Applicable control modes: NRT_CARTESIAN_MOTION_FORCE.
+     * @par How to achieve pure motion control?
+     * Use setForceControlAxis() to disable force control for all Cartesian axes to achieve pure
+     * motion control. This function does pure motion control out of the box.
+     * @par How to achieve pure force control?
+     * Use setForceControlAxis() to enable force control for all Cartesian axes to achieve pure
+     * force control, active or passive.
+     * @par How to achieve unified motion-force control?
+     * Use setForceControlAxis() to enable force control for one or more Cartesian axes and leave
+     * the rest axes motion-controlled, then provide target pose for the motion-controlled axes and
+     * target wrench for the force-controlled axes.
+     * @see setCartesianStiffness(), setMaxContactWrench(), setNullSpacePosture(),
+     * setForceControlAxis(), setForceControlFrame(), setPassiveForceControl().
      */
     void sendCartesianMotionForce(const std::array<double, k_poseSize>& pose,
         const std::array<double, k_cartDOF>& wrench = {}, double maxLinearVel = 0.0,
