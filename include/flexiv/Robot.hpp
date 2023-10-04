@@ -181,28 +181,34 @@ public:
      * @param[in] index Index of the plan to execute, can be obtained via getPlanNameList().
      * @param[in] velocityScale Percentage scale to adjust robot motion velocity, from 0 to 100.
      * 100 means to move with 100% of configured motion velocity, and 0 means not moving at all.
-     * @note Applicable control mode: NRT_PLAN_EXECUTION.
+     * @param[in] continueExec Whether to continue executing the plan when
+     * the RDK program is closed or the connection is lost.
      * @throw std::invalid_argument if index or velocityScale is invalid.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to execute the request.
+     * @note Applicable control mode: NRT_PLAN_EXECUTION.
      * @note isBusy() can be used to check if a plan task has finished.
      * @warning This function blocks until the request is successfully delivered to the robot.
      */
-    void executePlan(unsigned int index, unsigned int velocityScale = 100);
+    void executePlan(
+        unsigned int index, unsigned int velocityScale = 100, bool continueExec = false);
 
     /**
      * @brief [Blocking] Execute a plan by specifying its name.
      * @param[in] name Name of the plan to execute, can be obtained via getPlanNameList().
      * @param[in] velocityScale Percentage scale to adjust robot motion velocity, from 0 to 100.
      * 100 means to move with 100% of configured motion velocity, and 0 means not moving at all.
-     * @note Applicable control mode: NRT_PLAN_EXECUTION.
+     * @param[in] continueExec Whether to continue executing the plan when
+     * the RDK program is closed or the connection is lost.
      * @throw std::invalid_argument if velocityScale is invalid.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to execute the request.
+     * @note Applicable control mode: NRT_PLAN_EXECUTION.
      * @note isBusy() can be used to check if a plan task has finished.
      * @warning This function blocks until the request is successfully delivered to the robot.
      */
-    void executePlan(const std::string& name, unsigned int velocityScale = 100);
+    void executePlan(
+        const std::string& name, unsigned int velocityScale = 100, bool continueExec = false);
 
     /**
      * @brief [Blocking] Pause or resume the execution of the current plan.
