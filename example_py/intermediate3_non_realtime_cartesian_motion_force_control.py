@@ -275,9 +275,6 @@ def main():
             if robot.isFault():
                 raise Exception("Fault occurred on robot server, exiting ...")
 
-            # Read robot states
-            robot.getRobotStates(robot_states)
-
             # Initialize target pose to initial pose
             target_pose = init_pose.copy()
 
