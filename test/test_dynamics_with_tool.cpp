@@ -53,7 +53,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
         robot.getRobotStates(robotStates);
 
         // Update robot model in dynamics engine
-        model.updateModel(robotStates.q, robotStates.dtheta);
+        model.update(robotStates.q, robotStates.dtheta);
 
         // Mark timer start point
         auto tic = std::chrono::high_resolution_clock::now();
@@ -173,14 +173,8 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
-        int secondsWaited = 0;
         while (!robot.isOperational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            if (++secondsWaited == 10) {
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is booted into Auto mode");
-            }
         }
         log.info("Robot is now operational");
 

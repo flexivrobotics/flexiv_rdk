@@ -88,7 +88,7 @@ def main():
         robot.getRobotStates(robot_states)
         log.info(
             "TCP force and moment reading in base frame BEFORE sensor zeroing: "
-            + list2str(robot_states.extWrenchInBase)
+            + list2str(robot_states.extWrenchInWorld)
             + "[N][Nm]"
         )
 
@@ -111,7 +111,7 @@ def main():
         robot.getRobotStates(robot_states)
         log.info(
             "TCP force and moment reading in base frame AFTER sensor zeroing: "
-            + list2str(robot_states.extWrenchInBase)
+            + list2str(robot_states.extWrenchInWorld)
             + "[N][Nm]"
         )
 

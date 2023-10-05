@@ -145,8 +145,8 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
         // or robot body
         if (enableCollision) {
             bool collisionDetected = false;
-            Eigen::Vector3d extForce = {robotStates.extWrenchInBase[0],
-                robotStates.extWrenchInBase[1], robotStates.extWrenchInBase[2]};
+            Eigen::Vector3d extForce = {robotStates.extWrenchInWorld[0],
+                robotStates.extWrenchInWorld[1], robotStates.extWrenchInWorld[2]};
             if (extForce.norm() > k_extForceThreshold) {
                 collisionDetected = true;
             }

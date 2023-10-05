@@ -255,9 +255,9 @@ def main():
                 collision_detected = False
                 ext_force = np.array(
                     [
-                        robot_states.extWrenchInBase[0],
-                        robot_states.extWrenchInBase[1],
-                        robot_states.extWrenchInBase[2],
+                        robot_states.extWrenchInWorld[0],
+                        robot_states.extWrenchInWorld[1],
+                        robot_states.extWrenchInWorld[2],
                     ]
                 )
                 if np.linalg.norm(ext_force) > EXT_FORCE_THRESHOLD:

@@ -94,7 +94,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
         // save data to global buffer, not using mutex to avoid interruption on RT loop from
         // potential priority inversion
         g_logData.tcpPose = robotStates.tcpPose;
-        g_logData.tcpForce = robotStates.extWrenchInBase;
+        g_logData.tcpForce = robotStates.extWrenchInWorld;
 
         // increment loop counter
         g_hpLoopCounter++;
@@ -254,14 +254,8 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
-        int secondsWaited = 0;
         while (!robot.isOperational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            if (++secondsWaited == 10) {
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is booted into Auto mode");
-            }
         }
         log.info("Robot is now operational");
 
@@ -278,7 +272,7 @@ int main(int argc, char* argv[])
         } while (robot.isBusy());
 
         // set mode after robot is at home
-        robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE_BASE);
+        robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE);
 
         // Periodic Tasks
         //==========================================================================================
