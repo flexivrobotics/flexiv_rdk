@@ -39,8 +39,8 @@ public:
      * @param[in] taskName A unique name for this task.
      * @param[in] interval Execution interval of this periodic task [ms]. The
      * minimum available interval is 1 ms, equivalent to 1 kHz loop frequency.
-     * @param[in] priority Priority for this task thread, can be set to 0 ~
-     * maxPriority(), with 0 being the lowest, and maxPriority() being the
+     * @param[in] priority Priority for this task thread, can be set to
+     * 0–maxPriority(), with 0 being the lowest, and maxPriority() being the
      * highest. When the priority is set to non-zero, this thread becomes a
      * real-time thread and can only be interrupted by threads with higher
      * priority. When the priority is set to 0, this thread becomes a
