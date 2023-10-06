@@ -40,17 +40,17 @@ public:
      * @param[in] interval Execution interval of this periodic task [ms]. The
      * minimum available interval is 1 ms, equivalent to 1 kHz loop frequency.
      * @param[in] priority Priority for this task thread, can be set to 0 ~
-     * <max_priority>, with 0 being the lowest, and <max_priority> being the
-     * highest. <max_priority> can be obtained from maxPriority(). When the
-     * priority is set to non-zero, this thread becomes a real-time thread and
-     * can only be interrupted by threads with higher priority. When the
-     * priority is set to 0, this thread becomes a non-real-time thread and can
-     * be interrupted by any real-time threads. The common practice is to set
-     * priority of the most critical tasks to <max_priority> or near, and set
-     * priority of other non-critical tasks to 0 or near. To avoid race
-     * conditions, the same priority should be assigned to only one task.
+     * maxPriority(), with 0 being the lowest, and maxPriority() being the
+     * highest. When the priority is set to non-zero, this thread becomes a
+     * real-time thread and can only be interrupted by threads with higher
+     * priority. When the priority is set to 0, this thread becomes a
+     * non-real-time thread and can be interrupted by any real-time threads. The
+     * common practice is to set priority of the most critical tasks to
+     * maxPriority() or near, and set priority of other non-critical tasks to 0
+     * or near. To avoid race conditions, the same priority should be assigned
+     * to only one task.
      * @param[in] cpuAffinity CPU core for this task thread to bind to, can be
-     * set to 2 ~ (<num_cores> - 1). This task thread will only run on
+     * set to 2–(num_cores - 1). This task thread will only run on
      * the specified CPU core. If left with the default value (-1), then this
      * task thread will not bind to any CPU core, and the system will decide
      * which core to run this task thread on according to the system's own

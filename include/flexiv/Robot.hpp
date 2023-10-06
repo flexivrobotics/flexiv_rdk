@@ -502,7 +502,8 @@ public:
      * motion-controlled Cartesian axis to 0 will make this axis free-floating.
      * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and \f$
      * \mathbb{R}^{3 \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z,
-     * k_{Rx}, k_{Ry}, k_{Rz}]^T \f$. Unit: \f$ [N/m]~[Nm/rad] \f$.
+     * k_{Rx}, k_{Ry}, k_{Rz}]^T \f$. Valid range: 0 to RobotInfo::nominalK.
+     * Unit: \f$ [N/m]~[Nm/rad] \f$.
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
