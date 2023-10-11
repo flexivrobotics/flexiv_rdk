@@ -74,24 +74,24 @@ public:
         int cpuAffinity = -1);
 
     /**
-     * @brief [Blocking/Non-blocking] Start to execute all added tasks
-     * periodically.
-     * @param[in] isBlocking Whether to block the thread from which this
-     * method is called until the scheduler is stopped. A common usage is to
-     * call this method from main() with this parameter set to true to keep
-     * main() from returning.
-     * @throw LogicException if the scheduler is not fully initialized yet.
-     * @throw ClientException if an error is triggered by the client computer.
+     * @brief [Blocking] Start all added tasks. A dedicated thread will be
+     * created for each added task and the periodic execution will begin.
+     * @throw LogicException if the scheduler is not initialized yet.
+     * @throw ClientException if failed to start the tasks.
+     * @warning This function blocks until all added tasks are started.
      */
-    void start(bool isBlocking = true);
+    void start();
 
     /**
-     * @brief [Non-blocking] Stop all added tasks. start() will stop blocking
-     * and return.
-     * @throw LogicException if the scheduler is not started or is not fully
-     * initialized yet.
-     * @throw ClientException if an error is triggered by the client computer.
-     * @note Call start() again to restart the scheduler.
+     * @brief [Blocking] Stop all added tasks. The periodic execution will stop
+     * and all task threads will be closed with the resources released.
+     * @throw LogicException if the scheduler is not initialized or the tasks
+     * are not started yet.
+     * @throw ClientException if failed to stop the tasks.
+     * @note Calling start() again can restart the added tasks.
+     * @warning This function blocks until all task threads have exited and
+     * resources are released.
+     * @warning This function cannot be called from within a task thread.
      */
     void stop();
 
