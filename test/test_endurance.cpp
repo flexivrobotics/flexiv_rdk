@@ -20,7 +20,6 @@
 #include <thread>
 
 namespace {
-
 // size of Cartesian pose vector [position 3x1 + rotation (quaternion) 4x1 ]
 const unsigned int k_cartPoseSize = 7;
 
@@ -54,8 +53,7 @@ struct LogData
 
 }
 
-void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
-    flexiv::RobotStates& robotStates)
+void highPriorityTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& robotStates)
 {
     // flag whether initial Cartesian position is set
     static bool isInitPoseSet = false;
@@ -67,8 +65,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
         // Monitor fault on robot server
         if (robot.isFault()) {
             throw flexiv::ServerException(
-                "highPriorityTask: Fault occurred on robot server, exiting "
-                "...");
+                "highPriorityTask: Fault occurred on robot server, exiting ...");
         }
 
         // Read robot states
@@ -104,7 +101,6 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        scheduler.stop();
     }
 }
 
@@ -284,11 +280,11 @@ int main(int argc, char* argv[])
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(highPriorityTask, std::ref(robot), std::ref(scheduler),
-                              std::ref(log), std::ref(robotStates)),
+        scheduler.addTask(
+            std::bind(highPriorityTask, std::ref(robot), std::ref(log), std::ref(robotStates)),
             "HP periodic", 1, scheduler.maxPriority());
-        // Start all added tasks, not blocking
-        scheduler.start(false);
+        // Start all added tasks
+        scheduler.start();
 
         // Use std::thread for logging task without strict chronology
         std::thread lowPriorityThread(lowPriorityTask);

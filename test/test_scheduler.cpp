@@ -14,9 +14,9 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
+#include <atomic>
 
 namespace {
-
 /** Data shared between threads */
 struct SharedData
 {
@@ -26,10 +26,12 @@ struct SharedData
 /** Mutex on the shared data */
 std::mutex g_mutex;
 
+/** Atomic signal to stop scheduler tasks */
+std::atomic<bool> g_schedStop = {false};
 }
 
 /** User-defined high-priority periodic task @ 1kHz */
-void highPriorityTask(flexiv::Scheduler& scheduler, flexiv::Log& log)
+void highPriorityTask(flexiv::Log& log)
 {
     static unsigned int loopCounter = 0;
 
@@ -53,7 +55,7 @@ void highPriorityTask(flexiv::Scheduler& scheduler, flexiv::Log& log)
         // Stop scheduler after 5 seconds
         if (++loopCounter > 5000) {
             loopCounter = 0;
-            scheduler.stop();
+            g_schedStop = true;
         }
 
         // Mark loop interval start point
@@ -61,7 +63,7 @@ void highPriorityTask(flexiv::Scheduler& scheduler, flexiv::Log& log)
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        scheduler.stop();
+        g_schedStop = true;
     }
 }
 
@@ -115,17 +117,32 @@ int main(int argc, char* argv[])
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(highPriorityTask, std::ref(scheduler), std::ref(log)),
-            "HP periodic", 1, scheduler.maxPriority());
+        scheduler.addTask(
+            std::bind(highPriorityTask, std::ref(log)), "HP periodic", 1, scheduler.maxPriority());
         // Add periodic task with 1s interval and lowest applicable priority
         scheduler.addTask(std::bind(lowPriorityTask, std::ref(log)), "LP periodic", 1000, 0);
-        // Start all added tasks, this is by default a blocking method
+        // Start all added tasks
         scheduler.start();
+
+        // Block and wait for signal to stop scheduler tasks
+        while (!g_schedStop) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        // Received signal to stop scheduler tasks
+        scheduler.stop();
 
         // Restart scheduler after 2 seconds
         log.warn("Scheduler will restart in 2 seconds");
         std::this_thread::sleep_for(std::chrono::seconds(2));
+        g_schedStop = false;
         scheduler.start();
+
+        // Wait for signal to stop scheduler tasks
+        while (!g_schedStop) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        // Received signal to stop scheduler tasks, flexiv::Scheduler's destructor can also do the
+        // thread exit and resources cleanup
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());

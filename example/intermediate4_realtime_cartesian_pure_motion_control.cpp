@@ -15,6 +15,7 @@
 #include <iostream>
 #include <cmath>
 #include <thread>
+#include <atomic>
 
 namespace {
 /** RT loop frequency [Hz] */
@@ -34,6 +35,9 @@ constexpr double k_extForceThreshold = 10.0;
 
 /** External joint torque threshold for collision detection, value is only for demo purpose [Nm] */
 constexpr double k_extTorqueThreshold = 5.0;
+
+/** Atomic signal to stop scheduler tasks */
+std::atomic<bool> g_schedStop = {false};
 }
 
 /** @brief Print tutorial description */
@@ -60,9 +64,8 @@ void printHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
-    flexiv::RobotStates& robotStates, const std::vector<double>& initPose, bool enableHold,
-    bool enableCollision)
+void periodicTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& robotStates,
+    const std::vector<double>& initPose, bool enableHold, bool enableCollision)
 {
     // Local periodic loop counter
     static size_t loopCounter = 0;
@@ -161,7 +164,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             if (collisionDetected) {
                 robot.stop();
                 log.warn("Collision detected, stopping robot and exit program ...");
-                scheduler.stop();
+                g_schedStop = true;
             }
         }
 
@@ -170,7 +173,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        scheduler.stop();
+        g_schedStop = true;
     }
 }
 
@@ -294,11 +297,18 @@ int main(int argc, char* argv[])
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(
-            std::bind(periodicTask, std::ref(robot), std::ref(scheduler), std::ref(log),
-                std::ref(robotStates), std::ref(initPose), enableHold, enableCollision),
+            std::bind(periodicTask, std::ref(robot), std::ref(log), std::ref(robotStates),
+                std::ref(initPose), enableHold, enableCollision),
             "HP periodic", 1, scheduler.maxPriority());
-        // Start all added tasks, this is by default a blocking method
+        // Start all added tasks
         scheduler.start();
+
+        // Block and wait for signal to stop scheduler tasks
+        while (!g_schedStop) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        // Received signal to stop scheduler tasks
+        scheduler.stop();
 
         // Wait a bit for any last-second robot log message to arrive and get printed
         std::this_thread::sleep_for(std::chrono::seconds(2));
