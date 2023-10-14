@@ -40,10 +40,11 @@ public:
      * @param[in] interval Execution interval of this periodic task [ms]. The
      * minimum available interval is 1 ms, equivalent to 1 kHz loop frequency.
      * @param[in] priority Priority for this task thread, can be set to
-     * 0–maxPriority(), with 0 being the lowest, and maxPriority() being the
-     * highest. When the priority is set to non-zero, this thread becomes a
-     * real-time thread and can only be interrupted by threads with higher
-     * priority. When the priority is set to 0, this thread becomes a
+     * minPriority()–maxPriority() for real-time scheduling, or 0 for
+     * non-real-time scheduling. When the priority is set to use real-time
+     * scheduling, this thread becomes a real-time thread and can only be
+     * interrupted by threads with higher priority. When the priority is set to
+     * use non-real-time scheduling (i.e. 0), this thread becomes a
      * non-real-time thread and can be interrupted by any real-time threads. The
      * common practice is to set priority of the most critical tasks to
      * maxPriority() or near, and set priority of other non-critical tasks to 0
@@ -96,11 +97,18 @@ public:
     void stop();
 
     /**
-     * @brief [Non-blocking] Get maximum available priority for the user task.
-     * @return The maximum priority that can be set to a user task when calling
-     * addTask().
+     * @brief [Non-blocking] Get maximum available priority for user tasks.
+     * @return The maximum priority that can be set for a user task with
+     * real-time scheduling policy when calling addTask().
      */
     int maxPriority() const;
+
+    /**
+     * @brief [Non-blocking] Get minimum available priority for user tasks.
+     * @return The minimum priority that can be set for a user task with
+     * real-time scheduling policy when calling addTask().
+     */
+    int minPriority() const;
 
     /**
      * @brief [Non-blocking] Get number of tasks added to the scheduler.
