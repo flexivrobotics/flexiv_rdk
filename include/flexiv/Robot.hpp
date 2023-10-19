@@ -91,6 +91,13 @@ public:
     void clearFault(void);
 
     /**
+     * @brief [Non-blocking] Get error message from the robot.
+     * @return Error message if the robot is in fault state (isFault() returns true), empty
+     * otherwise.
+     */
+    std::string getErrorMessage(void) const;
+
+    /**
      * @brief [Non-blocking] Check if the robot is currently executing a task. This includes any
      * user commanded operations that requires the robot to execute. For example, plans, primitives,
      * Cartesian and joint motions, etc.
@@ -528,15 +535,24 @@ public:
      * function can only be called when the robot is in IDLE mode.
      * @param[in] enabledAxis Flags to enable/disable force control for certain Cartesian axis(s) in
      * the force control reference frame (configured by setForceControlFrame()). The corresponding
-     * order is \f$ [X, Y, Z, Rx, Ry, Rz] \f$. By default, force control is disabled for all
+     * axis order is \f$ [X, Y, Z, Rx, Ry, Rz] \f$. By default, force control is disabled for all
      * Cartesian axes.
+     * @param[in] maxLinearVel For Cartesian linear axis(s) enabled with force control, limit the
+     * moving velocity to these values as a protection mechanism in case of contact loss. The
+     * corresponding axis order is \f$ [X, Y, Z] \f$. Valid range: [0.005, 2.0]. Unit: \f$ [m/s]
+     * \f$.
+     * @throw std::invalid_argument if [maxLinearVel] contains any value outside the valid range.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to execute the request.
      * @note Applicable control modes: IDLE.
-     * @warning This setting will reset to all axes disabled upon disconnection.
-     * @warning This function blocks until the request is successfully executed.
+     * @note This function blocks until the request is successfully executed.
+     * @warning The maximum linear velocity protection for force control axes is only effective
+     * under active force control (passive force control disabled), see setPassiveForceControl().
+     * @warning Upon disconnection, force control axes will be reset to all disabled and maximum
+     * linear velocity in force control axes will be reset to 1.0 m/s.
      */
-    void setForceControlAxis(const std::array<bool, k_cartDOF>& enabledAxis);
+    void setForceControlAxis(const std::array<bool, k_cartDOF>& enabledAxis,
+        const std::array<double, k_cartDOF / 2>& maxLinearVel = {1.0, 1.0, 1.0});
 
     /**
      * @brief [Blocking] Set force control reference frame for the Cartesian motion-force control
