@@ -15,6 +15,7 @@
 #include <iostream>
 #include <thread>
 #include <string.h>
+#include <atomic>
 
 // Standard input/output definitions
 #include <stdio.h>
@@ -28,13 +29,15 @@
 #include <termios.h>
 
 namespace {
-
-// file descriptor of the serial port
+/** File descriptor of the serial port */
 int g_fd = 0;
+
+/** Atomic signal to stop scheduler tasks */
+std::atomic<bool> g_schedStop = {false};
 }
 
 // callback function for realtime periodic task
-void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log)
+void periodicTask(flexiv::Robot& robot, flexiv::Log& log)
 {
     // Loop counter
     static unsigned int loopCounter = 0;
@@ -77,7 +80,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 
     } catch (const std::exception& e) {
         log.error(e.what());
-        scheduler.stop();
+        g_schedStop = true;
     }
 }
 
@@ -158,11 +161,17 @@ int main(int argc, char* argv[])
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(periodicTask, std::ref(robot), std::ref(scheduler), std::ref(log)),
-            "HP periodic", 1, scheduler.maxPriority());
-        // Start all added tasks, this is by default a blocking method
+        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(log)), "HP periodic", 1,
+            scheduler.maxPriority());
+        // Start all added tasks
         scheduler.start();
+
+        // Block and wait for signal to stop scheduler tasks
+        while (!g_schedStop) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        // Received signal to stop scheduler tasks
+        scheduler.stop();
 
     } catch (const std::exception& e) {
         log.error(e.what());

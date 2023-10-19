@@ -16,6 +16,7 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
+#include <atomic>
 
 namespace {
 /** M, G ground truth from MATLAB */
@@ -36,11 +37,13 @@ struct SharedData
 /** Mutex on shared data */
 std::mutex g_mutex;
 
+/** Atomic signal to stop scheduler tasks */
+std::atomic<bool> g_schedStop = {false};
 }
 
 /** User-defined high-priority periodic task @ 1kHz */
-void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
-    flexiv::Model& model, flexiv::RobotStates& robotStates)
+void highPriorityTask(
+    flexiv::Robot& robot, flexiv::Log& log, flexiv::Model& model, flexiv::RobotStates& robotStates)
 {
     try {
         // Monitor fault on robot server
@@ -76,7 +79,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
 
     } catch (const std::exception& e) {
         log.error(e.what());
-        scheduler.stop();
+        g_schedStop = true;
     }
 }
 
@@ -233,13 +236,20 @@ int main(int argc, char* argv[])
         //==========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(highPriorityTask, std::ref(robot), std::ref(scheduler),
-                              std::ref(log), std::ref(model), std::ref(robotStates)),
+        scheduler.addTask(std::bind(highPriorityTask, std::ref(robot), std::ref(log),
+                              std::ref(model), std::ref(robotStates)),
             "HP periodic", 1, scheduler.maxPriority());
         // Add periodic task with 1s interval and lowest applicable priority
         scheduler.addTask(lowPriorityTask, "LP periodic", 1000, 0);
-        // Start all added tasks, this is by default a blocking method
+        // Start all added tasks
         scheduler.start();
+
+        // Block and wait for signal to stop scheduler tasks
+        while (!g_schedStop) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        // Received signal to stop scheduler tasks
+        scheduler.stop();
 
     } catch (const std::exception& e) {
         log.error(e.what());

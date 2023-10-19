@@ -14,6 +14,7 @@
 #include <string>
 #include <cmath>
 #include <thread>
+#include <atomic>
 
 namespace {
 /** RT loop period [sec] */
@@ -22,6 +23,9 @@ constexpr double k_loopPeriod = 0.001;
 /** Sine-sweep trajectory amplitude and frequency */
 constexpr double k_sineAmp = 0.035;
 constexpr double k_sineFreq = 0.3;
+
+/** Atomic signal to stop scheduler tasks */
+std::atomic<bool> g_schedStop = {false};
 }
 
 /** @brief Print tutorial description */
@@ -47,9 +51,8 @@ void printHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
-    flexiv::RobotStates& robotStates, const std::string& motionType,
-    const std::array<double, flexiv::k_jointDOF>& initPos)
+void periodicTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& robotStates,
+    const std::string& motionType, const std::array<double, flexiv::k_jointDOF>& initPos)
 {
     // Local periodic loop counter
     static unsigned int loopCounter = 0;
@@ -89,7 +92,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 
     } catch (const std::exception& e) {
         log.error(e.what());
-        scheduler.stop();
+        g_schedStop = true;
     }
 }
 
@@ -177,12 +180,18 @@ int main(int argc, char* argv[])
         // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(periodicTask, std::ref(robot), std::ref(scheduler), std::ref(log),
-                std::ref(robotStates), std::ref(motionType), std::ref(initPos)),
+        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(log),
+                              std::ref(robotStates), std::ref(motionType), std::ref(initPos)),
             "HP periodic", 1, scheduler.maxPriority());
-        // Start all added tasks, this is by default a blocking method
+        // Start all added tasks
         scheduler.start();
+
+        // Block and wait for signal to stop scheduler tasks
+        while (!g_schedStop) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        // Received signal to stop scheduler tasks
+        scheduler.stop();
 
     } catch (const std::exception& e) {
         log.error(e.what());
