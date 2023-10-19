@@ -18,48 +18,43 @@
 #include <string>
 #include <cmath>
 #include <thread>
+#include <atomic>
 
 namespace {
-// size of Cartesian pose vector [position 3x1 + rotation (quaternion) 4x1 ]
-const unsigned int k_cartPoseSize = 7;
-
-// RT loop period [sec]
+/** RT loop period [sec] */
 const double k_loopPeriod = 0.001;
 
-// TCP sine-sweep amplitude [m]
+/** TCP sine-sweep amplitude [m] */
 const double k_swingAmp = 0.1;
 
-// TCP sine-sweep frequency [Hz]
+/** TCP sine-sweep frequency [Hz] */
 const double k_swingFreq = 0.025; // = 10mm/s linear velocity
 
-// current Cartesian-space pose (position + rotation) of robot TCP
+/** Current Cartesian-space pose (position + rotation) of robot TCP */
 std::vector<double> g_currentTcpPose;
 
-// high-priority task loop counter
-uint64_t g_hpLoopCounter = 0;
-
-// test duration converted from user-specified hours to loop counts
+/** Test duration converted from user-specified hours to loop counts */
 uint64_t g_testDurationLoopCounts = 0;
 
-// time duration for each log file [loop counts]
+/** Time duration for each log file [loop counts] */
 const unsigned int k_logDurationLoopCounts = 10 * 60 * 1000; // = 10 min/file
 
-// data to be logged in low-priority thread
+/** Data to be logged in low-priority thread */
 struct LogData
 {
     std::vector<double> tcpPose;
     std::vector<double> tcpForce;
 } g_logData;
 
+/** Atomic signal to stop the test */
+std::atomic<bool> g_stop = {false};
 }
 
-void highPriorityTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& robotStates)
+void highPriorityTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& robotStates,
+    const std::vector<double>& initPose)
 {
-    // flag whether initial Cartesian position is set
-    static bool isInitPoseSet = false;
-
-    // Initial Cartesian-space pose (position + rotation) of robot TCP
-    static std::vector<double> initTcpPose;
+    // Local periodic loop counter
+    static uint64_t loopCounter = 0;
 
     try {
         // Monitor fault on robot server
@@ -71,45 +66,33 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotState
         // Read robot states
         robot.getRobotStates(robotStates);
 
-        // TCP movement control
-        //=====================================================================
-        // set initial TCP pose
-        if (!isInitPoseSet) {
-            // check vector size before saving
-            if (robotStates.tcpPose.size() == k_cartPoseSize) {
-                initTcpPose = robotStates.tcpPose;
-                g_currentTcpPose = initTcpPose;
-                isInitPoseSet = true;
-            }
-        }
-        // run control after initial pose is set
-        else {
-            // move along Z direction
-            g_currentTcpPose[2]
-                = initTcpPose[2]
-                  + k_swingAmp * sin(2 * M_PI * k_swingFreq * g_hpLoopCounter * k_loopPeriod);
-            robot.streamCartesianMotionForce(g_currentTcpPose);
-        }
+        // Swing along Z direction
+        g_currentTcpPose[2]
+            = initPose[2] + k_swingAmp * sin(2 * M_PI * k_swingFreq * loopCounter * k_loopPeriod);
+        robot.streamCartesianMotionForce(g_currentTcpPose);
 
-        // save data to global buffer, not using mutex to avoid interruption on
+        // Save data to global buffer, not using mutex to avoid interruption on
         // RT loop from potential priority inversion
         g_logData.tcpPose = robotStates.tcpPose;
         g_logData.tcpForce = robotStates.extWrenchInBase;
 
-        // increment loop counter
-        g_hpLoopCounter++;
+        // Stop after test duration has elapsed
+        if (++loopCounter > g_testDurationLoopCounts) {
+            g_stop = true;
+        }
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
+        g_stop = true;
     }
 }
 
 void lowPriorityTask()
 {
-    // low-priority task loop counter
-    uint64_t lpLoopCounter = 0;
+    // Low-priority task loop counter
+    uint64_t loopCounter = 0;
 
-    // data logging CSV file
+    // Data logging CSV file
     std::ofstream csvFile;
 
     // CSV file name
@@ -118,34 +101,32 @@ void lowPriorityTask()
     // CSV file counter (data during the test is divided to multiple files)
     unsigned int fileCounter = 0;
 
-    // log object for printing message with timestamp and coloring
+    // Log object for printing message with timestamp and coloring
     flexiv::Log log;
 
-    // wait for a while for the robot states data to be available
+    // Wait for a while for the robot states data to be available
     std::this_thread::sleep_for(std::chrono::seconds(2));
 
-    // use while loop to prevent this thread from return
+    // Use while loop to prevent this thread from return
     while (true) {
-        // run at 1kHz
+        // Log data at 1kHz
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        loopCounter++;
 
-        // Data logging
-        //=====================================================================
-        // close existing log file and create a new one periodically
-        if (lpLoopCounter % k_logDurationLoopCounts == 0) {
-            // close file if exist
+        // Close existing log file and create a new one periodically
+        if (loopCounter % k_logDurationLoopCounts == 0) {
             if (csvFile.is_open()) {
                 csvFile.close();
                 log.info("Saved log file: " + csvFileName);
             }
 
-            // increment log file counter
+            // Increment log file counter
             fileCounter++;
 
-            // create new file name using the updated counter as suffix
+            // Create new file name using the updated counter as suffix
             csvFileName = "endurance_test_data_" + std::to_string(fileCounter) + ".csv";
 
-            // open new log file
+            // Open new log file
             csvFile.open(csvFileName);
             if (csvFile.is_open()) {
                 log.info("Created new log file: " + csvFileName);
@@ -154,40 +135,31 @@ void lowPriorityTask()
             }
         }
 
-        // log data to file in CSV format, avoid logging too much data otherwise
-        // the RT loop will not hold
+        // Log data to file in CSV format
         if (csvFile.is_open()) {
-            // loop counter x1, TCP pose x7, TCP external force x6
-            csvFile << lpLoopCounter << ",";
-
+            // Loop counter x1, TCP pose x7, TCP external force x6
+            csvFile << loopCounter << ",";
             for (const auto& i : g_logData.tcpPose) {
                 csvFile << i << ",";
             }
-
             for (const auto& i : g_logData.tcpForce) {
                 csvFile << i << ",";
             }
-
-            // end of line
+            // End of line
             csvFile << '\n';
         }
 
-        // check if the test duration has elapsed
-        if (g_hpLoopCounter > g_testDurationLoopCounts) {
+        // Check if the test duration has elapsed
+        if (g_stop) {
             log.info("Test duration has elapsed, saving any open log file ...");
-
-            // close log file
+            // Close log file
             if (csvFile.is_open()) {
                 csvFile.close();
                 log.info("Saved log file: " + csvFileName);
             }
-
-            // exit program
+            // Exit thread
             return;
         }
-
-        // increment loop counter
-        lpLoopCounter++;
     }
 }
 
@@ -263,9 +235,7 @@ int main(int argc, char* argv[])
 
         // Bring Robot To Home
         //=============================================================================
-        // set mode after robot is operational
         robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
-
         robot.executePlan("PLAN-Home");
 
         // Wait fot the plan to finish
@@ -273,15 +243,22 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
         } while (robot.isBusy());
 
-        // set mode after robot is at home
+        // Switch mode after robot is at home
         robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE);
+
+        // Set initial pose to current TCP pose
+        robot.getRobotStates(robotStates);
+        auto initPose = robotStates.tcpPose;
+        log.info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
+                 + flexiv::utility::vec2Str(initPose));
+        g_currentTcpPose = initPose;
 
         // Periodic Tasks
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(highPriorityTask, std::ref(robot), std::ref(log), std::ref(robotStates)),
+        scheduler.addTask(std::bind(highPriorityTask, std::ref(robot), std::ref(log),
+                              std::ref(robotStates), std::ref(initPose)),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks
         scheduler.start();

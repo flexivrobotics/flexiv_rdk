@@ -68,7 +68,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& r
     const std::vector<double>& initPose, bool enableHold, bool enableCollision)
 {
     // Local periodic loop counter
-    static size_t loopCounter = 0;
+    static uint64_t loopCounter = 0;
 
     try {
         // Monitor fault on robot server
