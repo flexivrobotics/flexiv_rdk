@@ -88,6 +88,13 @@ public:
     int maxPriority() const;
 
     /**
+     * @brief [Non-blocking] Get minimum available priority for user tasks.
+     * @return The minimum priority that can be set for a user task with real-time scheduling policy
+     * when calling addTask().
+     */
+    int minPriority() const;
+
+    /**
      * @brief [Non-blocking] Get number of tasks added to the scheduler.
      * @return Number of added tasks.
      */
