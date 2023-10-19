@@ -72,7 +72,7 @@ public:
 
     /**
      * @brief [Blocking] Get name of the tool that the robot is currently using.
-     * @return Name of the current tool. Return "NONE" if there's no active tool.
+     * @return Name of the current tool. Return "Flange" if there's no active tool.
      * @note Applicable control modes: All.
      * @throw std::runtime_error if failed to get a reply from the robot.
      * @warning This function blocks until the reply from the robot is received.
