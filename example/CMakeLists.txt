@@ -21,6 +21,7 @@ set(EXAMPLE_LIST
   basics5_zero_force_torque_sensors
   basics6_gripper_control
   basics7_auto_recovery
+  intermediate6_robot_dynamics
   intermediate7_teach_by_demonstration
 )
 
@@ -33,7 +34,6 @@ if(CMAKE_HOST_UNIX)
     intermediate3_realtime_joint_floating
     intermediate4_realtime_cartesian_pure_motion_control
     intermediate5_realtime_cartesian_motion_force_control
-    intermediate6_robot_dynamics
   )
 endif()
 

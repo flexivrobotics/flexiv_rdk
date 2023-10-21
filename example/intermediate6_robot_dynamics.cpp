@@ -9,7 +9,6 @@
 #include <flexiv/Robot.hpp>
 #include <flexiv/Model.hpp>
 #include <flexiv/Log.hpp>
-#include <flexiv/Scheduler.hpp>
 #include <flexiv/Utility.hpp>
 
 #include <iostream>
@@ -17,12 +16,6 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
-#include <atomic>
-
-namespace {
-/** Atomic signal to stop scheduler tasks */
-std::atomic<bool> g_schedStop = {false};
-}
 
 /** @brief Print tutorial description */
 void printDescription()
@@ -46,59 +39,68 @@ void printHelp()
 }
 
 /** @brief Periodic task running at 100 Hz */
-void periodicTask(
-    flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& robotStates, flexiv::Model& model)
+int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
 {
+    // Logger for printing message with timestamp and coloring
+    flexiv::Log log;
+
+    // Data struct for storing robot states
+    flexiv::RobotStates robotStates;
+
     // Local periodic loop counter
-    static unsigned int loopCounter = 0;
+    uint64_t loopCounter = 0;
 
     try {
-        // Monitor fault on robot server
-        if (robot.isFault()) {
-            throw std::runtime_error("periodicTask: Fault occurred on robot server, exiting ...");
+        while (true) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            loopCounter++;
+
+            // Monitor fault on robot server
+            if (robot.isFault()) {
+                throw std::runtime_error(
+                    "periodicTask: Fault occurred on robot server, exiting ...");
+            }
+
+            // Mark timer start point
+            auto tic = std::chrono::high_resolution_clock::now();
+
+            // Read robot states
+            robot.getRobotStates(robotStates);
+
+            // Update robot model in dynamics engine
+            model.update(robotStates.q, robotStates.dtheta);
+
+            // Compute gravity vector
+            auto g = model.getGravityForce();
+
+            // Compute mass matrix
+            auto M = model.getMassMatrix();
+
+            // Compute Jacobian
+            auto J = model.getJacobian("flange");
+
+            // Mark timer end point and get loop time
+            auto toc = std::chrono::high_resolution_clock::now();
+            auto computeTime
+                = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
+
+            // Print at 1Hz
+            if (loopCounter % 100 == 0) {
+                // Print time used to compute g, M, J
+                log.info("Computation time = " + std::to_string(computeTime) + " us");
+                std::cout << std::endl;
+                // Print gravity
+                std::cout << std::fixed << std::setprecision(5) << "g = " << g.transpose() << "\n"
+                          << std::endl;
+                // Print mass matrix
+                std::cout << std::fixed << std::setprecision(5) << "M = " << M << "\n" << std::endl;
+                // Print Jacobian
+                std::cout << std::fixed << std::setprecision(5) << "J = " << J << "\n" << std::endl;
+            }
         }
-
-        // Mark timer start point
-        auto tic = std::chrono::high_resolution_clock::now();
-
-        // Read robot states
-        robot.getRobotStates(robotStates);
-
-        // Update robot model in dynamics engine
-        model.update(robotStates.q, robotStates.dtheta);
-
-        // Compute gravity vector
-        auto g = model.getGravityForce();
-
-        // Compute mass matrix
-        auto M = model.getMassMatrix();
-
-        // Compute Jacobian
-        auto J = model.getJacobian("flange");
-
-        // Mark timer end point and get loop time
-        auto toc = std::chrono::high_resolution_clock::now();
-        auto computeTime = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
-
-        // Print at 1Hz
-        if (loopCounter % 100 == 0) {
-            // Print time used to compute g, M, J
-            log.info("Computation time = " + std::to_string(computeTime) + " us");
-            std::cout << std::endl;
-            // Print gravity
-            std::cout << std::fixed << std::setprecision(5) << "g = " << g.transpose() << "\n"
-                      << std::endl;
-            // Print mass matrix
-            std::cout << std::fixed << std::setprecision(5) << "M = " << M << "\n" << std::endl;
-            // Print Jacobian
-            std::cout << std::fixed << std::setprecision(5) << "J = " << J << "\n" << std::endl;
-        }
-
-        loopCounter++;
-
     } catch (const std::exception& e) {
         log.error(e.what());
-        g_schedStop = true;
+        return 1;
     }
 }
 
@@ -126,9 +128,6 @@ int main(int argc, char* argv[])
         // =========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
-
-        // Create data struct for storing robot states
-        flexiv::RobotStates robotStates;
 
         // Clear fault on robot server if any
         if (robot.isFault()) {
@@ -169,21 +168,9 @@ int main(int argc, char* argv[])
         // Initialize dynamics engine
         flexiv::Model model(robot);
 
-        // Create real-time scheduler to run periodic tasks
-        flexiv::Scheduler scheduler;
-        // Add periodic task with 10 ms interval and highest applicable priority
-        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(log),
-                              std::ref(robotStates), std::ref(model)),
-            "HP periodic", 10, scheduler.maxPriority());
-        // Start all added tasks
-        scheduler.start();
-
-        // Block and wait for signal to stop scheduler tasks
-        while (!g_schedStop) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        // Received signal to stop scheduler tasks
-        scheduler.stop();
+        // Use std thread for periodic task so this example can run on Windows
+        std::thread periodicTaskThread(periodicTask, std::ref(robot), std::ref(model));
+        periodicTaskThread.join();
 
     } catch (const std::exception& e) {
         log.error(e.what());
