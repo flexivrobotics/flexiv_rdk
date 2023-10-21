@@ -8,15 +8,12 @@
 #include <flexiv/Robot.hpp>
 #include <flexiv/Model.hpp>
 #include <flexiv/Log.hpp>
-#include <flexiv/Scheduler.hpp>
 #include <flexiv/Utility.hpp>
 
 #include <iostream>
 #include <iomanip>
 #include <thread>
 #include <chrono>
-#include <mutex>
-#include <atomic>
 
 namespace {
 /** M, G ground truth from MATLAB */
@@ -24,89 +21,34 @@ struct GroundTruth
 {
     Eigen::Matrix<double, 7, 7> M;
     Eigen::Matrix<double, 7, 1> G;
-} g_groundTruth;
-
-/** Data shared between threads */
-struct SharedData
-{
-    int64_t loopTime;
-    Eigen::VectorXd G;
-    Eigen::MatrixXd M;
-} g_data;
-
-/** Mutex on shared data */
-std::mutex g_mutex;
-
-/** Atomic signal to stop scheduler tasks */
-std::atomic<bool> g_schedStop = {false};
+};
 }
 
-/** User-defined high-priority periodic task @ 1kHz */
-void highPriorityTask(
-    flexiv::Robot& robot, flexiv::Log& log, flexiv::Model& model, flexiv::RobotStates& robotStates)
+/** Step the dynamics engine once */
+void stepDynamics(flexiv::Robot& robot, flexiv::Model& model, const GroundTruth& ref)
 {
-    try {
-        // Monitor fault on robot server
-        if (robot.isFault()) {
-            throw std::runtime_error(
-                "highPriorityTask: Fault occurred on robot server, exiting ...");
-        }
+    // Mark timer start point
+    auto tic = std::chrono::high_resolution_clock::now();
 
-        // Read robot states
-        robot.getRobotStates(robotStates);
+    // Get current robot states
+    auto robotStates = robot.getRobotStates();
 
-        // Update robot model in dynamics engine
-        model.update(robotStates.q, robotStates.dtheta);
+    // Update robot model in dynamics engine
+    model.update(robotStates.q, robotStates.dtheta);
 
-        // Mark timer start point
-        auto tic = std::chrono::high_resolution_clock::now();
+    // Get M and G after setTool from dynamic engine
+    auto M = model.getMassMatrix();
+    auto G = model.getGravityForce();
 
-        // Get M and G after setTool from dynamic engine
-        auto M = model.getMassMatrix();
-        auto G = model.getGravityForce();
-
-        // mark timer end point and get loop time
-        auto toc = std::chrono::high_resolution_clock::now();
-        auto loopTime = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
-
-        // Safely write shared data
-        {
-            std::lock_guard<std::mutex> lock(g_mutex);
-            g_data.loopTime = loopTime;
-            g_data.M = M;
-            g_data.G = G;
-        }
-
-    } catch (const std::exception& e) {
-        log.error(e.what());
-        g_schedStop = true;
-    }
-}
-
-/** User-defined low-priority periodic task @ 1Hz */
-void lowPriorityTask()
-{
-    // wake up every second to do something
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-
-    // Safely read shared data
-    int loopTime;
-    Eigen::MatrixXd M;
-    Eigen::VectorXd G;
-    {
-        std::lock_guard<std::mutex> lock(g_mutex);
-        loopTime = g_data.loopTime;
-        M = g_data.M;
-        G = g_data.G;
-    }
-
-    // print time interval of high-priority periodic task
-    std::cout << "=====================================================" << std::endl;
-    std::cout << "Loop time = " << loopTime << " us" << std::endl;
+    // Get and print computation time
+    auto toc = std::chrono::high_resolution_clock::now();
+    auto computationTime = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
+    std::cout << "===================================================================" << std::endl;
+    std::cout << "Computation time = " << computationTime << " us" << std::endl;
 
     // evaluate M, G after setTool and compute their norm
-    auto deltaM = M - g_groundTruth.M;
-    auto deltaG = G - g_groundTruth.G;
+    auto deltaM = M - ref.M;
+    auto deltaG = G - ref.G;
 
     std::cout << std::fixed << std::setprecision(5);
     std::cout << "Difference of M between ground truth (MATLAB) and integrated dynamics engine "
@@ -135,7 +77,7 @@ void printHelp()
 
 int main(int argc, char* argv[])
 {
-    // log object for printing message with timestamp and coloring
+    // Log object for printing message with timestamp and coloring
     flexiv::Log log;
 
     // Parse Parameters
@@ -204,8 +146,8 @@ int main(int argc, char* argv[])
         //==========================================================================================
         // artificial tool parameters for verification
         double mass = 0.9;
-        // com is relative to tcp frame
-        Eigen::Vector3d com = {0.0, 0.0, -0.093};
+        // com is relative to flange frame
+        Eigen::Vector3d com = {0.0, 0.0, 0.057};
         // inertia relative to com
         Eigen::Matrix3d inertia;
         inertia << 2.768e-03, 0, 0, 0, 3.149e-03, 0, 0, 0, 5.64e-04;
@@ -217,8 +159,9 @@ int main(int argc, char* argv[])
 
         // Hard-coded Dynamics Ground Truth from MATLAB
         //==========================================================================================
+        GroundTruth ref;
         // clang-format off
-        g_groundTruth.M << 
+        ref.M << 
         2.916316686749461, -0.052869517013466,  1.903540434220357, -0.124348845003517, -0.041914639740668,  0.027649255000000, -0.001464000000000,
         -0.052869517013466,  3.222619358431081,  0.053667041477633, -1.414236317529289, -0.184390078851855,  0.259867572215541, -0.000000000000000,
         1.903540434220357,  0.053667041477633,  1.416023230140298, -0.002724223477633,  0.000093550780077,  0.001155982477633, -0.001121489064726,
@@ -228,28 +171,17 @@ int main(int argc, char* argv[])
         -0.001464000000000, -0.000000000000000, -0.001121489064726,  0.000000000000000,  0.000941041060581,                  0,  0.001464000000000;
 
         // Matlab value is the joint torque to resist gravity
-        g_groundTruth.G << 
+        ref.G << 
         -0.000000000000001,  52.664497076609663,  0.830964961569619, -22.968509865473024, -2.721399343355234, 3.272076450000000,                 0;
         // clang-format on
 
-        // Periodic Tasks
+        // Step Dynamics Engine
         //==========================================================================================
-        flexiv::Scheduler scheduler;
-        // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(highPriorityTask, std::ref(robot), std::ref(log),
-                              std::ref(model), std::ref(robotStates)),
-            "HP periodic", 1, scheduler.maxPriority());
-        // Add periodic task with 1s interval and lowest applicable priority
-        scheduler.addTask(lowPriorityTask, "LP periodic", 1000, 0);
-        // Start all added tasks
-        scheduler.start();
-
-        // Block and wait for signal to stop scheduler tasks
-        while (!g_schedStop) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        int i = 0;
+        while (++i <= 5) {
+            stepDynamics(robot, model, ref);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
-        // Received signal to stop scheduler tasks
-        scheduler.stop();
 
     } catch (const std::exception& e) {
         log.error(e.what());
