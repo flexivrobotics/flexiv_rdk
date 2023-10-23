@@ -47,19 +47,19 @@ if(Threads_FOUND)
 endif()
 
 # Eigen3
-find_package(Eigen3 REQUIRED HINTS ${CMAKE_INSTALL_PREFIX})
+find_package(Eigen3 REQUIRED)
 if(Eigen3_FOUND)
   message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 endif()
 
 # Fast-CDR
-find_package(fastcdr 1.0.24 REQUIRED HINTS ${CMAKE_INSTALL_PREFIX})
+find_package(fastcdr 1.0.24 REQUIRED)
 if(fastcdr_FOUND)
   message(STATUS "Found fastcdr: ${fastcdr_DIR}")
 endif()
 
 # Fast-DDS (Fast-RTPS)
-find_package(fastrtps 2.6.2 REQUIRED HINTS ${CMAKE_INSTALL_PREFIX})
+find_package(fastrtps 2.6.2 REQUIRED)
 if(fastrtps_FOUND)
   message(STATUS "Found fastrtps: ${fastrtps_DIR}")
 endif()
