@@ -113,7 +113,7 @@ def main():
                 index = int(input("Enter plan index to execute:\n"))
                 # Allow the plan to continue its execution even if the RDK program is closed or
                 # the connection is lost
-                robot.executePlan(index, True)
+                robot.executePlan(index, 100, True)
 
                 # Print plan info while the current plan is running
                 while robot.isBusy():
@@ -134,7 +134,7 @@ def main():
                 name = str(input("Enter plan name to execute:\n"))
                 # Allow the plan to continue its execution even if the RDK program is closed or
                 # the connection is lost
-                robot.executePlan(name, True)
+                robot.executePlan(name, 100, True)
 
                 # Print plan info while the current plan is running
                 while robot.isBusy():
