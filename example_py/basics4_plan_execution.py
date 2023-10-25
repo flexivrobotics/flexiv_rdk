@@ -51,7 +51,6 @@ def main():
     # Define alias
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
-    plan_info = flexivrdk.PlanInfo()
 
     # Print description
     log.info("Tutorial description:")
@@ -118,7 +117,7 @@ def main():
 
                 # Print plan info while the current plan is running
                 while robot.isBusy():
-                    robot.getPlanInfo(plan_info)
+                    plan_info = robot.getPlanInfo()
                     log.info(" ")
                     print("assignedPlanName: ", plan_info.assignedPlanName)
                     print("ptName: ", plan_info.ptName)
@@ -139,7 +138,7 @@ def main():
 
                 # Print plan info while the current plan is running
                 while robot.isBusy():
-                    robot.getPlanInfo(plan_info)
+                    plan_info = robot.getPlanInfo()
                     log.info(" ")
                     print("assignedPlanName: ", plan_info.assignedPlanName)
                     print("ptName: ", plan_info.ptName)

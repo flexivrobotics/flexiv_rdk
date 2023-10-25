@@ -37,16 +37,12 @@ void printHelp()
 /** @brief Print robot states data @ 1Hz */
 void printRobotStates(flexiv::Robot& robot, flexiv::Log& log)
 {
-    // Data struct storing robot states
-    flexiv::RobotStates robotStates;
-
     while (true) {
-        // Get the latest robot states
-        robot.getRobotStates(robotStates);
-
         // Print all robot states in JSON format using the built-in ostream operator overloading
+        // Note: because this is not a performance-critical loop, we can use the
+        // return-by-value-copy version of getRobotStates()
         log.info("Current robot states:");
-        std::cout << robotStates << std::endl;
+        std::cout << robot.getRobotStates() << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }

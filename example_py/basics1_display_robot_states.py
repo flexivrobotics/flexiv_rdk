@@ -38,12 +38,10 @@ def print_robot_states(robot, log):
     Print robot states data @ 1Hz.
 
     """
-    # Data struct storing robot states
-    robot_states = flexivrdk.RobotStates()
 
     while True:
         # Get the latest robot states
-        robot.getRobotStates(robot_states)
+        robot_states = robot.getRobotStates()
 
         # Print all gripper states, round all float values to 2 decimals
         log.info("Current robot states:")

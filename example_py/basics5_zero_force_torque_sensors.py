@@ -84,11 +84,9 @@ def main():
         # Zero Sensors
         # ==========================================================================================
         # Get and print the current TCP force/moment readings
-        robot_states = flexivrdk.RobotStates()
-        robot.getRobotStates(robot_states)
         log.info(
             "TCP force and moment reading in base frame BEFORE sensor zeroing: "
-            + list2str(robot_states.extWrenchInWorld)
+            + list2str(robot.getRobotStates().extWrenchInWorld)
             + "[N][Nm]"
         )
 
@@ -108,10 +106,9 @@ def main():
         log.info("Sensor zeroing complete")
 
         # Get and print the current TCP force/moment readings
-        robot.getRobotStates(robot_states)
         log.info(
             "TCP force and moment reading in base frame AFTER sensor zeroing: "
-            + list2str(robot_states.extWrenchInWorld)
+            + list2str(robot.getRobotStates().extWrenchInWorld)
             + "[N][Nm]"
         )
 
