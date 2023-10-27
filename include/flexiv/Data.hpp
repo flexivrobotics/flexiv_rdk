@@ -158,13 +158,6 @@ struct RobotStates
     std::array<double, k_cartDOF> tcpVel = {};
 
     /**
-     * Measured camera pose expressed in world frame: \f$ ^{O}T_{cam} \in \mathbb{R}^{7 \times 1}
-     * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
-     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
-     */
-    std::array<double, k_poseSize> camPose = {};
-
-    /**
      * Measured flange pose expressed in world frame: \f$ ^{O}T_{flange} \in \mathbb{R}^{7 \times 1}
      * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
      * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
