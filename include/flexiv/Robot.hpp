@@ -660,7 +660,7 @@ public:
 
     //=============================== IO CONTROL ===============================
     /**
-     * @brief [Blocking] Write to single or multiple digital output port(s) on
+     * @brief [Blocking] Write to a single or multiple digital output port(s) on
      * the control box.
      * @param[in] portIdx Index of port(s) to write, can be a single port or
      * multiple ports. E.g. {0, 5, 7, 15} or {1, 3, 10} or {8}. Valid range of
