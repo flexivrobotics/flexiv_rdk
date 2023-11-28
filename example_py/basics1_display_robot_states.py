@@ -58,7 +58,6 @@ def print_robot_states(robot, log):
         print("tcp_pose: ", ['%.2f' % i for i in robot_states.tcpPose])
         print("tcp_pose_d: ", ['%.2f' % i for i in robot_states.tcpPoseDes])
         print("tcp_velocity: ", ['%.2f' % i for i in robot_states.tcpVel])
-        print("camera_pose: ", ['%.2f' % i for i in robot_states.camPose])
         print("flange_pose: ", ['%.2f' % i for i in robot_states.flangePose])
         print("FT_sensor_raw_reading: ", ['%.2f' % i for i in robot_states.ftSensorRaw])
         print("F_ext_tcp_frame: ", ['%.2f' % i for i in robot_states.extWrenchInTcp])
