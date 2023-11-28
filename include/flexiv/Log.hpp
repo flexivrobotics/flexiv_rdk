@@ -22,25 +22,33 @@ public:
     virtual ~Log() = default;
 
     /**
-     * @brief Print info message with timestamp and coloring.
+     * @brief [Non-blocking] Print info message with timestamp and coloring.
      * @param[in] message Info message.
-     * @note Color = green.
+     * @note Color = green font.
      */
     void info(const std::string& message) const;
 
     /**
-     * @brief Print warning message with timestamp and coloring.
+     * @brief [Non-blocking] Print warning message with timestamp and coloring.
      * @param[in] message Warning message.
-     * @note Color = yellow.
+     * @note Color = yellow font.
      */
     void warn(const std::string& message) const;
 
     /**
-     * @brief Print error message with timestamp and coloring.
+     * @brief [Non-blocking] Print error message with timestamp and coloring.
      * @param[in] message Error message.
-     * @note Color = red.
+     * @note Color = red font.
      */
     void error(const std::string& message) const;
+
+    /**
+     * @brief [Non-blocking] Print critical error message with timestamp and
+     * coloring.
+     * @param[in] message Critical error message.
+     * @note Color = white font with red background.
+     */
+    void critical(const std::string& message) const;
 };
 
 } /* namespace flexiv */

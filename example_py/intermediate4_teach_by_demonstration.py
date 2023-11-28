@@ -33,8 +33,10 @@ def print_description():
     Print tutorial description.
 
     """
-    print("This tutorial shows a demo implementation for teach by demonstration: free-drive the "
-          "robot and record a series of Cartesian poses, which are then reproduced by the robot.")
+    print(
+        "This tutorial shows a demo implementation for teach by demonstration: free-drive the "
+        "robot and record a series of Cartesian poses, which are then reproduced by the robot."
+    )
     print()
 
 
@@ -43,8 +45,8 @@ def main():
     # ==============================================================================================
     # Parse arguments
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('robot_ip', help='IP address of the robot server')
-    argparser.add_argument('local_ip', help='IP address of this PC')
+    argparser.add_argument("robot_ip", help="IP address of the robot server")
+    argparser.add_argument("local_ip", help="IP address of this PC")
     args = argparser.parse_args()
 
     # Define alias
@@ -78,14 +80,8 @@ def main():
         robot.enable()
 
         # Wait for the robot to become operational
-        seconds_waited = 0
         while not robot.isOperational():
             time.sleep(1)
-            seconds_waited += 1
-            if seconds_waited == 10:
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode")
 
         log.info("Robot is now operational")
 
@@ -120,7 +116,8 @@ def main():
 
                 log.info("New teaching process started")
                 log.warn(
-                    "Hold down the enabling button on the motion bar to activate free drive")
+                    "Hold down the enabling button on the motion bar to activate free drive"
+                )
             # Save current robot pose
             elif input_buffer == "r":
                 if not robot.isBusy():
@@ -141,14 +138,22 @@ def main():
                 robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
 
                 for i in range(len(saved_poses)):
-                    log.info("Executing pose " + str(i + 1) + "/"
-                             + str(len(saved_poses)))
+                    log.info(
+                        "Executing pose " + str(i + 1) + "/" + str(len(saved_poses))
+                    )
 
                     target_pos = [
-                        saved_poses[i][0], saved_poses[i][1], saved_poses[i][2]]
+                        saved_poses[i][0],
+                        saved_poses[i][1],
+                        saved_poses[i][2],
+                    ]
                     # Convert quaternion to Euler ZYX required by MoveCompliance primitive
-                    target_quat = [saved_poses[i][3],
-                                   saved_poses[i][4], saved_poses[i][5], saved_poses[i][6]]
+                    target_quat = [
+                        saved_poses[i][3],
+                        saved_poses[i][4],
+                        saved_poses[i][5],
+                        saved_poses[i][6],
+                    ]
 
                     target_euler_deg = quat2eulerZYX(target_quat, degree=True)
                     robot.executePrimitive(
@@ -156,17 +161,23 @@ def main():
                         + list2str(target_pos)
                         + list2str(target_euler_deg)
                         + "WORLD WORLD_ORIGIN, maxVel=0.3, enableMaxContactWrench=1, maxContactWrench="
-                        + list2str(MAX_CONTACT_WRENCH) + ")")
+                        + list2str(MAX_CONTACT_WRENCH)
+                        + ")"
+                    )
 
                     # Wait for robot to reach target location by checking for "reachedTarget = 1"
                     # in the list of current primitive states
-                    while (parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1"):
+                    while (
+                        parse_pt_states(robot.getPrimitiveStates(), "reachedTarget")
+                        != "1"
+                    ):
                         time.sleep(1)
 
                 log.info(
                     "All saved poses are executed, enter 'n' to start a new "
                     "teaching process, 'r' to record more poses, 'e' to repeat "
-                    "execution")
+                    "execution"
+                )
 
                 # Put robot back to free drive
                 robot.setMode(mode.NRT_PLAN_EXECUTION)

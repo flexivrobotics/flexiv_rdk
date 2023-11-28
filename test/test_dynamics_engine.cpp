@@ -19,6 +19,7 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
+#include <atomic>
 
 namespace {
 /** J, M, G ground truth from MATLAB */
@@ -41,18 +42,19 @@ struct SharedData
 /** Mutex on shared data */
 std::mutex g_mutex;
 
+/** Atomic signal to stop scheduler tasks */
+std::atomic<bool> g_schedStop = {false};
 }
 
 /** User-defined high-priority periodic task @ 1kHz */
-void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
-    flexiv::Model& model, flexiv::RobotStates& robotStates)
+void highPriorityTask(
+    flexiv::Robot& robot, flexiv::Log& log, flexiv::Model& model, flexiv::RobotStates& robotStates)
 {
     try {
         // Monitor fault on robot server
         if (robot.isFault()) {
             throw flexiv::ServerException(
-                "highPriorityTask: Fault occurred on robot server, exiting "
-                "...");
+                "highPriorityTask: Fault occurred on robot server, exiting ...");
         }
 
         // Mark timer start point
@@ -62,7 +64,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
         robot.getRobotStates(robotStates);
 
         // Update robot model in dynamics engine
-        model.updateModel(robotStates.q, robotStates.dtheta);
+        model.update(robotStates.q, robotStates.dtheta);
 
         // Get J, M, G from dynamic engine
         Eigen::MatrixXd J = model.getJacobian("flange");
@@ -84,7 +86,7 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        scheduler.stop();
+        g_schedStop = true;
     }
 }
 
@@ -114,20 +116,17 @@ void lowPriorityTask()
     auto deltaG = G - g_groundTruth.G;
 
     std::cout << std::fixed << std::setprecision(5);
-    std::cout << "Difference of J between ground truth (MATLAB) and "
-                 "integrated dynamics engine = "
+    std::cout << "Difference of J between ground truth (MATLAB) and integrated dynamics engine = "
               << std::endl
               << deltaJ << std::endl;
     std::cout << "Norm of delta J: " << deltaJ.norm() << '\n' << std::endl;
 
-    std::cout << "Difference of M between ground truth (MATLAB) and "
-                 "integrated dynamics engine = "
+    std::cout << "Difference of M between ground truth (MATLAB) and integrated dynamics engine = "
               << std::endl
               << deltaM << std::endl;
     std::cout << "Norm of delta M: " << deltaM.norm() << '\n' << std::endl;
 
-    std::cout << "Difference of G between ground truth (MATLAB) and "
-                 "integrated dynamics engine = "
+    std::cout << "Difference of G between ground truth (MATLAB) and integrated dynamics engine = "
               << std::endl
               << deltaG.transpose() << std::endl;
     std::cout << "Norm of delta G: " << deltaG.norm() << '\n' << std::endl;
@@ -190,15 +189,8 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
-        int secondsWaited = 0;
         while (!robot.isOperational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            if (++secondsWaited == 10) {
-                log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
-            }
         }
         log.info("Robot is now operational");
 
@@ -250,13 +242,23 @@ int main(int argc, char* argv[])
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(highPriorityTask, std::ref(robot), std::ref(scheduler),
-                              std::ref(log), std::ref(model), std::ref(robotStates)),
+        scheduler.addTask(std::bind(highPriorityTask, std::ref(robot), std::ref(log),
+                              std::ref(model), std::ref(robotStates)),
             "HP periodic", 1, scheduler.maxPriority());
         // Add periodic task with 1s interval and lowest applicable priority
         scheduler.addTask(lowPriorityTask, "LP periodic", 1000, 0);
-        // Start all added tasks, this is by default a blocking method
+        // Start all added tasks
         scheduler.start();
+
+        // Block and wait for signal to stop scheduler tasks
+        while (!g_schedStop) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        // Received signal to stop scheduler tasks
+        scheduler.stop();
+
+        // Wait a bit for any last-second robot log message to arrive and get printed
+        std::this_thread::sleep_for(std::chrono::seconds(2));
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());

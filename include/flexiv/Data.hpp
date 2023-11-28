@@ -12,6 +12,9 @@
 
 namespace flexiv {
 
+/** Number of digital IO ports */
+constexpr size_t k_IOPorts = 16;
+
 /**
  * @struct RobotInfo
  * @brief General information of the connected robot.

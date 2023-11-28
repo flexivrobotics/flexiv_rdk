@@ -20,63 +20,29 @@
 #include <string>
 #include <cmath>
 #include <thread>
+#include <atomic>
 
 namespace {
-// robot DOF
-const int k_robotDofs = 7;
-
-// joint impedance control gains
-const std::vector<double> k_impedanceKp = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
-const std::vector<double> k_impedanceKd = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
-
+/** Atomic signal to stop scheduler tasks */
+std::atomic<bool> g_schedStop = {false};
 }
 
 // callback function for realtime periodic task
-void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
-    flexiv::RobotStates& robotStates)
+void periodicTask(flexiv::Robot& robot, flexiv::Log& log, const std::vector<double>& initPos)
 {
     // Loop counter
     static unsigned int loopCounter = 0;
 
-    // Whether initial joint position is set
-    static bool isInitPositionSet = false;
-
-    // Initial position of robot joints
-    static std::vector<double> initPosition;
-
     try {
-        // Monitor fault on robot server
-        if (robot.isFault()) {
-            throw flexiv::ServerException(
-                "periodicTask: Fault occurred on robot server, exiting ...");
+        // Monitor disconnection with robot server
+        if (!robot.isConnected()) {
+            throw flexiv::ServerException("periodicTask: Robot server disconnected, exiting ...");
         }
 
-        // Read robot states
-        robot.getRobotStates(robotStates);
-
-        // Set initial joint position
-        if (!isInitPositionSet) {
-            // check vector size before saving
-            if (robotStates.q.size() == k_robotDofs) {
-                initPosition = robotStates.q;
-                isInitPositionSet = true;
-            }
-        }
-        // Run control after init position is set
-        else {
-            // initialize target position to hold position
-            auto targetPosition = initPosition;
-
-            std::vector<double> torqueDesired(k_robotDofs);
-            // impedance control on all joints
-            for (size_t i = 0; i < k_robotDofs; ++i) {
-                torqueDesired[i] = k_impedanceKp[i] * (targetPosition[i] - robotStates.q[i])
-                                   - k_impedanceKd[i] * robotStates.dtheta[i];
-            }
-
-            // send target joint torque to RDK server
-            robot.streamJointTorque(torqueDesired, true);
-        }
+        // Initialize target vectors to hold position
+        std::vector<double> targetVel(initPos.size(), 0);
+        std::vector<double> targetAcc(initPos.size(), 0);
+        robot.streamJointPosition(initPos, targetVel, targetAcc);
 
         if (loopCounter == 5000) {
             log.warn(">>>>> Adding simulated loop delay <<<<<");
@@ -90,7 +56,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        scheduler.stop();
+        g_schedStop = true;
     }
 }
 
@@ -151,34 +117,39 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
-        int secondsWaited = 0;
         while (!robot.isOperational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            if (++secondsWaited == 10) {
-                log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
-            }
         }
         log.info("Robot is now operational");
 
         // set mode after robot is operational
-        robot.setMode(flexiv::Mode::RT_JOINT_TORQUE);
+        robot.setMode(flexiv::Mode::RT_JOINT_POSITION);
 
-        log.warn(
-            ">>>>> Simulated loop delay will be added after 5 "
-            "seconds <<<<<");
+        // Set initial joint positions
+        robot.getRobotStates(robotStates);
+        auto initPos = robotStates.q;
+
+        log.warn(">>>>> Simulated loop delay will be added after 5 seconds <<<<<");
 
         // Periodic Tasks
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
-                              std::ref(log), std::ref(robotStates)),
+        scheduler.addTask(
+            std::bind(periodicTask, std::ref(robot), std::ref(log), std::ref(initPos)),
             "HP periodic", 1, scheduler.maxPriority());
-        // Start all added tasks, this is by default a blocking method
+        // Start all added tasks
         scheduler.start();
+
+        // Block and wait for signal to stop scheduler tasks
+        while (!g_schedStop) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        // Received signal to stop scheduler tasks
+        scheduler.stop();
+
+        // Wait a bit for any last-second robot log message to arrive and get printed
+        std::this_thread::sleep_for(std::chrono::seconds(2));
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());

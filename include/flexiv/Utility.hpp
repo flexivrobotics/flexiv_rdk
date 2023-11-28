@@ -8,6 +8,7 @@
 
 #include <flexiv/Exception.hpp>
 #include <Eigen/Eigen>
+#include <array>
 #include <vector>
 
 namespace flexiv {
@@ -78,6 +79,34 @@ inline std::string vec2Str(
     ss << std::fixed;
 
     for (const auto& v : vec) {
+        ss << padding << v;
+        padding = " ";
+    }
+
+    if (trailingSpace) {
+        ss << " ";
+    }
+    return ss.str();
+}
+
+/**
+ * @brief Convert a std::array to a string.
+ * @param[in] arr std::array of any type and size.
+ * @param[in] decimal Decimal places to keep for each number in the array.
+ * @param[in] trailingSpace Whether to include a space after the last element.
+ * @return A string with format "arr[0] arr[1] ... arr[n] ", i.e. each element
+ * followed by a space, including the last one if trailingSpace = true.
+ */
+template <typename T, size_t N>
+inline std::string arr2Str(
+    const std::array<T, N>& arr, size_t decimal = 3, bool trailingSpace = true)
+{
+    auto padding = "";
+    std::stringstream ss;
+    ss.precision(decimal);
+    ss << std::fixed;
+
+    for (const auto& v : arr) {
         ss << padding << v;
         padding = " ";
     }

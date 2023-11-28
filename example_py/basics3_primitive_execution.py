@@ -30,9 +30,11 @@ def print_description():
     Print tutorial description.
 
     """
-    print("This tutorial executes several basic robot primitives (unit skills). For "
-          "detailed documentation on all available primitives, please see [Flexiv "
-          "Primitives](https://www.flexiv.com/primitives/).")
+    print(
+        "This tutorial executes several basic robot primitives (unit skills). For "
+        "detailed documentation on all available primitives, please see [Flexiv "
+        "Primitives](https://www.flexiv.com/primitives/)."
+    )
     print()
 
 
@@ -41,8 +43,8 @@ def main():
     # ==============================================================================================
     # Parse arguments
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('robot_ip', help='IP address of the robot server')
-    argparser.add_argument('local_ip', help='IP address of this PC')
+    argparser.add_argument("robot_ip", help="IP address of the robot server")
+    argparser.add_argument("local_ip", help="IP address of this PC")
     args = argparser.parse_args()
 
     # Define alias
@@ -76,14 +78,8 @@ def main():
         robot.enable()
 
         # Wait for the robot to become operational
-        seconds_waited = 0
         while not robot.isOperational():
             time.sleep(1)
-            seconds_waited += 1
-            if seconds_waited == 10:
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode")
 
         log.info("Robot is now operational")
 
@@ -102,7 +98,7 @@ def main():
         robot.executePrimitive("Home()")
 
         # Wait for the primitive to finish
-        while (robot.isBusy()):
+        while robot.isBusy():
             time.sleep(1)
 
         # (2) Move robot joints to target positions
@@ -114,7 +110,7 @@ def main():
         robot.executePrimitive("MoveJ(target=30 -45 0 90 0 40 30)")
 
         # Wait for reached target
-        while (parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1"):
+        while parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1":
             time.sleep(1)
 
         # (3) Move robot TCP to a target position in world (base) frame
@@ -134,13 +130,14 @@ def main():
         # Send command to robot
         robot.executePrimitive(
             "MoveL(target=0.65 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN,waypoints=0.45 0.1 0.2 180 0 "
-            "180 WORLD WORLD_ORIGIN 0.45 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN, maxVel=0.2)")
+            "180 WORLD WORLD_ORIGIN 0.45 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN, maxVel=0.2)"
+        )
 
         # The [Move] series primitive won't terminate itself, so we determine if the robot has
         # reached target location by checking the primitive state "reachedTarget = 1" in the list
         # of current primitive states, and terminate the current primitive manually by sending a
         # new primitive command.
-        while (parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1"):
+        while parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1":
             time.sleep(1)
 
         # (4) Another MoveL that uses TCP frame
@@ -158,12 +155,12 @@ def main():
 
         # Send command to robot. This motion will hold current TCP position and
         # only do TCP rotation
-        robot.executePrimitive("MoveL(target=0.0 0.0 0.0 "
-                               + list2str(eulerZYX_deg)
-                               + "TRAJ START)")
+        robot.executePrimitive(
+            "MoveL(target=0.0 0.0 0.0 " + list2str(eulerZYX_deg) + "TRAJ START)"
+        )
 
         # Wait for reached target
-        while (parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1"):
+        while parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1":
             time.sleep(1)
 
         # All done, stop robot and put into IDLE mode

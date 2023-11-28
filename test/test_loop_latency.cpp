@@ -15,7 +15,7 @@
 
 #include <iostream>
 #include <thread>
-#include <string.h>
+#include <atomic>
 
 // Standard input/output definitions
 #include <stdio.h>
@@ -29,13 +29,15 @@
 #include <termios.h>
 
 namespace {
-
-// file descriptor of the serial port
+/** file descriptor of the serial port */
 int g_fd = 0;
+
+/** Atomic signal to stop scheduler tasks */
+std::atomic<bool> g_schedStop = {false};
 }
 
 // callback function for realtime periodic task
-void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log)
+void periodicTask(flexiv::Robot& robot, flexiv::Log& log)
 {
     // Loop counter
     static unsigned int loopCounter = 0;
@@ -57,7 +59,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             }
             case 1: {
                 // signal robot server's digital out port
-                robot.writeDigitalOutput(0, true);
+                robot.writeDigitalOutput(std::vector<unsigned int> {0}, std::vector<bool> {true});
 
                 // signal workstation PC's serial port
                 auto n = write(g_fd, "0", 1);
@@ -69,7 +71,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
             }
             case 900: {
                 // reset digital out after a few seconds
-                robot.writeDigitalOutput(0, false);
+                robot.writeDigitalOutput(std::vector<unsigned int> {0}, std::vector<bool> {false});
                 break;
             }
             default:
@@ -79,7 +81,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());
-        scheduler.stop();
+        g_schedStop = true;
     }
 }
 
@@ -142,15 +144,8 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
-        int secondsWaited = 0;
         while (!robot.isOperational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            if (++secondsWaited == 10) {
-                log.warn(
-                    "Still waiting for robot to become operational, please "
-                    "check that the robot 1) has no fault, 2) is booted "
-                    "into Auto mode");
-            }
         }
         log.info("Robot is now operational");
 
@@ -170,11 +165,20 @@ int main(int argc, char* argv[])
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(periodicTask, std::ref(robot), std::ref(scheduler), std::ref(log)),
-            "HP periodic", 1, scheduler.maxPriority());
-        // Start all added tasks, this is by default a blocking method
+        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(log)), "HP periodic", 1,
+            scheduler.maxPriority());
+        // Start all added tasks
         scheduler.start();
+
+        // Block and wait for signal to stop scheduler tasks
+        while (!g_schedStop) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        // Received signal to stop scheduler tasks
+        scheduler.stop();
+
+        // Wait a bit for any last-second robot log message to arrive and get printed
+        std::this_thread::sleep_for(std::chrono::seconds(2));
 
     } catch (const flexiv::Exception& e) {
         log.error(e.what());

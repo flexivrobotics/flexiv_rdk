@@ -25,8 +25,10 @@ def print_description():
     Print tutorial description.
 
     """
-    print("This tutorial clears minor faults from the robot server if any. Note that "
-          "critical faults cannot be cleared, see RDK manual for more details.")
+    print(
+        "This tutorial clears minor faults from the robot server if any. Note that "
+        "critical faults cannot be cleared, see RDK manual for more details."
+    )
     print()
 
 
@@ -35,8 +37,8 @@ def main():
     # ==============================================================================================
     # Parse arguments
     argparser = argparse.ArgumentParser()
-    argparser.add_argument('robot_ip', help='IP address of the robot server')
-    argparser.add_argument('local_ip', help='IP address of this PC')
+    argparser.add_argument("robot_ip", help="IP address of the robot server")
+    argparser.add_argument("local_ip", help="IP address of this PC")
     args = argparser.parse_args()
 
     # Define alias

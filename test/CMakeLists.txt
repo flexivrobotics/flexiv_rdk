@@ -1,8 +1,8 @@
-
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.16.3)
 project(flexiv_rdk-tests)
 
-set(CMAKE_CXX_STANDARD 14)
+# Show verbose build info
+SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 message("OS: ${CMAKE_SYSTEM_NAME}")
 message("Processor: ${CMAKE_SYSTEM_PROCESSOR}")
@@ -32,8 +32,12 @@ endif()
 # Find flexiv_rdk INTERFACE library
 find_package(flexiv_rdk REQUIRED)
 
-# Build all selected examples
+# Build all selected tests
 foreach(test ${TEST_LIST})
   add_executable(${test} ${test}.cpp)
   target_link_libraries(${test} flexiv::flexiv_rdk)
+  # C++14 required
+  set_target_properties(${test} PROPERTIES 
+    CXX_STANDARD 14
+    CXX_STANDARD_REQUIRED ON)
 endforeach()
