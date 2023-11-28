@@ -34,7 +34,7 @@ NOTE: if you will only be using Python RDK, you can skip this section and jump t
         sudo apt install build-essential git cmake cmake-qt-gui -y
 
 2. Choose a directory for installing ``flexiv_rdk`` library and all its dependencies. For example, a new folder named ``rdk_install`` under the home directory.
-3. In a new Terminal, run the provided script to compile and install all dependencies to the installation directory chosen in step 1:
+3. In a new Terminal, run the provided script to compile and install all dependencies to the installation directory chosen in step 2:
 
         cd flexiv_rdk/thirdparty
         bash build_and_install_dependencies.sh ~/rdk_install
