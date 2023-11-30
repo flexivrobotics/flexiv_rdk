@@ -12,7 +12,7 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  build-ubuntu-2204:
+  build-ubuntu-22:
     # Use Ubuntu 22.04 runner
     runs-on: ubuntu-22.04
 
@@ -24,7 +24,7 @@ jobs:
         run: |
           cd ${{github.workspace}}
           cd thirdparty
-          bash build_and_install_dependencies.sh ~/rdk_install
+          bash build_and_install_dependencies.sh ~/rdk_install $(nproc)
 
       - name: Build and install library
         # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
@@ -50,7 +50,7 @@ jobs:
           cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
           make -j$(nproc)
 
-  build-ubuntu-2004:
+  build-ubuntu-20:
     # Use Ubuntu 20.04 runner
     runs-on: ubuntu-20.04
 
@@ -62,7 +62,7 @@ jobs:
         run: |
           cd ${{github.workspace}}
           cd thirdparty
-          bash build_and_install_dependencies.sh ~/rdk_install
+          bash build_and_install_dependencies.sh ~/rdk_install $(nproc)
 
       - name: Build and install library
         # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
@@ -100,7 +100,7 @@ jobs:
         run: |
           cd ${{github.workspace}}
           cd thirdparty
-          bash build_and_install_dependencies.sh ~/rdk_install
+          bash build_and_install_dependencies.sh ~/rdk_install $(sysctl -n hw.ncpu)
 
       - name: Build and install library
         # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
@@ -116,7 +116,7 @@ jobs:
           cd ${{github.workspace}}/example
           mkdir -p build && cd build
           cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          make -j$(nproc)
+          make -j$(sysctl -n hw.ncpu)
 
       - name: Build tests
         # Find and link to the flexiv_rdk INTERFACE library, then build all tests.
@@ -124,7 +124,7 @@ jobs:
           cd ${{github.workspace}}/test
           mkdir -p build && cd build
           cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          make -j$(nproc)
+          make -j$(sysctl -n hw.ncpu)
 
   build-windows-2019:
     # Use Windows 2019 runner because the 2022 runner uses a MSVC version that's too new for one of the dependencies
@@ -138,7 +138,7 @@ jobs:
         run: |
           cd ${{github.workspace}}
           cd thirdparty
-          bash build_and_install_dependencies.sh ~/rdk_install
+          bash build_and_install_dependencies.sh ~/rdk_install $(nproc)
 
       - name: Build and install library
         # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
