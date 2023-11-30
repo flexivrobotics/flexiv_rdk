@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18.6)
+cmake_minimum_required(VERSION 3.16.3)
 
 # ===================================================================
 #      PROJECT SETUP
@@ -70,11 +70,11 @@ endif()
 # Create an INTERFACE library with no source file to compile
 add_library(${PROJECT_NAME} INTERFACE)
 
-# Create an alias of the library using flexiv namespace, 
+# Create an alias of the library using flexiv namespace,
 # to imitate the install target which uses flexiv namespace.
 add_library(flexiv::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
-target_include_directories(${PROJECT_NAME} INTERFACE 
+target_include_directories(${PROJECT_NAME} INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
@@ -87,7 +87,7 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
   fastcdr
 )
 
-# Use moderate compiler warning option 
+# Use moderate compiler warning option
 if(CMAKE_HOST_UNIX)
   target_compile_options(${PROJECT_NAME} INTERFACE -Wall -Wextra)
 else()
