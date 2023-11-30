@@ -21,10 +21,10 @@ set(EXAMPLE_LIST
   basics5_zero_force_torque_sensors
   basics6_gripper_control
   basics7_auto_recovery
+  basics8_update_robot_tool
   intermediate6_robot_dynamics
   intermediate7_teach_by_demonstration
 )
-
 
 # Additional examples for Linux and Mac
 if(CMAKE_HOST_UNIX)
@@ -44,8 +44,9 @@ find_package(flexiv_rdk REQUIRED)
 foreach(example ${EXAMPLE_LIST})
   add_executable(${example} ${example}.cpp)
   target_link_libraries(${example} flexiv::flexiv_rdk)
+
   # C++17 required
-  set_target_properties(${example} PROPERTIES 
+  set_target_properties(${example} PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON)
 endforeach()
