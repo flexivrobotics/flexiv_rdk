@@ -88,6 +88,44 @@ jobs:
           cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
           make -j$(nproc)
 
+  build-macos-12:
+    # Use macOS 12 runner
+    runs-on: macos-12
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build and install dependencies
+        # Build and install all dependencies to RDK installation directory.
+        run: |
+          cd ${{github.workspace}}
+          cd thirdparty
+          bash build_and_install_dependencies.sh ~/rdk_install
+
+      - name: Build and install library
+        # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
+        run: |
+          cd ${{github.workspace}}
+          mkdir -p build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+          make install
+
+      - name: Build examples
+        # Find and link to the flexiv_rdk INTERFACE library, then build all examples.
+        run: |
+          cd ${{github.workspace}}/example
+          mkdir -p build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+          make -j$(nproc)
+
+      - name: Build tests
+        # Find and link to the flexiv_rdk INTERFACE library, then build all tests.
+        run: |
+          cd ${{github.workspace}}/test
+          mkdir -p build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+          make -j$(nproc)
+
   build-windows-2019:
     # Use Windows 2019 runner because the 2022 runner uses a MSVC version that's too new for one of the dependencies
     runs-on: windows-2019
