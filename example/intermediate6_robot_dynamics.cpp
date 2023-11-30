@@ -2,7 +2,7 @@
  * @example intermediate6_robot_dynamics.cpp
  * This tutorial runs the integrated dynamics engine to obtain robot Jacobian, mass matrix, and
  * gravity force.
- * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

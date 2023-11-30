@@ -5,7 +5,7 @@
 This tutorial does position and force control (if available) for grippers supported by Flexiv.
 """
 
-__copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time

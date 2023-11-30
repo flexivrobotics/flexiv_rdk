@@ -6,7 +6,7 @@ This tutorial executes several basic robot primitives (unit skills). For detaile
 on all available primitives, please see [Flexiv Primitives](https://www.flexiv.com/primitives/).
 """
 
-__copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time

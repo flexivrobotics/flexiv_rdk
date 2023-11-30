@@ -2,7 +2,7 @@
  * @test test_endurance.cpp
  * Endurance test running Cartesian impedance control to slowly sine-sweep near home for a duration
  * of user-specified hours. Raw data will be logged to CSV files continuously.
- * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

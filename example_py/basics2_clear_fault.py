@@ -6,7 +6,7 @@ This tutorial clears minor faults from the robot server if any. Note that critic
 be cleared, see RDK manual for more details.
 """
 
-__copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time

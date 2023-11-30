@@ -6,7 +6,7 @@ This tutorial shows a demo implementation for teach by demonstration: free-drive
 record a series of Cartesian poses, which are then reproduced by the robot.
 """
 
-__copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time

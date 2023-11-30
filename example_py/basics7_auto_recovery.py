@@ -6,7 +6,7 @@ This tutorial runs an automatic recovery process if the robot's safety system is
 state. See flexiv::Robot::isRecoveryState() and RDK manual for more details.
 """
 
-__copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time

@@ -1,6 +1,6 @@
 /**
  * @file Utility.hpp
- * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  */
 
 #ifndef FLEXIVRDK_UTILITY_HPP_
