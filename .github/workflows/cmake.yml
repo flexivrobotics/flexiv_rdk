@@ -12,11 +12,8 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  build-ubuntu-22:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  build-ubuntu-2204:
+    # Use Ubuntu 22.04 runner
     runs-on: ubuntu-22.04
 
     steps:
@@ -53,11 +50,8 @@ jobs:
           cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
           make -j$(nproc)
 
-  build-ubuntu-20:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  build-ubuntu-2004:
+    # Use Ubuntu 20.04 runner
     runs-on: ubuntu-20.04
 
     steps:
@@ -94,12 +88,9 @@ jobs:
           cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
           make -j$(nproc)
 
-  build-windows-2022:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: windows-2022
+  build-windows-2019:
+    # Use Windows 2019 runner because the 2022 runner uses a MSVC version that's too new for one of the dependencies
+    runs-on: windows-2019
 
     steps:
       - uses: actions/checkout@v2
