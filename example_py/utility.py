@@ -5,10 +5,11 @@
 Utility methods.
 """
 
-__copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import math
+
 # pip install scipy
 from scipy.spatial.transform import Rotation as R
 
@@ -32,8 +33,11 @@ def quat2eulerZYX(quat, degree=False):
 
     # Convert target quaternion to Euler ZYX using scipy package's 'xyz' extrinsic rotation
     # NOTE: scipy uses [x,y,z,w] order to represent quaternion
-    eulerZYX = R.from_quat([quat[1], quat[2],
-                            quat[3], quat[0]]).as_euler('xyz', degrees=degree).tolist()
+    eulerZYX = (
+        R.from_quat([quat[1], quat[2], quat[3], quat[0]])
+        .as_euler("xyz", degrees=degree)
+        .tolist()
+    )
 
     return eulerZYX
 
@@ -50,7 +54,7 @@ def list2str(ls):
     Returns
     ----------
     str
-        A string with format "ls[0] ls[1] ... ls[n] ", i.e. each value 
+        A string with format "ls[0] ls[1] ... ls[n] ", i.e. each value
         followed by a space, including the last one.
     """
 
@@ -74,7 +78,7 @@ def parse_pt_states(pt_states, parse_target):
     Returns
     ----------
     str
-        Value of the specified primitive state in string format. Empty string is 
+        Value of the specified primitive state in string format. Empty string is
         returned if parse_target does not exist.
     """
     for state in pt_states:

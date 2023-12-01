@@ -4,7 +4,7 @@
  * and soft protection against position limits. This example is ideal for verifying the system's
  * whole-loop real-timeliness, accuracy of the robot dynamics model, and joint torque control
  * performance. If everything works well, all joints should float smoothly.
- * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
@@ -16,11 +16,15 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <atomic>
 
 namespace {
 /** Joint velocity damping gains for floating */
 const std::array<double, flexiv::k_jointDOF> k_floatingDamping
     = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
+
+/** Atomic signal to stop scheduler tasks */
+std::atomic<bool> g_schedStop = {false};
 }
 
 /** @brief Print tutorial description */
@@ -48,8 +52,7 @@ void printHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
-    flexiv::RobotStates& robotStates)
+void periodicTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& robotStates)
 {
     try {
         // Monitor fault on robot server
@@ -65,7 +68,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 
         // Add some velocity damping
         for (size_t i = 0; i < flexiv::k_jointDOF; ++i) {
-            targetTorque[i] = -k_floatingDamping[i] * robotStates.dtheta[i];
+            targetTorque[i] += -k_floatingDamping[i] * robotStates.dtheta[i];
         }
 
         // Send target joint torque to RDK server, enable gravity compensation and joint limits soft
@@ -74,7 +77,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 
     } catch (const std::exception& e) {
         log.error(e.what());
-        scheduler.stop();
+        g_schedStop = true;
     }
 }
 
@@ -125,14 +128,8 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
-        int secondsWaited = 0;
         while (!robot.isOperational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            if (++secondsWaited == 10) {
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode");
-            }
         }
         log.info("Robot is now operational");
 
@@ -154,11 +151,18 @@ int main(int argc, char* argv[])
         // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
-                              std::ref(log), std::ref(robotStates)),
+        scheduler.addTask(
+            std::bind(periodicTask, std::ref(robot), std::ref(log), std::ref(robotStates)),
             "HP periodic", 1, scheduler.maxPriority());
-        // Start all added tasks, this is by default a blocking method
+        // Start all added tasks
         scheduler.start();
+
+        // Block and wait for signal to stop scheduler tasks
+        while (!g_schedStop) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        // Received signal to stop scheduler tasks
+        scheduler.stop();
 
     } catch (const std::exception& e) {
         log.error(e.what());

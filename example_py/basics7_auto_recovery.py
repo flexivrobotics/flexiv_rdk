@@ -6,7 +6,7 @@ This tutorial runs an automatic recovery process if the robot's safety system is
 state. See flexiv::Robot::isRecoveryState() and RDK manual for more details.
 """
 
-__copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
@@ -25,8 +25,10 @@ def print_description():
     Print tutorial description.
 
     """
-    print("This tutorial runs an automatic recovery process if the robot's safety system is in "
-          "recovery state. See flexiv::Robot::isRecoveryState() and RDK manual for more details.")
+    print(
+        "This tutorial runs an automatic recovery process if the robot's safety system is in "
+        "recovery state. See flexiv::Robot::isRecoveryState() and RDK manual for more details."
+    )
     print()
 
 
@@ -36,7 +38,9 @@ def main():
     # Parse arguments
     argparser = argparse.ArgumentParser()
     argparser.add_argument(
-        'robot_sn', help='Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456')
+        "robot_sn",
+        help="Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456",
+    )
     args = argparser.parse_args()
 
     # Define alias
@@ -66,14 +70,11 @@ def main():
         # to move back into allowed position range
         if robot.isRecoveryState():
             robot.runAutoRecovery()
-            # Block forever, must reboot the robot and restart user program after recovery is done
-            while True:
-                time.sleep(1)
-
         # Otherwise the system is normal, do nothing
         else:
             log.info(
-                "Robot system is not in recovery state, nothing to be done, exiting ...")
+                "Robot system is not in recovery state, nothing to be done, exiting ..."
+            )
 
     except Exception as e:
         # Print exception error message

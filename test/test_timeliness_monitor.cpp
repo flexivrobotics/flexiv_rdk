@@ -5,7 +5,7 @@
  * check to fail. A warning will be issued first, then if the check has failed too many times, the
  * RDK connection with the server will be closed. During this test, the robot will hold its position
  * using joint torque streaming mode.
- * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
@@ -18,10 +18,16 @@
 #include <string>
 #include <cmath>
 #include <thread>
+#include <atomic>
+
+namespace {
+/** Atomic signal to stop scheduler tasks */
+std::atomic<bool> g_schedStop = {false};
+}
 
 // callback function for realtime periodic task
-void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Log& log,
-    const std::array<double, flexiv::k_jointDOF>& initPos)
+void periodicTask(
+    flexiv::Robot& robot, flexiv::Log& log, const std::array<double, flexiv::k_jointDOF>& initPos)
 {
     // Loop counter
     static unsigned int loopCounter = 0;
@@ -48,7 +54,7 @@ void periodicTask(flexiv::Robot& robot, flexiv::Scheduler& scheduler, flexiv::Lo
 
     } catch (const std::exception& e) {
         log.error(e.what());
-        scheduler.stop();
+        g_schedStop = true;
     }
 }
 
@@ -106,14 +112,8 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
-        int secondsWaited = 0;
         while (!robot.isOperational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            if (++secondsWaited == 10) {
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is booted into Auto mode");
-            }
         }
         log.info("Robot is now operational");
 
@@ -124,20 +124,24 @@ int main(int argc, char* argv[])
         robot.getRobotStates(robotStates);
         auto initPos = robotStates.q;
         log.info("Initial joint positions set to: " + flexiv::utility::arr2Str(initPos));
-
-        log.warn(
-            ">>>>> Simulated loop delay will be added after 5 "
-            "seconds <<<<<");
+        log.warn(">>>>> Simulated loop delay will be added after 5 seconds <<<<<");
 
         // Periodic Tasks
         //==========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(scheduler),
-                              std::ref(log), std::ref(initPos)),
+        scheduler.addTask(
+            std::bind(periodicTask, std::ref(robot), std::ref(log), std::ref(initPos)),
             "HP periodic", 1, scheduler.maxPriority());
-        // Start all added tasks, this is by default a blocking method
+        // Start all added tasks
         scheduler.start();
+
+        // Block and wait for signal to stop scheduler tasks
+        while (!g_schedStop) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        // Received signal to stop scheduler tasks
+        scheduler.stop();
 
     } catch (const std::exception& e) {
         log.error(e.what());

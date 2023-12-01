@@ -2,7 +2,7 @@
  * @example basics5_zero_force_torque_sensors.cpp
  * This tutorial zeros the robot's force and torque sensors, which is a recommended (but not
  * mandatory) step before any operations that require accurate force/torque measurement.
- * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
@@ -79,24 +79,16 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
-        int secondsWaited = 0;
         while (!robot.isOperational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            if (++secondsWaited == 10) {
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode");
-            }
         }
         log.info("Robot is now operational");
 
         // Zero Sensors
         // =========================================================================================
         // Get and print the current TCP force/moment readings
-        flexiv::RobotStates robotStates;
-        robot.getRobotStates(robotStates);
         log.info("TCP force and moment reading in base frame BEFORE sensor zeroing: "
-                 + flexiv::utility::arr2Str(robotStates.extWrenchInBase) + "[N][Nm]");
+                 + flexiv::utility::arr2Str(robot.getRobotStates().extWrenchInWorld) + "[N][Nm]");
 
         // Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
         robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
@@ -113,9 +105,8 @@ int main(int argc, char* argv[])
         log.info("Sensor zeroing complete");
 
         // Get and print the current TCP force/moment readings
-        robot.getRobotStates(robotStates);
         log.info("TCP force and moment reading in base frame AFTER sensor zeroing: "
-                 + flexiv::utility::arr2Str(robotStates.extWrenchInBase) + "[N][Nm]");
+                 + flexiv::utility::arr2Str(robot.getRobotStates().extWrenchInWorld) + "[N][Nm]");
 
     } catch (const std::exception& e) {
         log.error(e.what());

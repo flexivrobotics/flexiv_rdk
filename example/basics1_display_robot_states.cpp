@@ -2,7 +2,7 @@
  * @example basics1_display_robot_states.cpp
  * This tutorial does the very first thing: check connection with the robot server and print
  * received robot states.
- * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
@@ -37,16 +37,12 @@ void printHelp()
 /** @brief Print robot states data @ 1Hz */
 void printRobotStates(flexiv::Robot& robot, flexiv::Log& log)
 {
-    // Data struct storing robot states
-    flexiv::RobotStates robotStates;
-
     while (true) {
-        // Get the latest robot states
-        robot.getRobotStates(robotStates);
-
         // Print all robot states in JSON format using the built-in ostream operator overloading
+        // Note: because this is not a performance-critical loop, we can use the
+        // return-by-value-copy version of getRobotStates()
         log.info("Current robot states:");
-        std::cout << robotStates << std::endl;
+        std::cout << robot.getRobotStates() << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
@@ -95,14 +91,8 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
-        int secondsWaited = 0;
         while (!robot.isOperational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            if (++secondsWaited == 10) {
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode");
-            }
         }
         log.info("Robot is now operational");
 

@@ -13,10 +13,7 @@ env:
 
 jobs:
   build-ubuntu-22:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    # Use Ubuntu 22.04 runner
     runs-on: ubuntu-22.04
 
     steps:
@@ -27,7 +24,7 @@ jobs:
         run: |
           cd ${{github.workspace}}
           cd thirdparty
-          bash build_and_install_dependencies.sh ~/rdk_install
+          bash build_and_install_dependencies.sh ~/rdk_install $(nproc)
 
       - name: Build and install library
         # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
@@ -54,10 +51,7 @@ jobs:
           make -j$(nproc)
 
   build-ubuntu-20:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    # Use Ubuntu 20.04 runner
     runs-on: ubuntu-20.04
 
     steps:
@@ -68,7 +62,7 @@ jobs:
         run: |
           cd ${{github.workspace}}
           cd thirdparty
-          bash build_and_install_dependencies.sh ~/rdk_install
+          bash build_and_install_dependencies.sh ~/rdk_install $(nproc)
 
       - name: Build and install library
         # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
@@ -94,12 +88,9 @@ jobs:
           cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
           make -j$(nproc)
 
-  build-windows-2022:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: windows-2022
+  build-macos-12:
+    # Use self-hosted macOS 12 runner with arm64 processor
+    runs-on: [self-hosted, macos-12, ARM64]
 
     steps:
       - uses: actions/checkout@v2
@@ -109,7 +100,45 @@ jobs:
         run: |
           cd ${{github.workspace}}
           cd thirdparty
-          bash build_and_install_dependencies.sh ~/rdk_install
+          bash build_and_install_dependencies.sh ~/rdk_install $(sysctl -n hw.ncpu)
+
+      - name: Build and install library
+        # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
+        run: |
+          cd ${{github.workspace}}
+          mkdir -p build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+          make install
+
+      - name: Build examples
+        # Find and link to the flexiv_rdk INTERFACE library, then build all examples.
+        run: |
+          cd ${{github.workspace}}/example
+          mkdir -p build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+          make -j$(sysctl -n hw.ncpu)
+
+      - name: Build tests
+        # Find and link to the flexiv_rdk INTERFACE library, then build all tests.
+        run: |
+          cd ${{github.workspace}}/test
+          mkdir -p build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+          make -j$(sysctl -n hw.ncpu)
+
+  build-windows-2019:
+    # Use Windows 2019 runner because the 2022 runner uses a MSVC version that's too new for one of the dependencies
+    runs-on: windows-2019
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build and install dependencies
+        # Build and install all dependencies to RDK installation directory.
+        run: |
+          cd ${{github.workspace}}
+          cd thirdparty
+          bash build_and_install_dependencies.sh ~/rdk_install $(nproc)
 
       - name: Build and install library
         # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
