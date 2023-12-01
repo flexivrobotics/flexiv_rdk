@@ -89,8 +89,8 @@ jobs:
           make -j$(nproc)
 
   build-macos-12:
-    # Use macOS 12 runner
-    runs-on: macos-12
+    # Use self-hosted macOS 12 runner with arm64 processor
+    runs-on: [self-hosted, macos-12, ARM64]
 
     steps:
       - uses: actions/checkout@v2
