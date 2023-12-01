@@ -1,6 +1,6 @@
 /**
  * @file Log.hpp
- * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  */
 
 #ifndef FLEXIVRDK_LOG_HPP_
@@ -24,21 +24,21 @@ public:
     virtual ~Log() = default;
 
     /**
-     * @brief Print info message with timestamp and coloring.
+     * @brief [Non-blocking] Print info message with timestamp and coloring.
      * @param[in] message Info message.
      * @note Color = green.
      */
     void info(const std::string& message) const;
 
     /**
-     * @brief Print warning message with timestamp and coloring.
+     * @brief [Non-blocking] Print warning message with timestamp and coloring.
      * @param[in] message Warning message.
      * @note Color = yellow.
      */
     void warn(const std::string& message) const;
 
     /**
-     * @brief Print error message with timestamp and coloring.
+     * @brief [Non-blocking] Print error message with timestamp and coloring.
      * @param[in] message Error message.
      * @note Color = red.
      */

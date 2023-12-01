@@ -11,11 +11,11 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 ## Compatibility Overview
 
-| **Supported OS**               | **Supported processor** | **Supported language** | **Required compiler kit** |
-| ------------------------------ | ----------------------- | ---------------------- | ------------------------- |
-| Linux (Ubuntu 18/20/22 tested) | x86_64, arm64           | C++, Python            | build-essential           |
-| macOS 12 (Monterey)            | arm64                   | C++, Python            | Xcode Command Line Tools  |
-| Windows 10                     | x86_64                  | C++, Python            | MSVC 14.0+                |
+| **Supported OS**           | **Supported processor** | **Supported language** | **Required compiler kit** |
+| -------------------------- | ----------------------- | ---------------------- | ------------------------- |
+| Linux (Ubuntu 20.04/22.04) | x86_64, arm64           | C++, Python            | build-essential           |
+| macOS 12 (Monterey)        | arm64                   | C++, Python            | Xcode Command Line Tools  |
+| Windows 10                 | x86_64                  | C++, Python            | MSVC 14.0+                |
 
 ## Quick Start
 
@@ -34,7 +34,7 @@ NOTE: if you will only be using Python RDK, you can skip this section and jump t
         sudo apt install build-essential git cmake cmake-qt-gui -y
 
 2. Choose a directory for installing ``flexiv_rdk`` library and all its dependencies. For example, a new folder named ``rdk_install`` under the home directory.
-3. In a new Terminal, run the provided script to compile and install all dependencies to the installation directory chosen in step 1:
+3. In a new Terminal, run the provided script to compile and install all dependencies to the installation directory chosen in step 2:
 
         cd flexiv_rdk/thirdparty
         bash build_and_install_dependencies.sh ~/rdk_install
@@ -82,10 +82,14 @@ NOTE: if you will only be using Python RDK, you can skip this section and jump t
 
 #### Compile and install for Windows
 
-1. Install Microsoft Visual Studio with version 2015 or above (MSVC 14.0+). Choose the "Desktop development with C++" package during installation.
-2. Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or a bash emulator.
-3. Install a bash emulator. Git Bash that comes with Git (for Windows) installation is recommended.
-4. Within the bash emulator, the rest steps are the same as [Compile and install for Linux](#compile-and-install-for-linux), beginning from step 2.
+1. Install Microsoft Visual Studio with version 2015 or above (MSVC 14.0+). Choose "Desktop development with C++" under the *Workloads* tab during installation. You only need to keep the following components for the selected workload:
+   * MSVC ... C++ x64/x86 build tools (Latest)
+   * C++ CMake tools for Windows
+   * Windows 10 SDK or Windows 11 SDK, depending on your actual Windows version
+2. Due to compatibility issue from one of the dependencies, the maximum compatible MSVC version is v14.36. Thus if the above selected "Latest" MSVC is higher than v14.36, an **additional** compatible MSVC needs to be installed. To do so, go to the *Individual components* tab (next to *Workloads*), and search for "MSVC x64/x86 build tools", then select a MSVC with version <= 14.36 to install. Note: you need to also **keep** the "Latest" selection of MSVC that comes with the "Desktop development with C++" workload so that the "C++ CMake tools for Windows" component can work properly.
+3. Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or a bash emulator.
+4. Install a bash emulator. Git Bash that comes with Git (for Windows) installation is recommended.
+5. Within the bash emulator, the rest steps are the same as [Compile and install for Linux](#compile-and-install-for-linux), beginning from step 2.
 
 ### Python RDK
 

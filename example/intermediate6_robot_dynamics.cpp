@@ -2,7 +2,7 @@
  * @example intermediate6_robot_dynamics.cpp
  * This tutorial runs the integrated dynamics engine to obtain robot Jacobian, mass matrix, and
  * gravity force.
- * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
@@ -47,8 +47,10 @@ int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
     // Data struct for storing robot states
     flexiv::RobotStates robotStates;
 
+    // Local periodic loop counter
+    uint64_t loopCounter = 0;
+
     try {
-        int loopCounter = 0;
         while (true) {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             loopCounter++;
@@ -66,7 +68,7 @@ int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
             robot.getRobotStates(robotStates);
 
             // Update robot model in dynamics engine
-            model.updateModel(robotStates.q, robotStates.dtheta);
+            model.update(robotStates.q, robotStates.dtheta);
 
             // Compute gravity vector
             auto g = model.getGravityForce();
@@ -146,14 +148,8 @@ int main(int argc, char* argv[])
         robot.enable();
 
         // Wait for the robot to become operational
-        int secondsWaited = 0;
         while (!robot.isOperational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            if (++secondsWaited == 10) {
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode");
-            }
         }
         log.info("Robot is now operational");
 
@@ -172,6 +168,7 @@ int main(int argc, char* argv[])
         // Initialize dynamics engine
         flexiv::Model model(robot);
 
+        // Use std thread for periodic task so this example can run on Windows
         std::thread periodicTaskThread(periodicTask, std::ref(robot), std::ref(model));
         periodicTaskThread.join();
 

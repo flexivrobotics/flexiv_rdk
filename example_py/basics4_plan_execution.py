@@ -8,7 +8,7 @@ between 2 adjacent primitives. Users can use Flexiv Elements to compose their ow
 to the robot, which will appear in the plan list.
 """
 
-__copyright__ = "Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
@@ -27,11 +27,13 @@ def print_description():
     Print tutorial description.
 
     """
-    print("This tutorial executes a plan selected by the user from a list of available "
-          "plans. A plan is a pre-written script to execute a series of robot primitives "
-          "with pre-defined transition conditions between 2 adjacent primitives. Users can "
-          "use Flexiv Elements to compose their own plan and assign to the robot, which "
-          "will appear in the plan list.")
+    print(
+        "This tutorial executes a plan selected by the user from a list of available "
+        "plans. A plan is a pre-written script to execute a series of robot primitives "
+        "with pre-defined transition conditions between 2 adjacent primitives. Users can "
+        "use Flexiv Elements to compose their own plan and assign to the robot, which "
+        "will appear in the plan list."
+    )
     print()
 
 
@@ -41,13 +43,14 @@ def main():
     # Parse arguments
     argparser = argparse.ArgumentParser()
     argparser.add_argument(
-        'robot_sn', help='Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456')
+        "robot_sn",
+        help="Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456",
+    )
     args = argparser.parse_args()
 
     # Define alias
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
-    plan_info = flexivrdk.PlanInfo()
 
     # Print description
     log.info("Tutorial description:")
@@ -76,14 +79,8 @@ def main():
         robot.enable()
 
         # Wait for the robot to become operational
-        seconds_waited = 0
         while not robot.isOperational():
             time.sleep(1)
-            seconds_waited += 1
-            if seconds_waited == 10:
-                log.warn(
-                    "Still waiting for robot to become operational, please check that the robot 1) "
-                    "has no fault, 2) is in [Auto (remote)] mode")
 
         log.info("Robot is now operational")
 
@@ -114,11 +111,13 @@ def main():
             # Execute plan by index
             elif user_input == 2:
                 index = int(input("Enter plan index to execute:\n"))
-                robot.executePlan(index)
+                # Allow the plan to continue its execution even if the RDK program is closed or
+                # the connection is lost
+                robot.executePlan(index, 100, True)
 
                 # Print plan info while the current plan is running
                 while robot.isBusy():
-                    robot.getPlanInfo(plan_info)
+                    plan_info = robot.getPlanInfo()
                     log.info(" ")
                     print("assignedPlanName: ", plan_info.assignedPlanName)
                     print("ptName: ", plan_info.ptName)
@@ -133,11 +132,13 @@ def main():
             # Execute plan by name
             elif user_input == 3:
                 name = str(input("Enter plan name to execute:\n"))
-                robot.executePlan(name)
+                # Allow the plan to continue its execution even if the RDK program is closed or
+                # the connection is lost
+                robot.executePlan(name, 100, True)
 
                 # Print plan info while the current plan is running
                 while robot.isBusy():
-                    robot.getPlanInfo(plan_info)
+                    plan_info = robot.getPlanInfo()
                     log.info(" ")
                     print("assignedPlanName: ", plan_info.assignedPlanName)
                     print("ptName: ", plan_info.ptName)

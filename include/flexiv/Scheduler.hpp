@@ -1,6 +1,6 @@
 /**
  * @file Scheduler.hpp
- * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  */
 
 #ifndef FLEXIVRDK_SCHEDULER_HPP_
@@ -21,33 +21,34 @@ class Scheduler
 {
 public:
     /**
-     * @brief Create a flexiv::Scheduler instance and initialize the real-time scheduler.
+     * @brief [Blocking] Create a flexiv::Scheduler instance and initialize the real-time scheduler.
      * @throw std::runtime_error if the initialization sequence failed.
+     * @warning This constructor blocks until the initialization sequence is successfully finished.
      */
     Scheduler();
     virtual ~Scheduler();
 
     /**
-     * @brief Add a new periodic task to the scheduler's task pool. Each task in the pool is
-     * assigned to a dedicated thread with independent thread configuration.
+     * @brief [Non-blocking] Add a new periodic task to the scheduler's task pool. Each task in the
+     * pool is assigned to a dedicated thread with independent thread configuration.
      * @param[in] callback Callback function of user task.
      * @param[in] taskName A unique name for this task.
      * @param[in] interval Execution interval of this periodic task [ms]. The minimum available
      * interval is 1 ms, equivalent to 1 kHz loop frequency.
-     * @param[in] priority Priority for this task thread, can be set to 0 ~ <max_priority>, with 0
-     * being the lowest, and <max_priority> being the highest. <max_priority> can be obtained from
-     * maxPriority(). When the priority is set to non-zero, this thread becomes a real-time thread
-     * and can only be interrupted by threads with higher priority. When the priority is set to 0,
-     * this thread becomes a non-real-time thread and can be interrupted by any real-time threads.
-     * The common practice is to set priority of the most critical tasks to <max_priority> or near,
-     * and set priority of other non-critical tasks to 0 or near. To avoid race conditions, the same
-     * priority should be assigned to only one task.
-     * @param[in] cpuAffinity CPU core for this task thread to bind to, can be set to 2 ~
-     * (<num_cores> - 1). This task thread will only run on the specified CPU core. If left with the
-     * default value (-1), then this task thread will not bind to any CPU core, and the system will
-     * decide which core to run this task thread on according to the system's own strategy. The
-     * common practice is to bind the high-priority task to a dedicated spare core, and bind
-     * low-priority tasks to other cores or just leave them unbound (cpuAffinity = -1).
+     * @param[in] priority Priority for this task thread, can be set to minPriority()–maxPriority()
+     * for real-time scheduling, or 0 for non-real-time scheduling. When the priority is set to use
+     * real-time scheduling, this thread becomes a real-time thread and can only be interrupted by
+     * threads with higher priority. When the priority is set to use non-real-time scheduling (i.e.
+     * 0), this thread becomes a non-real-time thread and can be interrupted by any real-time
+     * threads. The common practice is to set priority of the most critical tasks to maxPriority()
+     * or near, and set priority of other non-critical tasks to 0 or near. To avoid race conditions,
+     * the same priority should be assigned to only one task.
+     * @param[in] cpuAffinity CPU core for this task thread to bind to, can be set to 2–(num_cores -
+     * 1). This task thread will only run on the specified CPU core. If left with the default value
+     * (-1), then this task thread will not bind to any CPU core, and the system will decide which
+     * core to run this task thread on according to the system's own strategy. The common practice
+     * is to bind the high-priority task to a dedicated spare core, and bind low-priority tasks to
+     * other cores or just leave them unbound (cpuAffinity = -1).
      * @throw std::logic_error if the scheduler is already started or is not fully initialized yet.
      * @throw std::invalid_argument if the specified interval/priority/affinity is invalid or the
      * specified task name is duplicate.
@@ -63,31 +64,41 @@ public:
         int priority, int cpuAffinity = -1);
 
     /**
-     * @brief Start to execute all added tasks periodically.
-     * @param[in] isBlocking Whether to block the thread from which this method is called until the
-     * scheduler is stopped. A common usage is to call this method from main() with this parameter
-     * set to true to keep main() from returning.
-     * @throw std::logic_error if the scheduler is not fully initialized yet.
-     * @throw std::runtime_error if failed to start the scheduler.
+     * @brief [Blocking] Start all added tasks. A dedicated thread will be created for each added
+     * task and the periodic execution will begin.
+     * @throw std::logic_error if the scheduler is not initialized yet.
+     * @throw std::runtime_error if failed to start the tasks.
+     * @warning This function blocks until all added tasks are started.
      */
-    void start(bool isBlocking = true);
+    void start();
 
     /**
-     * @brief Stop all added tasks. start() will stop blocking and return.
-     * @throw std::logic_error if the scheduler is not started or is not fully initialized yet.
-     * @throw std::runtime_error if failed to stop the scheduler.
-     * @note Call start() again to restart the scheduler.
+     * @brief [Blocking] Stop all added tasks. The periodic execution will stop and all task threads
+     * will be closed with the resources released.
+     * @throw std::logic_error if the scheduler is not initialized or the tasks are not started yet.
+     * @throw std::runtime_error if failed to stop the tasks.
+     * @note Calling start() again can restart the added tasks.
+     * @warning This function blocks until all task threads have exited and resources are released.
+     * @warning This function cannot be called from within a task thread.
      */
     void stop();
 
     /**
-     * @brief Get maximum available priority for the user task.
-     * @return The maximum priority that can be set to a user task when calling addTask().
+     * @brief [Non-blocking] Get maximum available priority for user tasks.
+     * @return The maximum priority that can be set for a user task with real-time scheduling policy
+     * when calling addTask().
      */
     int maxPriority() const;
 
     /**
-     * @brief Get number of tasks added to the scheduler.
+     * @brief [Non-blocking] Get minimum available priority for user tasks.
+     * @return The minimum priority that can be set for a user task with real-time scheduling policy
+     * when calling addTask().
+     */
+    int minPriority() const;
+
+    /**
+     * @brief [Non-blocking] Get number of tasks added to the scheduler.
      * @return Number of added tasks.
      */
     size_t numTasks() const;

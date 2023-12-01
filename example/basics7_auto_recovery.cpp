@@ -2,7 +2,7 @@
  * @example basics7_auto_recovery.cpp
  * This tutorial runs an automatic recovery process if the robot's safety system is in recovery
  * state. See flexiv::Robot::isRecoveryState() and RDK manual for more details.
- * @copyright Copyright (C) 2016-2021 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
@@ -75,10 +75,6 @@ int main(int argc, char* argv[])
         // to move back into allowed position range
         if (robot.isRecoveryState()) {
             robot.runAutoRecovery();
-            // Block forever, must reboot the robot and restart user program after recovery is done
-            while (true) {
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-            }
         }
         // Otherwise the system is normal, do nothing
         else {
