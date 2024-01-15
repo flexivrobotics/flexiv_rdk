@@ -315,7 +315,8 @@ public:
      * @note No need to call this function if the mounted tool on the robot has
      * only one TCP, it'll be used by default.
      * @note New TCP index will take effect upon control mode switch, or upon
-     * sending a new primitive command.
+     * sending a new primitive command. However, this function has no effect in
+     * plan execution mode as TCP index should be defined in the plan itself.
      * @warning This function blocks until the request is successfully delivered
      * to the robot.
      */
