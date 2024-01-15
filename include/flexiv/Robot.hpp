@@ -267,7 +267,8 @@ public:
      * @brief [Blocking] Get feedback states of the currently executing
      * primitive.
      * @return Primitive states in the format of a string list.
-     * @throw CommException if there's no response from the robot.
+     * @throw CommException if there's no response from the robot or the result
+     * is invalid.
      * @throw ExecutionException if error occurred during execution.
      * @warning This function blocks until the reply from the robot is received.
      */
