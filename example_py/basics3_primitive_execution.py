@@ -150,7 +150,6 @@ def main():
 
         # Example to convert target quaternion [w,x,y,z] to Euler ZYX using scipy package's 'xyz'
         # extrinsic rotation
-        # NOTE: scipy uses [x,y,z,w] order to represent quaternion
         target_quat = [0.9185587, 0.1767767, 0.3061862, 0.1767767]
         # ZYX = [30, 30, 30] degrees
         eulerZYX_deg = quat2eulerZYX(target_quat, degree=True)
