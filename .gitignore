@@ -2,7 +2,7 @@
 .vs
 .DS_Store
 config.h
-build/
+build*/
 install/
 cloned/
 html/
