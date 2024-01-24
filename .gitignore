@@ -2,6 +2,6 @@
 .vs
 .DS_Store
 config.h
-build/
+build*/
 html/
 __pycache__
