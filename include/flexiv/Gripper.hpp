@@ -53,25 +53,23 @@ public:
     /**
      * @brief [Blocking] Stop the gripper.
      * @note Applicable control modes: all modes.
-     * @warning This function blocks until the request is successfully delivered to the robot and
-     * gripper control is transferred back to plan/primitive.
+     * @note This function blocks until the gripper control is transferred back to plan/primitive.
      */
-    void stop(void);
+    void stop();
+
+    /**
+     * @brief [Non-blocking] Access the current gripper states.
+     * @return GripperStates data struct.
+     * @note Real-time (RT).
+     */
+    const GripperStates& states() const;
 
     /**
      * @brief [Non-blocking] Get current gripper states.
      * @param[out] output Reference to an existing GripperStates instance.
      * @note Call this function periodically to keep the output data object up to date.
      */
-    void getGripperStates(GripperStates& output) const;
-
-    /**
-     * @brief [Non-blocking] Get current gripper states.
-     * @return GripperStates instance.
-     * @warning This function is less efficient than the other overloaded one as additional runtime
-     * memory allocation and data copying are performed.
-     */
-    GripperStates getGripperStates(void) const;
+    [[deprecated("Use states() instead")]] void getGripperStates(GripperStates& output) const;
 
 private:
     class Impl;
