@@ -99,21 +99,16 @@ public:
      * @brief [Non-blocking] Check if the robot is in fault state.
      * @return True: robot has fault, false: robot normal.
      */
-    bool isFault(void) const;
+    bool isFault() const;
 
     /**
      * @brief [Blocking] Clear minor fault of the robot.
-     * @throw std::runtime_error if failed to execute the request.
-     * @note This function blocks until the request is successfully executed.
+     * @return True: successfully cleared fault, false: cannot clear fault.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note This function blocks until robot fault is successfully cleared or maximum number of
+     * attempts is reached.
      */
-    void clearFault(void);
-
-    /**
-     * @brief [Non-blocking] Get error message from the robot.
-     * @return Error message if the robot is in fault state (isFault() returns true), empty
-     * otherwise.
-     */
-    std::string getErrorMessage(void) const;
+    bool clearFault();
 
     /**
      * @brief [Non-blocking] Check if the robot is currently executing a task. This includes any
