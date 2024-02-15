@@ -205,44 +205,37 @@ public:
     /**
      * @brief [Blocking] Execute a plan by specifying its index.
      * @param[in] index Index of the plan to execute, can be obtained via getPlanNameList().
-     * @param[in] velocityScale Percentage scale to adjust robot motion velocity, from 0 to 100.
-     * 100 means to move with 100% of configured motion velocity, and 0 means not moving at all.
      * @param[in] continueExec Whether to continue executing the plan when
      * the RDK program is closed or the connection is lost.
-     * @throw std::invalid_argument if [index] or [velocityScale] is outside the valid range.
+     * @throw std::invalid_argument if [index] is outside the valid range.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to execute the request.
-     * @note Applicable control mode: NRT_PLAN_EXECUTION.
-     * @note This function blocks until the request is successfully delivered to the robot.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
+     * @note This function blocks until the request is successfully delivered.
      * @note isBusy() can be used to check if a plan task has finished.
      */
-    void executePlan(
-        unsigned int index, unsigned int velocityScale = 100, bool continueExec = false);
+    void executePlan(unsigned int index, bool continueExec = false);
 
     /**
      * @brief [Blocking] Execute a plan by specifying its name.
      * @param[in] name Name of the plan to execute, can be obtained via getPlanNameList().
-     * @param[in] velocityScale Percentage scale to adjust robot motion velocity, from 0 to 100.
-     * 100 means to move with 100% of configured motion velocity, and 0 means not moving at all.
      * @param[in] continueExec Whether to continue executing the plan when
      * the RDK program is closed or the connection is lost.
-     * @throw std::invalid_argument if [velocityScale] is outside the valid range.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to execute the request.
-     * @note Applicable control mode: NRT_PLAN_EXECUTION.
-     * @note This function blocks until the request is successfully delivered to the robot.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
+     * @note This function blocks until the request is successfully delivered.
      * @note isBusy() can be used to check if a plan task has finished.
      */
-    void executePlan(
-        const std::string& name, unsigned int velocityScale = 100, bool continueExec = false);
+    void executePlan(const std::string& name, bool continueExec = false);
 
     /**
      * @brief [Blocking] Pause or resume the execution of the current plan.
      * @param[in] pause True: pause plan, false: resume plan.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to execute the request.
-     * @note Applicable control mode: NRT_PLAN_EXECUTION.
-     * @note This function blocks until the request is successfully delivered to the robot.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
+     * @note This function blocks until the request is successfully delivered.
      */
     void pausePlan(bool pause);
 
