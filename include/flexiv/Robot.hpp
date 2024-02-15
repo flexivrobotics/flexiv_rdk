@@ -26,6 +26,8 @@ public:
     /**
      * @brief [Blocking] Create an instance as the main robot control interface. RDK services will
      * initialize and connection with the robot will be established.
+     * @param[in] robotSN Serial number of the robot to connect. The accepted formats are:
+     * "Rizon 4s-123456" and "Rizon4s-123456".
      * @throw std::runtime_error if the initialization sequence failed.
      * @throw std::logic_error if the connected robot does not have a valid RDK license; or this RDK
      * library version is incompatible with the connected robot; or model of the connected robot is
