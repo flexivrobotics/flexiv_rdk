@@ -240,12 +240,13 @@ public:
     void pausePlan(bool pause);
 
     /**
-     * @brief [Blocking] Get a list of all available plans from the robot.
+     * @brief [Blocking] Get a list of all available plans.
      * @return Available plans in the format of a string list.
-     * @throw std::runtime_error if failed to get a reply from the robot.
-     * @note This function blocks until the reply from the robot is received.
+     * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note This function blocks until a reply is received.
      */
-    std::vector<std::string> getPlanNameList(void) const;
+    std::vector<std::string> planList() const;
+    [[deprecated("Use planList() instead")]] std::vector<std::string> getPlanNameList() const;
 
     /**
      * @brief [Blocking] Get detailed information about the currently executing plan. Contains
