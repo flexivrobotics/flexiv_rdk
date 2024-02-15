@@ -51,6 +51,16 @@ public:
      */
     const RobotStates& states() const;
 
+    /**
+     * @brief [Non-blocking] Access the multilingual log messages of the connected robot.
+     * @return Robot log messages stored since the last successful instantiation of this class. Each
+     * element in the string list corresponds to one message with timestamp and log level added. New
+     * message is pushed to the back of the vector.
+     * @note Possible log level tags are: [info], [warning], [error], and [critical].
+     * @warning Messages before the last successful instantiation of this class are not available.
+     */
+    const std::vector<std::string>& muLog() const;
+
     //======================================= SYSTEM CONTROL =======================================
     /**
      * @brief [Blocking] Enable the robot, if E-stop is released and there's no fault, the robot
