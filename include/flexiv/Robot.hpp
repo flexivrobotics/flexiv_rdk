@@ -44,6 +44,13 @@ public:
      */
     RobotInfo info(void) const;
 
+    /**
+     * @brief [Non-blocking] Access the current robot states.
+     * @return RobotStates data struct.
+     * @note Real-time (RT).
+     */
+    const RobotStates& states() const;
+
     //======================================= SYSTEM CONTROL =======================================
     /**
      * @brief [Blocking] Enable the robot, if E-stop is released and there's no fault, the robot
@@ -172,7 +179,7 @@ public:
      * @param[out] output Reference to an existing RobotStates instance.
      * @note Call this function periodically to keep the output data object up to date.
      */
-    void getRobotStates(RobotStates& output) const;
+    [[deprecated("Use states() instead")]] void getRobotStates(RobotStates& output) const;
 
     /**
      * @brief [Non-blocking] Get the current robot states.
