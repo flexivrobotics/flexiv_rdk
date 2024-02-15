@@ -96,7 +96,8 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    ToolParams getCurrentToolParams(void) const;
+    ToolParams params() const;
+    [[deprecated("Use params() instead")]] ToolParams getCurrentToolParams() const;
 
     /**
      * @brief [Blocking] Get parameters of an existing tool.
@@ -106,15 +107,8 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    ToolParams getToolParams(const std::string& name) const;
-
-    /**
-     * @brief [Blocking] Get a name list of all tools currently in the tools pool.
-     * @return Tool names in the format of a string list.
-     * @throw std::runtime_error if failed to get a reply from the robot.
-     * @warning This function blocks until the reply from the robot is received.
-     */
-    std::vector<std::string> getToolList(void) const;
+    ToolParams params(const std::string& name) const;
+    [[deprecated("Use params() instead")]] ToolParams getToolParams(const std::string& name) const;
 
     /**
      * @brief [Blocking] Check if a tool exists in the tools pool.
