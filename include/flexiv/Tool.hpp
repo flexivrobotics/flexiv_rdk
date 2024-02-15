@@ -28,6 +28,15 @@ public:
     virtual ~Tool();
 
     /**
+     * @brief [Blocking] Get a name list of all tools currently in the tools pool.
+     * @return Tool names in the format of a string list.
+     * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note This function blocks until a reply is received.
+     */
+    std::vector<std::string> list() const;
+    [[deprecated("Use list() instead")]] std::vector<std::string> getToolList() const;
+
+    /**
      * @brief [Blocking] Add a new tool with user-specified parameters to the tools pool.
      * @param[in] name Name of the new tool, must be unique.
      * @param[in] params Parameters of the new tool.
