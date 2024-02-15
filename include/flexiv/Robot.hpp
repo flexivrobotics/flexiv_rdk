@@ -291,9 +291,9 @@ public:
      * to continue the execution and pause at the next breakpoint.
      * @param[in] isEnabled True: enable, false: disable. By default, breakpoint mode is disabled.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to execute the request.
-     * @note Applicable control mode: NRT_PLAN_EXECUTION.
-     * @note This function blocks until the request is successfully executed.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
+     * @note This function blocks until the request is successfully delivered.
      */
     void setBreakpointMode(bool isEnabled);
 
@@ -301,9 +301,9 @@ public:
      * @brief [Blocking] If breakpoint mode is enabled, step to the next breakpoint. The plan
      * execution will continue and pause at the next breakpoint.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to execute the request.
-     * @note Applicable control mode: NRT_PLAN_EXECUTION.
-     * @note This function blocks until the request is successfully executed.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
+     * @note This function blocks until the request is successfully delivered.
      * @note Use PlanInfo::waitingForStep to check if the plan is currently waiting for user signal
      * to step the breakpoint.
      */
@@ -315,21 +315,18 @@ public:
      * found in the [Flexiv Primitives documentation](https://www.flexiv.com/primitives/).
      * @param[in] ptCmd Primitive command with the following string format:
      * "primitiveName(inputParam1=xxx, inputParam2=xxx, ...)".
-     * @param[in] velocityScale Percentage scale to adjust robot motion velocity, from 0 to 100.
-     * 100 means to move with 100% of configured motion velocity, and 0 means not moving at all.
      * @throw std::length_error if size of ptCmd exceeds the limit (10 Kb).
-     * @throw std::invalid_argument if [velocityScale] is outside the valid range.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to execute the request.
-     * @note Applicable control mode: NRT_PRIMITIVE_EXECUTION.
-     * @note This function blocks until the request is successfully delivered to the robot.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control mode(s): NRT_PRIMITIVE_EXECUTION.
+     * @note This function blocks until the request is successfully delivered.
      * @warning The primitive input parameters may not use SI units, please refer to the Flexiv
      * Primitives documentation for exact unit definition.
      * @warning Some primitives may not terminate automatically and require users to manually
      * terminate them based on specific primitive states, for example, most [Move] primitives. In
      * such case, isBusy() will stay true even if it seems everything is done for that primitive.
      */
-    void executePrimitive(const std::string& ptCmd, unsigned int velocityScale = 100);
+    void executePrimitive(const std::string& ptCmd);
 
     /**
      * @brief [Blocking] Get feedback states of the currently executing primitive.
