@@ -74,7 +74,15 @@ enum Mode
      * @see flexiv::Robot::sendCartesianMotionForce()
      */
     NRT_CARTESIAN_MOTION_FORCE,
+
+    /** Total number of control modes */
+    MODES_CNT,
 };
+
+/** String names of the above control modes */
+static const std::array<std::string, MODES_CNT> k_modeNames = {"UNKNOWN", "IDLE", "RT_JOINT_TORQUE",
+    "RT_JOINT_POSITION", "NRT_JOINT_POSITION", "NRT_PLAN_EXECUTION", "NRT_PRIMITIVE_EXECUTION",
+    "RT_CARTESIAN_MOTION_FORCE", "NRT_CARTESIAN_MOTION_FORCE"};
 
 } /* namespace flexiv */
 
