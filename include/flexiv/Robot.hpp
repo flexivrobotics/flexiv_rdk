@@ -456,11 +456,16 @@ public:
      * \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y,
      * f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
      * @param[in] maxLinearVel  Maximum Cartesian linear velocity when moving to the target pose.
-     * Default maximum linear velocity is used when set to 0. Unit: \f$ [m/s] \f$.
+     * A safe value is provided as default. Unit: \f$ [m/s] \f$.
      * @param[in] maxAngularVel  Maximum Cartesian angular velocity when moving to the target pose.
-     * Default maximum angular velocity is used when set to 0. Unit: \f$ [rad/s] \f$.
+     * A safe value is provided as default. Unit: \f$ [rad/s] \f$.
+     * @param[in] maxLinearAcc  Maximum Cartesian linear acceleration when moving to the target
+     * pose. A safe value is provided as default. Unit: \f$ [m/s^2] \f$.
+     * @param[in] maxAngularAcc  Maximum Cartesian angular acceleration when moving to the target
+     * pose. A safe value is provided as default. Unit: \f$ [rad/s^2] \f$.
+     * @throw std::invalid_argument if any of the last 4 input parameters is negative.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @note Applicable control modes: NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control mode(s): NRT_CARTESIAN_MOTION_FORCE.
      * @par How to achieve pure motion control?
      * Use setForceControlAxis() to disable force control for all Cartesian axes to achieve pure
      * motion control. This function does pure motion control out of the box.
@@ -475,8 +480,8 @@ public:
      * setForceControlAxis(), setForceControlFrame(), setPassiveForceControl().
      */
     void sendCartesianMotionForce(const std::array<double, k_poseSize>& pose,
-        const std::array<double, k_cartDOF>& wrench = {}, double maxLinearVel = 0.0,
-        double maxAngularVel = 0.0);
+        const std::array<double, k_cartDOF>& wrench = {}, double maxLinearVel = 0.5,
+        double maxAngularVel = 1.0, double maxLinearAcc = 2.0, double maxAngularAcc = 5.0);
 
     /**
      * @brief [Non-blocking] Set motion stiffness for the Cartesian motion-force control modes.
