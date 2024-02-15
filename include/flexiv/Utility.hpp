@@ -125,6 +125,10 @@ inline std::string parsePtStates(
     const std::vector<std::string>& ptStates, const std::string& parseTarget)
 {
     for (const auto& state : ptStates) {
+        // Skip if empty
+        if (state.empty()) {
+            continue;
+        }
         std::stringstream ss(state);
         std::string buffer;
         std::vector<std::string> parsedState;
