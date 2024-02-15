@@ -63,7 +63,9 @@ public:
      * tool is mounted.
      * @throw std::out_of_range if the specified linkName does not exist.
      */
-    const Eigen::MatrixXd getJacobian(const std::string& linkName);
+    const Eigen::MatrixXd J(const std::string& linkName);
+    [[deprecated("Use J() instead")]] const Eigen::MatrixXd getJacobian(
+        const std::string& linkName);
 
     /**
      * @brief [Non-blocking] Compute and get the time derivative of Jacobian matrix at the frame of
@@ -77,7 +79,9 @@ public:
      * tool is mounted.
      * @throw std::out_of_range if the specified linkName does not exist.
      */
-    const Eigen::MatrixXd getJacobianDot(const std::string& linkName);
+    const Eigen::MatrixXd dJ(const std::string& linkName);
+    [[deprecated("Use dJ() instead")]] const Eigen::MatrixXd getJacobianDot(
+        const std::string& linkName);
 
     /**
      * @brief [Non-blocking] Compute and get the mass matrix for the generalized coordinates, i.e.
@@ -86,7 +90,8 @@ public:
      * \f$. Unit: \f$ [kgm^2] \f$.
      * @note Call update() before this method.
      */
-    const Eigen::MatrixXd getMassMatrix();
+    const Eigen::MatrixXd M();
+    [[deprecated("Use M() instead")]] const Eigen::MatrixXd getMassMatrix();
 
     /**
      * @brief [Non-blocking] Compute and get the Coriolis/centripetal matrix for the generalized
@@ -94,7 +99,8 @@ public:
      * @return Coriolis/centripetal matrix: \f$ C(q,\dot{q}) \in \mathbb{R}^{n \times n} \f$.
      * @note Call update() before this method.
      */
-    const Eigen::MatrixXd getCoriolisMatrix();
+    const Eigen::MatrixXd C();
+    [[deprecated("Use C() instead")]] const Eigen::MatrixXd getCoriolisMatrix();
 
     /**
      * @brief [Non-blocking] Compute and get the gravity force vector for the generalized
@@ -102,7 +108,8 @@ public:
      * @return Gravity force vector: \f$ g(q) \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm] \f$.
      * @note Call update() before this method.
      */
-    const Eigen::VectorXd getGravityForce();
+    const Eigen::VectorXd g();
+    [[deprecated("Use g() instead")]] const Eigen::VectorXd getGravityForce();
 
     /**
      * @brief [Non-blocking] Compute and get the Coriolis force vector for the generalized
@@ -111,7 +118,8 @@ public:
      * [Nm] \f$.
      * @note Call update() before this method.
      */
-    const Eigen::VectorXd getCoriolisForce();
+    const Eigen::VectorXd c();
+    [[deprecated("Use c() instead")]] const Eigen::VectorXd getCoriolisForce();
 
 private:
     class Impl;
