@@ -560,8 +560,9 @@ public:
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
      * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
-     * @warning The robot will automatically reset to its nominal preferred
-     * joint positions upon re-entering the applicable control modes.
+     * @warning Upon entering the applicable control modes, the robot will
+     * automatically set its current joint positions as the preferred joint
+     * positions.
      * @par Null-space posture control
      * Similar to human arm, a robotic arm with redundant degree(s) of
      * freedom (DOF > 6) can change its overall posture without affecting the
@@ -574,8 +575,8 @@ public:
     void setNullSpacePosture(const std::vector<double>& preferredPositions);
 
     /**
-     * @brief [Non-blocking] Reset preferred joint positions to the robot's home
-     * posture.
+     * @brief [Non-blocking] Reset preferred joint positions to the ones
+     * automatically recorded when entering the applicable control modes.
      * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
      */
     void resetNullSpacePosture(void);
