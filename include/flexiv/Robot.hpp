@@ -188,12 +188,18 @@ public:
     [[deprecated("Use states() instead")]] void getRobotStates(RobotStates& output) const;
 
     /**
-     * @brief [Non-blocking] Get the current robot states.
-     * @return RobotStates instance.
-     * @warning This function is less efficient than the other overloaded one as additional runtime
-     * memory allocation and data copying are performed.
+     * @brief [Blocking] Set overall velocity scale for robot motions during plan and primitive
+     * execution.
+     * @param[in] velocityScale Percentage scale to adjust the overall velocity of robot motions.
+     * Valid range: [0, 100]. Setting to 100 means to move with 100% of specified motion velocity,
+     * and 0 means not moving at all.
+     * @throw std::invalid_argument if [velocityScale] is outside the valid range.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control mode(s): NRT_PLAN_EXECUTION, NRT_PRIMITIVE_EXECUTION.
+     * @note This function blocks until the request is successfully delivered.
      */
-    RobotStates getRobotStates(void) const;
+    void setVelocityScale(unsigned int velocityScale);
 
     //======================================= PLAN EXECUTION =======================================
     /**
