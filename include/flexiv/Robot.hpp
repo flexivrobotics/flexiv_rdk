@@ -492,7 +492,7 @@ public:
      * \f$. Valid range: [0, RobotInfo::nominalK]. Unit: \f$ [N/m]~[Nm/rad] \f$.
      * @throw std::invalid_argument if [stiffness] contains any value outside the valid range.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
      * @warning The robot will automatically reset to its nominal stiffness upon re-entering the
      * applicable control modes.
      */
@@ -501,9 +501,9 @@ public:
     /**
      * @brief [Non-blocking] Reset motion stiffness for the Cartesian motion-force control modes to
      * nominal value.
-     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
      */
-    void resetCartesianStiffness(void);
+    void resetCartesianStiffness();
 
     /**
      * @brief [Non-blocking] Set maximum contact wrench for the motion control part of the Cartesian
@@ -516,7 +516,7 @@ public:
      * @throw std::invalid_argument if [maxWrench] contains any negative value.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @note The maximum contact wrench regulation only applies to the motion control part.
-     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
      * @warning The maximum contact wrench regulation will automatically reset to disabled upon
      * re-entering the applicable control modes.
      * @warning The maximum contact wrench regulation cannot be enabled if any of the rotational
@@ -526,9 +526,9 @@ public:
 
     /**
      * @brief [Non-blocking] Reset max contact wrench regulation to nominal state, i.e. disabled.
-     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
      */
-    void resetMaxContactWrench(void);
+    void resetMaxContactWrench();
 
     /**
      * @brief [Non-blocking] Set preferred joint positions for the null-space posture control module
@@ -539,8 +539,9 @@ public:
      * @throw std::invalid_argument if [preferredPositions] contains any value outside the valid
      * range.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
-     * @note This setting will persist across the applicable control modes until changed again.
+     * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @warning Upon entering the applicable control modes, the robot will automatically set its
+     * current joint positions as the preferred joint positions.
      * @par Null-space posture control
      * Similar to human arm, a robotic arm with redundant joint-space degree(s) of freedom (DOF > 6)
      * can change its overall posture without affecting the ongoing primary task. This is achieved
@@ -552,10 +553,11 @@ public:
     void setNullSpacePosture(const std::array<double, k_jointDOF>& preferredPositions);
 
     /**
-     * @brief [Non-blocking] Reset preferred joint positions to the robot's home posture.
-     * @note Applicable control modes: RT/NRT_CARTESIAN_MOTION_FORCE.
+     * @brief [Non-blocking] Reset preferred joint positions to the ones automatically recorded when
+     * entering the applicable control modes.
+     * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
      */
-    void resetNullSpacePosture(void);
+    void resetNullSpacePosture();
 
     /**
      * @brief [Blocking] Set force-controlled Cartesian axis(s) for the Cartesian motion-force
