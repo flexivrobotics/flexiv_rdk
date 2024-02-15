@@ -251,13 +251,14 @@ public:
     /**
      * @brief [Blocking] Get detailed information about the currently executing plan. Contains
      * information like plan name, primitive name, node name, node path, node path time period, etc.
-     * @return PlanInfo instance.
+     * @return PlanInfo data struct.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to get a reply from the robot.
-     * @note Applicable control mode: NRT_PLAN_EXECUTION.
-     * @note This function blocks until the reply from the robot is received.
+     * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
+     * @note This function blocks until a reply is received.
      */
-    PlanInfo getPlanInfo(void) const;
+    PlanInfo planInfo() const;
+    [[deprecated("Use planInfo() instead")]] PlanInfo getPlanInfo() const;
 
     /**
      * @brief [Blocking] Set global variables for the robot by specifying name and value.
