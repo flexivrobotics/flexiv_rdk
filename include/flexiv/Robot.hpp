@@ -349,7 +349,7 @@ public:
      * allowed position range, which will trigger a safety fault that requires recovery operation.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
-     * @note Applicable control mode: RT_JOINT_TORQUE.
+     * @note Applicable control mode(s): RT_JOINT_TORQUE.
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
      */
@@ -367,7 +367,7 @@ public:
      * 1} \f$. Unit: \f$ [rad/s^2] \f$.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
-     * @note Applicable control mode: RT_JOINT_POSITION.
+     * @note Applicable control mode(s): RT_JOINT_POSITION.
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
      */
@@ -391,7 +391,7 @@ public:
      * @param[in] maxAcc Maximum joint accelerations for the planned trajectory: \f$ \ddot{q}_{max}
      * \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @note Applicable control mode: NRT_JOINT_POSITION.
+     * @note Applicable control mode(s): NRT_JOINT_POSITION.
      * @warning Calling this function a second time while the motion from the previous call is still
      * ongoing will trigger an online re-planning of the joint trajectory, such that the previous
      * command is aborted and the new command starts to execute.
@@ -414,9 +414,14 @@ public:
      * robot will track the target wrench using an explicit force controller. Consists of \f$
      * \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y,
      * f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
+     * @param[in] acceleration Target TCP acceleration (linear and angular) in world frame: \f$
+     * ^{0}\ddot{x}_d \in \mathbb{R}^{6 \times 1} \f$. Feeding forward target acceleration can
+     * improve the robot's tracking performance for highly dynamic motions. But it's also okay to
+     * leave this input 0. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear and \f$
+     * \mathbb{R}^{3 \times 1} \f$ angular acceleration. Unit: \f$ [m/s^2]~[rad/s^2] \f$.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
-     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE.
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous motion commands to avoid sudden movements. The
      * force commands don't need to be continuous.
@@ -434,7 +439,8 @@ public:
      * setForceControlAxis(), setForceControlFrame(), setPassiveForceControl().
      */
     void streamCartesianMotionForce(const std::array<double, k_poseSize>& pose,
-        const std::array<double, k_cartDOF>& wrench = {});
+        const std::array<double, k_cartDOF>& wrench = {},
+        const std::array<double, k_cartDOF>& acceleration = {});
 
     /**
      * @brief [Non-blocking] Discretely send Cartesian motion and/or force command for the robot to
