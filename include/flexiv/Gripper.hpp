@@ -13,13 +13,13 @@ namespace flexiv {
 
 /**
  * @class Gripper
- * @brief Interface with grippers supported by Flexiv.
+ * @brief Interface with the robot gripper.
  */
 class Gripper
 {
 public:
     /**
-     * @brief [Non-blocking] Create a flexiv::Gripper instance and initialize robot gripper control.
+     * @brief [Non-blocking] Create an instance and initialize gripper control interface.
      * @param[in] robot Reference to the instance of flexiv::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */

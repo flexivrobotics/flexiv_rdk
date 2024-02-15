@@ -24,9 +24,8 @@ class Robot
 {
 public:
     /**
-     * @brief [Blocking] Create a flexiv::Robot instance as the main robot interface. RDK services
-     * will initialize and connection with the robot will be established.
-     * @param[in] robotSN Serial number of the robot to connect.
+     * @brief [Blocking] Create an instance as the main robot control interface. RDK services will
+     * initialize and connection with the robot will be established.
      * @throw std::runtime_error if the initialization sequence failed.
      * @throw std::logic_error if the connected robot does not have a valid RDK license; or this RDK
      * library version is incompatible with the connected robot; or model of the connected robot is
@@ -48,23 +47,23 @@ public:
      * @brief [Blocking] Enable the robot, if E-stop is released and there's no fault, the robot
      * will release brakes, and becomes operational a few seconds later.
      * @throw std::logic_error if the robot is not connected.
-     * @throw std::runtime_error if failed to execute the request.
-     * @note This function blocks until the request is successfully executed.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note This function blocks until the request is successfully delivered.
      */
-    void enable(void);
+    void enable();
 
     /**
      * @brief [Blocking] Stop the robot and transit robot mode to Idle.
      * @throw std::runtime_error if failed to stop the robot.
      * @note This function blocks until the robot comes to a complete stop.
      */
-    void stop(void);
+    void stop();
 
     /**
      * @brief [Non-blocking] Check if the robot has come to a complete stop.
      * @return True: stopped, false: still moving.
      */
-    bool isStopped(void) const;
+    bool isStopped() const;
 
     /**
      * @brief [Non-blocking] Check if the robot is normally operational, which requires the
@@ -104,25 +103,25 @@ public:
      * @return True: busy, false: idle.
      * @warning Some exceptions exist for primitives, see executePrimitive() for more details.
      */
-    bool isBusy(void) const;
+    bool isBusy() const;
 
     /**
      * @brief [Non-blocking] Check if the connection with the robot is established.
      * @return True: connected, false: disconnected.
      */
-    bool isConnected(void) const;
+    bool isConnected() const;
 
     /**
      * @brief [Non-blocking] Check if the emergency stop is released.
      * @return True: released, false: pressed.
      */
-    bool isEstopReleased(void) const;
+    bool isEstopReleased() const;
 
     /**
      * @brief [Non-blocking] Check if the enabling button is pressed.
      * @return True: pressed, false: released.
      */
-    bool isEnablingButtonPressed(void) const;
+    bool isEnablingButtonPressed() const;
 
     /**
      * @brief [Non-blocking] Check if the robot system is in recovery state.
@@ -134,7 +133,7 @@ public:
      * joints that moved outside the allowed position range will need to move very slowly back into
      * the allowed range). Refer to user manual for more details about system recovery state.
      */
-    bool isRecoveryState(void) const;
+    bool isRecoveryState() const;
 
     /**
      * @brief [Blocking] Run automatic recovery to bring joints that are outside the allowed
@@ -144,7 +143,7 @@ public:
      * @note This function blocks until the automatic recovery process is finished.
      * @see isRecoveryState()
      */
-    void runAutoRecovery(void);
+    void runAutoRecovery();
 
     /**
      * @brief [Blocking] Set a new control mode and wait until the mode transition is finished.

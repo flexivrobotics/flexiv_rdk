@@ -21,7 +21,7 @@ class Scheduler
 {
 public:
     /**
-     * @brief [Blocking] Create a flexiv::Scheduler instance and initialize the real-time scheduler.
+     * @brief [Blocking] Create an instance and initialize the real-time scheduler.
      * @throw std::runtime_error if the initialization sequence failed.
      * @warning This constructor blocks until the initialization sequence is successfully finished.
      */
@@ -68,7 +68,7 @@ public:
      * task and the periodic execution will begin.
      * @throw std::logic_error if the scheduler is not initialized yet.
      * @throw std::runtime_error if failed to start the tasks.
-     * @warning This function blocks until all added tasks are started.
+     * @note This function blocks until all added tasks are started.
      */
     void start();
 
@@ -78,7 +78,7 @@ public:
      * @throw std::logic_error if the scheduler is not initialized or the tasks are not started yet.
      * @throw std::runtime_error if failed to stop the tasks.
      * @note Calling start() again can restart the added tasks.
-     * @warning This function blocks until all task threads have exited and resources are released.
+     * @note This function blocks until all task threads have exited and resources are released.
      * @warning This function cannot be called from within a task thread.
      */
     void stop();

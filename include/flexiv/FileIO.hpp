@@ -19,8 +19,7 @@ class FileIO
 {
 public:
     /**
-     * @brief [Non-blocking] Create a flexiv::FileIO instance and initialize file transfer
-     * interface.
+     * @brief [Non-blocking] Create an instance and initialize file transfer interface.
      * @param[in] robot Reference to the instance of flexiv::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */
@@ -33,11 +32,11 @@ public:
      * upload, e.g. /home/user/Documents/. Do not include the file name here.
      * @param[in] fileName Full name of the trajectory file to upload, including the suffix, e.g.
      * PolishSpiral.traj. Do not include the directory path here.
-     * @note Applicable control modes: IDLE.
      * @throw std::invalid_argument if failed to find or load the specified file.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to transfer the file.
-     * @warning This function blocks until the file is successfully uploaded.
+     * @note Applicable control modes: IDLE.
+     * @note This function blocks until the file is successfully uploaded.
      */
     void uploadTrajFile(const std::string& fileDir, const std::string& fileName);
 

@@ -20,8 +20,7 @@ class Model
 {
 public:
     /**
-     * @brief [Non-blocking] Create a flexiv::Model instance and initialize the integrated dynamics
-     * engine.
+     * @brief [Non-blocking] Create an instance and initialize the integrated dynamics engine.
      * @param[in] robot Reference to the instance of flexiv::Robot.
      * @param[in] gravityEarth Earth's gravity vector in base frame. Default to \f$ [0.0, 0.0,
      * -9.81]^T \f$. Unit: \f$ [m/s^2] \f$.
@@ -38,10 +37,10 @@ public:
      * Tool model is also synced.
      * @throw std::runtime_error if failed to sync model data.
      * @throw std::logic_error if the synced robot model contains invalid data.
+     * @note This function blocks until the model data is synced and the reloading is finished.
      * @note Call this function if the robot tool has changed.
-     * @warning This function blocks until the model data is synced and the reloading is finished.
      */
-    void reload(void);
+    void reload();
 
     /**
      * @brief [Non-blocking] Update robot model using new joint states data.
