@@ -331,10 +331,13 @@ public:
     /**
      * @brief [Blocking] Get feedback states of the currently executing primitive.
      * @return Primitive states in the format of a string list.
-     * @throw std::runtime_error if failed to get a reply from the robot.
-     * @note This function blocks until the reply from the robot is received.
+     * @throw std::runtime_error if failed to get a reply from the connected robot or the result is
+     * invalid.
+     * @note This function blocks until a reply is received.
      */
-    std::vector<std::string> getPrimitiveStates(void) const;
+    std::vector<std::string> primitiveStates() const;
+    [[deprecated("Use primitiveStates() instead")]] std::vector<std::string> getPrimitiveStates(
+        void) const;
 
     //==================================== DIRECT JOINT CONTROL ====================================
     /**
