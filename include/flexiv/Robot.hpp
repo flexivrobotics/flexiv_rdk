@@ -467,11 +467,11 @@ public:
      * \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x,
      * f_y, f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
      * @param[in] maxLinearVel  Maximum Cartesian linear velocity when moving to
-     * the target pose. Default maximum linear velocity is used when set to 0.
-     * Unit: \f$ [m/s] \f$.
+     * the target pose. A safe value is provided as default. Unit: \f$ [m/s]
+     * \f$.
      * @param[in] maxAngularVel  Maximum Cartesian angular velocity when moving
-     * to the target pose. Default maximum angular velocity is used when set to
-     * 0. Unit: \f$ [rad/s] \f$.
+     * to the target pose. A safe value is provided as default. Unit: \f$
+     * [rad/s] \f$.
      * @throw InputException if input is invalid.
      * @throw LogicException if robot is not in the correct control mode.
      * @throw ExecutionException if error occurred during execution.
@@ -494,7 +494,7 @@ public:
      */
     void sendCartesianMotionForce(const std::vector<double>& pose,
         const std::vector<double>& wrench = std::vector<double>(6),
-        double maxLinearVel = 0.0, double maxAngularVel = 0.0);
+        double maxLinearVel = 0.5, double maxAngularVel = 1.0);
 
     /**
      * @brief [Non-blocking] Set motion stiffness for the Cartesian motion-force
