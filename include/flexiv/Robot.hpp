@@ -573,9 +573,9 @@ public:
      * \f$.
      * @throw std::invalid_argument if [maxLinearVel] contains any value outside the valid range.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to execute the request.
-     * @note Applicable control modes: IDLE.
-     * @note This function blocks until the request is successfully executed.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control mode(s): IDLE.
+     * @note This function blocks until the request is successfully delivered.
      * @warning The maximum linear velocity protection for force control axes is only effective
      * under active force control (passive force control disabled), see setPassiveForceControl().
      * @warning Upon disconnection, force control axes will be reset to all disabled and maximum
@@ -592,9 +592,9 @@ public:
      * selected reference frame. By default, world frame is used for force control.
      * @throw std::invalid_argument if [referenceFrame] is invalid.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to execute the request.
-     * @note Applicable control modes: IDLE.
-     * @note This function blocks until the request is successfully executed.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control mode(s): IDLE.
+     * @note This function blocks until the request is successfully delivered.
      * @warning Upon disconnection, this setting will be reset to world frame.
      * @par Force control reference frame
      * In Cartesian motion-force control modes, the reference frame of motion control is always the
@@ -621,9 +621,9 @@ public:
      * @param[in] isEnabled True: enable, false: disable. By default, passive force control is
      * disabled and active force control is used.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to execute the request.
-     * @note Applicable control modes: IDLE.
-     * @note This function blocks until the request is successfully executed.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control mode(s): IDLE.
+     * @note This function blocks until the request is successfully delivered.
      * @warning Upon disconnection, this setting will be reset to disabled.
      * @par Difference between active and passive force control
      * Active force control uses a feedback loop to reduce the error between target wrench and
@@ -645,8 +645,8 @@ public:
      * false: set port low. Vector size must match the size of portIdx.
      * @throw std::invalid_argument if [portIdx] contains any index number outside the valid range.
      * @throw std::length_error if the two input vectors have different sizes.
-     * @throw std::runtime_error if failed to execute the request.
-     * @note This function blocks until the request is successfully executed.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note This function blocks until the request is successfully delivered.
      */
     void writeDigitalOutput(
         const std::vector<unsigned int>& portIdx, const std::vector<bool>& values);
@@ -656,7 +656,7 @@ public:
      * @return Digital input readings array whose index corresponds to the digital input port index.
      * True: port high, false: port low.
      */
-    std::array<bool, k_IOPorts> readDigitalInput(void);
+    std::array<bool, k_IOPorts> readDigitalInput();
 
 private:
     class Impl;
@@ -664,6 +664,7 @@ private:
 
     friend class Model;
     friend class Gripper;
+    friend class Device;
     friend class Tool;
     friend class FileIO;
 };
