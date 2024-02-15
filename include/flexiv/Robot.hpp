@@ -266,9 +266,9 @@ public:
      * globalVar1=value(s), globalVar2=value(s), ...
      * @throw std::length_error if size of globalVars exceeds the limit (10 Kb).
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to execute the request.
-     * @note Applicable control mode: NRT_PLAN_EXECUTION.
-     * @note This function blocks until the request is successfully delivered to the robot.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
+     * @note This function blocks until the request is successfully delivered.
      * @warning The specified global variable(s) must have already been created in the robot using
      * Flexiv Elements, otherwise setting a nonexistent global variable will have no effect. To
      * check if a global variable is successfully set, use getGlobalVariables().
@@ -278,10 +278,12 @@ public:
     /**
      * @brief [Blocking] Get available global variables from the robot.
      * @return Global variables in the format of a string list.
-     * @throw std::runtime_error if failed to get a reply from the robot.
-     * @note This function blocks until the reply from the robot is received.
+     * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note This function blocks until a reply is received.
      */
-    std::vector<std::string> getGlobalVariables(void) const;
+    std::vector<std::string> globalVariables() const;
+    [[deprecated("Use globalVariables() instead")]] std::vector<std::string> getGlobalVariables(
+        void) const;
 
     /**
      * @brief [Blocking] Enable or disable the breakpoint mode during plan execution. When enabled,
