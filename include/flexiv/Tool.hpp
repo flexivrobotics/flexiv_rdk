@@ -86,7 +86,8 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    std::string getCurrentToolName(void) const;
+    std::string name() const;
+    [[deprecated("Use name() instead")]] std::string getCurrentToolName() const;
 
     /**
      * @brief [Blocking] Get parameters of the tool that the robot is currently using.
