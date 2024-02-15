@@ -40,9 +40,9 @@ public:
 
     /**
      * @brief [Non-blocking] Access general information of the robot.
-     * @return RobotInfo instance.
+     * @return RobotInfo data struct.
      */
-    RobotInfo info(void) const;
+    const RobotInfo& info() const;
 
     /**
      * @brief [Non-blocking] Access the current robot states.
