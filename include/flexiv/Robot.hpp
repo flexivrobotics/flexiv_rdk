@@ -174,10 +174,11 @@ public:
     void setMode(Mode mode);
 
     /**
-     * @brief [Non-blocking] Get the current control mode of the robot.
+     * @brief [Non-blocking] Access current control mode of the connected robot.
      * @return flexiv::Mode enum.
      */
-    Mode getMode(void) const;
+    Mode mode() const;
+    [[deprecated("Use mode() instead")]] Mode getMode() const;
 
     /**
      * @brief [Non-blocking] Get the current robot states.
