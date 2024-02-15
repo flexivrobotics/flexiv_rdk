@@ -46,12 +46,6 @@ struct RobotInfo
     std::array<double, k_cartDOF> nominalK = {};
 
     /**
-     * Joint positions of the robot's home posture: \f$ q_{home} \in \mathbb{R}^{n \times 1} \f$.
-     * Unit: \f$ [rad] \f$.
-     */
-    std::array<double, k_jointDOF> qHome = {};
-
-    /**
      * Lower limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [rad] \f$.
      */
