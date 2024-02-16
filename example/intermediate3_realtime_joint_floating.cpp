@@ -52,7 +52,7 @@ void printHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& robotStates)
+void periodicTask(flexiv::Robot& robot, flexiv::Log& log)
 {
     try {
         // Monitor fault on the connected robot
@@ -61,15 +61,12 @@ void periodicTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& r
                 "periodicTask: Fault occurred on the connected robot, exiting ...");
         }
 
-        // Read robot states
-        robot.getRobotStates(robotStates);
-
         // Set 0 joint torques
         std::array<double, flexiv::k_jointDOF> targetTorque = {};
 
         // Add some velocity damping
         for (size_t i = 0; i < flexiv::k_jointDOF; ++i) {
-            targetTorque[i] += -k_floatingDamping[i] * robotStates.dtheta[i];
+            targetTorque[i] += -k_floatingDamping[i] * robot.states().dtheta[i];
         }
 
         // Send target joint torque to RDK server, enable gravity compensation and joint limits soft
@@ -106,9 +103,6 @@ int main(int argc, char* argv[])
         // =========================================================================================
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
-
-        // Create data struct for storing robot states
-        flexiv::RobotStates robotStates;
 
         // Clear fault on the connected robot if any
         if (robot.isFault()) {
@@ -149,9 +143,8 @@ int main(int argc, char* argv[])
         // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(periodicTask, std::ref(robot), std::ref(log), std::ref(robotStates)),
-            "HP periodic", 1, scheduler.maxPriority());
+        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(log)), "HP periodic", 1,
+            scheduler.maxPriority());
         // Start all added tasks
         scheduler.start();
 

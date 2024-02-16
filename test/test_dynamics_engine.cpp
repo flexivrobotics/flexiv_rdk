@@ -37,16 +37,13 @@ void stepDynamics(flexiv::Robot& robot, flexiv::Model& model, const GroundTruth&
     // Mark timer start point
     auto tic = std::chrono::high_resolution_clock::now();
 
-    // Get current robot states
-    auto robotStates = robot.getRobotStates();
-
     // Update robot model in dynamics engine
-    model.update(robotStates.q, robotStates.dtheta);
+    model.update(robot.states().q, robot.states().dtheta);
 
     // Get J, M, G from dynamic engine
-    Eigen::MatrixXd J = model.getJacobian("flange");
-    Eigen::MatrixXd M = model.getMassMatrix();
-    Eigen::VectorXd G = model.getGravityForce();
+    Eigen::MatrixXd J = model.J("flange");
+    Eigen::MatrixXd M = model.M();
+    Eigen::VectorXd G = model.g();
 
     // Get and print computation time
     auto toc = std::chrono::high_resolution_clock::now();
@@ -228,7 +225,7 @@ int main(int argc, char* argv[])
         tool.switchTo(toolName);
 
         // Get and print the current active tool, should be the test tool
-        log.info("Current active tool: " + tool.getCurrentToolName());
+        log.info("Current active tool: " + tool.name());
 
         // Reload robot + tool model using the latest data synced from the connected robot
         model.reload();

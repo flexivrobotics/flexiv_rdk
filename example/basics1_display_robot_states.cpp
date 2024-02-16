@@ -39,10 +39,8 @@ void printRobotStates(flexiv::Robot& robot, flexiv::Log& log)
 {
     while (true) {
         // Print all robot states in JSON format using the built-in ostream operator overloading
-        // Note: because this is not a performance-critical loop, we can use the
-        // return-by-value-copy version of getRobotStates()
         log.info("Current robot states:");
-        std::cout << robot.getRobotStates() << std::endl;
+        std::cout << robot.states() << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }

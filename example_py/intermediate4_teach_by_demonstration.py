@@ -89,9 +89,6 @@ def main():
         # Recorded robot poses
         saved_poses = []
 
-        # Robot states data
-        robot_states = flexivrdk.RobotStates()
-
         # Acceptable user inputs
         log.info("Accepted key inputs:")
         print("[n] - start new teaching process")
@@ -123,9 +120,8 @@ def main():
                     log.warn("Please start a new teaching process first")
                     continue
 
-                robot.getRobotStates(robot_states)
-                saved_poses.append(robot_states.tcpPose)
-                log.info("New pose saved: " + str(robot_states.tcpPose))
+                saved_poses.append(robot.states().tcpPose)
+                log.info("New pose saved: " + str(robot.states().tcpPose))
                 log.info("Number of saved poses: " + str(len(saved_poses)))
             # Reproduce recorded poses
             elif input_buffer == "e":
@@ -167,8 +163,7 @@ def main():
                     # Wait for robot to reach target location by checking for "reachedTarget = 1"
                     # in the list of current primitive states
                     while (
-                        parse_pt_states(robot.getPrimitiveStates(), "reachedTarget")
-                        != "1"
+                        parse_pt_states(robot.primitiveStates(), "reachedTarget") != "1"
                     ):
                         time.sleep(1)
 

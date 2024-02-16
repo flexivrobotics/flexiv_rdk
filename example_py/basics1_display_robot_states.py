@@ -40,28 +40,25 @@ def print_robot_states(robot, log):
     """
 
     while True:
-        # Get the latest robot states
-        robot_states = robot.getRobotStates()
-
         # Print all gripper states, round all float values to 2 decimals
         log.info("Current robot states:")
         # fmt: off
         print("{")
-        print("q: ",  ['%.2f' % i for i in robot_states.q])
-        print("theta: ", ['%.2f' % i for i in robot_states.theta])
-        print("dq: ", ['%.2f' % i for i in robot_states.dq])
-        print("dtheta: ", ['%.2f' % i for i in robot_states.dtheta])
-        print("tau: ", ['%.2f' % i for i in robot_states.tau])
-        print("tau_des: ", ['%.2f' % i for i in robot_states.tauDes])
-        print("tau_dot: ", ['%.2f' % i for i in robot_states.tauDot])
-        print("tau_ext: ", ['%.2f' % i for i in robot_states.tauExt])
-        print("tcp_pose: ", ['%.2f' % i for i in robot_states.tcpPose])
-        print("tcp_pose_d: ", ['%.2f' % i for i in robot_states.tcpPoseDes])
-        print("tcp_velocity: ", ['%.2f' % i for i in robot_states.tcpVel])
-        print("flange_pose: ", ['%.2f' % i for i in robot_states.flangePose])
-        print("FT_sensor_raw_reading: ", ['%.2f' % i for i in robot_states.ftSensorRaw])
-        print("F_ext_tcp_frame: ", ['%.2f' % i for i in robot_states.extWrenchInTcp])
-        print("F_ext_world_frame: ", ['%.2f' % i for i in robot_states.extWrenchInWorld])
+        print("q: ",  ['%.2f' % i for i in robot.states().q])
+        print("theta: ", ['%.2f' % i for i in robot.states().theta])
+        print("dq: ", ['%.2f' % i for i in robot.states().dq])
+        print("dtheta: ", ['%.2f' % i for i in robot.states().dtheta])
+        print("tau: ", ['%.2f' % i for i in robot.states().tau])
+        print("tau_des: ", ['%.2f' % i for i in robot.states().tauDes])
+        print("tau_dot: ", ['%.2f' % i for i in robot.states().tauDot])
+        print("tau_ext: ", ['%.2f' % i for i in robot.states().tauExt])
+        print("tcp_pose: ", ['%.2f' % i for i in robot.states().tcpPose])
+        print("tcp_pose_d: ", ['%.2f' % i for i in robot.states().tcpPoseDes])
+        print("tcp_velocity: ", ['%.2f' % i for i in robot.states().tcpVel])
+        print("flange_pose: ", ['%.2f' % i for i in robot.states().flangePose])
+        print("FT_sensor_raw_reading: ", ['%.2f' % i for i in robot.states().ftSensorRaw])
+        print("F_ext_tcp_frame: ", ['%.2f' % i for i in robot.states().extWrenchInTcp])
+        print("F_ext_world_frame: ", ['%.2f' % i for i in robot.states().extWrenchInWorld])
         print("}")
         # fmt: on
         time.sleep(1)

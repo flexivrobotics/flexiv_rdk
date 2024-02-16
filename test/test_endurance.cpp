@@ -48,8 +48,8 @@ struct LogData
 std::atomic<bool> g_stop = {false};
 }
 
-void highPriorityTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& robotStates,
-    const std::array<double, flexiv::k_poseSize>& initPose)
+void highPriorityTask(
+    flexiv::Robot& robot, flexiv::Log& log, const std::array<double, flexiv::k_poseSize>& initPose)
 {
     // Local periodic loop counter
     static uint64_t loopCounter = 0;
@@ -61,9 +61,6 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotState
                 "highPriorityTask: Fault occurred on the connected robot, exiting ...");
         }
 
-        // Read robot states
-        robot.getRobotStates(robotStates);
-
         // Swing along Z direction
         g_currentTcpPose[2]
             = initPose[2] + k_swingAmp * sin(2 * M_PI * k_swingFreq * loopCounter * k_loopPeriod);
@@ -71,8 +68,8 @@ void highPriorityTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotState
 
         // Save data to global buffer, not using mutex to avoid interruption on RT loop from
         // potential priority inversion
-        g_logData.tcpPose = robotStates.tcpPose;
-        g_logData.tcpForce = robotStates.extWrenchInWorld;
+        g_logData.tcpPose = robot.states().tcpPose;
+        g_logData.tcpForce = robot.states().extWrenchInWorld;
 
         // Stop after test duration has elapsed
         if (++loopCounter > g_testDurationLoopCounts) {
@@ -201,9 +198,6 @@ int main(int argc, char* argv[])
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
-        // create data struct for storing robot states
-        flexiv::RobotStates robotStates;
-
         // Clear fault on the connected robot if any
         if (robot.isFault()) {
             log.warn("Fault occurred on the connected robot, trying to clear ...");
@@ -239,7 +233,7 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE);
 
         // Set initial pose to current TCP pose
-        auto initPose = robot.getRobotStates().tcpPose;
+        auto initPose = robot.states().tcpPose;
         log.info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
                  + flexiv::utility::arr2Str(initPose));
         g_currentTcpPose = initPose;
@@ -248,8 +242,8 @@ int main(int argc, char* argv[])
         //==========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(highPriorityTask, std::ref(robot), std::ref(log),
-                              std::ref(robotStates), std::ref(initPose)),
+        scheduler.addTask(
+            std::bind(highPriorityTask, std::ref(robot), std::ref(log), std::ref(initPose)),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks
         scheduler.start();

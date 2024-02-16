@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
             switch (userInput) {
                 // Get and show plan list
                 case 1: {
-                    auto planList = robot.getPlanNameList();
+                    auto planList = robot.planList();
                     for (size_t i = 0; i < planList.size(); i++) {
                         std::cout << "[" << i << "] " << planList[i] << std::endl;
                     }
@@ -122,12 +122,12 @@ int main(int argc, char* argv[])
                     std::cin >> index;
                     // Allow the plan to continue its execution even if the RDK program is closed or
                     // the connection is lost
-                    robot.executePlan(index, 100, true);
+                    robot.executePlan(index, true);
 
                     // Print plan info while the current plan is running
                     while (robot.isBusy()) {
                         log.info("===============================================");
-                        std::cout << robot.getPlanInfo() << std::endl;
+                        std::cout << robot.planInfo() << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
                 } break;
@@ -138,12 +138,12 @@ int main(int argc, char* argv[])
                     std::cin >> name;
                     // Allow the plan to continue its execution even if the RDK program is closed or
                     // the connection is lost
-                    robot.executePlan(name, 100, true);
+                    robot.executePlan(name, true);
 
                     // Print plan info while the current plan is running
                     while (robot.isBusy()) {
                         log.info("===============================================");
-                        std::cout << robot.getPlanInfo() << std::endl;
+                        std::cout << robot.planInfo() << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
                 } break;

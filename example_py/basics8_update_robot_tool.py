@@ -88,13 +88,13 @@ def main():
 
         # Get and print a list of already configured tools currently in the robot's tools pool
         log.info("All configured tools:")
-        tool_list = tool.getToolList()
+        tool_list = tool.list()
         for i in range(len(tool_list)):
             print("[" + str(i) + "]", tool_list[i])
         print()
 
         # Get and print the current active tool
-        log.info("Current active tool: " + tool.getCurrentToolName())
+        log.info("Current active tool: " + tool.name())
 
         # Set name and parameters for a new tool
         newToolName = "ExampleTool1"
@@ -120,7 +120,7 @@ def main():
 
         # Get and print the tools list again, the new tool should appear at the end
         log.info("All configured tools:")
-        tool_list = tool.getToolList()
+        tool_list = tool.list()
         for i in range(len(tool_list)):
             print("[" + str(i) + "]", tool_list[i])
         print()
@@ -130,7 +130,7 @@ def main():
         tool.switchTo(newToolName)
 
         # Get and print the current active tool again, should be the new tool
-        log.info("Current active tool: " + tool.getCurrentToolName())
+        log.info("Current active tool: " + tool.name())
 
         # Clean up by removing the new tool
         time.sleep(2)

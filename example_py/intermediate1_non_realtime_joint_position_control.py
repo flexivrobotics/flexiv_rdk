@@ -58,7 +58,6 @@ def main():
     assert frequency >= 1 and frequency <= 100, "Invalid <frequency> input"
 
     # Define alias
-    robot_states = flexivrdk.RobotStates()
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
@@ -116,12 +115,11 @@ def main():
         )
 
         # Use current robot joint positions as initial positions
-        robot.getRobotStates(robot_states)
-        init_pos = robot_states.q.copy()
+        init_pos = robot.states().q.copy()
         print("Initial positions set to: ", init_pos)
 
         # Robot degrees of freedom
-        DOF = len(robot_states.q)
+        DOF = len(robot.states().q)
 
         # Initialize target vectors
         target_pos = init_pos.copy()

@@ -44,13 +44,10 @@ void printHelp()
 /** @brief Print gripper states data @ 1Hz */
 void printGripperStates(flexiv::Gripper& gripper, flexiv::Log& log)
 {
-    // Data struct storing gripper states
-    flexiv::GripperStates gripperStates;
-
     while (!g_isDone) {
         // Print all gripper states in JSON format using the built-in ostream operator overloading
         log.info("Current gripper states:");
-        std::cout << gripper.getGripperStates() << std::endl;
+        std::cout << gripper.states() << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
@@ -141,9 +138,7 @@ int main(int argc, char* argv[])
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         // Force control, if available (sensed force is not zero)
-        flexiv::GripperStates gripperStates;
-        gripper.getGripperStates(gripperStates);
-        if (fabs(gripperStates.force) > std::numeric_limits<double>::epsilon()) {
+        if (fabs(gripper.states().force) > std::numeric_limits<double>::epsilon()) {
             log.info("Gripper running zero force control");
             gripper.grasp(0);
             // Exit after 10 seconds

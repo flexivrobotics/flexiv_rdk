@@ -63,7 +63,7 @@ void printHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& robotStates,
+void periodicTask(flexiv::Robot& robot, flexiv::Log& log,
     const std::array<double, flexiv::k_poseSize>& initPose, bool enableHold, bool enableCollision)
 {
     // Local periodic loop counter
@@ -75,9 +75,6 @@ void periodicTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& r
             throw std::runtime_error(
                 "periodicTask: Fault occurred on the connected robot, exiting ...");
         }
-
-        // Read robot states
-        robot.getRobotStates(robotStates);
 
         // Initialize target pose to initial pose
         auto targetPose = initPose;
@@ -149,12 +146,12 @@ void periodicTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& r
         // or robot body
         if (enableCollision) {
             bool collisionDetected = false;
-            Eigen::Vector3d extForce = {robotStates.extWrenchInWorld[0],
-                robotStates.extWrenchInWorld[1], robotStates.extWrenchInWorld[2]};
+            Eigen::Vector3d extForce = {robot.states().extWrenchInWorld[0],
+                robot.states().extWrenchInWorld[1], robot.states().extWrenchInWorld[2]};
             if (extForce.norm() > k_extForceThreshold) {
                 collisionDetected = true;
             }
-            for (const auto& v : robotStates.tauExt) {
+            for (const auto& v : robot.states().tauExt) {
                 if (fabs(v) > k_extTorqueThreshold) {
                     collisionDetected = true;
                 }
@@ -218,9 +215,6 @@ int main(int argc, char* argv[])
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
-        // Create data struct for storing robot states
-        flexiv::RobotStates robotStates;
-
         // Clear fault on the connected robot if any
         if (robot.isFault()) {
             log.warn("Fault occurred on the connected robot, trying to clear ...");
@@ -281,16 +275,15 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE);
 
         // Set initial pose to current TCP pose
-        auto initPose = robot.getRobotStates().tcpPose;
+        auto initPose = robot.states().tcpPose;
         log.info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
                  + flexiv::utility::arr2Str(initPose));
 
         // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(periodicTask, std::ref(robot), std::ref(log), std::ref(robotStates),
-                std::ref(initPose), enableHold, enableCollision),
+        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(log),
+                              std::ref(initPose), enableHold, enableCollision),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks
         scheduler.start();

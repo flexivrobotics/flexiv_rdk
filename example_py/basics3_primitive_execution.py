@@ -109,7 +109,7 @@ def main():
         robot.executePrimitive("MoveJ(target=30 -45 0 90 0 40 30)")
 
         # Wait for reached target
-        while parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1":
+        while parse_pt_states(robot.primitiveStates(), "reachedTarget") != "1":
             time.sleep(1)
 
         # (3) Move robot TCP to a target position in world (base) frame
@@ -136,7 +136,7 @@ def main():
         # reached target location by checking the primitive state "reachedTarget = 1" in the list
         # of current primitive states, and terminate the current primitive manually by sending a
         # new primitive command.
-        while parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1":
+        while parse_pt_states(robot.primitiveStates(), "reachedTarget") != "1":
             time.sleep(1)
 
         # (4) Another MoveL that uses TCP frame
@@ -158,7 +158,7 @@ def main():
         )
 
         # Wait for reached target
-        while parse_pt_states(robot.getPrimitiveStates(), "reachedTarget") != "1":
+        while parse_pt_states(robot.primitiveStates(), "reachedTarget") != "1":
             time.sleep(1)
 
         # All done, stop robot and put into IDLE mode

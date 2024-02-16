@@ -100,7 +100,7 @@ def main():
 
             # Get and show plan list
             if user_input == 1:
-                plan_list = robot.getPlanNameList()
+                plan_list = robot.planList()
                 for i in range(len(plan_list)):
                     print("[" + str(i) + "]", plan_list[i])
                 print("")
@@ -110,11 +110,11 @@ def main():
                 index = int(input("Enter plan index to execute:\n"))
                 # Allow the plan to continue its execution even if the RDK program is closed or
                 # the connection is lost
-                robot.executePlan(index, 100, True)
+                robot.executePlan(index, True)
 
                 # Print plan info while the current plan is running
                 while robot.isBusy():
-                    plan_info = robot.getPlanInfo()
+                    plan_info = robot.planInfo()
                     log.info(" ")
                     print("assignedPlanName: ", plan_info.assignedPlanName)
                     print("ptName: ", plan_info.ptName)
@@ -131,11 +131,11 @@ def main():
                 name = str(input("Enter plan name to execute:\n"))
                 # Allow the plan to continue its execution even if the RDK program is closed or
                 # the connection is lost
-                robot.executePlan(name, 100, True)
+                robot.executePlan(name, True)
 
                 # Print plan info while the current plan is running
                 while robot.isBusy():
-                    plan_info = robot.getPlanInfo()
+                    plan_info = robot.planInfo()
                     log.info(" ")
                     print("assignedPlanName: ", plan_info.assignedPlanName)
                     print("ptName: ", plan_info.ptName)

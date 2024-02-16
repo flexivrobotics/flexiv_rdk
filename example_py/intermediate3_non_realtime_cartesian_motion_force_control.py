@@ -166,7 +166,7 @@ def main():
         log.info("Searching for contact ...")
 
         # Set initial pose to current TCP pose
-        init_pose = robot.getRobotStates().tcpPose.copy()
+        init_pose = robot.states().tcpPose.copy()
         print(
             "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",
             init_pose,
@@ -189,15 +189,12 @@ def main():
         # Use a while loop to poll robot states and check if a contact is made
         is_contacted = False
         while not is_contacted:
-            # Get the latest robot states
-            robot_states = robot.getRobotStates()
-
             # Compute norm of sensed external force applied on robot TCP
             ext_force = np.array(
                 [
-                    robot_states.extWrenchInWorld[0],
-                    robot_states.extWrenchInWorld[1],
-                    robot_states.extWrenchInWorld[2],
+                    robot.states().extWrenchInWorld[0],
+                    robot.states().extWrenchInWorld[1],
+                    robot.states().extWrenchInWorld[2],
                 ]
             )
 
@@ -241,7 +238,7 @@ def main():
         robot.resetMaxContactWrench()
 
         # Update initial pose to current TCP pose
-        init_pose = robot.getRobotStates().tcpPose.copy()
+        init_pose = robot.states().tcpPose.copy()
         print(
             "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",
             init_pose,

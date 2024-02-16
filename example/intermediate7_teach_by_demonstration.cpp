@@ -100,9 +100,6 @@ int main(int argc, char* argv[])
         // Recorded robot poses
         std::vector<std::array<double, flexiv::k_poseSize>> savedPoses = {};
 
-        // Robot states data
-        flexiv::RobotStates robotStates = {};
-
         // Acceptable user inputs
         log.info("Accepted key inputs:");
         std::cout << "[n] - start new teaching process" << std::endl;
@@ -134,9 +131,8 @@ int main(int argc, char* argv[])
                     continue;
                 }
 
-                robot.getRobotStates(robotStates);
-                savedPoses.push_back(robotStates.tcpPose);
-                log.info("New pose saved: " + flexiv::utility::arr2Str(robotStates.tcpPose));
+                savedPoses.push_back(robot.states().tcpPose);
+                log.info("New pose saved: " + flexiv::utility::arr2Str(robot.states().tcpPose));
                 log.info("Number of saved poses: " + std::to_string(savedPoses.size()));
             }
             // Reproduce recorded poses
@@ -168,9 +164,8 @@ int main(int argc, char* argv[])
                         + flexiv::utility::arr2Str(k_maxContactWrench)+ ")");
 
                     // Wait for reached target
-                    while (
-                        flexiv::utility::parsePtStates(robot.getPrimitiveStates(), "reachedTarget")
-                        != "1") {
+                    while (flexiv::utility::parsePtStates(robot.primitiveStates(), "reachedTarget")
+                           != "1") {
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
                 }

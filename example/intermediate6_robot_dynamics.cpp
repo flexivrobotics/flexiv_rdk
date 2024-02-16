@@ -44,9 +44,6 @@ int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
     // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
-    // Data struct for storing robot states
-    flexiv::RobotStates robotStates;
-
     // Local periodic loop counter
     uint64_t loopCounter = 0;
 
@@ -64,20 +61,17 @@ int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
             // Mark timer start point
             auto tic = std::chrono::high_resolution_clock::now();
 
-            // Read robot states
-            robot.getRobotStates(robotStates);
-
             // Update robot model in dynamics engine
-            model.update(robotStates.q, robotStates.dtheta);
+            model.update(robot.states().q, robot.states().dtheta);
 
             // Compute gravity vector
-            auto g = model.getGravityForce();
+            auto g = model.g();
 
             // Compute mass matrix
-            auto M = model.getMassMatrix();
+            auto M = model.M();
 
             // Compute Jacobian
-            auto J = model.getJacobian("flange");
+            auto J = model.J("flange");
 
             // Mark timer end point and get loop time
             auto toc = std::chrono::high_resolution_clock::now();

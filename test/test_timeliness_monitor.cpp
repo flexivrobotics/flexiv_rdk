@@ -91,9 +91,6 @@ int main(int argc, char* argv[])
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
-        // create data struct for storing robot states
-        flexiv::RobotStates robotStates;
-
         // Clear fault on the connected robot if any
         if (robot.isFault()) {
             log.warn("Fault occurred on the connected robot, trying to clear ...");
@@ -119,8 +116,7 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::RT_JOINT_POSITION);
 
         // Set initial joint positions
-        robot.getRobotStates(robotStates);
-        auto initPos = robotStates.q;
+        auto initPos = robot.states().q;
         log.info("Initial joint positions set to: " + flexiv::utility::arr2Str(initPos));
         log.warn(">>>>> Simulated loop delay will be added after 5 seconds <<<<<");
 

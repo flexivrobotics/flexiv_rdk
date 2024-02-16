@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
         log.info("Searching for contact ...");
 
         // Set initial pose to current TCP pose
-        auto initPose = robot.getRobotStates().tcpPose;
+        auto initPose = robot.states().tcpPose;
         log.info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
                  + flexiv::utility::arr2Str(initPose));
 
@@ -240,12 +240,9 @@ int main(int argc, char* argv[])
         // Use a while loop to poll robot states and check if a contact is made
         bool isContacted = false;
         while (!isContacted) {
-            // Get the latest robot states
-            auto robotStates = robot.getRobotStates();
-
             // Compute norm of sensed external force applied on robot TCP
-            Eigen::Vector3d extForce = {robotStates.extWrenchInWorld[0],
-                robotStates.extWrenchInWorld[1], robotStates.extWrenchInWorld[2]};
+            Eigen::Vector3d extForce = {robot.states().extWrenchInWorld[0],
+                robot.states().extWrenchInWorld[1], robot.states().extWrenchInWorld[2]};
 
             // Contact is considered to be made if sensed TCP force exceeds the threshold
             if (extForce.norm() > k_pressingForce) {
@@ -289,7 +286,7 @@ int main(int argc, char* argv[])
         robot.resetMaxContactWrench();
 
         // Update initial pose to current TCP pose
-        initPose = robot.getRobotStates().tcpPose;
+        initPose = robot.states().tcpPose;
 
         // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;

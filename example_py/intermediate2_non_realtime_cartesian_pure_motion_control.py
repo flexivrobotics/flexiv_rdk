@@ -79,7 +79,6 @@ def main():
     assert frequency >= 1 and frequency <= 100, "Invalid <frequency> input"
 
     # Define alias
-    robot_states = flexivrdk.RobotStates()
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
@@ -162,7 +161,7 @@ def main():
         robot.setMode(mode.NRT_CARTESIAN_MOTION_FORCE)
 
         # Set initial pose to current TCP pose
-        init_pose = robot.getRobotStates().tcpPose.copy()
+        init_pose = robot.states().tcpPose.copy()
         print(
             "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",
             init_pose,
@@ -189,9 +188,6 @@ def main():
             # Monitor fault on the connected robot
             if robot.isFault():
                 raise Exception("Fault occurred on the connected robot, exiting ...")
-
-            # Read robot states
-            robot.getRobotStates(robot_states)
 
             # Initialize target pose to initial pose
             target_pose = init_pose.copy()
@@ -252,15 +248,15 @@ def main():
                 collision_detected = False
                 ext_force = np.array(
                     [
-                        robot_states.extWrenchInWorld[0],
-                        robot_states.extWrenchInWorld[1],
-                        robot_states.extWrenchInWorld[2],
+                        robot.states().extWrenchInWorld[0],
+                        robot.states().extWrenchInWorld[1],
+                        robot.states().extWrenchInWorld[2],
                     ]
                 )
                 if np.linalg.norm(ext_force) > EXT_FORCE_THRESHOLD:
                     collision_detected = True
 
-                for v in robot_states.tauExt:
+                for v in robot.states().tauExt:
                     if abs(v) > EXT_TORQUE_THRESHOLD:
                         collision_detected = True
 

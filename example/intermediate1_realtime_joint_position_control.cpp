@@ -51,8 +51,8 @@ void printHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& robotStates,
-    const std::string& motionType, const std::array<double, flexiv::k_jointDOF>& initPos)
+void periodicTask(flexiv::Robot& robot, flexiv::Log& log, const std::string& motionType,
+    const std::array<double, flexiv::k_jointDOF>& initPos)
 {
     // Local periodic loop counter
     static unsigned int loopCounter = 0;
@@ -63,9 +63,6 @@ void periodicTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& r
             throw std::runtime_error(
                 "periodicTask: Fault occurred on the connected robot, exiting ...");
         }
-
-        // Read robot states
-        robot.getRobotStates(robotStates);
 
         // Initialize target arrays to hold position
         std::array<double, flexiv::k_jointDOF> targetPos = {};
@@ -132,9 +129,6 @@ int main(int argc, char* argv[])
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
-        // Create data struct for storing robot states
-        flexiv::RobotStates robotStates;
-
         // Clear fault on the connected robot if any
         if (robot.isFault()) {
             log.warn("Fault occurred on the connected robot, trying to clear ...");
@@ -172,14 +166,14 @@ int main(int argc, char* argv[])
         robot.setMode(flexiv::Mode::RT_JOINT_POSITION);
 
         // Set initial joint positions
-        auto initPos = robot.getRobotStates().q;
+        auto initPos = robot.states().q;
         log.info("Initial joint positions set to: " + flexiv::utility::arr2Str(initPos));
 
         // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(log),
-                              std::ref(robotStates), std::ref(motionType), std::ref(initPos)),
+                              std::ref(motionType), std::ref(initPos)),
             "HP periodic", 1, scheduler.maxPriority());
         // Start all added tasks
         scheduler.start();

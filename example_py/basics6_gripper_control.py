@@ -40,19 +40,13 @@ def print_gripper_states(gripper, log):
     Print gripper states data @ 1Hz.
 
     """
-    # Data struct storing gripper states
-    gripper_states = flexivrdk.GripperStates()
-
     while not g_is_done:
-        # Get the latest gripper states
-        gripper.getGripperStates(gripper_states)
-
         # Print all gripper states, round all float values to 2 decimals
         log.info("Current gripper states:")
-        print("width: ", round(gripper_states.width, 2))
-        print("force: ", round(gripper_states.force, 2))
-        print("max_width: ", round(gripper_states.maxWidth, 2))
-        print("is_moving: ", gripper_states.isMoving)
+        print("width: ", round(gripper.states().width, 2))
+        print("force: ", round(gripper.states().force, 2))
+        print("max_width: ", round(gripper.states().maxWidth, 2))
+        print("is_moving: ", gripper.states().isMoving)
         time.sleep(1)
 
 
@@ -143,9 +137,7 @@ def main():
         time.sleep(2)
 
         # Force control, if available (sensed force is not zero)
-        gripper_states = flexivrdk.GripperStates()
-        gripper.getGripperStates(gripper_states)
-        if abs(gripper_states.force) > sys.float_info.epsilon:
+        if abs(gripper.states().force) > sys.float_info.epsilon:
             log.info("Gripper running zero force control")
             gripper.grasp(0)
             # Exit after 10 seconds
