@@ -55,10 +55,10 @@ int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             loopCounter++;
 
-            // Monitor fault on robot server
+            // Monitor fault on the connected robot
             if (robot.isFault()) {
                 throw std::runtime_error(
-                    "periodicTask: Fault occurred on robot server, exiting ...");
+                    "periodicTask: Fault occurred on the connected robot, exiting ...");
             }
 
             // Mark timer start point
@@ -129,18 +129,15 @@ int main(int argc, char* argv[])
         // Instantiate robot interface
         flexiv::Robot robot(robotSN);
 
-        // Clear fault on robot server if any
+        // Clear fault on the connected robot if any
         if (robot.isFault()) {
-            log.warn("Fault occurred on robot server, trying to clear ...");
+            log.warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
-            robot.clearFault();
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            // Check again
-            if (robot.isFault()) {
+            if (!robot.clearFault()) {
                 log.error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.info("Fault on robot server is cleared");
+            log.info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling

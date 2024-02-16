@@ -33,9 +33,10 @@ void periodicTask(
     static unsigned int loopCounter = 0;
 
     try {
-        // Monitor fault on robot server
+        // Monitor fault on the connected robot
         if (robot.isFault()) {
-            throw std::runtime_error("periodicTask: Fault occurred on robot server, exiting ...");
+            throw std::runtime_error(
+                "periodicTask: Fault occurred on the connected robot, exiting ...");
         }
         // Hold position
         std::array<double, flexiv::k_jointDOF> targetVel = {};
@@ -93,18 +94,15 @@ int main(int argc, char* argv[])
         // create data struct for storing robot states
         flexiv::RobotStates robotStates;
 
-        // Clear fault on robot server if any
+        // Clear fault on the connected robot if any
         if (robot.isFault()) {
-            log.warn("Fault occurred on robot server, trying to clear ...");
+            log.warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
-            robot.clearFault();
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            // Check again
-            if (robot.isFault()) {
+            if (!robot.clearFault()) {
                 log.error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.info("Fault on robot server is cleared");
+            log.info("Fault on the connected robot is cleared");
         }
 
         // enable the robot, make sure the E-stop is released before enabling

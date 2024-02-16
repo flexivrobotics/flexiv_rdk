@@ -62,20 +62,17 @@ int main(int argc, char* argv[])
 
         // Fault Clearing
         // =========================================================================================
-        // Check if the robot has fault
+        // Clear fault on the connected robot if any
         if (robot.isFault()) {
-            log.warn("Fault occurred on robot server, trying to clear ...");
+            log.warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
-            robot.clearFault();
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            // Check again
-            if (robot.isFault()) {
+            if (!robot.clearFault()) {
                 log.error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.info("Fault on robot server is cleared");
+            log.info("Fault on the connected robot is cleared");
         } else {
-            log.info("No fault on robot server");
+            log.info("No fault on the connected robot");
         }
     } catch (const std::exception& e) {
         log.error(e.what());

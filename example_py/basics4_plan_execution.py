@@ -62,17 +62,14 @@ def main():
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_sn)
 
-        # Clear fault on robot server if any
+        # Clear fault on the connected robot if any
         if robot.isFault():
-            log.warn("Fault occurred on robot server, trying to clear ...")
+            log.warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
-            robot.clearFault()
-            time.sleep(2)
-            # Check again
-            if robot.isFault():
+            if not robot.clearFault():
                 log.error("Fault cannot be cleared, exiting ...")
-                return
-            log.info("Fault on robot server is cleared")
+                return 1
+            log.info("Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
         log.info("Enabling robot ...")
@@ -90,9 +87,9 @@ def main():
         robot.setMode(mode.NRT_PLAN_EXECUTION)
 
         while True:
-            # Monitor fault on robot server
+            # Monitor fault on the connected robot
             if robot.isFault():
-                raise Exception("Fault occurred on robot server, exiting ...")
+                raise Exception("Fault occurred on the connected robot, exiting ...")
 
             # Get user input
             log.info("Choose an action:")
