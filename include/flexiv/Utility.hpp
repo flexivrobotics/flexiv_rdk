@@ -116,7 +116,7 @@ inline bool programArgsExist(int argc, char** argv, const std::string& refStr)
 
 /**
  * @brief Parse the value of a specified primitive state from the ptStates string list.
- * @param[in] ptStates Primitive states string list returned from Robot::getPrimitiveStates().
+ * @param[in] ptStates Primitive states string list returned from Robot::primitiveStates().
  * @param[in] parseTarget Name of the primitive state to parse for.
  * @return Value of the specified primitive state in string format. Empty string is returned if
  * parseTarget does not exist.

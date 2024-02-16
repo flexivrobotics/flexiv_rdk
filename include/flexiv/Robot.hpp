@@ -204,7 +204,7 @@ public:
     //======================================= PLAN EXECUTION =======================================
     /**
      * @brief [Blocking] Execute a plan by specifying its index.
-     * @param[in] index Index of the plan to execute, can be obtained via getPlanNameList().
+     * @param[in] index Index of the plan to execute, can be obtained via planList().
      * @param[in] continueExec Whether to continue executing the plan when
      * the RDK program is closed or the connection is lost.
      * @throw std::invalid_argument if [index] is outside the valid range.
@@ -218,7 +218,7 @@ public:
 
     /**
      * @brief [Blocking] Execute a plan by specifying its name.
-     * @param[in] name Name of the plan to execute, can be obtained via getPlanNameList().
+     * @param[in] name Name of the plan to execute, can be obtained via planList().
      * @param[in] continueExec Whether to continue executing the plan when
      * the RDK program is closed or the connection is lost.
      * @throw std::logic_error if robot is not in the correct control mode.
@@ -271,7 +271,7 @@ public:
      * @note This function blocks until the request is successfully delivered.
      * @warning The specified global variable(s) must have already been created in the robot using
      * Flexiv Elements, otherwise setting a nonexistent global variable will have no effect. To
-     * check if a global variable is successfully set, use getGlobalVariables().
+     * check if a global variable is successfully set, use globalVariables().
      */
     void setGlobalVariables(const std::string& globalVars);
 
