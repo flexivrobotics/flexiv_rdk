@@ -112,6 +112,8 @@ def main():
                 + newToolName
                 + "] already exists, removing it now"
             )
+            # Switch to other tool or no tool (Flange) before removing the current tool
+            tool.switchTo("Flange")
             tool.remove(newToolName)
 
         # Add the new tool
@@ -131,6 +133,9 @@ def main():
 
         # Get and print the current active tool again, should be the new tool
         log.info("Current active tool: " + tool.name())
+
+        # Switch to other tool or no tool (Flange) before removing the current tool
+        tool.switchTo("Flange")
 
         # Clean up by removing the new tool
         time.sleep(2)

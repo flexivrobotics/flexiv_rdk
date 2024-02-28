@@ -117,6 +117,8 @@ int main(int argc, char* argv[])
         if (tool.isExist(newToolName)) {
             log.warn(
                 "Tool with the same name [" + newToolName + "] already exists, removing it now");
+            // Switch to other tool or no tool (Flange) before removing the current tool
+            tool.switchTo("Flange");
             tool.remove(newToolName);
         }
 
@@ -138,6 +140,9 @@ int main(int argc, char* argv[])
 
         // Get and print the current active tool again, should be the new tool
         log.info("Current active tool: " + tool.name());
+
+        // Switch to other tool or no tool (Flange) before removing the current tool
+        tool.switchTo("Flange");
 
         // Clean up by removing the new tool
         std::this_thread::sleep_for(std::chrono::seconds(2));
