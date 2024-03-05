@@ -229,9 +229,6 @@ struct GripperStates
 
     /** Maximum finger opening width of the mounted gripper [m] */
     double maxWidth = {};
-
-    /** Whether the fingers are moving */
-    bool isMoving = {};
 };
 
 /**
