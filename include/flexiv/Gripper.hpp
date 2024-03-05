@@ -27,6 +27,19 @@ public:
     virtual ~Gripper();
 
     /**
+     * @brief [Blocking] Initialize the gripper.
+     * @note Applicable control modes: all modes except IDLE.
+     * @note This function blocks until the initialization is finished.
+     */
+    void init();
+
+    /**
+     * @brief [Non-blocking] Whether the gripper fingers are moving.
+     * @return True: moving, false: stopped.
+     */
+    bool isMoving() const;
+
+    /**
      * @brief [Non-blocking] Grasp with direct force control. Requires the mounted gripper to
      * support direct force control.
      * @param[in] force Target gripping force. Positive: closing force, negative: opening force [N].
