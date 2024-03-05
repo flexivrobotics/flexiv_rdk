@@ -46,7 +46,7 @@ def print_gripper_states(gripper, log):
         print("width: ", round(gripper.states().width, 2))
         print("force: ", round(gripper.states().force, 2))
         print("max_width: ", round(gripper.states().maxWidth, 2))
-        print("is_moving: ", gripper.states().isMoving)
+        print("is_moving: ", gripper.isMoving())
         time.sleep(1)
 
 
@@ -104,6 +104,9 @@ def main():
 
         # Instantiate gripper control interface
         gripper = flexivrdk.Gripper(robot)
+
+        # Manually initialize the gripper, not all grippers need this step
+        gripper.init()
 
         # Thread for printing gripper states
         print_thread = threading.Thread(

@@ -79,13 +79,13 @@ public:
     void stop();
 
     /**
-     * @brief [Non-blocking] Check if the robot has come to a complete stop.
+     * @brief [Non-blocking] Whether the robot has come to a complete stop.
      * @return True: stopped, false: still moving.
      */
     bool isStopped() const;
 
     /**
-     * @brief [Non-blocking] Check if the robot is normally operational, which requires the
+     * @brief [Non-blocking] Whether the robot is normally operational, which requires the
      * following conditions to be met: enabled, brakes fully released, in auto mode, no fault, and
      * not in reduced state.
      * @param[in] verbose Whether to print warning message indicating why the robot is not
@@ -96,7 +96,7 @@ public:
     bool isOperational(bool verbose = true) const;
 
     /**
-     * @brief [Non-blocking] Check if the robot is in fault state.
+     * @brief [Non-blocking] Whether the robot is in fault state.
      * @return True: robot has fault, false: robot normal.
      */
     bool isFault() const;
@@ -111,7 +111,7 @@ public:
     bool clearFault();
 
     /**
-     * @brief [Non-blocking] Check if the robot is currently executing a task. This includes any
+     * @brief [Non-blocking] Whether the robot is currently executing a task. This includes any
      * user commanded operations that requires the robot to execute. For example, plans, primitives,
      * Cartesian and joint motions, etc.
      * @return True: busy, false: idle.
@@ -120,25 +120,25 @@ public:
     bool isBusy() const;
 
     /**
-     * @brief [Non-blocking] Check if the connection with the robot is established.
+     * @brief [Non-blocking] Whether the connection with the robot is established.
      * @return True: connected, false: disconnected.
      */
     bool isConnected() const;
 
     /**
-     * @brief [Non-blocking] Check if the emergency stop is released.
+     * @brief [Non-blocking] Whether the emergency stop is released.
      * @return True: released, false: pressed.
      */
     bool isEstopReleased() const;
 
     /**
-     * @brief [Non-blocking] Check if the enabling button is pressed.
+     * @brief [Non-blocking] Whether the enabling button is pressed.
      * @return True: pressed, false: released.
      */
     bool isEnablingButtonPressed() const;
 
     /**
-     * @brief [Non-blocking] Check if the robot system is in recovery state.
+     * @brief [Non-blocking] Whether the robot system is in recovery state.
      * @return True: in recovery state, false: not in recovery state.
      * @note Use runAutoRecovery() to carry out automatic recovery operation.
      * @par Recovery state
@@ -155,7 +155,7 @@ public:
      * @throw std::runtime_error if failed to enter automatic recovery mode.
      * @note Refer to user manual for more details.
      * @note This function blocks until the automatic recovery process is finished.
-     * @see isRecoveryState()
+     * @see isRecoveryState().
      */
     void runAutoRecovery();
 

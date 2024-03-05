@@ -48,6 +48,7 @@ void printGripperStates(flexiv::Gripper& gripper, flexiv::Log& log)
         // Print all gripper states in JSON format using the built-in ostream operator overloading
         log.info("Current gripper states:");
         std::cout << gripper.states() << std::endl;
+        std::cout << "isMoving: " << gripper.isMoving() << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
@@ -108,6 +109,9 @@ int main(int argc, char* argv[])
 
         // Instantiate gripper control interface
         flexiv::Gripper gripper(robot);
+
+        // Manually initialize the gripper, not all grippers need this step
+        gripper.init();
 
         // Thread for printing gripper states
         std::thread printThread(printGripperStates, std::ref(gripper), std::ref(log));
