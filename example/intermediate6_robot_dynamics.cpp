@@ -75,13 +75,13 @@ int PeriodicTask(flexiv::Robot& robot, flexiv::Model& model)
 
             // Mark timer end point and get loop time
             auto toc = std::chrono::high_resolution_clock::now();
-            auto compute_time
+            auto computation_time
                 = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
 
             // Print at 1Hz
             if (loop_counter % 100 == 0) {
                 // Print time used to compute g, M, J
-                log.Info("Computation time = " + std::to_string(compute_time) + " us");
+                log.Info("Computation time = " + std::to_string(computation_time) + " us");
                 std::cout << std::endl;
                 // Print gravity
                 std::cout << std::fixed << std::setprecision(5) << "g = " << g.transpose() << "\n"

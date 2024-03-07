@@ -6,10 +6,10 @@
  * @author Flexiv
  */
 
-#include <flexiv/Robot.hpp>
-#include <flexiv/Log.hpp>
-#include <flexiv/Scheduler.hpp>
-#include <flexiv/Utility.hpp>
+#include <flexiv/robot.h>
+#include <flexiv/log.h>
+#include <flexiv/scheduler.h>
+#include <flexiv/utility.h>
 
 #include <iostream>
 #include <fstream>
@@ -20,64 +20,64 @@
 
 namespace {
 /** RT loop period [sec] */
-const double k_loopPeriod = 0.001;
+const double kLoopPeriod = 0.001;
 
 /** TCP sine-sweep amplitude [m] */
-const double k_swingAmp = 0.1;
+const double kSwingAmp = 0.1;
 
 /** TCP sine-sweep frequency [Hz] */
-const double k_swingFreq = 0.025; // = 10mm/s linear velocity
+const double kSwingFreq = 0.025; // = 10mm/s linear velocity
 
 /** Current Cartesian-space pose (position + rotation) of robot TCP */
-std::array<double, flexiv::k_poseSize> g_currentTcpPose;
+std::array<double, flexiv::kPoseSize> g_curr_tcp_pose;
 
 /** Test duration converted from user-specified hours to loop counts */
-uint64_t g_testDurationLoopCounts = 0;
+uint64_t g_test_duration_loop_counts = 0;
 
 /** Time duration for each log file [loop counts] */
-const unsigned int k_logDurationLoopCounts = 10 * 60 * 1000; // = 10 min/file
+const unsigned int kLogDurationLoopCounts = 10 * 60 * 1000; // = 10 min/file
 
 /** Data to be logged in low-priority thread */
 struct LogData
 {
-    std::array<double, flexiv::k_poseSize> tcpPose;
-    std::array<double, flexiv::k_cartDOF> tcpForce;
-} g_logData;
+    std::array<double, flexiv::kPoseSize> tcp_pose;
+    std::array<double, flexiv::kCartDOF> tcp_force;
+} g_log_data;
 
 /** Atomic signal to stop the test */
 std::atomic<bool> g_stop = {false};
 }
 
 void highPriorityTask(
-    flexiv::Robot& robot, flexiv::Log& log, const std::array<double, flexiv::k_poseSize>& initPose)
+    flexiv::Robot& robot, flexiv::Log& log, const std::array<double, flexiv::kPoseSize>& init_pose)
 {
     // Local periodic loop counter
-    static uint64_t loopCounter = 0;
+    static uint64_t loop_counter = 0;
 
     try {
         // Monitor fault on the connected robot
-        if (robot.isFault()) {
+        if (robot.fault()) {
             throw std::runtime_error(
                 "highPriorityTask: Fault occurred on the connected robot, exiting ...");
         }
 
         // Swing along Z direction
-        g_currentTcpPose[2]
-            = initPose[2] + k_swingAmp * sin(2 * M_PI * k_swingFreq * loopCounter * k_loopPeriod);
-        robot.streamCartesianMotionForce(g_currentTcpPose);
+        g_curr_tcp_pose[2]
+            = init_pose[2] + kSwingAmp * sin(2 * M_PI * kSwingFreq * loop_counter * kLoopPeriod);
+        robot.StreamCartesianMotionForce(g_curr_tcp_pose);
 
         // Save data to global buffer, not using mutex to avoid interruption on RT loop from
         // potential priority inversion
-        g_logData.tcpPose = robot.states().tcpPose;
-        g_logData.tcpForce = robot.states().extWrenchInWorld;
+        g_log_data.tcp_pose = robot.states().tcp_pose;
+        g_log_data.tcp_force = robot.states().ext_wrench_in_world;
 
         // Stop after test duration has elapsed
-        if (++loopCounter > g_testDurationLoopCounts) {
+        if (++loop_counter > g_test_duration_loop_counts) {
             g_stop = true;
         }
 
     } catch (const std::exception& e) {
-        log.error(e.what());
+        log.Error(e.what());
         g_stop = true;
     }
 }
@@ -85,16 +85,16 @@ void highPriorityTask(
 void lowPriorityTask()
 {
     // Low-priority task loop counter
-    uint64_t loopCounter = 0;
+    uint64_t loop_counter = 0;
 
     // Data logging CSV file
-    std::ofstream csvFile;
+    std::ofstream csv_file;
 
     // CSV file name
-    std::string csvFileName;
+    std::string csv_file_name;
 
     // CSV file counter (data during the test is divided to multiple files)
-    unsigned int fileCounter = 0;
+    unsigned int file_counter = 0;
 
     // Log object for printing message with timestamp and coloring
     flexiv::Log log;
@@ -106,51 +106,51 @@ void lowPriorityTask()
     while (true) {
         // Log data at 1kHz
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        loopCounter++;
+        loop_counter++;
 
         // Close existing log file and create a new one periodically
-        if (loopCounter % k_logDurationLoopCounts == 0) {
-            if (csvFile.is_open()) {
-                csvFile.close();
-                log.info("Saved log file: " + csvFileName);
+        if (loop_counter % kLogDurationLoopCounts == 0) {
+            if (csv_file.is_open()) {
+                csv_file.close();
+                log.Info("Saved log file: " + csv_file_name);
             }
 
             // Increment log file counter
-            fileCounter++;
+            file_counter++;
 
             // Create new file name using the updated counter as suffix
-            csvFileName = "endurance_test_data_" + std::to_string(fileCounter) + ".csv";
+            csv_file_name = "endurance_test_data_" + std::to_string(file_counter) + ".csv";
 
             // Open new log file
-            csvFile.open(csvFileName);
-            if (csvFile.is_open()) {
-                log.info("Created new log file: " + csvFileName);
+            csv_file.open(csv_file_name);
+            if (csv_file.is_open()) {
+                log.Info("Created new log file: " + csv_file_name);
             } else {
-                log.error("Failed to create log file: " + csvFileName);
+                log.Error("Failed to create log file: " + csv_file_name);
             }
         }
 
         // Log data to file in CSV format
-        if (csvFile.is_open()) {
+        if (csv_file.is_open()) {
             // Loop counter x1, TCP pose x7, TCP external force x6
-            csvFile << loopCounter << ",";
-            for (const auto& i : g_logData.tcpPose) {
-                csvFile << i << ",";
+            csv_file << loop_counter << ",";
+            for (const auto& i : g_log_data.tcp_pose) {
+                csv_file << i << ",";
             }
-            for (const auto& i : g_logData.tcpForce) {
-                csvFile << i << ",";
+            for (const auto& i : g_log_data.tcp_force) {
+                csv_file << i << ",";
             }
             // End of line
-            csvFile << '\n';
+            csv_file << '\n';
         }
 
         // Check if the test duration has elapsed
         if (g_stop) {
-            log.info("Test duration has elapsed, saving any open log file ...");
+            log.Info("Test duration has elapsed, saving any open log file ...");
             // Close log file
-            if (csvFile.is_open()) {
-                csvFile.close();
-                log.info("Saved log file: " + csvFileName);
+            if (csv_file.is_open()) {
+                csv_file.close();
+                log.Info("Saved log file: " + csv_file_name);
             }
             // Exit thread
             return;
@@ -158,7 +158,7 @@ void lowPriorityTask()
     }
 }
 
-void printHelp()
+void PrintHelp()
 {
     // clang-format off
     std::cout << "Required arguments: [robot SN] [test hours]" << std::endl;
@@ -177,85 +177,85 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //==============================================================================================
-    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
-        printHelp();
+    if (argc < 3 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+        PrintHelp();
         return 1;
     }
 
     // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
-    std::string robotSN = argv[1];
+    std::string robot_sn = argv[1];
 
     // test duration in hours
-    double testHours = std::stof(argv[2]);
+    double test_hours = std::stof(argv[2]);
     // convert duration in hours to loop counts
-    g_testDurationLoopCounts = (uint64_t)(testHours * 3600.0 * 1000.0);
-    log.info("Test duration: " + std::to_string(testHours)
-             + " hours = " + std::to_string(g_testDurationLoopCounts) + " cycles");
+    g_test_duration_loop_counts = (uint64_t)(test_hours * 3600.0 * 1000.0);
+    log.Info("Test duration: " + std::to_string(test_hours)
+             + " hours = " + std::to_string(g_test_duration_loop_counts) + " cycles");
 
     try {
         // RDK Initialization
         //==========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robotSN);
+        flexiv::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
-        if (robot.isFault()) {
-            log.warn("Fault occurred on the connected robot, trying to clear ...");
+        if (robot.fault()) {
+            log.Warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
-            if (!robot.clearFault()) {
-                log.error("Fault cannot be cleared, exiting ...");
+            if (!robot.ClearFault()) {
+                log.Error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.info("Fault on the connected robot is cleared");
+            log.Info("Fault on the connected robot is cleared");
         }
 
         // enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...");
-        robot.enable();
+        log.Info("Enabling robot ...");
+        robot.Enable();
 
         // Wait for the robot to become operational
-        while (!robot.isOperational()) {
+        while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.info("Robot is now operational");
+        log.Info("Robot is now operational");
 
         // Bring Robot To Home
         //==========================================================================================
-        robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
-        robot.executePlan("PLAN-Home");
+        robot.SwitchMode(flexiv::Mode::NRT_PLAN_EXECUTION);
+        robot.ExecutePlan("PLAN-Home");
 
         // Wait fot the plan to finish
         do {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-        } while (robot.isBusy());
+        } while (robot.busy());
 
         // Switch mode after robot is at home
-        robot.setMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE);
+        robot.SwitchMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE);
 
         // Set initial pose to current TCP pose
-        auto initPose = robot.states().tcpPose;
-        log.info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
-                 + flexiv::utility::arr2Str(initPose));
-        g_currentTcpPose = initPose;
+        auto init_pose = robot.states().tcp_pose;
+        log.Info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
+                 + flexiv::utility::Arr2Str(init_pose));
+        g_curr_tcp_pose = init_pose;
 
         // Periodic Tasks
         //==========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(highPriorityTask, std::ref(robot), std::ref(log), std::ref(initPose)),
-            "HP periodic", 1, scheduler.maxPriority());
+        scheduler.AddTask(
+            std::bind(highPriorityTask, std::ref(robot), std::ref(log), std::ref(init_pose)),
+            "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
-        scheduler.start();
+        scheduler.Start();
 
         // Use std::thread for logging task without strict chronology
-        std::thread lowPriorityThread(lowPriorityTask);
+        std::thread low_priority_thread(lowPriorityTask);
 
-        // lowPriorityThread is responsible to release blocking
-        lowPriorityThread.join();
+        // low_priority_thread is responsible to release blocking
+        low_priority_thread.join();
 
     } catch (const std::exception& e) {
-        log.error(e.what());
+        log.Error(e.what());
         return 1;
     }
 

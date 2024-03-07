@@ -7,10 +7,10 @@
  * @author Flexiv
  */
 
-#include <flexiv/Robot.hpp>
-#include <flexiv/Log.hpp>
-#include <flexiv/Scheduler.hpp>
-#include <flexiv/Utility.hpp>
+#include <flexiv/robot.h>
+#include <flexiv/log.h>
+#include <flexiv/scheduler.h>
+#include <flexiv/utility.h>
 
 #include <iostream>
 #include <thread>
@@ -33,59 +33,59 @@ namespace {
 int g_fd = 0;
 
 /** Atomic signal to stop scheduler tasks */
-std::atomic<bool> g_schedStop = {false};
+std::atomic<bool> g_stop_sched = {false};
 }
 
 // callback function for realtime periodic task
-void periodicTask(flexiv::Robot& robot, flexiv::Log& log)
+void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log)
 {
     // Loop counter
-    static unsigned int loopCounter = 0;
+    static unsigned int loop_counter = 0;
 
     try {
         // Monitor fault on the connected robot
-        if (robot.isFault()) {
+        if (robot.fault()) {
             throw std::runtime_error(
-                "periodicTask: Fault occurred on the connected robot, exiting ...");
+                "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
 
         // send signal at 1Hz
-        switch (loopCounter % 1000) {
+        switch (loop_counter % 1000) {
             case 0: {
-                log.info(
+                log.Info(
                     "Sending benchmark signal to both workstation PC's serial "
                     "port and robot server's digital out port[0]");
                 break;
             }
             case 1: {
                 // signal robot server's digital out port
-                robot.writeDigitalOutput(std::vector<unsigned int> {0}, std::vector<bool> {true});
+                robot.WriteDigitalOutput(std::vector<unsigned int> {0}, std::vector<bool> {true});
 
                 // signal workstation PC's serial port
                 auto n = write(g_fd, "0", 1);
                 if (n < 0) {
-                    log.error("Failed to write to serial port");
+                    log.Error("Failed to write to serial port");
                 }
 
                 break;
             }
             case 900: {
                 // reset digital out after a few seconds
-                robot.writeDigitalOutput(std::vector<unsigned int> {0}, std::vector<bool> {false});
+                robot.WriteDigitalOutput(std::vector<unsigned int> {0}, std::vector<bool> {false});
                 break;
             }
             default:
                 break;
         }
-        loopCounter++;
+        loop_counter++;
 
     } catch (const std::exception& e) {
-        log.error(e.what());
-        g_schedStop = true;
+        log.Error(e.what());
+        g_stop_sched = true;
     }
 }
 
-void printHelp()
+void PrintHelp()
 {
     // clang-format off
     std::cout << "Required arguments: [robot SN] [serial port name]" << std::endl;
@@ -105,74 +105,74 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //=============================================================================
-    if (argc < 3 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
-        printHelp();
+    if (argc < 3 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+        PrintHelp();
         return 1;
     }
 
     // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
-    std::string robotSN = argv[1];
+    std::string robot_sn = argv[1];
 
     // serial port name
-    std::string serialPort = argv[2];
+    std::string serial_port = argv[2];
 
     try {
         // RDK Initialization
         //=============================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robotSN);
+        flexiv::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
-        if (robot.isFault()) {
-            log.warn("Fault occurred on the connected robot, trying to clear ...");
+        if (robot.fault()) {
+            log.Warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
-            if (!robot.clearFault()) {
-                log.error("Fault cannot be cleared, exiting ...");
+            if (!robot.ClearFault()) {
+                log.Error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.info("Fault on the connected robot is cleared");
+            log.Info("Fault on the connected robot is cleared");
         }
 
         // enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...");
-        robot.enable();
+        log.Info("Enabling robot ...");
+        robot.Enable();
 
         // Wait for the robot to become operational
-        while (!robot.isOperational()) {
+        while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.info("Robot is now operational");
+        log.Info("Robot is now operational");
 
         // Benchmark Signal
         //=============================================================================
         // get workstation PC's serial port ready,
-        g_fd = open(serialPort.c_str(), O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL | O_CLOEXEC);
+        g_fd = open(serial_port.c_str(), O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL | O_CLOEXEC);
 
         if (g_fd == -1) {
-            log.error("Unable to open serial port " + serialPort);
+            log.Error("Unable to open serial port " + serial_port);
         }
 
         // print messages
-        log.warn("Benchmark signal will be sent every 1 second");
+        log.Warn("Benchmark signal will be sent every 1 second");
 
         // Periodic Tasks
         //=============================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(log)), "HP periodic", 1,
-            scheduler.maxPriority());
+        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(log)), "HP periodic", 1,
+            scheduler.max_priority());
         // Start all added tasks
-        scheduler.start();
+        scheduler.Start();
 
         // Block and wait for signal to stop scheduler tasks
-        while (!g_schedStop) {
+        while (!g_stop_sched) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         // Received signal to stop scheduler tasks
-        scheduler.stop();
+        scheduler.Stop();
 
     } catch (const std::exception& e) {
-        log.error(e.what());
+        log.Error(e.what());
         return 1;
     }
 
