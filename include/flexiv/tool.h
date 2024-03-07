@@ -1,12 +1,12 @@
 /**
- * @file Tool.hpp
+ * @file tool.h
  * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_TOOL_HPP_
-#define FLEXIVRDK_TOOL_HPP_
+#ifndef FLEXIVRDK_TOOL_H_
+#define FLEXIVRDK_TOOL_H_
 
-#include "Robot.hpp"
+#include "robot.h"
 
 namespace flexiv {
 
@@ -34,50 +34,6 @@ public:
      * @note This function blocks until a reply is received.
      */
     std::vector<std::string> list() const;
-    [[deprecated("Use list() instead")]] std::vector<std::string> getToolList() const;
-
-    /**
-     * @brief [Blocking] Add a new tool with user-specified parameters to the tools pool.
-     * @param[in] name Name of the new tool, must be unique.
-     * @param[in] params Parameters of the new tool.
-     * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control modes: IDLE.
-     * @note This function blocks until the request is successfully delivered.
-     */
-    void add(const std::string& name, const ToolParams& params);
-
-    /**
-     * @brief [Blocking] Switch to an existing tool. All following robot operations will default to
-     * use this tool.
-     * @param[in] name Name of the tool to switch to, must exist in the tools pool.
-     * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control modes: IDLE.
-     * @note This function blocks until the request is successfully delivered.
-     */
-    void switchTo(const std::string& name);
-
-    /**
-     * @brief [Blocking] Update the parameters of an existing tool.
-     * @param[in] name Name of the tool to update, must exist in the tools pool.
-     * @param[in] params New parameters for the specified tool.
-     * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control modes: IDLE.
-     * @note This function blocks until the request is successfully delivered.
-     */
-    void update(const std::string& name, const ToolParams& params);
-
-    /**
-     * @brief [Blocking] Remove an existing tool.
-     * @param[in] name Name of the tool to remove, must exist in the tools pool.
-     * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control modes: IDLE.
-     * @note This function blocks until the request is successfully delivered.
-     */
-    void remove(const std::string& name);
 
     /**
      * @brief [Blocking] Get name of the tool that the robot is currently using.
@@ -87,7 +43,15 @@ public:
      * @note This function blocks until a reply is received.
      */
     std::string name() const;
-    [[deprecated("Use name() instead")]] std::string getCurrentToolName() const;
+
+    /**
+     * @brief [Blocking] Whether the specified tool exists in the tools pool.
+     * @param[in] name Name of the tool to check.
+     * @return True if the specified tool exists.
+     * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note This function blocks until a reply is received.
+     */
+    bool exist(const std::string& name) const;
 
     /**
      * @brief [Blocking] Get parameters of the tool that the robot is currently using.
@@ -97,7 +61,6 @@ public:
      * @note This function blocks until a reply is received.
      */
     ToolParams params() const;
-    [[deprecated("Use params() instead")]] ToolParams getCurrentToolParams() const;
 
     /**
      * @brief [Blocking] Get parameters of an existing tool.
@@ -108,22 +71,55 @@ public:
      * @note This function blocks until a reply is received.
      */
     ToolParams params(const std::string& name) const;
-    [[deprecated("Use params() instead")]] ToolParams getToolParams(const std::string& name) const;
 
     /**
-     * @brief [Blocking] Check if a tool exists in the tools pool.
-     * @param[in] name Name of the tool to check.
-     * @return True if the specified tool exists.
-     * @throw std::runtime_error if failed to get a reply from the connected robot.
-     * @note This function blocks until a reply is received.
+     * @brief [Blocking] Add a new tool with user-specified parameters to the tools pool.
+     * @param[in] name Name of the new tool, must be unique.
+     * @param[in] params Parameters of the new tool.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: IDLE.
+     * @note This function blocks until the request is successfully delivered.
      */
-    bool isExist(const std::string& name) const;
+    void Add(const std::string& name, const ToolParams& params);
+
+    /**
+     * @brief [Blocking] Switch to an existing tool. All following robot operations will default to
+     * use this tool.
+     * @param[in] name Name of the tool to switch to, must exist in the tools pool.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: IDLE.
+     * @note This function blocks until the request is successfully delivered.
+     */
+    void Switch(const std::string& name);
+
+    /**
+     * @brief [Blocking] Update the parameters of an existing tool.
+     * @param[in] name Name of the tool to update, must exist in the tools pool.
+     * @param[in] params New parameters for the specified tool.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: IDLE.
+     * @note This function blocks until the request is successfully delivered.
+     */
+    void Update(const std::string& name, const ToolParams& params);
+
+    /**
+     * @brief [Blocking] Remove an existing tool.
+     * @param[in] name Name of the tool to remove, must exist in the tools pool.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: IDLE.
+     * @note This function blocks until the request is successfully delivered.
+     */
+    void Remove(const std::string& name);
 
 private:
     class Impl;
-    std::unique_ptr<Impl> m_pimpl;
+    std::unique_ptr<Impl> pimpl_;
 };
 
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_TOOL_HPP_ */
+#endif /* FLEXIVRDK_TOOL_H_ */

@@ -1,11 +1,11 @@
 /**
- * @file Data.hpp
+ * @file data.h
  * @brief Header file containing various data structs.
  * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_DATA_HPP_
-#define FLEXIVRDK_DATA_HPP_
+#ifndef FLEXIVRDK_DATA_H_
+#define FLEXIVRDK_DATA_H_
 
 #include <array>
 #include <string>
@@ -14,16 +14,16 @@
 namespace flexiv {
 
 /** Robot joint-space degrees of freedom \f$ n \f$ */
-constexpr size_t k_jointDOF = 7;
+constexpr size_t kJointDOF = 7;
 
 /** Robot Cartesian-space degrees of freedom \f$ m \f$ */
-constexpr size_t k_cartDOF = 6;
+constexpr size_t kCartDOF = 6;
 
 /** Size of pose array (3 position + 4 quaternion) */
-constexpr size_t k_poseSize = 7;
+constexpr size_t kPoseSize = 7;
 
 /** Number of digital IO ports */
-constexpr size_t k_IOPorts = 16;
+constexpr size_t kIOPorts = 16;
 
 /**
  * @struct RobotInfo
@@ -32,10 +32,10 @@ constexpr size_t k_IOPorts = 16;
 struct RobotInfo
 {
     /** Robot serial number */
-    std::string serialNum = {};
+    std::string serial_num = {};
 
     /** Robot software version */
-    std::string softwareVer = {};
+    std::string software_ver = {};
 
     /**
      * Nominal motion stiffness of the Cartesian motion-force control modes: \f$ K_{nom} \in
@@ -43,31 +43,31 @@ struct RobotInfo
      * \f$ \mathbb{R}^{3 \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry},
      * k_{Rz}]^T \f$. Unit: \f$ [N/m]~[Nm/rad] \f$.
      */
-    std::array<double, k_cartDOF> nominalK = {};
+    std::array<double, kCartDOF> nominal_K = {};
 
     /**
      * Lower limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [rad] \f$.
      */
-    std::array<double, k_jointDOF> qMin = {};
+    std::array<double, kJointDOF> q_min = {};
 
     /**
      * Upper limits of joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [rad] \f$.
      */
-    std::array<double, k_jointDOF> qMax = {};
+    std::array<double, kJointDOF> q_max = {};
 
     /**
      * Upper limits of joint velocities: \f$ \dot{q}_{max} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [rad/s] \f$.
      */
-    std::array<double, k_jointDOF> dqMax = {};
+    std::array<double, kJointDOF> dq_max = {};
 
     /**
      * Upper limits of joint torques: \f$ \tau_{max} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [Nm] \f$.
      */
-    std::array<double, k_jointDOF> tauMax = {};
+    std::array<double, kJointDOF> tau_max = {};
 };
 
 /**
@@ -81,7 +81,7 @@ struct RobotStates
      * This is the direct measurement of joint positions, preferred for most cases.
      * Unit: \f$ [rad] \f$.
      */
-    std::array<double, k_jointDOF> q = {};
+    std::array<double, kJointDOF> q = {};
 
     /**
      * Measured joint positions using motor-side encoder: \f$ \theta \in \mathbb{R}^{n \times 1}
@@ -89,59 +89,59 @@ struct RobotStates
      * \f$ \Delta \f$ is the joint's internal deflection between motor and link.
      * Unit: \f$ [rad] \f$.
      */
-    std::array<double, k_jointDOF> theta = {};
+    std::array<double, kJointDOF> theta = {};
 
     /**
      * Measured joint velocities using link-side encoder: \f$ \dot{q} \in \mathbb{R}^{n \times 1}
      * \f$. This is the direct but more noisy measurement of joint velocities.
      * Unit: \f$ [rad/s] \f$.
      */
-    std::array<double, k_jointDOF> dq = {};
+    std::array<double, kJointDOF> dq = {};
 
     /**
      * Measured joint velocities using motor-side encoder: \f$ \dot{\theta} \in \mathbb{R}^{n \times
      * 1} \f$. This is the indirect but less noisy measurement of joint velocities, preferred for
      * most cases. Unit: \f$ [rad/s] \f$.
      */
-    std::array<double, k_jointDOF> dtheta = {};
+    std::array<double, kJointDOF> dtheta = {};
 
     /**
      * Measured joint torques: \f$ \tau \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm] \f$.
      */
-    std::array<double, k_jointDOF> tau = {};
+    std::array<double, kJointDOF> tau = {};
 
     /**
      * Desired joint torques: \f$ \tau_{d} \in \mathbb{R}^{n \times 1} \f$. Compensation of
      * nonlinear dynamics (gravity, centrifugal, and Coriolis) is excluded. Unit: \f$ [Nm] \f$.
      */
-    std::array<double, k_jointDOF> tauDes = {};
+    std::array<double, kJointDOF> tau_des = {};
 
     /**
      * Numerical derivative of measured joint torques: \f$ \dot{\tau} \in \mathbb{R}^{n \times 1}
      * \f$. Unit: \f$ [Nm/s] \f$.
      */
-    std::array<double, k_jointDOF> tauDot = {};
+    std::array<double, kJointDOF> tau_dot = {};
 
     /**
      * Estimated external joint torques: \f$ \hat \tau_{ext} \in \mathbb{R}^{n \times 1} \f$.
      * Produced by any external contact (with robot body or end-effector) that does not belong to
      * the known robot model. Unit: \f$ [Nm] \f$.
      */
-    std::array<double, k_jointDOF> tauExt = {};
+    std::array<double, kJointDOF> tau_ext = {};
 
     /**
      * Measured TCP pose expressed in world frame: \f$ ^{O}T_{TCP} \in \mathbb{R}^{7 \times 1} \f$.
      * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
      * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
      */
-    std::array<double, k_poseSize> tcpPose = {};
+    std::array<double, kPoseSize> tcp_pose = {};
 
     /**
      * Desired TCP pose expressed in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7 \times 1}
      * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
      * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
      */
-    std::array<double, k_poseSize> tcpPoseDes = {};
+    std::array<double, kPoseSize> tcp_pose_des = {};
 
     /**
      * Measured TCP velocity expressed in world frame: \f$ ^{O}\dot{X} \in \mathbb{R}^{6 \times 1}
@@ -149,14 +149,14 @@ struct RobotStates
      * 1} \f$ angular velocity: \f$ [v_x, v_y, v_z, \omega_x, \omega_y, \omega_z]^T \f$.
      * Unit: \f$ [m/s]~[rad/s] \f$.
      */
-    std::array<double, k_cartDOF> tcpVel = {};
+    std::array<double, kCartDOF> tcp_vel = {};
 
     /**
      * Measured flange pose expressed in world frame: \f$ ^{O}T_{flange} \in \mathbb{R}^{7 \times 1}
      * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
      * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
      */
-    std::array<double, k_poseSize> flangePose = {};
+    std::array<double, kPoseSize> flange_pose = {};
 
     /**
      * Force-torque (FT) sensor raw reading in flange frame: \f$ ^{flange}F_{raw} \in \mathbb{R}^{6
@@ -164,7 +164,7 @@ struct RobotStates
      * \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y,
      * m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
      */
-    std::array<double, k_cartDOF> ftSensorRaw = {};
+    std::array<double, kCartDOF> ft_sensor_raw = {};
 
     /**
      * Estimated external wrench applied on TCP and expressed in TCP frame: \f$ ^{TCP}F_{ext} \in
@@ -172,7 +172,7 @@ struct RobotStates
      * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
      * Unit: \f$ [N]~[Nm] \f$.
      */
-    std::array<double, k_cartDOF> extWrenchInTcp = {};
+    std::array<double, kCartDOF> ext_wrench_in_tcp = {};
 
     /**
      * Estimated external wrench applied on TCP and expressed in world frame: \f$ ^{0}F_{ext} \in
@@ -180,7 +180,7 @@ struct RobotStates
      * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
      * Unit: \f$ [N]~[Nm] \f$.
      */
-    std::array<double, k_cartDOF> extWrenchInWorld = {};
+    std::array<double, kCartDOF> ext_wrench_in_world = {};
 };
 
 /**
@@ -190,28 +190,28 @@ struct RobotStates
 struct PlanInfo
 {
     /** Current primitive name */
-    std::string ptName = {};
+    std::string pt_name = {};
 
     /** Current node name */
-    std::string nodeName = {};
+    std::string node_name = {};
 
     /** Current node path */
-    std::string nodePath = {};
+    std::string node_path = {};
 
     /** Current node path time period */
-    std::string nodePathTimePeriod = {};
+    std::string node_path_time_period = {};
 
     /** Current node path number */
-    std::string nodePathNumber = {};
+    std::string node_path_number = {};
 
     /** Assigned plan name */
-    std::string assignedPlanName = {};
+    std::string assigned_plan_name = {};
 
     /** Velocity scale */
-    double velocityScale = {};
+    double velocity_scale = {};
 
     /** Waiting for user signal to step the breakpoint */
-    bool waitingForStep = {};
+    bool waiting_for_step = {};
 };
 
 /**
@@ -228,7 +228,7 @@ struct GripperStates
     double force = {};
 
     /** Maximum finger opening width of the mounted gripper [m] */
-    double maxWidth = {};
+    double max_width = {};
 };
 
 /**
@@ -249,45 +249,45 @@ struct ToolParams
     /** Position and orientation of the tool center point (TCP) in flange frame. Consists of \f$
      * \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x,
      * y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$ */
-    std::array<double, k_poseSize> tcpLocation = {};
+    std::array<double, kPoseSize> tcp_location = {};
 };
 
 /**
  * @brief Operator overloading to out stream all robot info in JSON format:
  * {"info_1": [val1,val2,val3,...], "info_2": [val1,val2,val3,...], ...}.
  * @param[in] ostream Ostream instance.
- * @param[in] robotInfo RobotInfo data struct to out stream.
+ * @param[in] robot_info RobotInfo data struct to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const flexiv::RobotInfo& robotInfo);
+std::ostream& operator<<(std::ostream& ostream, const flexiv::RobotInfo& robot_info);
 
 /**
  * @brief Operator overloading to out stream all robot states in JSON format:
  * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}.
  * @param[in] ostream Ostream instance.
- * @param[in] robotStates RobotStates data struct to out stream.
+ * @param[in] robot_states RobotStates data struct to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const flexiv::RobotStates& robotStates);
+std::ostream& operator<<(std::ostream& ostream, const flexiv::RobotStates& robot_states);
 
 /**
  * @brief Operator overloading to out stream all plan info in JSON format:
  * {"info_1": [val1,val2,val3,...], "info_2": [val1,val2,val3,...], ...}.
  * @param[in] ostream Ostream instance.
- * @param[in] planInfo PlanInfo data struct to out stream.
+ * @param[in] plan_info PlanInfo data struct to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const flexiv::PlanInfo& planInfo);
+std::ostream& operator<<(std::ostream& ostream, const flexiv::PlanInfo& plan_info);
 
 /**
  * @brief Operator overloading to out stream all gripper states in JSON format:
  * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}.
  * @param[in] ostream Ostream instance.
- * @param[in] gripperStates GripperStates data struct to out stream.
+ * @param[in] gripper_states GripperStates data struct to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const flexiv::GripperStates& gripperStates);
+std::ostream& operator<<(std::ostream& ostream, const flexiv::GripperStates& gripper_states);
 
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_DATA_HPP_ */
+#endif /* FLEXIVRDK_DATA_H_ */

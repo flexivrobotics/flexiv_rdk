@@ -1,12 +1,12 @@
 /**
- * @file Gripper.hpp
+ * @file gripper.h
  * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_GRIPPER_HPP_
-#define FLEXIVRDK_GRIPPER_HPP_
+#ifndef FLEXIVRDK_GRIPPER_H_
+#define FLEXIVRDK_GRIPPER_H_
 
-#include "Robot.hpp"
+#include "robot.h"
 #include <memory>
 
 namespace flexiv {
@@ -31,13 +31,7 @@ public:
      * @note Applicable control modes: all modes except IDLE.
      * @note This function blocks until the initialization is finished.
      */
-    void init();
-
-    /**
-     * @brief [Non-blocking] Whether the gripper fingers are moving.
-     * @return True: moving, false: stopped.
-     */
-    bool isMoving() const;
+    void Init();
 
     /**
      * @brief [Non-blocking] Grasp with direct force control. Requires the mounted gripper to
@@ -48,27 +42,33 @@ public:
      * @warning Target inputs outside the valid range (specified in gripper's configuration file)
      * will be saturated.
      */
-    void grasp(double force);
+    void Grasp(double force);
 
     /**
      * @brief [Non-blocking] Move the gripper fingers with position control.
      * @param[in] width Target opening width [m].
      * @param[in] velocity Closing/opening velocity, cannot be 0 [m/s].
-     * @param[in] forceLimit Maximum output force during movement [N]. If not specified, default
+     * @param[in] force_limit Maximum output force during movement [N]. If not specified, default
      * force limit of the mounted gripper will be used.
      * @note Applicable control modes: all modes except IDLE.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @warning Target inputs outside the valid range (specified in gripper's configuration file)
      * will be saturated.
      */
-    void move(double width, double velocity, double forceLimit = 0);
+    void Move(double width, double velocity, double force_limit = 0);
 
     /**
      * @brief [Blocking] Stop the gripper.
      * @note Applicable control modes: all modes.
      * @note This function blocks until the gripper control is transferred back to plan/primitive.
      */
-    void stop();
+    void Stop();
+
+    /**
+     * @brief [Non-blocking] Whether the gripper fingers are moving.
+     * @return True: moving, false: stopped.
+     */
+    bool moving() const;
 
     /**
      * @brief [Non-blocking] Access the current gripper states.
@@ -77,18 +77,11 @@ public:
      */
     const GripperStates& states() const;
 
-    /**
-     * @brief [Non-blocking] Get current gripper states.
-     * @param[out] output Reference to an existing GripperStates instance.
-     * @note Call this function periodically to keep the output data object up to date.
-     */
-    [[deprecated("Use states() instead")]] void getGripperStates(GripperStates& output) const;
-
 private:
     class Impl;
-    std::unique_ptr<Impl> m_pimpl;
+    std::unique_ptr<Impl> pimpl_;
 };
 
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_GRIPPER_HPP_ */
+#endif /* FLEXIVRDK_GRIPPER_H_ */

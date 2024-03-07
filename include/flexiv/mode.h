@@ -1,10 +1,10 @@
 /**
- * @file Mode.hpp
+ * @file mode.h
  * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_MODE_HPP_
-#define FLEXIVRDK_MODE_HPP_
+#ifndef FLEXIVRDK_MODE_H_
+#define FLEXIVRDK_MODE_H_
 
 namespace flexiv {
 
@@ -80,10 +80,10 @@ enum Mode
 };
 
 /** String names of the above control modes */
-static const std::array<std::string, MODES_CNT> k_modeNames = {"UNKNOWN", "IDLE", "RT_JOINT_TORQUE",
+static const std::array<std::string, MODES_CNT> kModeNames = {"UNKNOWN", "IDLE", "RT_JOINT_TORQUE",
     "RT_JOINT_POSITION", "NRT_JOINT_POSITION", "NRT_PLAN_EXECUTION", "NRT_PRIMITIVE_EXECUTION",
     "RT_CARTESIAN_MOTION_FORCE", "NRT_CARTESIAN_MOTION_FORCE"};
 
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_MODE_HPP_ */
+#endif /* FLEXIVRDK_MODE_H_ */

@@ -1,12 +1,12 @@
 /**
- * @file FileIO.hpp
+ * @file file_io.h
  * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_FILEIO_HPP_
-#define FLEXIVRDK_FILEIO_HPP_
+#ifndef FLEXIVRDK_FILE_IO_H_
+#define FLEXIVRDK_FILE_IO_H_
 
-#include "Robot.hpp"
+#include "robot.h"
 
 namespace flexiv {
 
@@ -28,9 +28,9 @@ public:
 
     /**
      * @brief [Blocking] Upload a trajectory file (.traj) to the robot.
-     * @param[in] fileDir Relative or absolute path of the directory that contains the file to
+     * @param[in] file_dir Relative or absolute path of the directory that contains the file to
      * upload, e.g. /home/user/Documents/. Do not include the file name here.
-     * @param[in] fileName Full name of the trajectory file to upload, including the suffix, e.g.
+     * @param[in] file_name Full name of the trajectory file to upload, including the suffix, e.g.
      * PolishSpiral.traj. Do not include the directory path here.
      * @throw std::invalid_argument if failed to find or load the specified file.
      * @throw std::logic_error if robot is not in the correct control mode.
@@ -38,13 +38,13 @@ public:
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the file is successfully uploaded.
      */
-    void uploadTrajFile(const std::string& fileDir, const std::string& fileName);
+    void UploadTrajFile(const std::string& file_dir, const std::string& file_name);
 
 private:
     class Impl;
-    std::unique_ptr<Impl> m_pimpl;
+    std::unique_ptr<Impl> pimpl_;
 };
 
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_FILEIO_HPP_ */
+#endif /* FLEXIVRDK_FILE_IO_H_ */

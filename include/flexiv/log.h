@@ -1,10 +1,10 @@
 /**
- * @file Log.hpp
+ * @file log.h
  * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_LOG_HPP_
-#define FLEXIVRDK_LOG_HPP_
+#ifndef FLEXIVRDK_LOG_H_
+#define FLEXIVRDK_LOG_H_
 
 #include <string>
 
@@ -28,23 +28,23 @@ public:
      * @param[in] message Info message.
      * @note Color = green.
      */
-    void info(const std::string& message) const;
+    void Info(const std::string& message) const;
 
     /**
      * @brief [Non-blocking] Print warning message with timestamp and coloring.
      * @param[in] message Warning message.
      * @note Color = yellow.
      */
-    void warn(const std::string& message) const;
+    void Warn(const std::string& message) const;
 
     /**
      * @brief [Non-blocking] Print error message with timestamp and coloring.
      * @param[in] message Error message.
      * @note Color = red.
      */
-    void error(const std::string& message) const;
+    void Error(const std::string& message) const;
 };
 
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_LOG_HPP_ */
+#endif /* FLEXIVRDK_LOG_H_ */

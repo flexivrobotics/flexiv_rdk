@@ -1,12 +1,12 @@
 /**
- * @file Device.hpp
+ * @file device.h
  * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_DEVICE_HPP_
-#define FLEXIVRDK_DEVICE_HPP_
+#ifndef FLEXIVRDK_DEVICE_H_
+#define FLEXIVRDK_DEVICE_H_
 
-#include "Robot.hpp"
+#include "robot.h"
 #include <map>
 
 namespace flexiv {
@@ -42,7 +42,7 @@ public:
      * @note This function blocks until the request is successfully delivered.
      * @warning Enabling a nonexistent device will trigger an error on the connected robot.
      */
-    void enable(const std::string& name);
+    void Enable(const std::string& name);
 
     /**
      * @brief [Blocking] Disable the specified device.
@@ -51,7 +51,7 @@ public:
      * @note This function blocks until the request is successfully delivered.
      * @warning Disabling a nonexistent device will trigger an error on the connected robot.
      */
-    void disable(const std::string& name);
+    void Disable(const std::string& name);
 
     /**
      * @brief [Blocking] Send command(s) for the specified device.
@@ -62,13 +62,13 @@ public:
      * @note This function blocks until the request is successfully delivered.
      * @warning Commanding a disabled or nonexistent device will trigger an error on the robot.
      */
-    void command(const std::string& name, const std::map<std::string, double>& cmds);
+    void Command(const std::string& name, const std::map<std::string, double>& cmds);
 
 private:
     class Impl;
-    std::unique_ptr<Impl> m_pimpl;
+    std::unique_ptr<Impl> pimpl_;
 };
 
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_DEVICE_HPP_ */
+#endif /* FLEXIVRDK_DEVICE_H_ */
