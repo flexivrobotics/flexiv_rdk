@@ -47,7 +47,7 @@ def main():
     log = flexivrdk.Log()
 
     # Print description
-    log.info("Tutorial description:")
+    log.Info("Tutorial description:")
     print_description()
 
     try:
@@ -59,19 +59,19 @@ def main():
         # Fault Clearing
         # ==========================================================================================
         # Clear fault on the connected robot if any
-        if robot.isFault():
-            log.warn("Fault occurred on the connected robot, trying to clear ...")
+        if robot.fault():
+            log.Warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
-            if not robot.clearFault():
-                log.error("Fault cannot be cleared, exiting ...")
+            if not robot.ClearFault():
+                log.Error("Fault cannot be cleared, exiting ...")
                 return 1
-            log.info("Fault on the connected robot is cleared")
+            log.Info("Fault on the connected robot is cleared")
         else:
-            log.info("No fault on the connected robot")
+            log.Info("No fault on the connected robot")
 
     except Exception as e:
         # Print exception error message
-        log.error(str(e))
+        log.Error(str(e))
 
 
 if __name__ == "__main__":

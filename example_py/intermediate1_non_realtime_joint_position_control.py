@@ -62,7 +62,7 @@ def main():
     mode = flexivrdk.Mode
 
     # Print description
-    log.info("Tutorial description:")
+    log.Info("Tutorial description:")
     print_description()
 
     try:
@@ -72,37 +72,37 @@ def main():
         robot = flexivrdk.Robot(args.robot_sn)
 
         # Clear fault on the connected robot if any
-        if robot.isFault():
-            log.warn("Fault occurred on the connected robot, trying to clear ...")
+        if robot.fault():
+            log.Warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
-            if not robot.clearFault():
-                log.error("Fault cannot be cleared, exiting ...")
+            if not robot.ClearFault():
+                log.Error("Fault cannot be cleared, exiting ...")
                 return 1
-            log.info("Fault on the connected robot is cleared")
+            log.Info("Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...")
-        robot.enable()
+        log.Info("Enabling robot ...")
+        robot.Enable()
 
         # Wait for the robot to become operational
-        while not robot.isOperational():
+        while not robot.operational():
             time.sleep(1)
 
-        log.info("Robot is now operational")
+        log.Info("Robot is now operational")
 
         # Move robot to home pose
-        log.info("Moving to home pose")
-        robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
-        robot.executePrimitive("Home()")
+        log.Info("Moving to home pose")
+        robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
+        robot.ExecutePrimitive("Home()")
 
         # Wait for the primitive to finish
-        while robot.isBusy():
+        while robot.busy():
             time.sleep(1)
 
         # Non-real-time Joint Position Control
         # ==========================================================================================
         # Switch to non-real-time joint position control mode
-        robot.setMode(mode.NRT_JOINT_POSITION)
+        robot.SwitchMode(mode.NRT_JOINT_POSITION)
 
         period = 1.0 / frequency
         loop_time = 0
@@ -142,7 +142,7 @@ def main():
             time.sleep(period)
 
             # Monitor fault on the connected robot
-            if robot.isFault():
+            if robot.fault():
                 raise Exception("Fault occurred on the connected robot, exiting ...")
 
             # Sine-sweep all joints
@@ -154,7 +154,7 @@ def main():
             # Otherwise all joints will hold at initial positions
 
             # Send command
-            robot.sendJointPosition(
+            robot.SendJointPosition(
                 target_pos, target_vel, target_acc, MAX_VEL, MAX_ACC
             )
 
@@ -163,7 +163,7 @@ def main():
 
     except Exception as e:
         # Print exception error message
-        log.error(str(e))
+        log.Error(str(e))
 
 
 if __name__ == "__main__":

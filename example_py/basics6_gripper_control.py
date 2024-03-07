@@ -42,11 +42,11 @@ def print_gripper_states(gripper, log):
     """
     while not g_is_done:
         # Print all gripper states, round all float values to 2 decimals
-        log.info("Current gripper states:")
+        log.Info("Current gripper states:")
         print("width: ", round(gripper.states().width, 2))
         print("force: ", round(gripper.states().force, 2))
-        print("max_width: ", round(gripper.states().maxWidth, 2))
-        print("is_moving: ", gripper.isMoving())
+        print("max_width: ", round(gripper.states().max_width, 2))
+        print("moving: ", gripper.moving())
         time.sleep(1)
 
 
@@ -66,7 +66,7 @@ def main():
     mode = flexivrdk.Mode
 
     # Print description
-    log.info("Tutorial description:")
+    log.Info("Tutorial description:")
     print_description()
 
     try:
@@ -76,37 +76,37 @@ def main():
         robot = flexivrdk.Robot(args.robot_sn)
 
         # Clear fault on the connected robot if any
-        if robot.isFault():
-            log.warn("Fault occurred on the connected robot, trying to clear ...")
+        if robot.fault():
+            log.Warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
-            if not robot.clearFault():
-                log.error("Fault cannot be cleared, exiting ...")
+            if not robot.ClearFault():
+                log.Error("Fault cannot be cleared, exiting ...")
                 return 1
-            log.info("Fault on the connected robot is cleared")
+            log.Info("Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...")
-        robot.enable()
+        log.Info("Enabling robot ...")
+        robot.Enable()
 
         # Wait for the robot to become operational
-        while not robot.isOperational():
+        while not robot.operational():
             time.sleep(1)
 
-        log.info("Robot is now operational")
+        log.Info("Robot is now operational")
 
         # Gripper Control
         # ==========================================================================================
         # Gripper control is not available if the robot is in IDLE mode, so switch to some mode
         # other than IDLE
-        robot.setMode(mode.NRT_PLAN_EXECUTION)
-        robot.executePlan("PLAN-Home")
+        robot.SwitchMode(mode.NRT_PLAN_EXECUTION)
+        robot.ExecutePlan("PLAN-Home")
         time.sleep(1)
 
         # Instantiate gripper control interface
         gripper = flexivrdk.Gripper(robot)
 
         # Manually initialize the gripper, not all grippers need this step
-        gripper.init()
+        gripper.Init()
 
         # Thread for printing gripper states
         print_thread = threading.Thread(
@@ -115,46 +115,46 @@ def main():
         print_thread.start()
 
         # Position control
-        log.info("Closing gripper")
-        gripper.move(0.01, 0.1, 20)
+        log.Info("Closing gripper")
+        gripper.Move(0.01, 0.1, 20)
         time.sleep(2)
-        log.info("Opening gripper")
-        gripper.move(0.09, 0.1, 20)
+        log.Info("Opening gripper")
+        gripper.Move(0.09, 0.1, 20)
         time.sleep(2)
 
         # Stop
-        log.info("Closing gripper")
-        gripper.move(0.01, 0.1, 20)
+        log.Info("Closing gripper")
+        gripper.Move(0.01, 0.1, 20)
         time.sleep(0.5)
-        log.info("Stopping gripper")
-        gripper.stop()
+        log.Info("Stopping gripper")
+        gripper.Stop()
         time.sleep(2)
-        log.info("Closing gripper")
-        gripper.move(0.01, 0.1, 20)
+        log.Info("Closing gripper")
+        gripper.Move(0.01, 0.1, 20)
         time.sleep(2)
-        log.info("Opening gripper")
-        gripper.move(0.09, 0.1, 20)
+        log.Info("Opening gripper")
+        gripper.Move(0.09, 0.1, 20)
         time.sleep(0.5)
-        log.info("Stopping gripper")
-        gripper.stop()
+        log.Info("Stopping gripper")
+        gripper.Stop()
         time.sleep(2)
 
         # Force control, if available (sensed force is not zero)
         if abs(gripper.states().force) > sys.float_info.epsilon:
-            log.info("Gripper running zero force control")
-            gripper.grasp(0)
+            log.Info("Gripper running zero force control")
+            gripper.Grasp(0)
             # Exit after 10 seconds
             time.sleep(10)
 
         # Finished, exit all threads
-        gripper.stop()
+        gripper.Stop()
         global g_is_done
         g_is_done = True
-        log.info("Program finished")
+        log.Info("Program finished")
         print_thread.join()
 
     except Exception as e:
-        log.error(str(e))
+        log.Error(str(e))
 
 
 if __name__ == "__main__":

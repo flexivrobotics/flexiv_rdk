@@ -71,7 +71,7 @@ def parse_pt_states(pt_states, parse_target):
     Parameters
     ----------
     pt_states : str list
-        Primitive states string list returned from Robot::primitiveStates().
+        Primitive states string list returned from Robot::primitive_states().
     parse_target : str
         Name of the primitive state to parse for.
 

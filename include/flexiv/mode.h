@@ -26,14 +26,14 @@ enum Mode
     /**
      * Run real-time joint torque control to track continuous commands @1kHz.
      * @note Real-time (RT) mode
-     * @see flexiv::Robot::streamJointTorque()
+     * @see flexiv::Robot::StreamJointTorque()
      */
     RT_JOINT_TORQUE,
 
     /**
      * Run real-time joint position control to track continuous commands @ 1kHz.
      * @note Real-time (RT) mode
-     * @see flexiv::Robot::streamJointPosition()
+     * @see flexiv::Robot::StreamJointPosition()
      */
     RT_JOINT_POSITION,
 
@@ -41,21 +41,21 @@ enum Mode
      * Run non-real-time joint position control to track discrete commands (smoothened by internal
      * motion generator).
      * @note Non-real-time (NRT) mode
-     * @see flexiv::Robot::sendJointPosition()
+     * @see flexiv::Robot::SendJointPosition()
      */
     NRT_JOINT_POSITION,
 
     /**
      * Execute pre-configured robot task plans.
      * @note Non-real-time (NRT) mode
-     * @see flexiv::Robot::executePlan()
+     * @see flexiv::Robot::ExecutePlan()
      */
     NRT_PLAN_EXECUTION,
 
     /**
      * Execute robot primitives (unit skills).
      * @note Non-real-time (NRT) mode
-     * @see flexiv::Robot::executePrimitive()
+     * @see flexiv::Robot::ExecutePrimitive()
      * @see [Flexiv Primitives](https://www.flexiv.com/primitives/) documentation
      */
     NRT_PRIMITIVE_EXECUTION,
@@ -63,7 +63,7 @@ enum Mode
     /**
      * Run real-time Cartesian motion-force control to track continuous commands @ 1kHz.
      * @note Real-time (RT) mode
-     * @see flexiv::Robot::streamCartesianMotionForce()
+     * @see flexiv::Robot::StreamCartesianMotionForce()
      */
     RT_CARTESIAN_MOTION_FORCE,
 
@@ -71,7 +71,7 @@ enum Mode
      * Run non-real-time Cartesian motion-force control to track discrete commands, smoothened by
      * internal motion generator.
      * @note Non-real-time (NRT) mode
-     * @see flexiv::Robot::sendCartesianMotionForce()
+     * @see flexiv::Robot::SendCartesianMotionForce()
      */
     NRT_CARTESIAN_MOTION_FORCE,
 
