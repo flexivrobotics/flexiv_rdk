@@ -6,10 +6,10 @@
  * @author Flexiv
  */
 
-#include <flexiv/Robot.hpp>
-#include <flexiv/Model.hpp>
-#include <flexiv/Log.hpp>
-#include <flexiv/Utility.hpp>
+#include <flexiv/robot.h>
+#include <flexiv/model.h>
+#include <flexiv/log.h>
+#include <flexiv/utility.h>
 
 #include <iostream>
 #include <iomanip>
@@ -18,7 +18,7 @@
 #include <mutex>
 
 /** @brief Print tutorial description */
-void printDescription()
+void PrintDescription()
 {
     std::cout << "This tutorial runs the integrated dynamics engine to obtain robot Jacobian, mass "
                  "matrix, and gravity force."
@@ -27,7 +27,7 @@ void printDescription()
 }
 
 /** @brief Print program usage help */
-void printHelp()
+void PrintHelp()
 {
     // clang-format off
     std::cout << "Required arguments: [robot SN]" << std::endl;
@@ -39,30 +39,30 @@ void printHelp()
 }
 
 /** @brief Periodic task running at 100 Hz */
-int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
+int PeriodicTask(flexiv::Robot& robot, flexiv::Model& model)
 {
     // Logger for printing message with timestamp and coloring
     flexiv::Log log;
 
     // Local periodic loop counter
-    uint64_t loopCounter = 0;
+    uint64_t loop_counter = 0;
 
     try {
         while (true) {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            loopCounter++;
+            loop_counter++;
 
             // Monitor fault on the connected robot
-            if (robot.isFault()) {
+            if (robot.fault()) {
                 throw std::runtime_error(
-                    "periodicTask: Fault occurred on the connected robot, exiting ...");
+                    "PeriodicTask: Fault occurred on the connected robot, exiting ...");
             }
 
             // Mark timer start point
             auto tic = std::chrono::high_resolution_clock::now();
 
             // Update robot model in dynamics engine
-            model.update(robot.states().q, robot.states().dtheta);
+            model.Update(robot.states().q, robot.states().dtheta);
 
             // Compute gravity vector
             auto g = model.g();
@@ -75,13 +75,13 @@ int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
 
             // Mark timer end point and get loop time
             auto toc = std::chrono::high_resolution_clock::now();
-            auto computeTime
+            auto compute_time
                 = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
 
             // Print at 1Hz
-            if (loopCounter % 100 == 0) {
+            if (loop_counter % 100 == 0) {
                 // Print time used to compute g, M, J
-                log.info("Computation time = " + std::to_string(computeTime) + " us");
+                log.Info("Computation time = " + std::to_string(compute_time) + " us");
                 std::cout << std::endl;
                 // Print gravity
                 std::cout << std::fixed << std::setprecision(5) << "g = " << g.transpose() << "\n"
@@ -93,7 +93,7 @@ int periodicTask(flexiv::Robot& robot, flexiv::Model& model)
             }
         }
     } catch (const std::exception& e) {
-        log.error(e.what());
+        log.Error(e.what());
         return 1;
     }
 }
@@ -106,51 +106,51 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse parameters
-    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
-        printHelp();
+    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+        PrintHelp();
         return 1;
     }
     // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
-    std::string robotSN = argv[1];
+    std::string robot_sn = argv[1];
 
     // Print description
-    log.info("Tutorial description:");
-    printDescription();
+    log.Info("Tutorial description:");
+    PrintDescription();
 
     try {
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robotSN);
+        flexiv::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
-        if (robot.isFault()) {
-            log.warn("Fault occurred on the connected robot, trying to clear ...");
+        if (robot.fault()) {
+            log.Warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
-            if (!robot.clearFault()) {
-                log.error("Fault cannot be cleared, exiting ...");
+            if (!robot.ClearFault()) {
+                log.Error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.info("Fault on the connected robot is cleared");
+            log.Info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...");
-        robot.enable();
+        log.Info("Enabling robot ...");
+        robot.Enable();
 
         // Wait for the robot to become operational
-        while (!robot.isOperational()) {
+        while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.info("Robot is now operational");
+        log.Info("Robot is now operational");
 
         // Move robot to home pose
-        log.info("Moving to home pose");
-        robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
-        robot.executePrimitive("Home()");
+        log.Info("Moving to home pose");
+        robot.SwitchMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
+        robot.ExecutePrimitive("Home()");
 
         // Wait for the primitive to finish
-        while (robot.isBusy()) {
+        while (robot.busy()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -160,11 +160,11 @@ int main(int argc, char* argv[])
         flexiv::Model model(robot);
 
         // Use std thread for periodic task so this example can run on Windows
-        std::thread periodicTaskThread(periodicTask, std::ref(robot), std::ref(model));
-        periodicTaskThread.join();
+        std::thread periodic_task_thread(PeriodicTask, std::ref(robot), std::ref(model));
+        periodic_task_thread.join();
 
     } catch (const std::exception& e) {
-        log.error(e.what());
+        log.Error(e.what());
         return 1;
     }
 
