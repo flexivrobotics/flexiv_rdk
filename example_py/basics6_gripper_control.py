@@ -106,7 +106,9 @@ def main():
         gripper = flexivrdk.Gripper(robot)
 
         # Manually initialize the gripper, not all grippers need this step
+        log.Info("Initializing gripper, this process takes about 10 seconds ...")
         gripper.Init()
+        log.Info("Initialization complete")
 
         # Thread for printing gripper states
         print_thread = threading.Thread(

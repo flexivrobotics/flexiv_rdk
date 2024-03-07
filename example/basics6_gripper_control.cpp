@@ -111,7 +111,9 @@ int main(int argc, char* argv[])
         flexiv::Gripper gripper(robot);
 
         // Manually initialize the gripper, not all grippers need this step
+        log.Info("Initializing gripper, this process takes about 10 seconds ...");
         gripper.Init();
+        log.Info("Initialization complete");
 
         // Thread for printing gripper states
         std::thread print_thread(PrintGripperStates, std::ref(gripper), std::ref(log));
