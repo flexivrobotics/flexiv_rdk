@@ -47,9 +47,9 @@ public:
 
     /**
      * @brief [Non-blocking] Access general information of the robot.
-     * @return RobotInfo data struct.
+     * @return RobotInfo value copy.
      */
-    const RobotInfo& info() const;
+    RobotInfo info() const;
 
     /**
      * @brief [Non-blocking] Access current control mode of the connected robot.
@@ -59,10 +59,10 @@ public:
 
     /**
      * @brief [Non-blocking] Access the current robot states.
-     * @return RobotStates data struct.
+     * @return RobotStates value copy.
      * @note Real-time (RT).
      */
-    const RobotStates& states() const;
+    RobotStates states() const;
 
     /**
      * @brief [Non-blocking] Whether the robot has come to a complete stop.
@@ -128,7 +128,7 @@ public:
      * @note Possible log level tags are: [info], [warning], [error], and [critical].
      * @warning Messages before the last successful instantiation of this class are not available.
      */
-    const std::vector<std::string>& mu_log() const;
+    std::vector<std::string> mu_log() const;
 
     //======================================= SYSTEM CONTROL =======================================
     /**
