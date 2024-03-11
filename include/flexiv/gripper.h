@@ -72,10 +72,10 @@ public:
 
     /**
      * @brief [Non-blocking] Access the current gripper states.
-     * @return GripperStates data struct.
+     * @return GripperStates value copy.
      * @note Real-time (RT).
      */
-    const GripperStates& states() const;
+    GripperStates states() const;
 
 private:
     class Impl;
