@@ -303,7 +303,9 @@ public:
      * @brief [Blocking] Execute a primitive by specifying its name and parameters, which can be
      * found in the [Flexiv Primitives documentation](https://www.flexiv.com/primitives/).
      * @param[in] pt_cmd Primitive command with the following string format:
-     * "primitiveName(inputParam1=xxx, inputParam2=xxx, ...)".
+     * "primitive_name(input_param1=xxx, input_param2=xxx, ...)". For an input parameter of type
+     * ARRAY_COORD (e.g. waypoints), use colon with space on both sides (" : ") to separate
+     * coordinate sets within this parameter.
      * @throw std::length_error if size of pt_cmd exceeds the limit (10 Kb).
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
