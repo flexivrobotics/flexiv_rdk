@@ -92,9 +92,9 @@ NOTE: if you will only be using Python RDK, you can skip this section and jump t
 
 ### Python RDK
 
-Python 3.8 and 3.10 are supported by RDK, see Flexiv RDK Manual for more details. A brief instruction is provided below and applies to all supported OS.
+Python 3.10 and 3.12 are supported by RDK, see Flexiv RDK Manual for more details. A brief instruction is provided below and applies to all supported OS.
 
-1. Check Python version is 3.8.x or 3.10.x:
+1. Check Python version is 3.10.x or 3.12.x:
 
         python3 --version
 
