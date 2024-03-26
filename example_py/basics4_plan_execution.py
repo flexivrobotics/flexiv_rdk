@@ -53,7 +53,7 @@ def main():
     mode = flexivrdk.Mode
 
     # Print description
-    log.info("Tutorial description:")
+    log.Info("Tutorial description:")
     print_description()
 
     try:
@@ -62,40 +62,37 @@ def main():
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_sn)
 
-        # Clear fault on robot server if any
-        if robot.isFault():
-            log.warn("Fault occurred on robot server, trying to clear ...")
+        # Clear fault on the connected robot if any
+        if robot.fault():
+            log.Warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
-            robot.clearFault()
-            time.sleep(2)
-            # Check again
-            if robot.isFault():
-                log.error("Fault cannot be cleared, exiting ...")
-                return
-            log.info("Fault on robot server is cleared")
+            if not robot.ClearFault():
+                log.Error("Fault cannot be cleared, exiting ...")
+                return 1
+            log.Info("Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...")
-        robot.enable()
+        log.Info("Enabling robot ...")
+        robot.Enable()
 
         # Wait for the robot to become operational
-        while not robot.isOperational():
+        while not robot.operational():
             time.sleep(1)
 
-        log.info("Robot is now operational")
+        log.Info("Robot is now operational")
 
         # Execute Plans
         # ==========================================================================================
         # Switch to plan execution mode
-        robot.setMode(mode.NRT_PLAN_EXECUTION)
+        robot.SwitchMode(mode.NRT_PLAN_EXECUTION)
 
         while True:
-            # Monitor fault on robot server
-            if robot.isFault():
-                raise Exception("Fault occurred on robot server, exiting ...")
+            # Monitor fault on the connected robot
+            if robot.fault():
+                raise Exception("Fault occurred on the connected robot, exiting ...")
 
             # Get user input
-            log.info("Choose an action:")
+            log.Info("Choose an action:")
             print("[1] Show available plans")
             print("[2] Execute a plan by index")
             print("[3] Execute a plan by name")
@@ -103,7 +100,7 @@ def main():
 
             # Get and show plan list
             if user_input == 1:
-                plan_list = robot.getPlanNameList()
+                plan_list = robot.plan_list()
                 for i in range(len(plan_list)):
                     print("[" + str(i) + "]", plan_list[i])
                 print("")
@@ -113,19 +110,20 @@ def main():
                 index = int(input("Enter plan index to execute:\n"))
                 # Allow the plan to continue its execution even if the RDK program is closed or
                 # the connection is lost
-                robot.executePlan(index, 100, True)
+                robot.ExecutePlan(index, True)
 
                 # Print plan info while the current plan is running
-                while robot.isBusy():
-                    plan_info = robot.getPlanInfo()
-                    log.info(" ")
-                    print("assignedPlanName: ", plan_info.assignedPlanName)
-                    print("ptName: ", plan_info.ptName)
-                    print("nodeName: ", plan_info.nodeName)
-                    print("nodePath: ", plan_info.nodePath)
-                    print("nodePathTimePeriod: ", plan_info.nodePathTimePeriod)
-                    print("nodePathNumber: ", plan_info.nodePathNumber)
-                    print("velocityScale: ", plan_info.velocityScale)
+                while robot.busy():
+                    plan_info = robot.plan_info()
+                    log.Info(" ")
+                    print("assigned_plan_name: ", plan_info.assigned_plan_name)
+                    print("pt_name: ", plan_info.pt_name)
+                    print("node_name: ", plan_info.node_name)
+                    print("node_path: ", plan_info.node_path)
+                    print("node_path_time_period: ", plan_info.node_path_time_period)
+                    print("node_path_number: ", plan_info.node_path_number)
+                    print("velocity_scale: ", plan_info.velocity_scale)
+                    print("waiting_for_step: ", plan_info.waiting_for_step)
                     print("")
                     time.sleep(1)
 
@@ -134,28 +132,29 @@ def main():
                 name = str(input("Enter plan name to execute:\n"))
                 # Allow the plan to continue its execution even if the RDK program is closed or
                 # the connection is lost
-                robot.executePlan(name, 100, True)
+                robot.ExecutePlan(name, True)
 
                 # Print plan info while the current plan is running
-                while robot.isBusy():
-                    plan_info = robot.getPlanInfo()
-                    log.info(" ")
-                    print("assignedPlanName: ", plan_info.assignedPlanName)
-                    print("ptName: ", plan_info.ptName)
-                    print("nodeName: ", plan_info.nodeName)
-                    print("nodePath: ", plan_info.nodePath)
-                    print("nodePathTimePeriod: ", plan_info.nodePathTimePeriod)
-                    print("nodePathNumber: ", plan_info.nodePathNumber)
-                    print("velocityScale: ", plan_info.velocityScale)
+                while robot.busy():
+                    plan_info = robot.plan_info()
+                    log.Info(" ")
+                    print("assigned_plan_name: ", plan_info.assigned_plan_name)
+                    print("pt_name: ", plan_info.pt_name)
+                    print("node_name: ", plan_info.node_name)
+                    print("node_path: ", plan_info.node_path)
+                    print("node_path_time_period: ", plan_info.node_path_time_period)
+                    print("node_path_number: ", plan_info.node_path_number)
+                    print("velocity_scale: ", plan_info.velocity_scale)
+                    print("waiting_for_step: ", plan_info.waiting_for_step)
                     print("")
                     time.sleep(1)
 
             else:
-                log.warn("Invalid input")
+                log.Warn("Invalid input")
 
     except Exception as e:
         # Print exception error message
-        log.error(str(e))
+        log.Error(str(e))
 
 
 if __name__ == "__main__":

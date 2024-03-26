@@ -1,31 +1,31 @@
 /**
  * @example basics7_auto_recovery.cpp
  * This tutorial runs an automatic recovery process if the robot's safety system is in recovery
- * state. See flexiv::Robot::isRecoveryState() and RDK manual for more details.
+ * state. See flexiv::Robot::recovery() and RDK manual for more details.
  * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <flexiv/Robot.hpp>
-#include <flexiv/Log.hpp>
-#include <flexiv/Utility.hpp>
+#include <flexiv/robot.h>
+#include <flexiv/log.h>
+#include <flexiv/utility.h>
 
 #include <iostream>
 #include <string>
 #include <thread>
 
 /** @brief Print tutorial description */
-void printDescription()
+void PrintDescription()
 {
     std::cout
         << "This tutorial runs an automatic recovery process if the robot's safety system is in "
-           "recovery state. See flexiv::Robot::isRecoveryState() and RDK manual for more details."
+           "recovery state. See flexiv::Robot::recovery() and RDK manual for more details."
         << std::endl
         << std::endl;
 }
 
 /** @brief Print program usage help */
-void printHelp()
+void PrintHelp()
 {
     // clang-format off
     std::cout << "Required arguments: [robot SN]" << std::endl;
@@ -44,26 +44,26 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse parameters
-    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
-        printHelp();
+    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+        PrintHelp();
         return 1;
     }
     // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
-    std::string robotSN = argv[1];
+    std::string robot_sn = argv[1];
 
     // Print description
-    log.info("Tutorial description:");
-    printDescription();
+    log.Info("Tutorial description:");
+    PrintDescription();
 
     try {
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robotSN);
+        flexiv::Robot robot(robot_sn);
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...");
-        robot.enable();
+        log.Info("Enabling robot ...");
+        robot.Enable();
 
         // Run Auto-recovery
         // =========================================================================================
@@ -73,15 +73,15 @@ int main(int argc, char* argv[])
 
         // Run automatic recovery if the system is in recovery state, the involved joints will start
         // to move back into allowed position range
-        if (robot.isRecoveryState()) {
-            robot.runAutoRecovery();
+        if (robot.recovery()) {
+            robot.RunAutoRecovery();
         }
         // Otherwise the system is normal, do nothing
         else {
-            log.info("Robot system is not in recovery state, nothing to be done, exiting ...");
+            log.Info("Robot system is not in recovery state, nothing to be done, exiting ...");
         }
     } catch (const std::exception& e) {
-        log.error(e.what());
+        log.Error(e.what());
         return 1;
     }
 

@@ -58,12 +58,11 @@ def main():
     assert frequency >= 1 and frequency <= 100, "Invalid <frequency> input"
 
     # Define alias
-    robot_states = flexivrdk.RobotStates()
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
     # Print description
-    log.info("Tutorial description:")
+    log.Info("Tutorial description:")
     print_description()
 
     try:
@@ -72,41 +71,38 @@ def main():
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_sn)
 
-        # Clear fault on robot server if any
-        if robot.isFault():
-            log.warn("Fault occurred on robot server, trying to clear ...")
+        # Clear fault on the connected robot if any
+        if robot.fault():
+            log.Warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
-            robot.clearFault()
-            time.sleep(2)
-            # Check again
-            if robot.isFault():
-                log.error("Fault cannot be cleared, exiting ...")
-                return
-            log.info("Fault on robot server is cleared")
+            if not robot.ClearFault():
+                log.Error("Fault cannot be cleared, exiting ...")
+                return 1
+            log.Info("Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...")
-        robot.enable()
+        log.Info("Enabling robot ...")
+        robot.Enable()
 
         # Wait for the robot to become operational
-        while not robot.isOperational():
+        while not robot.operational():
             time.sleep(1)
 
-        log.info("Robot is now operational")
+        log.Info("Robot is now operational")
 
         # Move robot to home pose
-        log.info("Moving to home pose")
-        robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
-        robot.executePrimitive("Home()")
+        log.Info("Moving to home pose")
+        robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
+        robot.ExecutePrimitive("Home()")
 
         # Wait for the primitive to finish
-        while robot.isBusy():
+        while robot.busy():
             time.sleep(1)
 
         # Non-real-time Joint Position Control
         # ==========================================================================================
         # Switch to non-real-time joint position control mode
-        robot.setMode(mode.NRT_JOINT_POSITION)
+        robot.SwitchMode(mode.NRT_JOINT_POSITION)
 
         period = 1.0 / frequency
         loop_time = 0
@@ -119,12 +115,11 @@ def main():
         )
 
         # Use current robot joint positions as initial positions
-        robot.getRobotStates(robot_states)
-        init_pos = robot_states.q.copy()
+        init_pos = robot.states().q.copy()
         print("Initial positions set to: ", init_pos)
 
         # Robot degrees of freedom
-        DOF = len(robot_states.q)
+        DOF = len(robot.states().q)
 
         # Initialize target vectors
         target_pos = init_pos.copy()
@@ -146,9 +141,9 @@ def main():
             # Use sleep to control loop period
             time.sleep(period)
 
-            # Monitor fault on robot server
-            if robot.isFault():
-                raise Exception("Fault occurred on robot server, exiting ...")
+            # Monitor fault on the connected robot
+            if robot.fault():
+                raise Exception("Fault occurred on the connected robot, exiting ...")
 
             # Sine-sweep all joints
             if not args.hold:
@@ -159,7 +154,7 @@ def main():
             # Otherwise all joints will hold at initial positions
 
             # Send command
-            robot.sendJointPosition(
+            robot.SendJointPosition(
                 target_pos, target_vel, target_acc, MAX_VEL, MAX_ACC
             )
 
@@ -168,7 +163,7 @@ def main():
 
     except Exception as e:
         # Print exception error message
-        log.error(str(e))
+        log.Error(str(e))
 
 
 if __name__ == "__main__":

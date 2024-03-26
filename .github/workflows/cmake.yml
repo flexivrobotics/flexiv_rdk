@@ -13,7 +13,7 @@ env:
 
 jobs:
   build-ubuntu-22:
-    # Use Ubuntu 22.04 runner
+    # Use GitHub-hosted Ubuntu 22.04 runner
     runs-on: ubuntu-22.04
 
     steps:
@@ -51,7 +51,7 @@ jobs:
           make -j$(nproc)
 
   build-ubuntu-20:
-    # Use Ubuntu 20.04 runner
+    # Use GitHub-hosted Ubuntu 20.04 runner
     runs-on: ubuntu-20.04
 
     steps:
@@ -126,9 +126,9 @@ jobs:
           cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
           make -j$(sysctl -n hw.ncpu)
 
-  build-windows-2019:
-    # Use Windows 2019 runner because the 2022 runner uses a MSVC version that's too new for one of the dependencies
-    runs-on: windows-2019
+  build-windows-2022:
+    # Use GitHub-hosted Windows 2022 runner
+    runs-on: windows-2022
 
     steps:
       - uses: actions/checkout@v2

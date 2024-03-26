@@ -5,9 +5,9 @@
  * @author Flexiv
  */
 
-#include <flexiv/Log.hpp>
-#include <flexiv/Scheduler.hpp>
-#include <flexiv/Utility.hpp>
+#include <flexiv/log.h>
+#include <flexiv/scheduler.h>
+#include <flexiv/utility.h>
 
 #include <iostream>
 #include <thread>
@@ -19,20 +19,20 @@ namespace {
 /** Data shared between threads */
 struct SharedData
 {
-    int64_t measuredInterval = 0;
+    int64_t measured_interval = 0;
 } g_data;
 
 /** Mutex on the shared data */
 std::mutex g_mutex;
 
 /** Atomic signal to stop scheduler tasks */
-std::atomic<bool> g_schedStop = {false};
+std::atomic<bool> g_stop_sched = {false};
 }
 
 /** User-defined high-priority periodic task @ 1kHz */
 void highPriorityTask(flexiv::Log& log)
 {
-    static unsigned int loopCounter = 0;
+    static unsigned int loop_counter = 0;
 
     // Scheduler loop interval start time point
     static std::chrono::high_resolution_clock::time_point tic;
@@ -42,55 +42,55 @@ void highPriorityTask(flexiv::Log& log)
         auto toc = std::chrono::high_resolution_clock::now();
 
         // Calculate scheduler's interrupt interval and print
-        auto measuredInterval
+        auto measured_interval
             = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
 
         // Safely write shared data
         {
             std::lock_guard<std::mutex> lock(g_mutex);
-            g_data.measuredInterval = measuredInterval;
+            g_data.measured_interval = measured_interval;
         }
 
         // Stop scheduler after 5 seconds
-        if (++loopCounter > 5000) {
-            loopCounter = 0;
-            g_schedStop = true;
+        if (++loop_counter > 5000) {
+            loop_counter = 0;
+            g_stop_sched = true;
         }
 
         // Mark loop interval start point
         tic = std::chrono::high_resolution_clock::now();
 
     } catch (const std::exception& e) {
-        log.error(e.what());
-        g_schedStop = true;
+        log.Error(e.what());
+        g_stop_sched = true;
     }
 }
 
 /** User-defined low-priority periodic task @1Hz */
 void lowPriorityTask(flexiv::Log& log)
 {
-    static uint64_t accumulatedTime = 0;
-    static uint64_t numMeasures = 0;
-    static float avgInterval = 0.0;
-    int measuredInterval = 0;
+    static uint64_t accumulated_time = 0;
+    static uint64_t num_measures = 0;
+    static float avg_interval = 0.0;
+    int measured_interval = 0;
 
     // Safely read shared data
     {
         std::lock_guard<std::mutex> lock(g_mutex);
-        measuredInterval = g_data.measuredInterval;
+        measured_interval = g_data.measured_interval;
     }
 
     // calculate average time interval
-    accumulatedTime += measuredInterval;
-    numMeasures++;
-    avgInterval = (float)accumulatedTime / (float)numMeasures;
+    accumulated_time += measured_interval;
+    num_measures++;
+    avg_interval = (float)accumulated_time / (float)num_measures;
 
     // print time interval of high-priority periodic task
-    log.info("High-priority task interval (curr | avg) = " + std::to_string(measuredInterval)
-             + " | " + std::to_string(avgInterval) + " us");
+    log.Info("High-priority task interval (curr | avg) = " + std::to_string(measured_interval)
+             + " | " + std::to_string(avg_interval) + " us");
 }
 
-void printHelp()
+void PrintHelp()
 {
     // clang-format off
     std::cout << "Required arguments: None" << std::endl;
@@ -106,8 +106,8 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //==============================================================================================
-    if (flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
-        printHelp();
+    if (flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+        PrintHelp();
         return 1;
     }
 
@@ -116,35 +116,35 @@ int main(int argc, char* argv[])
         //==========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(highPriorityTask, std::ref(log)), "HP periodic", 1, scheduler.maxPriority());
+        scheduler.AddTask(
+            std::bind(highPriorityTask, std::ref(log)), "HP periodic", 1, scheduler.max_priority());
         // Add periodic task with 1s interval and lowest applicable priority
-        scheduler.addTask(std::bind(lowPriorityTask, std::ref(log)), "LP periodic", 1000, 0);
+        scheduler.AddTask(std::bind(lowPriorityTask, std::ref(log)), "LP periodic", 1000, 0);
         // Start all added tasks
-        scheduler.start();
+        scheduler.Start();
 
         // Block and wait for signal to stop scheduler tasks
-        while (!g_schedStop) {
+        while (!g_stop_sched) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         // Received signal to stop scheduler tasks
-        scheduler.stop();
+        scheduler.Stop();
 
         // Restart scheduler after 2 seconds
-        log.warn("Scheduler will restart in 2 seconds");
+        log.Warn("Scheduler will restart in 2 seconds");
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        g_schedStop = false;
-        scheduler.start();
+        g_stop_sched = false;
+        scheduler.Start();
 
         // Wait for signal to stop scheduler tasks
-        while (!g_schedStop) {
+        while (!g_stop_sched) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         // Received signal to stop scheduler tasks, flexiv::Scheduler's destructor can also do the
         // thread exit and resources cleanup
 
     } catch (const std::exception& e) {
-        log.error(e.what());
+        log.Error(e.what());
         return 1;
     }
 

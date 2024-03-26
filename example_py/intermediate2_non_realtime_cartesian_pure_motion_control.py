@@ -79,24 +79,23 @@ def main():
     assert frequency >= 1 and frequency <= 100, "Invalid <frequency> input"
 
     # Define alias
-    robot_states = flexivrdk.RobotStates()
     log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
     # Print description
-    log.info("Tutorial description:")
+    log.Info("Tutorial description:")
     print_description()
 
     # Print based on arguments
     if args.hold:
-        log.info("Robot holding current TCP pose")
+        log.Info("Robot holding current TCP pose")
     else:
-        log.info("Robot running TCP sine-sweep")
+        log.Info("Robot running TCP sine-sweep")
 
     if args.collision:
-        log.info("Collision detection enabled")
+        log.Info("Collision detection enabled")
     else:
-        log.info("Collision detection disabled")
+        log.Info("Collision detection disabled")
 
     try:
         # RDK Initialization
@@ -104,52 +103,49 @@ def main():
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_sn)
 
-        # Clear fault on robot server if any
-        if robot.isFault():
-            log.warn("Fault occurred on robot server, trying to clear ...")
+        # Clear fault on the connected robot if any
+        if robot.fault():
+            log.Warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
-            robot.clearFault()
-            time.sleep(2)
-            # Check again
-            if robot.isFault():
-                log.error("Fault cannot be cleared, exiting ...")
-                return
-            log.info("Fault on robot server is cleared")
+            if not robot.ClearFault():
+                log.Error("Fault cannot be cleared, exiting ...")
+                return 1
+            log.Info("Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...")
-        robot.enable()
+        log.Info("Enabling robot ...")
+        robot.Enable()
 
         # Wait for the robot to become operational
-        while not robot.isOperational():
+        while not robot.operational():
             time.sleep(1)
 
-        log.info("Robot is now operational")
+        log.Info("Robot is now operational")
 
         # Move robot to home pose
-        log.info("Moving to home pose")
-        robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
-        robot.executePrimitive("Home()")
+        log.Info("Moving to home pose")
+        robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
+        robot.ExecutePrimitive("Home()")
 
         # Wait for the primitive to finish
-        while robot.isBusy():
+        while robot.busy():
             time.sleep(1)
 
         # Zero Force-torque Sensor
         # =========================================================================================
         # IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
-        robot.executePrimitive("ZeroFTSensor()")
+        robot.ExecutePrimitive("ZeroFTSensor()")
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations
-        log.warn(
+        log.Warn(
             "Zeroing force/torque sensors, make sure nothing is in contact with the robot"
         )
 
         # Wait for primitive completion
-        while robot.isBusy():
+        while robot.busy():
             time.sleep(1)
-        log.info("Sensor zeroing complete")
+        log.Info("Sensor zeroing complete")
 
         # Configure Motion Control
         # =========================================================================================
@@ -162,10 +158,10 @@ def main():
         # Start Pure Motion Control
         # =========================================================================================
         # Switch to non-real-time mode for discrete motion control
-        robot.setMode(mode.NRT_CARTESIAN_MOTION_FORCE)
+        robot.SwitchMode(mode.NRT_CARTESIAN_MOTION_FORCE)
 
         # Set initial pose to current TCP pose
-        init_pose = robot.getRobotStates().tcpPose.copy()
+        init_pose = robot.states().tcp_pose.copy()
         print(
             "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",
             init_pose,
@@ -189,12 +185,9 @@ def main():
             # Use sleep to control loop period
             time.sleep(period)
 
-            # Monitor fault on robot server
-            if robot.isFault():
-                raise Exception("Fault occurred on robot server, exiting ...")
-
-            # Read robot states
-            robot.getRobotStates(robot_states)
+            # Monitor fault on the connected robot
+            if robot.fault():
+                raise Exception("Fault occurred on the connected robot, exiting ...")
 
             # Initialize target pose to initial pose
             target_pose = init_pose.copy()
@@ -208,46 +201,46 @@ def main():
 
             # Send command. Calling this method with only target pose input results
             # in pure motion control
-            robot.sendCartesianMotionForce(target_pose)
+            robot.SendCartesianMotionForce(target_pose)
 
             #  Do the following operations in sequence for every 20 seconds
             time_elapsed = loop_counter * period
             # Online change preferred joint positions at 3 seconds
             if time_elapsed % 20.0 == 3.0:
                 preferred_jnt_pos = [0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658]
-                robot.setNullSpacePosture(preferred_jnt_pos)
-                log.info("Preferred joint positions set to: ")
+                robot.SetNullSpacePosture(preferred_jnt_pos)
+                log.Info("Preferred joint positions set to: ")
                 print(preferred_jnt_pos)
             # Online change stiffness to half of nominal at 6 seconds
             elif time_elapsed % 20.0 == 6.0:
-                new_K = np.multiply(robot.info().nominalK, 0.5)
-                robot.setCartesianStiffness(new_K)
-                log.info("Cartesian stiffness set to: ")
+                new_K = np.multiply(robot.info().nominal_K, 0.5)
+                robot.SetCartesianStiffness(new_K)
+                log.Info("Cartesian stiffness set to: ")
                 print(new_K)
             # Online change to another preferred joint positions at 9 seconds
             elif time_elapsed % 20.0 == 9.0:
                 preferred_jnt_pos = [-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658]
-                robot.setNullSpacePosture(preferred_jnt_pos)
-                log.info("Preferred joint positions set to: ")
+                robot.SetNullSpacePosture(preferred_jnt_pos)
+                log.Info("Preferred joint positions set to: ")
                 print(preferred_jnt_pos)
             # Online reset stiffness to nominal at 12 seconds
             elif time_elapsed % 20.0 == 12.0:
-                robot.resetCartesianStiffness()
-                log.info("Cartesian stiffness is reset")
+                robot.ResetCartesianStiffness()
+                log.Info("Cartesian stiffness is reset")
             # Online reset preferred joint positions to nominal at 14 seconds
             elif time_elapsed % 20.0 == 14.0:
-                robot.resetNullSpacePosture()
-                log.info("Preferred joint positions are reset")
+                robot.ResetNullSpacePosture()
+                log.Info("Preferred joint positions are reset")
             # Online enable max contact wrench regulation at 16 seconds
             elif time_elapsed % 20.0 == 16.0:
                 max_wrench = [10.0, 10.0, 10.0, 2.0, 2.0, 2.0]
-                robot.setMaxContactWrench(max_wrench)
-                log.info("Max contact wrench set to: ")
+                robot.SetMaxContactWrench(max_wrench)
+                log.Info("Max contact wrench set to: ")
                 print(max_wrench)
             # Disable max contact wrench regulation at 19 seconds
             elif time_elapsed % 20.0 == 19.0:
-                robot.resetMaxContactWrench()
-                log.info("Max contact wrench is reset")
+                robot.ResetMaxContactWrench()
+                log.Info("Max contact wrench is reset")
 
             # Simple collision detection: stop robot if collision is detected at
             # end-effector
@@ -255,21 +248,21 @@ def main():
                 collision_detected = False
                 ext_force = np.array(
                     [
-                        robot_states.extWrenchInWorld[0],
-                        robot_states.extWrenchInWorld[1],
-                        robot_states.extWrenchInWorld[2],
+                        robot.states().ext_wrench_in_world[0],
+                        robot.states().ext_wrench_in_world[1],
+                        robot.states().ext_wrench_in_world[2],
                     ]
                 )
                 if np.linalg.norm(ext_force) > EXT_FORCE_THRESHOLD:
                     collision_detected = True
 
-                for v in robot_states.tauExt:
+                for v in robot.states().tau_ext:
                     if abs(v) > EXT_TORQUE_THRESHOLD:
                         collision_detected = True
 
                 if collision_detected:
-                    robot.stop()
-                    log.warn("Collision detected, stopping robot and exit program ...")
+                    robot.Stop()
+                    log.Warn("Collision detected, stopping robot and exit program ...")
                     return
 
             # Increment loop counter
@@ -277,7 +270,7 @@ def main():
 
     except Exception as e:
         # Print exception error message
-        log.error(str(e))
+        log.Error(str(e))
 
 
 if __name__ == "__main__":

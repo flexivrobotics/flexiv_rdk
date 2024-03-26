@@ -8,10 +8,10 @@
  * @author Flexiv
  */
 
-#include <flexiv/Robot.hpp>
-#include <flexiv/Log.hpp>
-#include <flexiv/Scheduler.hpp>
-#include <flexiv/Utility.hpp>
+#include <flexiv/robot.h>
+#include <flexiv/log.h>
+#include <flexiv/scheduler.h>
+#include <flexiv/utility.h>
 
 #include <iostream>
 #include <string>
@@ -20,15 +20,15 @@
 
 namespace {
 /** Joint velocity damping gains for floating */
-const std::array<double, flexiv::k_jointDOF> k_floatingDamping
+const std::array<double, flexiv::kJointDOF> kFloatingDamping
     = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
 
 /** Atomic signal to stop scheduler tasks */
-std::atomic<bool> g_schedStop = {false};
+std::atomic<bool> g_stop_sched = {false};
 }
 
 /** @brief Print tutorial description */
-void printDescription()
+void PrintDescription()
 {
     std::cout << "This tutorial runs real-time joint floating with gentle velocity damping, "
                  "gravity compensation, and soft protection against position limits. This example "
@@ -40,7 +40,7 @@ void printDescription()
 }
 
 /** @brief Print program usage help */
-void printHelp()
+void PrintHelp()
 {
     // clang-format off
     std::cout << "Required arguments: [robot SN]" << std::endl;
@@ -52,32 +52,30 @@ void printHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& robotStates)
+void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log)
 {
     try {
-        // Monitor fault on robot server
-        if (robot.isFault()) {
-            throw std::runtime_error("periodicTask: Fault occurred on robot server, exiting ...");
+        // Monitor fault on the connected robot
+        if (robot.fault()) {
+            throw std::runtime_error(
+                "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
 
-        // Read robot states
-        robot.getRobotStates(robotStates);
-
         // Set 0 joint torques
-        std::array<double, flexiv::k_jointDOF> targetTorque = {};
+        std::array<double, flexiv::kJointDOF> target_torque = {};
 
         // Add some velocity damping
-        for (size_t i = 0; i < flexiv::k_jointDOF; ++i) {
-            targetTorque[i] += -k_floatingDamping[i] * robotStates.dtheta[i];
+        for (size_t i = 0; i < flexiv::kJointDOF; ++i) {
+            target_torque[i] += -kFloatingDamping[i] * robot.states().dtheta[i];
         }
 
         // Send target joint torque to RDK server, enable gravity compensation and joint limits soft
         // protection
-        robot.streamJointTorque(targetTorque, true, true);
+        robot.StreamJointTorque(target_torque, true, true);
 
     } catch (const std::exception& e) {
-        log.error(e.what());
-        g_schedStop = true;
+        log.Error(e.what());
+        g_stop_sched = true;
     }
 }
 
@@ -89,83 +87,76 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse parameters
-    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
-        printHelp();
+    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+        PrintHelp();
         return 1;
     }
     // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
-    std::string robotSN = argv[1];
+    std::string robot_sn = argv[1];
 
     // Print description
-    log.info("Tutorial description:");
-    printDescription();
+    log.Info("Tutorial description:");
+    PrintDescription();
 
     try {
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robotSN);
+        flexiv::Robot robot(robot_sn);
 
-        // Create data struct for storing robot states
-        flexiv::RobotStates robotStates;
-
-        // Clear fault on robot server if any
-        if (robot.isFault()) {
-            log.warn("Fault occurred on robot server, trying to clear ...");
+        // Clear fault on the connected robot if any
+        if (robot.fault()) {
+            log.Warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
-            robot.clearFault();
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            // Check again
-            if (robot.isFault()) {
-                log.error("Fault cannot be cleared, exiting ...");
+            if (!robot.ClearFault()) {
+                log.Error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.info("Fault on robot server is cleared");
+            log.Info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...");
-        robot.enable();
+        log.Info("Enabling robot ...");
+        robot.Enable();
 
         // Wait for the robot to become operational
-        while (!robot.isOperational()) {
+        while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.info("Robot is now operational");
+        log.Info("Robot is now operational");
 
         // Move robot to home pose
-        log.info("Moving to home pose");
-        robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
-        robot.executePrimitive("Home()");
+        log.Info("Moving to home pose");
+        robot.SwitchMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
+        robot.ExecutePrimitive("Home()");
 
         // Wait for the primitive to finish
-        while (robot.isBusy()) {
+        while (robot.busy()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
         // Real-time Joint Floating
         // =========================================================================================
         // Switch to real-time joint torque control mode
-        robot.setMode(flexiv::Mode::RT_JOINT_TORQUE);
+        robot.SwitchMode(flexiv::Mode::RT_JOINT_TORQUE);
 
         // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(
-            std::bind(periodicTask, std::ref(robot), std::ref(log), std::ref(robotStates)),
-            "HP periodic", 1, scheduler.maxPriority());
+        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(log)), "HP periodic", 1,
+            scheduler.max_priority());
         // Start all added tasks
-        scheduler.start();
+        scheduler.Start();
 
         // Block and wait for signal to stop scheduler tasks
-        while (!g_schedStop) {
+        while (!g_stop_sched) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         // Received signal to stop scheduler tasks
-        scheduler.stop();
+        scheduler.Stop();
 
     } catch (const std::exception& e) {
-        log.error(e.what());
+        log.Error(e.what());
         return 1;
     }
 

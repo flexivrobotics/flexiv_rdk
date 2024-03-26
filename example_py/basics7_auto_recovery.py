@@ -3,7 +3,7 @@
 """basics7_auto_recovery.py
 
 This tutorial runs an automatic recovery process if the robot's safety system is in recovery
-state. See flexiv::Robot::isRecoveryState() and RDK manual for more details.
+state. See flexiv::Robot::recovery() and RDK manual for more details.
 """
 
 __copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
@@ -27,7 +27,7 @@ def print_description():
     """
     print(
         "This tutorial runs an automatic recovery process if the robot's safety system is in "
-        "recovery state. See flexiv::Robot::isRecoveryState() and RDK manual for more details."
+        "recovery state. See flexiv::Robot::recovery() and RDK manual for more details."
     )
     print()
 
@@ -47,7 +47,7 @@ def main():
     log = flexivrdk.Log()
 
     # Print description
-    log.info("Tutorial description:")
+    log.Info("Tutorial description:")
     print_description()
 
     try:
@@ -57,8 +57,8 @@ def main():
         robot = flexivrdk.Robot(args.robot_sn)
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...")
-        robot.enable()
+        log.Info("Enabling robot ...")
+        robot.Enable()
 
         # Run Auto-recovery
         # ==========================================================================================
@@ -68,17 +68,17 @@ def main():
 
         # Run automatic recovery if the system is in recovery state, the involved joints will start
         # to move back into allowed position range
-        if robot.isRecoveryState():
-            robot.runAutoRecovery()
+        if robot.recovery():
+            robot.RunAutoRecovery()
         # Otherwise the system is normal, do nothing
         else:
-            log.info(
+            log.Info(
                 "Robot system is not in recovery state, nothing to be done, exiting ..."
             )
 
     except Exception as e:
         # Print exception error message
-        log.error(str(e))
+        log.Error(str(e))
 
 
 if __name__ == "__main__":

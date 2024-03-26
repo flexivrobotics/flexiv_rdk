@@ -1,10 +1,10 @@
 /**
- * @file Utility.hpp
+ * @file utility.h
  * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_UTILITY_HPP_
-#define FLEXIVRDK_UTILITY_HPP_
+#ifndef FLEXIVRDK_UTILITY_H_
+#define FLEXIVRDK_UTILITY_H_
 
 #include <Eigen/Eigen>
 #include <array>
@@ -19,51 +19,51 @@ namespace utility {
  * @note The return value, when converted to degrees, is the same Euler angles used by Move
  * primitives.
  */
-inline std::array<double, 3> quat2EulerZYX(const std::array<double, 4>& quat)
+inline std::array<double, 3> Quat2EulerZYX(const std::array<double, 4>& quat)
 {
     // Form quaternion
     Eigen::Quaterniond q(quat[0], quat[1], quat[2], quat[3]);
 
     // The returned array is in [z,y,x] order
-    auto eulerZYX = q.toRotationMatrix().eulerAngles(2, 1, 0);
+    auto euler_ZYX = q.toRotationMatrix().eulerAngles(2, 1, 0);
 
     // Convert to general [x,y,z] order
-    return (std::array<double, 3> {eulerZYX[2], eulerZYX[1], eulerZYX[0]});
+    return (std::array<double, 3> {euler_ZYX[2], euler_ZYX[1], euler_ZYX[0]});
 }
 
 /**
  * @brief Convert radians to degrees for a single value.
  */
-inline double rad2Deg(double rad)
+inline double Rad2Deg(double rad)
 {
-    constexpr double k_pi = 3.14159265358979323846;
-    return (rad / k_pi * 180.0);
+    constexpr double kPi = 3.14159265358979323846;
+    return (rad / kPi * 180.0);
 }
 
 /**
  * @brief Convert radians to degrees for an array.
  */
 template <size_t N>
-inline std::array<double, N> rad2Deg(const std::array<double, N>& radArr)
+inline std::array<double, N> Rad2Deg(const std::array<double, N>& rad_arr)
 {
-    std::array<double, N> degArr;
+    std::array<double, N> deg_arr;
     for (size_t i = 0; i < N; i++) {
-        degArr[i] = rad2Deg(radArr[i]);
+        deg_arr[i] = Rad2Deg(rad_arr[i]);
     }
-    return degArr;
+    return deg_arr;
 }
 
 /**
  * @brief Convert a std::array to a string.
  * @param[in] arr std::array of any type and size.
  * @param[in] decimal Decimal places to keep for each number in the array.
- * @param[in] trailingSpace Whether to include a space after the last element.
+ * @param[in] trailing_space Whether to include a space after the last element.
  * @return A string with format "arr[0] arr[1] ... arr[n] ", i.e. each element followed by a space,
- * including the last one if trailingSpace = true.
+ * including the last one if trailing_space = true.
  */
 template <typename T, size_t N>
-inline std::string arr2Str(
-    const std::array<T, N>& arr, size_t decimal = 3, bool trailingSpace = true)
+inline std::string Arr2Str(
+    const std::array<T, N>& arr, size_t decimal = 3, bool trailing_space = true)
 {
     auto padding = "";
     std::stringstream ss;
@@ -75,7 +75,7 @@ inline std::string arr2Str(
         padding = " ";
     }
 
-    if (trailingSpace) {
+    if (trailing_space) {
         ss << " ";
     }
     return ss.str();
@@ -86,13 +86,13 @@ inline std::string arr2Str(
  * @param[in] argc Argument count passed to main() of the program.
  * @param[in] argv Argument vector passed to main() of the program, where argv[0] is the program
  * name.
- * @param[in] refStrs Reference strings to check against.
+ * @param[in] ref_strings Reference strings to check against.
  * @return True if the program arguments contain one or more reference strings.
  */
-inline bool programArgsExistAny(int argc, char** argv, const std::vector<std::string>& refStrs)
+inline bool ProgramArgsExistAny(int argc, char** argv, const std::vector<std::string>& ref_strings)
 {
     for (int i = 0; i < argc; i++) {
-        for (const auto& v : refStrs) {
+        for (const auto& v : ref_strings) {
             if (v == std::string(argv[i])) {
                 return true;
             }
@@ -104,35 +104,39 @@ inline bool programArgsExistAny(int argc, char** argv, const std::vector<std::st
 /**
  * @brief Check if one specific string exists in the program arguments.
  * @param[in] argc Argument count passed to main() of the program.
- * @param[in] argv Argument vector passed to main() of the program, where argv[0] is the program
+ * @param[in] argv Argument vector passed to main() of the program, with argv[0] being the program
  * name.
- * @param[in] refStr Reference string to check against.
+ * @param[in] ref_strings Reference string to check against.
  * @return True if the program arguments contain this specific reference string.
  */
-inline bool programArgsExist(int argc, char** argv, const std::string& refStr)
+inline bool ProgramArgsExist(int argc, char** argv, const std::string& ref_strings)
 {
-    return programArgsExistAny(argc, argv, {refStr});
+    return ProgramArgsExistAny(argc, argv, {ref_strings});
 }
 
 /**
- * @brief Parse the value of a specified primitive state from the ptStates string list.
- * @param[in] ptStates Primitive states string list returned from Robot::getPrimitiveStates().
- * @param[in] parseTarget Name of the primitive state to parse for.
+ * @brief Parse the value of a specified primitive state from the pt_states string list.
+ * @param[in] pt_states Primitive states string list returned from Robot::primitive_states().
+ * @param[in] parse_target Name of the primitive state to parse for.
  * @return Value of the specified primitive state in string format. Empty string is returned if
- * parseTarget does not exist.
+ * parse_target does not exist.
  */
-inline std::string parsePtStates(
-    const std::vector<std::string>& ptStates, const std::string& parseTarget)
+inline std::string ParsePtStates(
+    const std::vector<std::string>& pt_states, const std::string& parse_target)
 {
-    for (const auto& state : ptStates) {
+    for (const auto& state : pt_states) {
+        // Skip if empty
+        if (state.empty()) {
+            continue;
+        }
         std::stringstream ss(state);
         std::string buffer;
-        std::vector<std::string> parsedState;
+        std::vector<std::string> parsed_state;
         while (ss >> buffer) {
-            parsedState.push_back(buffer);
+            parsed_state.push_back(buffer);
         }
-        if (parsedState.front() == parseTarget) {
-            return parsedState.back();
+        if (parsed_state.front() == parse_target) {
+            return parsed_state.back();
         }
     }
 
@@ -142,4 +146,4 @@ inline std::string parsePtStates(
 } /* namespace utility */
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_UTILITY_HPP_ */
+#endif /* FLEXIVRDK_UTILITY_H_ */
