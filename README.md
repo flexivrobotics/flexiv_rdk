@@ -19,7 +19,10 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 ## Quick Start
 
-**NOTE:** the full documentation is in [Flexiv RDK Manual](https://rdk.flexiv.com/manual/).
+### Note
+
+* The full documentation is in [Flexiv RDK Manual](https://rdk.flexiv.com/manual/).
+* You might need to turn off your computer's firewall to be able to connect to the robot.
 
 ### C++ RDK
 
