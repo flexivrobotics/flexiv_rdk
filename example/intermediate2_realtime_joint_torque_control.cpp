@@ -7,10 +7,10 @@
  * @author Flexiv
  */
 
-#include <flexiv/Robot.hpp>
-#include <flexiv/Log.hpp>
-#include <flexiv/Scheduler.hpp>
-#include <flexiv/Utility.hpp>
+#include <flexiv/robot.h>
+#include <flexiv/log.h>
+#include <flexiv/scheduler.h>
+#include <flexiv/utility.h>
 
 #include <iostream>
 #include <string>
@@ -20,24 +20,23 @@
 
 namespace {
 /** RT loop period [sec] */
-constexpr double k_loopPeriod = 0.001;
+constexpr double kLoopPeriod = 0.001;
 
 /** Outer position loop (impedance) gains, values are only for demo purpose */
-const std::array<double, flexiv::k_jointDOF> k_impedanceKp
+const std::array<double, flexiv::kJointDOF> kImpedanceKp
     = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
-const std::array<double, flexiv::k_jointDOF> k_impedanceKd
-    = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
+const std::array<double, flexiv::kJointDOF> kImpedanceKd = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
 
 /** Sine-sweep trajectory amplitude and frequency */
-constexpr double k_sineAmp = 0.035;
-constexpr double k_sineFreq = 0.3;
+constexpr double kSineAmp = 0.035;
+constexpr double kSineFreq = 0.3;
 
 /** Atomic signal to stop scheduler tasks */
-std::atomic<bool> g_schedStop = {false};
+std::atomic<bool> g_stop_sched = {false};
 }
 
 /** @brief Print tutorial description */
-void printDescription()
+void PrintDescription()
 {
     std::cout
         << "This tutorial runs real-time joint torque control to hold or sine-sweep all robot "
@@ -48,7 +47,7 @@ void printDescription()
 }
 
 /** @brief Print program usage help */
-void printHelp()
+void PrintHelp()
 {
     // clang-format off
     std::cout << "Required arguments: [robot SN]" << std::endl;
@@ -61,53 +60,50 @@ void printHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void periodicTask(flexiv::Robot& robot, flexiv::Log& log, flexiv::RobotStates& robotStates,
-    const std::string& motionType, const std::array<double, flexiv::k_jointDOF>& initPos)
+void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log, const std::string& motion_type,
+    const std::array<double, flexiv::kJointDOF>& init_pos)
 {
     // Local periodic loop counter
-    static unsigned int loopCounter = 0;
+    static unsigned int loop_counter = 0;
 
     try {
-        // Monitor fault on robot server
-        if (robot.isFault()) {
-            throw std::runtime_error("periodicTask: Fault occurred on robot server, exiting ...");
+        // Monitor fault on the connected robot
+        if (robot.fault()) {
+            throw std::runtime_error(
+                "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
 
-        // Read robot states
-        robot.getRobotStates(robotStates);
-
         // Target joint positions
-        std::array<double, flexiv::k_jointDOF> targetPos = {};
+        std::array<double, flexiv::kJointDOF> target_pos = {};
 
         // Set target position based on motion type
-        if (motionType == "hold") {
-            targetPos = initPos;
-        } else if (motionType == "sine-sweep") {
-            for (size_t i = 0; i < flexiv::k_jointDOF; ++i) {
-                targetPos[i]
-                    = initPos[i]
-                      + k_sineAmp * sin(2 * M_PI * k_sineFreq * loopCounter * k_loopPeriod);
+        if (motion_type == "hold") {
+            target_pos = init_pos;
+        } else if (motion_type == "sine-sweep") {
+            for (size_t i = 0; i < flexiv::kJointDOF; ++i) {
+                target_pos[i] = init_pos[i]
+                                + kSineAmp * sin(2 * M_PI * kSineFreq * loop_counter * kLoopPeriod);
             }
         } else {
             throw std::invalid_argument(
-                "periodicTask: unknown motion type. Accepted motion types: hold, sine-sweep");
+                "PeriodicTask: unknown motion type. Accepted motion types: hold, sine-sweep");
         }
 
         // Run impedance control on all joints
-        std::array<double, flexiv::k_jointDOF> targetTorque = {};
-        for (size_t i = 0; i < flexiv::k_jointDOF; ++i) {
-            targetTorque[i] = k_impedanceKp[i] * (targetPos[i] - robotStates.q[i])
-                              - k_impedanceKd[i] * robotStates.dtheta[i];
+        std::array<double, flexiv::kJointDOF> target_torque = {};
+        for (size_t i = 0; i < flexiv::kJointDOF; ++i) {
+            target_torque[i] = kImpedanceKp[i] * (target_pos[i] - robot.states().q[i])
+                               - kImpedanceKd[i] * robot.states().dtheta[i];
         }
 
         // Send target joint torque to RDK server
-        robot.streamJointTorque(targetTorque, true);
+        robot.StreamJointTorque(target_torque, true);
 
-        loopCounter++;
+        loop_counter++;
 
     } catch (const std::exception& e) {
-        log.error(e.what());
-        g_schedStop = true;
+        log.Error(e.what());
+        g_stop_sched = true;
     }
 }
 
@@ -119,97 +115,91 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse parameters
-    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
-        printHelp();
+    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+        PrintHelp();
         return 1;
     }
     // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
-    std::string robotSN = argv[1];
+    std::string robot_sn = argv[1];
 
     // Print description
-    log.info("Tutorial description:");
-    printDescription();
+    log.Info("Tutorial description:");
+    PrintDescription();
 
     // Type of motion specified by user
-    std::string motionType = "";
-    if (flexiv::utility::programArgsExist(argc, argv, "--hold")) {
-        log.info("Robot holding current pose");
-        motionType = "hold";
+    std::string motion_type = "";
+    if (flexiv::utility::ProgramArgsExist(argc, argv, "--hold")) {
+        log.Info("Robot holding current pose");
+        motion_type = "hold";
     } else {
-        log.info("Robot running joint sine-sweep");
-        motionType = "sine-sweep";
+        log.Info("Robot running joint sine-sweep");
+        motion_type = "sine-sweep";
     }
 
     try {
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robotSN);
+        flexiv::Robot robot(robot_sn);
 
-        // Create data struct for storing robot states
-        flexiv::RobotStates robotStates;
-
-        // Clear fault on robot server if any
-        if (robot.isFault()) {
-            log.warn("Fault occurred on robot server, trying to clear ...");
+        // Clear fault on the connected robot if any
+        if (robot.fault()) {
+            log.Warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
-            robot.clearFault();
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            // Check again
-            if (robot.isFault()) {
-                log.error("Fault cannot be cleared, exiting ...");
+            if (!robot.ClearFault()) {
+                log.Error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.info("Fault on robot server is cleared");
+            log.Info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...");
-        robot.enable();
+        log.Info("Enabling robot ...");
+        robot.Enable();
 
         // Wait for the robot to become operational
-        while (!robot.isOperational()) {
+        while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.info("Robot is now operational");
+        log.Info("Robot is now operational");
 
         // Move robot to home pose
-        log.info("Moving to home pose");
-        robot.setMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
-        robot.executePrimitive("Home()");
+        log.Info("Moving to home pose");
+        robot.SwitchMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
+        robot.ExecutePrimitive("Home()");
 
         // Wait for the primitive to finish
-        while (robot.isBusy()) {
+        while (robot.busy()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
         // Real-time Joint Torque Control
         // =========================================================================================
         // Switch to real-time joint torque control mode
-        robot.setMode(flexiv::Mode::RT_JOINT_TORQUE);
+        robot.SwitchMode(flexiv::Mode::RT_JOINT_TORQUE);
 
         // Set initial joint positions
-        auto initPos = robot.getRobotStates().q;
-        log.info("Initial joint positions set to: " + flexiv::utility::arr2Str(initPos));
+        auto init_pos = robot.states().q;
+        log.Info("Initial joint positions set to: " + flexiv::utility::Arr2Str(init_pos));
 
         // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.addTask(std::bind(periodicTask, std::ref(robot), std::ref(log),
-                              std::ref(robotStates), std::ref(motionType), std::ref(initPos)),
-            "HP periodic", 1, scheduler.maxPriority());
+        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(log),
+                              std::ref(motion_type), std::ref(init_pos)),
+            "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
-        scheduler.start();
+        scheduler.Start();
 
         // Block and wait for signal to stop scheduler tasks
-        while (!g_schedStop) {
+        while (!g_stop_sched) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         // Received signal to stop scheduler tasks
-        scheduler.stop();
+        scheduler.Stop();
 
     } catch (const std::exception& e) {
-        log.error(e.what());
+        log.Error(e.what());
         return 1;
     }
 

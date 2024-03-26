@@ -23,7 +23,6 @@ set(EXAMPLE_LIST
   basics7_auto_recovery
   basics8_update_robot_tool
   intermediate6_robot_dynamics
-  intermediate7_teach_by_demonstration
 )
 
 # Additional examples for Linux and Mac

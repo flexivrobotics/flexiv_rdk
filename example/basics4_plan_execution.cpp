@@ -8,15 +8,15 @@
  * @author Flexiv
  */
 
-#include <flexiv/Robot.hpp>
-#include <flexiv/Log.hpp>
-#include <flexiv/Utility.hpp>
+#include <flexiv/robot.h>
+#include <flexiv/log.h>
+#include <flexiv/utility.h>
 
 #include <iostream>
 #include <thread>
 
 /** @brief Print tutorial description */
-void printDescription()
+void PrintDescription()
 {
     std::cout << "This tutorial executes a plan selected by the user from a list of available "
                  "plans. A plan is a pre-written script to execute a series of robot primitives "
@@ -28,7 +28,7 @@ void printDescription()
 }
 
 /** @brief Print program usage help */
-void printHelp()
+void PrintHelp()
 {
     // clang-format off
     std::cout << "Required arguments: [robot SN]" << std::endl;
@@ -47,60 +47,57 @@ int main(int argc, char* argv[])
     flexiv::Log log;
 
     // Parse parameters
-    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
-        printHelp();
+    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+        PrintHelp();
         return 1;
     }
     // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
-    std::string robotSN = argv[1];
+    std::string robot_sn = argv[1];
 
     // Print description
-    log.info("Tutorial description:");
-    printDescription();
+    log.Info("Tutorial description:");
+    PrintDescription();
 
     try {
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robotSN);
+        flexiv::Robot robot(robot_sn);
 
-        // Clear fault on robot server if any
-        if (robot.isFault()) {
-            log.warn("Fault occurred on robot server, trying to clear ...");
+        // Clear fault on the connected robot if any
+        if (robot.fault()) {
+            log.Warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
-            robot.clearFault();
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            // Check again
-            if (robot.isFault()) {
-                log.error("Fault cannot be cleared, exiting ...");
+            if (!robot.ClearFault()) {
+                log.Error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.info("Fault on robot server is cleared");
+            log.Info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...");
-        robot.enable();
+        log.Info("Enabling robot ...");
+        robot.Enable();
 
         // Wait for the robot to become operational
-        while (!robot.isOperational()) {
+        while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.info("Robot is now operational");
+        log.Info("Robot is now operational");
 
         // Execute Plans
         // =========================================================================================
         // Switch to plan execution mode
-        robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
+        robot.SwitchMode(flexiv::Mode::NRT_PLAN_EXECUTION);
 
         while (true) {
-            // Monitor fault on robot server
-            if (robot.isFault()) {
-                throw std::runtime_error("Fault occurred on robot server, exiting ...");
+            // Monitor fault on the connected robot
+            if (robot.fault()) {
+                throw std::runtime_error("Fault occurred on the connected robot, exiting ...");
             }
 
             // Get user input
-            log.info("Choose an action:");
+            log.Info("Choose an action:");
             std::cout << "[1] Show available plans" << std::endl;
             std::cout << "[2] Execute a plan by index" << std::endl;
             std::cout << "[3] Execute a plan by name" << std::endl;
@@ -112,52 +109,52 @@ int main(int argc, char* argv[])
             switch (userInput) {
                 // Get and show plan list
                 case 1: {
-                    auto planList = robot.getPlanNameList();
-                    for (size_t i = 0; i < planList.size(); i++) {
-                        std::cout << "[" << i << "] " << planList[i] << std::endl;
+                    auto plan_list = robot.plan_list();
+                    for (size_t i = 0; i < plan_list.size(); i++) {
+                        std::cout << "[" << i << "] " << plan_list[i] << std::endl;
                     }
                     std::cout << std::endl;
                 } break;
                 // Execute plan by index
                 case 2: {
-                    log.info("Enter plan index to execute:");
+                    log.Info("Enter plan index to execute:");
                     int index;
                     std::cin >> index;
                     // Allow the plan to continue its execution even if the RDK program is closed or
                     // the connection is lost
-                    robot.executePlan(index, 100, true);
+                    robot.ExecutePlan(index, true);
 
                     // Print plan info while the current plan is running
-                    while (robot.isBusy()) {
-                        log.info("===============================================");
-                        std::cout << robot.getPlanInfo() << std::endl;
+                    while (robot.busy()) {
+                        log.Info("===============================================");
+                        std::cout << robot.plan_info() << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
                 } break;
                 // Execute plan by name
                 case 3: {
-                    log.info("Enter plan name to execute:");
+                    log.Info("Enter plan name to execute:");
                     std::string name;
                     std::cin >> name;
                     // Allow the plan to continue its execution even if the RDK program is closed or
                     // the connection is lost
-                    robot.executePlan(name, 100, true);
+                    robot.ExecutePlan(name, true);
 
                     // Print plan info while the current plan is running
-                    while (robot.isBusy()) {
-                        log.info("===============================================");
-                        std::cout << robot.getPlanInfo() << std::endl;
+                    while (robot.busy()) {
+                        log.Info("===============================================");
+                        std::cout << robot.plan_info() << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
                 } break;
                 default:
-                    log.warn("Invalid input");
+                    log.Warn("Invalid input");
                     break;
             }
         }
 
     } catch (const std::exception& e) {
-        log.error(e.what());
+        log.Error(e.what());
         return 1;
     }
 

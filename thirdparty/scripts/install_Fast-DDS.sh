@@ -16,7 +16,7 @@ else
 fi
 
 # Use specific version
-git checkout v2.6.2
+git checkout v2.6.7
 git submodule update --init --recursive
 
 # Configure CMake

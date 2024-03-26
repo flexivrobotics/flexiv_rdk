@@ -50,7 +50,7 @@ def main():
     mode = flexivrdk.Mode
 
     # Print description
-    log.info("Tutorial description:")
+    log.Info("Tutorial description:")
     print_description()
 
     try:
@@ -59,62 +59,59 @@ def main():
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_sn)
 
-        # Clear fault on robot server if any
-        if robot.isFault():
-            log.warn("Fault occurred on robot server, trying to clear ...")
+        # Clear fault on the connected robot if any
+        if robot.fault():
+            log.Warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
-            robot.clearFault()
-            time.sleep(2)
-            # Check again
-            if robot.isFault():
-                log.error("Fault cannot be cleared, exiting ...")
-                return
-            log.info("Fault on robot server is cleared")
+            if not robot.ClearFault():
+                log.Error("Fault cannot be cleared, exiting ...")
+                return 1
+            log.Info("Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...")
-        robot.enable()
+        log.Info("Enabling robot ...")
+        robot.Enable()
 
         # Wait for the robot to become operational
-        while not robot.isOperational():
+        while not robot.operational():
             time.sleep(1)
 
-        log.info("Robot is now operational")
+        log.Info("Robot is now operational")
 
         # Zero Sensors
         # ==========================================================================================
         # Get and print the current TCP force/moment readings
-        log.info(
+        log.Info(
             "TCP force and moment reading in base frame BEFORE sensor zeroing: "
-            + list2str(robot.getRobotStates().extWrenchInWorld)
+            + list2str(robot.states().ext_wrench_in_world)
             + "[N][Nm]"
         )
 
         # Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
-        robot.setMode(mode.NRT_PRIMITIVE_EXECUTION)
-        robot.executePrimitive("ZeroFTSensor()")
+        robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
+        robot.ExecutePrimitive("ZeroFTSensor()")
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations
-        log.warn(
+        log.Warn(
             "Zeroing force/torque sensors, make sure nothing is in contact with the robot"
         )
 
         # Wait for the primitive completion
-        while robot.isBusy():
+        while robot.busy():
             time.sleep(1)
-        log.info("Sensor zeroing complete")
+        log.Info("Sensor zeroing complete")
 
         # Get and print the current TCP force/moment readings
-        log.info(
+        log.Info(
             "TCP force and moment reading in base frame AFTER sensor zeroing: "
-            + list2str(robot.getRobotStates().extWrenchInWorld)
+            + list2str(robot.states().ext_wrench_in_world)
             + "[N][Nm]"
         )
 
     except Exception as e:
         # Print exception error message
-        log.error(str(e))
+        log.Error(str(e))
 
 
 if __name__ == "__main__":

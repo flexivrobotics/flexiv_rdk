@@ -40,28 +40,25 @@ def print_robot_states(robot, log):
     """
 
     while True:
-        # Get the latest robot states
-        robot_states = robot.getRobotStates()
-
         # Print all gripper states, round all float values to 2 decimals
-        log.info("Current robot states:")
+        log.Info("Current robot states:")
         # fmt: off
         print("{")
-        print("q: ",  ['%.2f' % i for i in robot_states.q])
-        print("theta: ", ['%.2f' % i for i in robot_states.theta])
-        print("dq: ", ['%.2f' % i for i in robot_states.dq])
-        print("dtheta: ", ['%.2f' % i for i in robot_states.dtheta])
-        print("tau: ", ['%.2f' % i for i in robot_states.tau])
-        print("tau_des: ", ['%.2f' % i for i in robot_states.tauDes])
-        print("tau_dot: ", ['%.2f' % i for i in robot_states.tauDot])
-        print("tau_ext: ", ['%.2f' % i for i in robot_states.tauExt])
-        print("tcp_pose: ", ['%.2f' % i for i in robot_states.tcpPose])
-        print("tcp_pose_d: ", ['%.2f' % i for i in robot_states.tcpPoseDes])
-        print("tcp_velocity: ", ['%.2f' % i for i in robot_states.tcpVel])
-        print("flange_pose: ", ['%.2f' % i for i in robot_states.flangePose])
-        print("FT_sensor_raw_reading: ", ['%.2f' % i for i in robot_states.ftSensorRaw])
-        print("F_ext_tcp_frame: ", ['%.2f' % i for i in robot_states.extWrenchInTcp])
-        print("F_ext_world_frame: ", ['%.2f' % i for i in robot_states.extWrenchInWorld])
+        print("q: ",  ['%.2f' % i for i in robot.states().q])
+        print("theta: ", ['%.2f' % i for i in robot.states().theta])
+        print("dq: ", ['%.2f' % i for i in robot.states().dq])
+        print("dtheta: ", ['%.2f' % i for i in robot.states().dtheta])
+        print("tau: ", ['%.2f' % i for i in robot.states().tau])
+        print("tau_des: ", ['%.2f' % i for i in robot.states().tau_des])
+        print("tau_dot: ", ['%.2f' % i for i in robot.states().tau_dot])
+        print("tau_ext: ", ['%.2f' % i for i in robot.states().tau_ext])
+        print("tcp_pose: ", ['%.2f' % i for i in robot.states().tcp_pose])
+        print("tcp_pose_d: ", ['%.2f' % i for i in robot.states().tcp_pose_des])
+        print("tcp_velocity: ", ['%.2f' % i for i in robot.states().tcp_vel])
+        print("flange_pose: ", ['%.2f' % i for i in robot.states().flange_pose])
+        print("FT_sensor_raw_reading: ", ['%.2f' % i for i in robot.states().ft_sensor_raw])
+        print("F_ext_tcp_frame: ", ['%.2f' % i for i in robot.states().ext_wrench_in_tcp])
+        print("F_ext_world_frame: ", ['%.2f' % i for i in robot.states().ext_wrench_in_world])
         print("}")
         # fmt: on
         time.sleep(1)
@@ -83,7 +80,7 @@ def main():
     mode = flexivrdk.Mode
 
     # Print description
-    log.info("Tutorial description:")
+    log.Info("Tutorial description:")
     print_description()
 
     try:
@@ -92,27 +89,24 @@ def main():
         # Instantiate robot interface
         robot = flexivrdk.Robot(args.robot_sn)
 
-        # Clear fault on robot server if any
-        if robot.isFault():
-            log.warn("Fault occurred on robot server, trying to clear ...")
+        # Clear fault on the connected robot if any
+        if robot.fault():
+            log.Warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
-            robot.clearFault()
-            time.sleep(2)
-            # Check again
-            if robot.isFault():
-                log.error("Fault cannot be cleared, exiting ...")
-                return
-            log.info("Fault on robot server is cleared")
+            if not robot.ClearFault():
+                log.Error("Fault cannot be cleared, exiting ...")
+                return 1
+            log.Info("Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...")
-        robot.enable()
+        log.Info("Enabling robot ...")
+        robot.Enable()
 
         # Wait for the robot to become operational
-        while not robot.isOperational():
+        while not robot.operational():
             time.sleep(1)
 
-        log.info("Robot is now operational")
+        log.Info("Robot is now operational")
 
         # Print States
         # =============================================================================
@@ -123,7 +117,7 @@ def main():
 
     except Exception as e:
         # Print exception error message
-        log.error(str(e))
+        log.Error(str(e))
 
 
 if __name__ == "__main__":

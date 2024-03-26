@@ -5,11 +5,11 @@
  * @author Flexiv
  */
 
-#include <flexiv/Robot.hpp>
-#include <flexiv/Model.hpp>
-#include <flexiv/Tool.hpp>
-#include <flexiv/Log.hpp>
-#include <flexiv/Utility.hpp>
+#include <flexiv/robot.h>
+#include <flexiv/model.h>
+#include <flexiv/tool.h>
+#include <flexiv/log.h>
+#include <flexiv/utility.h>
 
 #include <Eigen/Eigen>
 
@@ -32,51 +32,49 @@ struct GroundTruth
 }
 
 /** Step the dynamics engine once */
-void stepDynamics(flexiv::Robot& robot, flexiv::Model& model, const GroundTruth& ref)
+void StepDynamics(flexiv::Robot& robot, flexiv::Model& model, const GroundTruth& ref)
 {
     // Mark timer start point
     auto tic = std::chrono::high_resolution_clock::now();
 
-    // Get current robot states
-    auto robotStates = robot.getRobotStates();
-
     // Update robot model in dynamics engine
-    model.update(robotStates.q, robotStates.dtheta);
+    model.Update(robot.states().q, robot.states().dtheta);
 
     // Get J, M, G from dynamic engine
-    Eigen::MatrixXd J = model.getJacobian("flange");
-    Eigen::MatrixXd M = model.getMassMatrix();
-    Eigen::VectorXd G = model.getGravityForce();
+    Eigen::MatrixXd J = model.J("flange");
+    Eigen::MatrixXd M = model.M();
+    Eigen::VectorXd G = model.g();
 
     // Get and print computation time
     auto toc = std::chrono::high_resolution_clock::now();
-    auto computationTime = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
+    auto computation_time
+        = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
     std::cout << "===================================================================" << std::endl;
-    std::cout << "Computation time = " << computationTime << " us" << std::endl;
+    std::cout << "Computation time = " << computation_time << " us" << std::endl;
 
     // Evaluate J, M, G with true value
-    auto deltaJ = J - ref.J;
-    auto deltaM = M - ref.M;
-    auto deltaG = G - ref.G;
+    auto delta_J = J - ref.J;
+    auto delta_M = M - ref.M;
+    auto delta_G = G - ref.G;
 
     std::cout << std::fixed << std::setprecision(5);
     std::cout << "Difference of J between ground truth (MATLAB) and integrated dynamics engine = "
               << std::endl
-              << deltaJ << std::endl;
-    std::cout << "Norm of delta J: " << deltaJ.norm() << '\n' << std::endl;
+              << delta_J << std::endl;
+    std::cout << "Norm of delta J: " << delta_J.norm() << '\n' << std::endl;
 
     std::cout << "Difference of M between ground truth (MATLAB) and integrated dynamics engine = "
               << std::endl
-              << deltaM << std::endl;
-    std::cout << "Norm of delta M: " << deltaM.norm() << '\n' << std::endl;
+              << delta_M << std::endl;
+    std::cout << "Norm of delta M: " << delta_M.norm() << '\n' << std::endl;
 
     std::cout << "Difference of G between ground truth (MATLAB) and integrated dynamics engine = "
               << std::endl
-              << deltaG.transpose() << std::endl;
-    std::cout << "Norm of delta G: " << deltaG.norm() << '\n' << std::endl;
+              << delta_G.transpose() << std::endl;
+    std::cout << "Norm of delta G: " << delta_G.norm() << '\n' << std::endl;
 }
 
-void printHelp()
+void PrintHelp()
 {
     // clang-format off
     std::cout << "Required arguments: [robot SN]" << std::endl;
@@ -94,65 +92,59 @@ int main(int argc, char* argv[])
 
     // Parse Parameters
     //==============================================================================================
-    if (argc < 2 || flexiv::utility::programArgsExistAny(argc, argv, {"-h", "--help"})) {
-        printHelp();
+    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+        PrintHelp();
         return 1;
     }
 
     // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
-    std::string robotSN = argv[1];
+    std::string robot_sn = argv[1];
 
     try {
         // RDK Initialization
         //==========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robotSN);
+        flexiv::Robot robot(robot_sn);
 
-        // Create data struct for storing robot states
-        flexiv::RobotStates robotStates;
-
-        // Clear fault on robot server if any
-        if (robot.isFault()) {
-            log.warn("Fault occurred on robot server, trying to clear ...");
+        // Clear fault on the connected robot if any
+        if (robot.fault()) {
+            log.Warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
-            robot.clearFault();
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            // Check again
-            if (robot.isFault()) {
-                log.error("Fault cannot be cleared, exiting ...");
+            if (!robot.ClearFault()) {
+                log.Error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.info("Fault on robot server is cleared");
+            log.Info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.info("Enabling robot ...");
-        robot.enable();
+        log.Info("Enabling robot ...");
+        robot.Enable();
 
         // Wait for the robot to become operational
-        while (!robot.isOperational()) {
+        while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.info("Robot is now operational");
+        log.Info("Robot is now operational");
 
         // Set mode after robot is operational
-        robot.setMode(flexiv::Mode::NRT_PLAN_EXECUTION);
+        robot.SwitchMode(flexiv::Mode::NRT_PLAN_EXECUTION);
 
         // Bring Robot To Home
         //==========================================================================================
-        robot.executePlan("PLAN-Home");
+        robot.ExecutePlan("PLAN-Home");
 
         // Wait for the execution to finish
         do {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-        } while (robot.isBusy());
+        } while (robot.busy());
 
         // Put mode back to IDLE
-        robot.setMode(flexiv::Mode::IDLE);
+        robot.SwitchMode(flexiv::Mode::IDLE);
 
         // Test Dynamics Engine without Tool
         //==========================================================================================
-        log.info(">>>>> Test 1: no end-effector tool <<<<<");
+        log.Info(">>>>> Test 1: no end-effector tool <<<<<");
 
         // Instantiate dynamics engine
         flexiv::Model model(robot);
@@ -182,13 +174,13 @@ int main(int argc, char* argv[])
         // Step the dynamics engine
         int i = 0;
         while (++i <= 3) {
-            stepDynamics(robot, model, ref);
+            StepDynamics(robot, model, ref);
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
         // Test Dynamics Engine with Tool
         //==========================================================================================
-        log.info(">>>>> Test 2: with end-effector tool <<<<<");
+        log.Info(">>>>> Test 2: with end-effector tool <<<<<");
 
         // Ground truth from MATLAB with robot tool
         // clang-format off
@@ -210,46 +202,46 @@ int main(int argc, char* argv[])
         flexiv::Tool tool(robot);
 
         // Set name and parameters for the test tool
-        std::string toolName = "DynamicsTestTool";
-        flexiv::ToolParams toolParams;
-        toolParams.mass = 0.9;
-        toolParams.CoM = {0.0, 0.0, 0.057};
-        toolParams.inertia = {2.768e-03, 3.149e-03, 5.64e-04, 0.0, 0.0, 0.0};
-        toolParams.tcpLocation = {0.0, -0.207, 0.09, 0.7071068, 0.7071068, 0.0, 0.0};
+        std::string tool_name = "DynamicsTestTool";
+        flexiv::ToolParams tool_params;
+        tool_params.mass = 0.9;
+        tool_params.CoM = {0.0, 0.0, 0.057};
+        tool_params.inertia = {2.768e-03, 3.149e-03, 5.64e-04, 0.0, 0.0, 0.0};
+        tool_params.tcp_location = {0.0, -0.207, 0.09, 0.7071068, 0.7071068, 0.0, 0.0};
 
         // Remove any existing tool with the same name
-        if (tool.isExist(toolName)) {
-            tool.remove(toolName);
+        if (tool.exist(tool_name)) {
+            tool.Remove(tool_name);
         }
 
         // Add the test tool
-        log.info("Adding test tool [" + toolName + "] to the robot");
-        tool.add(toolName, toolParams);
+        log.Info("Adding test tool [" + tool_name + "] to the robot");
+        tool.Add(tool_name, tool_params);
 
         // Switch to the newly added test tool, i.e. set it as the active tool
-        log.info("Switching to test tool [" + toolName + "]");
-        tool.switchTo(toolName);
+        log.Info("Switching to test tool [" + tool_name + "]");
+        tool.Switch(tool_name);
 
         // Get and print the current active tool, should be the test tool
-        log.info("Current active tool: " + tool.getCurrentToolName());
+        log.Info("Current active tool: " + tool.name());
 
         // Reload robot + tool model using the latest data synced from the connected robot
-        model.reload();
+        model.Reload();
 
         // Step the dynamics engine again
         i = 0;
         while (++i <= 3) {
-            stepDynamics(robot, model, ref);
+            StepDynamics(robot, model, ref);
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
         // Clean up by removing the test tool
-        log.info("Removing tool [" + toolName + "]");
-        tool.remove(toolName);
+        log.Info("Removing tool [" + tool_name + "]");
+        tool.Remove(tool_name);
 
-        log.info("Program finished");
+        log.Info("Program finished");
     } catch (const std::exception& e) {
-        log.error(e.what());
+        log.Error(e.what());
         return 1;
     }
 

@@ -14,12 +14,15 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 | **Supported OS**           | **Supported processor** | **Supported language** | **Required compiler kit** |
 | -------------------------- | ----------------------- | ---------------------- | ------------------------- |
 | Linux (Ubuntu 20.04/22.04) | x86_64, arm64           | C++, Python            | build-essential           |
-| macOS 12 (Monterey)        | arm64                   | C++, Python            | Xcode Command Line Tools  |
-| Windows 10                 | x86_64                  | C++, Python            | MSVC 14.0+                |
+| macOS 12 and above         | arm64                   | C++, Python            | Xcode Command Line Tools  |
+| Windows 10/11              | x86_64                  | C++, Python            | MSVC v142+                |
 
 ## Quick Start
 
-**NOTE:** the full documentation is in [Flexiv RDK Manual](https://rdk.flexiv.com/manual/).
+### Note
+
+* The full documentation is in [Flexiv RDK Manual](https://rdk.flexiv.com/manual/).
+* You might need to turn off your computer's firewall to be able to connect to the robot.
 
 ### C++ RDK
 
@@ -82,20 +85,19 @@ NOTE: if you will only be using Python RDK, you can skip this section and jump t
 
 #### Compile and install for Windows
 
-1. Install Microsoft Visual Studio with version 2015 or above (MSVC 14.0+). Choose "Desktop development with C++" under the *Workloads* tab during installation. You only need to keep the following components for the selected workload:
+1. Install Microsoft Visual Studio 2019 (MSVC v142) or above . Choose "Desktop development with C++" under the *Workloads* tab during installation. You only need to keep the following components for the selected workload:
    * MSVC ... C++ x64/x86 build tools (Latest)
    * C++ CMake tools for Windows
    * Windows 10 SDK or Windows 11 SDK, depending on your actual Windows version
-2. Due to compatibility issue from one of the dependencies, the maximum compatible MSVC version is v14.36. Thus if the above selected "Latest" MSVC is higher than v14.36, an **additional** compatible MSVC needs to be installed. To do so, go to the *Individual components* tab (next to *Workloads*), and search for "MSVC x64/x86 build tools", then select a MSVC with version <= 14.36 to install. Note: you need to also **keep** the "Latest" selection of MSVC that comes with the "Desktop development with C++" workload so that the "C++ CMake tools for Windows" component can work properly.
-3. Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or a bash emulator.
-4. Install a bash emulator. Git Bash that comes with Git (for Windows) installation is recommended.
-5. Within the bash emulator, the rest steps are the same as [Compile and install for Linux](#compile-and-install-for-linux), beginning from step 2.
+2. Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or a bash emulator.
+3. Install a bash emulator. Git Bash that comes with Git (for Windows) installation is recommended.
+4. Within the bash emulator, the rest steps are the same as [Compile and install for Linux](#compile-and-install-for-linux), beginning from step 2.
 
 ### Python RDK
 
-Python 3.8 and 3.10 are supported by RDK, see Flexiv RDK Manual for more details. A brief instruction is provided below and applies to all supported OS.
+Python 3.10 and 3.12 are supported by RDK, see Flexiv RDK Manual for more details. A brief instruction is provided below and applies to all supported OS.
 
-1. Check Python version is 3.8.x or 3.10.x:
+1. Check Python version is 3.10.x or 3.12.x:
 
         python3 --version
 
