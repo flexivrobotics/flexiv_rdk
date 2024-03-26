@@ -14,8 +14,8 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 | **Supported OS**           | **Supported processor** | **Supported language** | **Required compiler kit** |
 | -------------------------- | ----------------------- | ---------------------- | ------------------------- |
 | Linux (Ubuntu 20.04/22.04) | x86_64, arm64           | C++, Python            | build-essential           |
-| macOS 12 (Monterey)        | arm64                   | C++, Python            | Xcode Command Line Tools  |
-| Windows 10                 | x86_64                  | C++, Python            | MSVC 14.0+                |
+| macOS 12 and above         | arm64                   | C++, Python            | Xcode Command Line Tools  |
+| Windows 10/11              | x86_64                  | C++, Python            | MSVC v142+                |
 
 ## Quick Start
 
@@ -82,7 +82,7 @@ NOTE: if you will only be using Python RDK, you can skip this section and jump t
 
 #### Compile and install for Windows
 
-1. Install Microsoft Visual Studio with version 2015 or above (MSVC 14.0+). Choose "Desktop development with C++" under the *Workloads* tab during installation. You only need to keep the following components for the selected workload:
+1. Install Microsoft Visual Studio 2019 (MSVC v142) or above . Choose "Desktop development with C++" under the *Workloads* tab during installation. You only need to keep the following components for the selected workload:
    * MSVC ... C++ x64/x86 build tools (Latest)
    * C++ CMake tools for Windows
    * Windows 10 SDK or Windows 11 SDK, depending on your actual Windows version
