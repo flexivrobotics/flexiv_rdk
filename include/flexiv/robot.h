@@ -505,12 +505,13 @@ public:
      * Setting motion stiffness of a motion-controlled Cartesian axis to 0 will make this axis
      * free-floating. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and \f$
      * \mathbb{R}^{3 \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry}, k_{Rz}]^T
-     * \f$. Valid range: [0, RobotInfo::nominal_K]. Unit: \f$ [N/m]~[Nm/rad] \f$.
+     * \f$. Valid range: [0, RobotInfo::nominal_Kc]. Unit: \f$ [N/m]~[Nm/rad] \f$.
      * @throw std::invalid_argument if [stiffness] contains any value outside the valid range.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
      * @warning The robot will automatically reset to its nominal stiffness upon re-entering the
      * applicable control modes.
+     * @see ResetCartesianStiffness().
      */
     void SetCartesianStiffness(const std::array<double, kCartDOF>& stiffness);
 
@@ -537,6 +538,7 @@ public:
      * re-entering the applicable control modes.
      * @warning The maximum contact wrench regulation cannot be enabled if any of the rotational
      * Cartesian axes is enabled for moment control.
+     * @see ResetMaxContactWrench().
      */
     void SetMaxContactWrench(const std::array<double, kCartDOF>& max_wrench);
 
@@ -565,6 +567,7 @@ public:
      * desired robot posture is set using this function, the robot's null-space control module will
      * try to pull the arm as close to this posture as possible without affecting the primary
      * Cartesian motion-force control task.
+     * @see ResetNullSpacePosture().
      */
     void SetNullSpacePosture(const std::array<double, kJointDOF>& preferred_positions);
 
