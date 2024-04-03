@@ -396,6 +396,27 @@ public:
         const std::array<double, kJointDOF>& accelerations,
         const std::array<double, kJointDOF>& max_vel, const std::array<double, kJointDOF>& max_acc);
 
+    /**
+     * @brief [Non-blocking] Set motion stiffness for the joint impedance control modes.
+     * @param[in] stiffness Joint motion stiffness: \f$ K_d \in \mathbb{R}^{n \times 1} \f$.
+     * Setting motion stiffness of a joint axis to 0 will make this axis free-floating. Valid range:
+     * [0, RobotInfo::nominal_Kj]. Unit: \f$ [Nm/rad] \f$.
+     * @throw std::invalid_argument if [stiffness] contains any value outside the valid range.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @note Applicable control mode(s): RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
+     * @warning The robot will automatically reset to its nominal stiffness upon re-entering the
+     * applicable control modes.
+     * @see ResetJointStiffness().
+     */
+    void SetJointStiffness(const std::array<double, kJointDOF>& stiffness);
+
+    /**
+     * @brief [Non-blocking] Reset motion stiffness for the joint impedance control modes to
+     * nominal value.
+     * @note Applicable control mode(s): RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
+     */
+    void ResetJointStiffness();
+
     //================================== DIRECT CARTESIAN CONTROL ==================================
     /**
      * @brief [Non-blocking] Continuously stream Cartesian motion and/or force command for the robot
