@@ -43,7 +43,8 @@ struct RobotInfo
      * \f$ \mathbb{R}^{3 \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry},
      * k_{Rz}]^T \f$. Unit: \f$ [N/m]~[Nm/rad] \f$.
      */
-    std::array<double, kCartDOF> nominal_K = {};
+    std::array<double, kCartDOF> nominal_Kc = {};
+
 
     /**
      * Lower limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
