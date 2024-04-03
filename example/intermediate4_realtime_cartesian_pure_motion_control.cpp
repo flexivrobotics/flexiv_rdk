@@ -102,7 +102,7 @@ void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log,
             } break;
             // Online change stiffness to half of nominal at 6 seconds
             case (6 * kLoopFreq): {
-                auto new_K = robot.info().nominal_K;
+                auto new_K = robot.info().nominal_Kc;
                 for (auto& v : new_K) {
                     v *= 0.5;
                 }

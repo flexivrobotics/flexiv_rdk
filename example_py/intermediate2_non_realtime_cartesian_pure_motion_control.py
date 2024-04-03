@@ -213,7 +213,7 @@ def main():
                 print(preferred_jnt_pos)
             # Online change stiffness to half of nominal at 6 seconds
             elif time_elapsed % 20.0 == 6.0:
-                new_K = np.multiply(robot.info().nominal_K, 0.5)
+                new_K = np.multiply(robot.info().nominal_Kc, 0.5)
                 robot.SetCartesianStiffness(new_K)
                 log.Info("Cartesian stiffness set to: ")
                 print(new_K)
