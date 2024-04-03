@@ -348,7 +348,8 @@ public:
 
     /**
      * @brief [Non-blocking] Continuously stream joint position, velocity, and acceleration command
-     * to the robot.
+     * to the robot. The commands are tracked by either the joint impedance controller or the joint
+     * position controller, depending on the control mode.
      * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{n \times 1} \f$. Unit:
      * \f$ [rad] \f$.
      * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{n \times 1}
@@ -357,20 +358,23 @@ public:
      * 1} \f$. Unit: \f$ [rad/s^2] \f$.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
-     * @note Applicable control mode(s): RT_JOINT_POSITION.
+     * @note Applicable control mode(s): RT_JOINT_IMPEDANCE, RT_JOINT_POSITION.
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
+     * @see SetJointStiffness().
      */
     void StreamJointPosition(const std::array<double, kJointDOF>& positions,
         const std::array<double, kJointDOF>& velocities,
         const std::array<double, kJointDOF>& accelerations);
 
     /**
-     * @brief [Non-blocking] Discretely send joint position, velocity, and acceleration command. The
-     * robot's internal motion generator will smoothen the discrete commands.
-     * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{DOF \times 1} \f$. Unit:
+     * @brief [Non-blocking] Discretely send joint position, velocity, and acceleration command to
+     * the robot. The robot's internal motion generator will smoothen the discrete commands, which
+     * are tracked by either the joint impedance controller or the joint position controller,
+     * depending on the control mode.
+     * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{n \times 1} \f$. Unit:
      * \f$ [rad] \f$.
-     * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{DOF \times 1}
+     * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{n \times 1}
      * \f$. Each joint will maintain this amount of velocity when it reaches the target position.
      * Unit: \f$ [rad/s] \f$.
      * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{DOF
@@ -381,10 +385,11 @@ public:
      * @param[in] max_acc Maximum joint accelerations for the planned trajectory: \f$ \ddot{q}_{max}
      * \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @note Applicable control mode(s): NRT_JOINT_POSITION.
+     * @note Applicable control mode(s): NRT_JOINT_IMPEDANCE, NRT_JOINT_POSITION.
      * @warning Calling this function a second time while the motion from the previous call is still
      * ongoing will trigger an online re-planning of the joint trajectory, such that the previous
      * command is aborted and the new command starts to execute.
+     * @see SetJointStiffness().
      */
     void SendJointPosition(const std::array<double, kJointDOF>& positions,
         const std::array<double, kJointDOF>& velocities,
