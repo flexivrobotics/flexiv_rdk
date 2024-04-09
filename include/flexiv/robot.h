@@ -141,6 +141,18 @@ public:
     void Enable();
 
     /**
+     * @brief [Blocking] Force robot brakes to engage or release during normal operation.
+     * Restrictions apply, see warning.
+     * @param[in] engage True: engage brakes, false: release brakes.
+     * @throw std::logic_error if the connected robot is not a medical one or the robot is moving.
+     * @throw std::runtime_error if failed to engage/release the brakes.
+     * @note This function blocks until the brakes are successfully engaged/released.
+     * @warning This function is accessible only if a) the connected robot is a medical one AND
+     * b) the robot is not moving.
+     */
+    void Brake(bool engage);
+
+    /**
      * @brief [Blocking] Switch to a new control mode and wait until mode transition is finished.
      * @param[in] mode flexiv::Mode enum.
      * @throw std::invalid_argument if the requested mode is invalid or unlicensed.
@@ -254,7 +266,7 @@ public:
     /**
      * @brief [Blocking] Set global variables for the robot by specifying name and value.
      * @param[in] global_vars Command to set global variables using the format:
-     * globalVar1=value(s), globalVar2=value(s), ...
+     * global_var1=value(s), global_var2=value(s), ...
      * @throw std::length_error if size of global_vars exceeds the limit (10 Kb).
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
