@@ -105,3 +105,14 @@ Python 3.10 and 3.12 are supported by RDK, see Flexiv RDK Manual for more detail
 
         cd flexiv_rdk/example_py
         python3 <program_name>.py [robot_serial_number]
+
+## API Documentation
+
+API doc of the latest release is available at https://rdk.flexiv.com/api/. API doc of a previous release can be generated locally:
+
+        sudo apt install doxygen-latex graphviz
+        cd flexiv_rdk
+        git checkout <previous_release_tag>
+        doxygen doc/Doxyfile.in
+
+The generated API doc is under `flexiv_rdk/doc/html/`. Open any html file with your browser to view it.
