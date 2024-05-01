@@ -102,11 +102,11 @@ void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log,
             } break;
             // Online change stiffness to half of nominal at 6 seconds
             case (6 * kLoopFreq): {
-                auto new_K = robot.info().nominal_Kc;
+                auto new_K = robot.info().K_x_nom;
                 for (auto& v : new_K) {
                     v *= 0.5;
                 }
-                robot.SetCartesianStiffness(new_K);
+                robot.SetCartesianImpedance(new_K);
                 log.Info("Cartesian stiffness set to: " + flexiv::utility::Arr2Str(new_K));
             } break;
             // Online change to another preferred joint positions at 9 seconds
@@ -119,7 +119,7 @@ void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log,
             } break;
             // Online reset stiffness to nominal at 12 seconds
             case (12 * kLoopFreq): {
-                robot.ResetCartesianStiffness();
+                robot.ResetCartesianImpedance();
                 log.Info("Cartesian stiffness is reset");
             } break;
             // Online reset preferred joint positions to nominal at 14 seconds

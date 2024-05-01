@@ -213,8 +213,8 @@ def main():
                 print(preferred_jnt_pos)
             # Online change stiffness to half of nominal at 6 seconds
             elif time_elapsed % 20.0 == 6.0:
-                new_K = np.multiply(robot.info().nominal_Kc, 0.5)
-                robot.SetCartesianStiffness(new_K)
+                new_K = np.multiply(robot.info().K_x_nom, 0.5)
+                robot.SetCartesianImpedance(new_K)
                 log.Info("Cartesian stiffness set to: ")
                 print(new_K)
             # Online change to another preferred joint positions at 9 seconds
@@ -225,7 +225,7 @@ def main():
                 print(preferred_jnt_pos)
             # Online reset stiffness to nominal at 12 seconds
             elif time_elapsed % 20.0 == 12.0:
-                robot.ResetCartesianStiffness()
+                robot.ResetCartesianImpedance()
                 log.Info("Cartesian stiffness is reset")
             # Online reset preferred joint positions to nominal at 14 seconds
             elif time_elapsed % 20.0 == 14.0:
