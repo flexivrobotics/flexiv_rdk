@@ -470,7 +470,7 @@ public:
      * Use SetForceControlAxis() to enable force control for one or more Cartesian axes and leave
      * the rest axes motion-controlled, then provide target pose for the motion-controlled axes and
      * target wrench for the force-controlled axes.
-     * @see SetCartesianStiffness(), SetMaxContactWrench(), SetNullSpacePosture(),
+     * @see SetCartesianImpedance(), SetMaxContactWrench(), SetNullSpacePosture(),
      * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
      */
     void StreamCartesianMotionForce(const std::array<double, kPoseSize>& pose,
@@ -511,7 +511,7 @@ public:
      * Use SetForceControlAxis() to enable force control for one or more Cartesian axes and leave
      * the rest axes motion-controlled, then provide target pose for the motion-controlled axes and
      * target wrench for the force-controlled axes.
-     * @see SetCartesianStiffness(), SetMaxContactWrench(), SetNullSpacePosture(),
+     * @see SetCartesianImpedance(), SetMaxContactWrench(), SetNullSpacePosture(),
      * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
      */
     void SendCartesianMotionForce(const std::array<double, kPoseSize>& pose,
@@ -519,27 +519,36 @@ public:
         double max_angular_vel = 1.0, double max_linear_acc = 2.0, double max_angular_acc = 5.0);
 
     /**
-     * @brief [Non-blocking] Set motion stiffness for the Cartesian motion-force control modes.
-     * @param[in] stiffness Cartesian motion stiffness: \f$ K_d \in \mathbb{R}^{6 \times 1} \f$.
+     * @brief [Non-blocking] Set impedance properties of the robot's Cartesian motion controller
+     * used in the Cartesian motion-force control modes.
+     * @param[in] K_x Cartesian motion stiffness: \f$ K_x \in \mathbb{R}^{6 \times 1} \f$.
      * Setting motion stiffness of a motion-controlled Cartesian axis to 0 will make this axis
      * free-floating. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and \f$
      * \mathbb{R}^{3 \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry}, k_{Rz}]^T
-     * \f$. Valid range: [0, RobotInfo::nominal_Kc]. Unit: \f$ [N/m]~[Nm/rad] \f$.
-     * @throw std::invalid_argument if [stiffness] contains any value outside the valid range.
+     * \f$. Valid range: [0, RobotInfo::K_x_nom]. Unit: \f$ [N/m]~[Nm/rad] \f$.
+     * @param[in] Z_x Cartesian motion damping ratio: \f$ Z_x \in \mathbb{R}^{6 \times 1} \f$.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear damping ratio and \f$ \mathbb{R}^{3 \times
+     * 1} \f$ angular damping ratio: \f$ [\zeta_x, \zeta_y, \zeta_z, \zeta_{Rx}, \zeta_{Ry},
+     * \zeta_{Rz}]^T \f$. Valid range: [0.3, 0.8]. The nominal (safe) value is provided as default.
+     * @throw std::invalid_argument if [K_x] or [Z_x] contains any value outside the valid range.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
-     * @warning The robot will automatically reset to its nominal stiffness upon re-entering the
-     * applicable control modes.
-     * @see ResetCartesianStiffness().
+     * @warning The robot will automatically reset to its nominal impedance properties upon
+     * re-entering the applicable control modes.
+     * @warning Changing damping ratio [Z_x] to a non-nominal value may lead to performance and
+     * stability issues, please use with caution.
+     * @see ResetCartesianImpedance().
      */
-    void SetCartesianStiffness(const std::array<double, kCartDOF>& stiffness);
+    void SetCartesianImpedance(const std::array<double, kCartDOF>& K_x,
+        const std::array<double, kCartDOF>& Z_x = {0.7, 0.7, 0.7, 0.7, 0.7, 0.7});
 
     /**
-     * @brief [Non-blocking] Reset motion stiffness for the Cartesian motion-force control modes to
-     * nominal value.
+     * @brief [Non-blocking] Reset impedance properties of the robot's Cartesian motion controller
+     * to nominal values.
      * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @see SetCartesianImpedance().
      */
-    void ResetCartesianStiffness();
+    void ResetCartesianImpedance();
 
     /**
      * @brief [Non-blocking] Set maximum contact wrench for the motion control part of the Cartesian
