@@ -373,7 +373,7 @@ public:
      * @note Applicable control mode(s): RT_JOINT_IMPEDANCE, RT_JOINT_POSITION.
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
-     * @see SetJointStiffness().
+     * @see SetJointImpedance().
      */
     void StreamJointPosition(const std::array<double, kJointDOF>& positions,
         const std::array<double, kJointDOF>& velocities,
@@ -401,7 +401,7 @@ public:
      * @warning Calling this function a second time while the motion from the previous call is still
      * ongoing will trigger an online re-planning of the joint trajectory, such that the previous
      * command is aborted and the new command starts to execute.
-     * @see SetJointStiffness().
+     * @see SetJointImpedance().
      */
     void SendJointPosition(const std::array<double, kJointDOF>& positions,
         const std::array<double, kJointDOF>& velocities,
@@ -409,25 +409,32 @@ public:
         const std::array<double, kJointDOF>& max_vel, const std::array<double, kJointDOF>& max_acc);
 
     /**
-     * @brief [Non-blocking] Set motion stiffness for the joint impedance control modes.
-     * @param[in] stiffness Joint motion stiffness: \f$ K_d \in \mathbb{R}^{n \times 1} \f$.
+     * @brief [Non-blocking] Set impedance properties of the robot's joint motion controller used in
+     * the joint impedance control modes.
+     * @param[in] K_q Joint motion stiffness: \f$ K_q \in \mathbb{R}^{n \times 1} \f$.
      * Setting motion stiffness of a joint axis to 0 will make this axis free-floating. Valid range:
-     * [0, RobotInfo::nominal_Kj]. Unit: \f$ [Nm/rad] \f$.
-     * @throw std::invalid_argument if [stiffness] contains any value outside the valid range.
+     * [0, RobotInfo::K_q_nom]. Unit: \f$ [Nm/rad] \f$.
+     * @param[in] Z_x Joint motion damping ratio: \f$ Z_q \in \mathbb{R}^{n \times 1} \f$.
+     * Valid range: [0.3, 0.8]. The nominal (safe) value is provided as default.
+     * @throw std::invalid_argument if [K_q] or [Z_q] contains any value outside the valid range.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @note Applicable control mode(s): RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
-     * @warning The robot will automatically reset to its nominal stiffness upon re-entering the
-     * applicable control modes.
-     * @see ResetJointStiffness().
+     * @warning The robot will automatically reset to its nominal impedance properties upon
+     * re-entering the applicable control modes.
+     * @warning Changing damping ratio [Z_q] to a non-nominal value may lead to performance and
+     * stability issues, please use with caution.
+     * @see ResetJointImpedance().
      */
-    void SetJointStiffness(const std::array<double, kJointDOF>& stiffness);
+    void SetJointImpedance(const std::array<double, kJointDOF>& K_q,
+        const std::array<double, kJointDOF>& Z_q = {0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7});
 
     /**
-     * @brief [Non-blocking] Reset motion stiffness for the joint impedance control modes to
-     * nominal value.
+     * @brief [Non-blocking] Reset impedance properties of the robot's joint motion controller to
+     * nominal values.
      * @note Applicable control mode(s): RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
+     * @see SetJointImpedance().
      */
-    void ResetJointStiffness();
+    void ResetJointImpedance();
 
     //================================== DIRECT CARTESIAN CONTROL ==================================
     /**
