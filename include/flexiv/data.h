@@ -38,18 +38,18 @@ struct RobotInfo
     std::string software_ver = {};
 
     /**
-     * Nominal motion stiffness of the Cartesian motion-force control modes: \f$ K_c^{nom} \in
+     * Nominal motion stiffness of the Cartesian motion-force control modes: \f$ K_x^{nom} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and
      * \f$ \mathbb{R}^{3 \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry},
      * k_{Rz}]^T \f$. Unit: \f$ [N/m]~[Nm/rad] \f$.
      */
-    std::array<double, kCartDOF> nominal_Kc = {};
+    std::array<double, kCartDOF> K_x_nom = {};
 
     /**
-     * Nominal motion stiffness of the joint impedance control modes: \f$ K_j^{nom} \in
+     * Nominal motion stiffness of the joint impedance control modes: \f$ K_q^{nom} \in
      * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm/rad] \f$.
      */
-    std::array<double, kJointDOF> nominal_Kj = {};
+    std::array<double, kJointDOF> K_q_nom = {};
 
     /**
      * Lower limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
