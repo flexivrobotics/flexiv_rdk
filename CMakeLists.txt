@@ -52,6 +52,12 @@ if(Eigen3_FOUND)
   message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 endif()
 
+# spdlog
+find_package(spdlog REQUIRED)
+if(spdlog_FOUND)
+  message(STATUS "Found spdlog: ${spdlog_DIR}")
+endif()
+
 # Fast-CDR
 find_package(fastcdr 1.0.24 REQUIRED)
 if(fastcdr_FOUND)
@@ -83,6 +89,7 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
   ${RDK_STATIC_LIBRARY}
   Threads::Threads
   Eigen3::Eigen
+  spdlog::spdlog
   fastrtps
   fastcdr
 )

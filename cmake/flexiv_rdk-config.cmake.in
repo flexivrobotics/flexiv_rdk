@@ -4,6 +4,7 @@ include(CMakeFindDependencyMacro)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_dependency(Threads REQUIRED)
 find_dependency(Eigen3 REQUIRED)
+find_dependency(spdlog REQUIRED)
 find_dependency(fastrtps 2.6.2 REQUIRED)
 find_dependency(fastcdr 1.0.24 REQUIRED)
 
