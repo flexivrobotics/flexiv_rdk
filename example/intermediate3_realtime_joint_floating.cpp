@@ -9,9 +9,9 @@
  */
 
 #include <flexiv/robot.h>
-#include <flexiv/log.h>
 #include <flexiv/scheduler.h>
 #include <flexiv/utility.h>
+#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <string>
@@ -52,7 +52,7 @@ void PrintHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log)
+void PeriodicTask(flexiv::Robot& robot)
 {
     try {
         // Monitor fault on the connected robot
@@ -74,7 +74,7 @@ void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log)
         robot.StreamJointTorque(target_torque, true, true);
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         g_stop_sched = true;
     }
 }
@@ -83,9 +83,6 @@ int main(int argc, char* argv[])
 {
     // Program Setup
     // =============================================================================================
-    // Logger for printing message with timestamp and coloring
-    flexiv::Log log;
-
     // Parse parameters
     if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
@@ -95,7 +92,7 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    log.Info("Tutorial description:");
+    spdlog::info("Tutorial description:");
     PrintDescription();
 
     try {
@@ -106,27 +103,27 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            log.Warn("Fault occurred on the connected robot, trying to clear ...");
+            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                log.Error("Fault cannot be cleared, exiting ...");
+                spdlog::error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.Info("Fault on the connected robot is cleared");
+            spdlog::info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...");
+        spdlog::info("Enabling robot ...");
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.Info("Robot is now operational");
+        spdlog::info("Robot is now operational");
 
         // Move robot to home pose
-        log.Info("Moving to home pose");
+        spdlog::info("Moving to home pose");
         robot.SwitchMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
         robot.ExecutePrimitive("Home()");
 
@@ -143,8 +140,8 @@ int main(int argc, char* argv[])
         // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(log)), "HP periodic", 1,
-            scheduler.max_priority());
+        scheduler.AddTask(
+            std::bind(PeriodicTask, std::ref(robot)), "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();
 
@@ -156,7 +153,7 @@ int main(int argc, char* argv[])
         scheduler.Stop();
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         return 1;
     }
 

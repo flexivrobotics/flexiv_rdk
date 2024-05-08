@@ -7,8 +7,8 @@
  */
 
 #include <flexiv/robot.h>
-#include <flexiv/log.h>
 #include <flexiv/utility.h>
+#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <thread>
@@ -39,9 +39,6 @@ int main(int argc, char* argv[])
 {
     // Program Setup
     // =============================================================================================
-    // Logger for printing message with timestamp and coloring
-    flexiv::Log log;
-
     // Parse parameters
     if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
@@ -51,7 +48,7 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    log.Info("Tutorial description:");
+    spdlog::info("Tutorial description:");
     PrintDescription();
 
     try {
@@ -62,24 +59,24 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            log.Warn("Fault occurred on the connected robot, trying to clear ...");
+            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                log.Error("Fault cannot be cleared, exiting ...");
+                spdlog::error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.Info("Fault on the connected robot is cleared");
+            spdlog::info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...");
+        spdlog::info("Enabling robot ...");
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.Info("Robot is now operational");
+        spdlog::info("Robot is now operational");
 
         // Execute Primitives
         // =========================================================================================
@@ -90,7 +87,7 @@ int main(int argc, char* argv[])
         // -----------------------------------------------------------------------------------------
         // All parameters of the "Home" primitive are optional, thus we can skip the parameters and
         // the default values will be used
-        log.Info("Executing primitive: Home");
+        spdlog::info("Executing primitive: Home");
 
         // Send command to robot
         robot.ExecutePrimitive("Home()");
@@ -103,7 +100,7 @@ int main(int argc, char* argv[])
         // (2) Move robot joints to target positions
         // -----------------------------------------------------------------------------------------
         // The required parameter <target> takes in 7 target joint positions. Unit: degrees
-        log.Info("Executing primitive: MoveJ");
+        spdlog::info("Executing primitive: MoveJ");
 
         // Send command to robot
         robot.ExecutePrimitive("MoveJ(target=30 -45 0 90 0 40 30)");
@@ -125,7 +122,7 @@ int main(int argc, char* argv[])
         //   maxVel: maximum TCP linear velocity
         //       Unit: m/s
         // NOTE: The rotations use Euler ZYX convention, rot_x means Euler ZYX angle around X axis
-        log.Info("Executing primitive: MoveL");
+        spdlog::info("Executing primitive: MoveL");
 
         // Send command to robot
         robot.ExecutePrimitive(
@@ -144,7 +141,7 @@ int main(int argc, char* argv[])
         // -----------------------------------------------------------------------------------------
         // In this example the reference frame is changed from WORLD::WORLD_ORIGIN to TRAJ::START,
         // which represents the current TCP frame
-        log.Info("Executing primitive: MoveL");
+        spdlog::info("Executing primitive: MoveL");
 
         // Example to convert target quaternion [w,x,y,z] to Euler ZYX using utility functions
         std::array<double, 4> targetQuat = {0.9185587, 0.1767767, 0.3061862, 0.1767767};
@@ -165,7 +162,7 @@ int main(int argc, char* argv[])
         robot.Stop();
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         return 1;
     }
 

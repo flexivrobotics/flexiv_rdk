@@ -8,9 +8,9 @@
  */
 
 #include <flexiv/robot.h>
-#include <flexiv/log.h>
 #include <flexiv/scheduler.h>
 #include <flexiv/utility.h>
+#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <cmath>
@@ -70,9 +70,8 @@ void PrintHelp()
 }
 
 /** Callback function for realtime periodic task */
-void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log,
-    const std::array<double, flexiv::kPoseSize>& init_pose, const std::string frame_str,
-    bool enable_polish)
+void PeriodicTask(flexiv::Robot& robot, const std::array<double, flexiv::kPoseSize>& init_pose,
+    const std::string frame_str, bool enable_polish)
 {
     // Local periodic loop counter
     static uint64_t loop_counter = 0;
@@ -116,7 +115,7 @@ void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log,
         loop_counter++;
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         g_stop_sched = true;
     }
 }
@@ -125,9 +124,6 @@ int main(int argc, char* argv[])
 {
     // Program Setup
     // =============================================================================================
-    // Logger for printing message with timestamp and coloring
-    flexiv::Log log;
-
     // Parse parameters
     if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
@@ -137,26 +133,26 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    log.Info("Tutorial description:");
+    spdlog::info("Tutorial description:");
     PrintDescription();
 
     // The reference frame to use for force control, see Robot::SetForceControlFrame() for more
     // details
     std::string frame_str = "WORLD";
     if (flexiv::utility::ProgramArgsExist(argc, argv, "--TCP")) {
-        log.Info("Reference frame used for force control: robot TCP frame");
+        spdlog::info("Reference frame used for force control: robot TCP frame");
         frame_str = "TCP";
     } else {
-        log.Info("Reference frame used for force control: robot world frame");
+        spdlog::info("Reference frame used for force control: robot world frame");
     }
 
     // Whether to enable polish motion
     bool enable_polish = false;
     if (flexiv::utility::ProgramArgsExist(argc, argv, "--polish")) {
-        log.Info("Robot will run a polish motion along XY plane in robot world frame");
+        spdlog::info("Robot will run a polish motion along XY plane in robot world frame");
         enable_polish = true;
     } else {
-        log.Info("Robot will hold its motion in all non-force-controlled axes");
+        spdlog::info("Robot will hold its motion in all non-force-controlled axes");
     }
 
     try {
@@ -167,27 +163,27 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            log.Warn("Fault occurred on the connected robot, trying to clear ...");
+            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                log.Error("Fault cannot be cleared, exiting ...");
+                spdlog::error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.Info("Fault on the connected robot is cleared");
+            spdlog::info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...");
+        spdlog::info("Enabling robot ...");
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.Info("Robot is now operational");
+        spdlog::info("Robot is now operational");
 
         // Move robot to home pose
-        log.Info("Moving to home pose");
+        spdlog::info("Moving to home pose");
         robot.SwitchMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
         robot.ExecutePrimitive("Home()");
 
@@ -203,25 +199,26 @@ int main(int argc, char* argv[])
 
         // WARNING: during the process, the robot must not contact anything, otherwise the result
         // will be inaccurate and affect following operations
-        log.Warn("Zeroing force/torque sensors, make sure nothing is in contact with the robot");
+        spdlog::warn(
+            "Zeroing force/torque sensors, make sure nothing is in contact with the robot");
 
         // Wait for primitive completion
         while (robot.busy()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.Info("Sensor zeroing complete");
+        spdlog::info("Sensor zeroing complete");
 
         // Search for Contact
         // =========================================================================================
         // NOTE: there are several ways to do contact search, such as using primitives, or real-time
         // and non-real-time direct motion controls, etc. Here we use non-real-time direct Cartesian
         // control for example.
-        log.Info("Searching for contact ...");
+        spdlog::info("Searching for contact ...");
 
         // Set initial pose to current TCP pose
         auto init_pose = robot.states().tcp_pose;
-        log.Info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
-                 + flexiv::utility::Arr2Str(init_pose));
+        spdlog::info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
+                     + flexiv::utility::Arr2Str(init_pose));
 
         // Use non-real-time mode to make the robot go to a set point with its own motion generator
         robot.SwitchMode(flexiv::Mode::NRT_CARTESIAN_MOTION_FORCE);
@@ -247,7 +244,7 @@ int main(int argc, char* argv[])
             // Contact is considered to be made if sensed TCP force exceeds the threshold
             if (ext_force.norm() > kPressingForce) {
                 is_contacted = true;
-                log.Info("Contact detected at robot TCP");
+                spdlog::info("Contact detected at robot TCP");
             }
             // Check at 1ms interval
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -291,8 +288,8 @@ int main(int argc, char* argv[])
         // Create real-time scheduler to run periodic tasks
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(log),
-                              std::ref(init_pose), std::ref(frame_str), enable_polish),
+        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(init_pose),
+                              std::ref(frame_str), enable_polish),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();
@@ -305,7 +302,7 @@ int main(int argc, char* argv[])
         scheduler.Stop();
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         return 1;
     }
 

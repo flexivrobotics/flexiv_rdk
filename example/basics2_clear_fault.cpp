@@ -7,8 +7,8 @@
  */
 
 #include <flexiv/robot.h>
-#include <flexiv/log.h>
 #include <flexiv/utility.h>
+#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <string>
@@ -39,9 +39,6 @@ int main(int argc, char* argv[])
 {
     // Program Setup
     // =============================================================================================
-    // Logger for printing message with timestamp and coloring
-    flexiv::Log log;
-
     // Parse parameters
     if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
@@ -51,7 +48,7 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    log.Info("Tutorial description:");
+    spdlog::info("Tutorial description:");
     PrintDescription();
 
     try {
@@ -64,18 +61,18 @@ int main(int argc, char* argv[])
         // =========================================================================================
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            log.Warn("Fault occurred on the connected robot, trying to clear ...");
+            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                log.Error("Fault cannot be cleared, exiting ...");
+                spdlog::error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.Info("Fault on the connected robot is cleared");
+            spdlog::info("Fault on the connected robot is cleared");
         } else {
-            log.Info("No fault on the connected robot");
+            spdlog::info("No fault on the connected robot");
         }
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         return 1;
     }
 
