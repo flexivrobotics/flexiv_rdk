@@ -8,9 +8,8 @@
 #include <flexiv/robot.h>
 #include <flexiv/model.h>
 #include <flexiv/tool.h>
-#include <flexiv/log.h>
 #include <flexiv/utility.h>
-
+#include <spdlog/spdlog.h>
 #include <Eigen/Eigen>
 
 #include <iostream>
@@ -87,9 +86,6 @@ void PrintHelp()
 
 int main(int argc, char* argv[])
 {
-    // Log object for printing message with timestamp and coloring
-    flexiv::Log log;
-
     // Parse Parameters
     //==============================================================================================
     if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
@@ -108,24 +104,24 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            log.Warn("Fault occurred on the connected robot, trying to clear ...");
+            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                log.Error("Fault cannot be cleared, exiting ...");
+                spdlog::error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.Info("Fault on the connected robot is cleared");
+            spdlog::info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...");
+        spdlog::info("Enabling robot ...");
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.Info("Robot is now operational");
+        spdlog::info("Robot is now operational");
 
         // Set mode after robot is operational
         robot.SwitchMode(flexiv::Mode::NRT_PLAN_EXECUTION);
@@ -144,7 +140,7 @@ int main(int argc, char* argv[])
 
         // Test Dynamics Engine without Tool
         //==========================================================================================
-        log.Info(">>>>> Test 1: no end-effector tool <<<<<");
+        spdlog::info(">>>>> Test 1: no end-effector tool <<<<<");
 
         // Instantiate dynamics engine
         flexiv::Model model(robot);
@@ -180,7 +176,7 @@ int main(int argc, char* argv[])
 
         // Test Dynamics Engine with Tool
         //==========================================================================================
-        log.Info(">>>>> Test 2: with end-effector tool <<<<<");
+        spdlog::info(">>>>> Test 2: with end-effector tool <<<<<");
 
         // Ground truth from MATLAB with robot tool
         // clang-format off
@@ -215,15 +211,15 @@ int main(int argc, char* argv[])
         }
 
         // Add the test tool
-        log.Info("Adding test tool [" + tool_name + "] to the robot");
+        spdlog::info("Adding test tool [{}] to the robot", tool_name);
         tool.Add(tool_name, tool_params);
 
         // Switch to the newly added test tool, i.e. set it as the active tool
-        log.Info("Switching to test tool [" + tool_name + "]");
+        spdlog::info("Switching to test tool [{}]", tool_name);
         tool.Switch(tool_name);
 
         // Get and print the current active tool, should be the test tool
-        log.Info("Current active tool: " + tool.name());
+        spdlog::info("Current active tool: {}", tool.name());
 
         // Reload robot + tool model using the latest data synced from the connected robot
         model.Reload();
@@ -236,12 +232,12 @@ int main(int argc, char* argv[])
         }
 
         // Clean up by removing the test tool
-        log.Info("Removing tool [" + tool_name + "]");
+        spdlog::info("Removing tool [{}]", tool_name);
         tool.Remove(tool_name);
 
-        log.Info("Program finished");
+        spdlog::info("Program finished");
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         return 1;
     }
 

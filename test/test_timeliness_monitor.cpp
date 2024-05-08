@@ -10,9 +10,9 @@
  */
 
 #include <flexiv/robot.h>
-#include <flexiv/log.h>
 #include <flexiv/scheduler.h>
 #include <flexiv/utility.h>
+#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <string>
@@ -26,8 +26,7 @@ std::atomic<bool> g_stop_sched = {false};
 }
 
 // callback function for realtime periodic task
-void PeriodicTask(
-    flexiv::Robot& robot, flexiv::Log& log, const std::array<double, flexiv::kJointDOF>& init_pos)
+void PeriodicTask(flexiv::Robot& robot, const std::array<double, flexiv::kJointDOF>& init_pos)
 {
     // Loop counter
     static unsigned int loop_counter = 0;
@@ -44,7 +43,7 @@ void PeriodicTask(
         robot.StreamJointPosition(init_pos, target_vel, target_acc);
 
         if (loop_counter == 5000) {
-            log.Warn(">>>>> Adding simulated loop delay <<<<<");
+            spdlog::warn(">>>>> Adding simulated loop delay <<<<<");
         }
         // simulate prolonged loop time after 5 seconds
         else if (loop_counter > 5000) {
@@ -54,7 +53,7 @@ void PeriodicTask(
         loop_counter++;
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         g_stop_sched = true;
     }
 }
@@ -72,9 +71,6 @@ void PrintHelp()
 
 int main(int argc, char* argv[])
 {
-    // log object for printing message with timestamp and coloring
-    flexiv::Log log;
-
     // Parse Parameters
     //==============================================================================================
     if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
@@ -93,39 +89,38 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            log.Warn("Fault occurred on the connected robot, trying to clear ...");
+            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                log.Error("Fault cannot be cleared, exiting ...");
+                spdlog::error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.Info("Fault on the connected robot is cleared");
+            spdlog::info("Fault on the connected robot is cleared");
         }
 
         // enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...");
+        spdlog::info("Enabling robot ...");
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.Info("Robot is now operational");
+        spdlog::info("Robot is now operational");
 
         // set mode after robot is operational
         robot.SwitchMode(flexiv::Mode::RT_JOINT_POSITION);
 
         // Set initial joint positions
         auto init_pos = robot.states().q;
-        log.Info("Initial joint positions set to: " + flexiv::utility::Arr2Str(init_pos));
-        log.Warn(">>>>> Simulated loop delay will be added after 5 seconds <<<<<");
+        spdlog::info("Initial joint positions set to: {}", flexiv::utility::Arr2Str(init_pos));
+        spdlog::warn(">>>>> Simulated loop delay will be added after 5 seconds <<<<<");
 
         // Periodic Tasks
         //==========================================================================================
         flexiv::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(
-            std::bind(PeriodicTask, std::ref(robot), std::ref(log), std::ref(init_pos)),
+        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(init_pos)),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();
@@ -138,7 +133,7 @@ int main(int argc, char* argv[])
         scheduler.Stop();
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         return 1;
     }
 
