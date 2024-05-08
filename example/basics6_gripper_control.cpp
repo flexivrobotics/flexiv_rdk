@@ -20,15 +20,6 @@ namespace {
 std::atomic<bool> g_finished = {false};
 }
 
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial does position and force control (if available) for grippers "
-                 "supported by Flexiv."
-              << std::endl
-              << std::endl;
-}
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -66,8 +57,9 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial does position and force control (if "
+        "available) for grippers supported by Flexiv.");
 
     try {
         // RDK Initialization

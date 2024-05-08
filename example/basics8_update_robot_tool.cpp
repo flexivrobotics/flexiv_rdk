@@ -16,17 +16,6 @@
 #include <string>
 #include <thread>
 
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout
-        << "This tutorial shows how to online update and interact with the robot tools. All "
-           "changes made to the robot tool system will take effect immediately without needing to "
-           "reboot. However, the robot must be put into IDLE mode when making these changes."
-        << std::endl
-        << std::endl;
-}
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -52,8 +41,11 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial shows how to online update and interact with "
+        "the robot tools. All changes made to the robot tool system will take effect immediately "
+        "without needing to reboot. However, the robot must be put into IDLE mode when making "
+        "these changes.");
 
     try {
         // RDK Initialization

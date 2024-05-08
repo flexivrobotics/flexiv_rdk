@@ -17,15 +17,6 @@
 #include <chrono>
 #include <mutex>
 
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial runs the integrated dynamics engine to obtain robot Jacobian, mass "
-                 "matrix, and gravity force."
-              << std::endl
-              << std::endl;
-}
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -109,8 +100,9 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial runs the integrated dynamics engine to obtain "
+        "robot Jacobian, mass matrix, and gravity force.");
 
     try {
         // RDK Initialization

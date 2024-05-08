@@ -15,18 +15,6 @@
 #include <iostream>
 #include <thread>
 
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial executes a plan selected by the user from a list of available "
-                 "plans. A plan is a pre-written script to execute a series of robot primitives "
-                 "with pre-defined transition conditions between 2 adjacent primitives. Users can "
-                 "use Flexiv Elements to compose their own plan and assign to the robot, which "
-                 "will appear in the plan list."
-              << std::endl
-              << std::endl;
-}
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -52,8 +40,12 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial executes a plan selected by the user from a "
+        "list of available plans. A plan is a pre-written script to execute a series of robot "
+        "primitives with pre-defined transition conditions between 2 adjacent primitives. Users "
+        "can use Flexiv Elements to compose their own plan and assign to the robot, which "
+        "will appear in the plan list.");
 
     try {
         // RDK Initialization

@@ -19,13 +19,6 @@ namespace {
 constexpr char kDefaultLogPattern[] = "[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v";
 }
 
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial shows how to change the logging behaviors of RDK client."
-              << std::endl;
-}
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -51,8 +44,9 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial shows how to change the logging behaviors of "
+        "RDK client.");
 
     // Suppress log messages from RDK client
     // =========================================================================================
@@ -73,7 +67,7 @@ int main(int argc, char* argv[])
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("example.log", true);
     std::vector<spdlog::sink_ptr> sinks {console_sink, file_sink};
     // Since writing to file takes some time, so we use async logger to avoid blocking the program
-    spdlog::init_thread_pool(10240, 2);
+    spdlog::init_thread_pool(10240, 1);
     auto tp = spdlog::thread_pool();
     auto logger
         = std::make_shared<spdlog::async_logger>("global_logger", sinks.begin(), sinks.end(), tp);

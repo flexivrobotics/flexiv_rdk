@@ -39,15 +39,6 @@ constexpr double kExtTorqueThreshold = 5.0;
 std::atomic<bool> g_stop_sched = {false};
 }
 
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial runs real-time Cartesian-space pure motion control to hold or "
-                 "sine-sweep the robot TCP. A simple collision detection is also included."
-              << std::endl
-              << std::endl;
-}
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -185,8 +176,10 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial runs real-time Cartesian-space pure motion "
+        "control to hold or sine-sweep the robot TCP. A simple collision detection is also "
+        "included.");
 
     // Type of motion specified by user
     bool enable_hold = false;

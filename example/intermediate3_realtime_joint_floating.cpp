@@ -27,18 +27,6 @@ const std::array<double, flexiv::kJointDOF> kFloatingDamping
 std::atomic<bool> g_stop_sched = {false};
 }
 
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial runs real-time joint floating with gentle velocity damping, "
-                 "gravity compensation, and soft protection against position limits. This example "
-                 "is ideal for verifying the system's whole-loop real-timeliness, accuracy of the "
-                 "robot dynamics model, and joint torque control performance. If everything works "
-                 "well, all joints should float smoothly."
-              << std::endl
-              << std::endl;
-}
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -92,8 +80,12 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial runs real-time joint floating with gentle "
+        "velocity damping, gravity compensation, and soft protection against position limits. This "
+        "example is ideal for verifying the system's whole-loop real-timeliness, accuracy of the "
+        "robot dynamics model, and joint torque control performance. If everything works well, all "
+        "joints should float smoothly.");
 
     try {
         // RDK Initialization

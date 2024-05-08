@@ -14,15 +14,6 @@
 #include <string>
 #include <thread>
 
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial clears minor faults from the robot server if any. Note that "
-                 "critical faults cannot be cleared, see RDK manual for more details."
-              << std::endl
-              << std::endl;
-}
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -48,8 +39,9 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial clears minor faults from the robot server if "
+        "any. Note that critical faults cannot be cleared, see RDK manual for more details.");
 
     try {
         // RDK Initialization

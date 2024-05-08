@@ -14,16 +14,6 @@
 #include <string>
 #include <thread>
 
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout
-        << "This tutorial runs an automatic recovery process if the robot's safety system is in "
-           "recovery state. See flexiv::Robot::recovery() and RDK manual for more details."
-        << std::endl
-        << std::endl;
-}
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -49,8 +39,10 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial runs an automatic recovery process if the "
+        "robot's safety system is in recovery state. See flexiv::Robot::recovery() and RDK manual "
+        "for more details.");
 
     try {
         // RDK Initialization

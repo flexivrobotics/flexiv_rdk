@@ -13,16 +13,6 @@
 #include <iostream>
 #include <thread>
 
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial executes several basic robot primitives (unit skills). For "
-                 "detailed documentation on all available primitives, please see [Flexiv "
-                 "Primitives](https://www.flexiv.com/primitives/)."
-              << std::endl
-              << std::endl;
-}
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -48,8 +38,10 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial executes several basic robot primitives (unit "
+        "skills). For detailed documentation on all available primitives, please see [Flexiv "
+        "Primitives](https://www.flexiv.com/primitives/).");
 
     try {
         // RDK Initialization

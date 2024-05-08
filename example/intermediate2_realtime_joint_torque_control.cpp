@@ -35,17 +35,6 @@ constexpr double kSineFreq = 0.3;
 std::atomic<bool> g_stop_sched = {false};
 }
 
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout
-        << "This tutorial runs real-time joint torque control to hold or sine-sweep all robot "
-           "joints. An outer position loop is used to generate joint torque commands. This outer "
-           "position loop + inner torque loop together is also known as an impedance controller."
-        << std::endl
-        << std::endl;
-}
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -120,8 +109,11 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial runs real-time joint torque control to hold "
+        "or sine-sweep all robot joints. An outer position loop is used to generate joint torque "
+        "commands. This outer position loop + inner torque loop together is also known as an "
+        "impedance controller.");
 
     // Type of motion specified by user
     std::string motion_type = "";

@@ -44,16 +44,6 @@ const std::array<double, flexiv::kCartDOF> kMaxWrenchForContactSearch
 std::atomic<bool> g_stop_sched = {false};
 }
 
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial runs real-time Cartesian-space unified motion-force control. The Z "
-                 "axis of the chosen reference frame will be activated for explicit force control, "
-                 "while the rest axes in the same reference frame will stay motion controlled."
-              << std::endl
-              << std::endl;
-}
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -133,8 +123,11 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial runs real-time Cartesian-space unified "
+        "motion-force control. The Z axis of the chosen reference frame will be activated for "
+        "explicit force control, while the rest axes in the same reference frame will stay motion "
+        "controlled.");
 
     // The reference frame to use for force control, see Robot::SetForceControlFrame() for more
     // details

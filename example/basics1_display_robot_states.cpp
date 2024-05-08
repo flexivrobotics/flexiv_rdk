@@ -13,15 +13,6 @@
 #include <iostream>
 #include <thread>
 
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial does the very first thing: check connection with the robot server "
-                 "and print received robot states."
-              << std::endl
-              << std::endl;
-}
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -58,8 +49,9 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial does the very first thing: check connection "
+        "with the robot server and print received robot states.");
 
     try {
         // RDK Initialization

@@ -13,16 +13,6 @@
 #include <iostream>
 #include <thread>
 
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial zeros the robot's force and torque sensors, which is a recommended "
-                 "(but not mandatory) step before any operations that require accurate "
-                 "force/torque measurement."
-              << std::endl
-              << std::endl;
-}
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -48,8 +38,10 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial zeros the robot's force and torque sensors, "
+        "which is a recommended (but not mandatory) step before any operations that require "
+        "accurate force/torque measurement.");
 
     try {
         // RDK Initialization
