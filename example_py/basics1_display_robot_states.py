@@ -12,6 +12,7 @@ __author__ = "Flexiv"
 import time
 import argparse
 import threading
+import spdlog  # pip install spdlog
 
 # Import Flexiv RDK Python library
 # fmt: off
@@ -33,7 +34,7 @@ def print_description():
     print()
 
 
-def print_robot_states(robot, log):
+def print_robot_states(robot, logger):
     """
     Print robot states data @ 1Hz.
 
@@ -41,7 +42,7 @@ def print_robot_states(robot, log):
 
     while True:
         # Print all gripper states, round all float values to 2 decimals
-        print("[info] Current robot states:")
+        logger.info("Current robot states:")
         # fmt: off
         print("{")
         print("q: ",  ['%.2f' % i for i in robot.states().q])
@@ -76,10 +77,11 @@ def main():
     args = argparser.parse_args()
 
     # Define alias
+    logger = spdlog.ConsoleLogger("Example")
     mode = flexivrdk.Mode
 
     # Print description
-    print("[info] Tutorial description:")
+    logger.info("Tutorial description:")
     print_description()
 
     try:
@@ -90,35 +92,33 @@ def main():
 
         # Clear fault on the connected robot if any
         if robot.fault():
-            print(
-                "[warning] Fault occurred on the connected robot, trying to clear ..."
-            )
+            logger.warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
             if not robot.ClearFault():
-                print("[error] Fault cannot be cleared, exiting ...")
+                logger.error("Fault cannot be cleared, exiting ...")
                 return 1
-            print("[info] Fault on the connected robot is cleared")
+            logger.info("Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        print("[info] Enabling robot ...")
+        logger.info("Enabling robot ...")
         robot.Enable()
 
         # Wait for the robot to become operational
         while not robot.operational():
             time.sleep(1)
 
-        print("[info] Robot is now operational")
+        logger.info("Robot is now operational")
 
         # Print States
         # =============================================================================
         # Thread for printing robot states
-        print_thread = threading.Thread(target=print_robot_states, args=[robot, log])
+        print_thread = threading.Thread(target=print_robot_states, args=[robot, logger])
         print_thread.start()
         print_thread.join()
 
     except Exception as e:
         # Print exception error message
-        print("[error] ", str(e))
+        logger.error(str(e))
 
 
 if __name__ == "__main__":

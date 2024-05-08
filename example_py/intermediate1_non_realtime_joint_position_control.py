@@ -11,6 +11,7 @@ __author__ = "Flexiv"
 import time
 import math
 import argparse
+import spdlog  # pip install spdlog
 
 # Import Flexiv RDK Python library
 # fmt: off
@@ -58,10 +59,11 @@ def main():
     assert frequency >= 1 and frequency <= 100, "Invalid <frequency> input"
 
     # Define alias
+    logger = spdlog.ConsoleLogger("Example")
     mode = flexivrdk.Mode
 
     # Print description
-    print("[info] Tutorial description:")
+    logger.info("Tutorial description:")
     print_description()
 
     try:
@@ -72,27 +74,25 @@ def main():
 
         # Clear fault on the connected robot if any
         if robot.fault():
-            print(
-                "[warning] Fault occurred on the connected robot, trying to clear ..."
-            )
+            logger.warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
             if not robot.ClearFault():
-                print("[error] Fault cannot be cleared, exiting ...")
+                logger.error("Fault cannot be cleared, exiting ...")
                 return 1
-            print("[info] Fault on the connected robot is cleared")
+            logger.info("Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        print("[info] Enabling robot ...")
+        logger.info("Enabling robot ...")
         robot.Enable()
 
         # Wait for the robot to become operational
         while not robot.operational():
             time.sleep(1)
 
-        print("[info] Robot is now operational")
+        logger.info("Robot is now operational")
 
         # Move robot to home pose
-        print("[info] Moving to home pose")
+        logger.info("Moving to home pose")
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
         robot.ExecutePrimitive("Home()")
 
@@ -107,12 +107,12 @@ def main():
 
         period = 1.0 / frequency
         loop_time = 0
-        print(
-            "Sending command to robot at",
-            frequency,
-            "Hz, or",
-            period,
-            "seconds interval",
+        logger.info(
+            "Sending command to robot at "
+            + str(frequency)
+            + " Hz, or "
+            + str(period)
+            + " seconds interval",
         )
 
         # Use current robot joint positions as initial positions
@@ -164,7 +164,7 @@ def main():
 
     except Exception as e:
         # Print exception error message
-        print("[error] ", str(e))
+        logger.error(str(e))
 
 
 if __name__ == "__main__":

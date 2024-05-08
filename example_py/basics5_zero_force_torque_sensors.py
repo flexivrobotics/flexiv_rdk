@@ -11,6 +11,7 @@ __author__ = "Flexiv"
 
 import time
 import argparse
+import spdlog  # pip install spdlog
 from utility import list2str
 
 # Import Flexiv RDK Python library
@@ -46,10 +47,11 @@ def main():
     args = argparser.parse_args()
 
     # Define alias
+    logger = spdlog.ConsoleLogger("Example")
     mode = flexivrdk.Mode
 
     # Print description
-    print("[info] Tutorial description:")
+    logger.info("Tutorial description:")
     print_description()
 
     try:
@@ -60,30 +62,28 @@ def main():
 
         # Clear fault on the connected robot if any
         if robot.fault():
-            print(
-                "[warning] Fault occurred on the connected robot, trying to clear ..."
-            )
+            logger.warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
             if not robot.ClearFault():
-                print("[error] Fault cannot be cleared, exiting ...")
+                logger.error("Fault cannot be cleared, exiting ...")
                 return 1
-            print("[info] Fault on the connected robot is cleared")
+            logger.info("Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        print("[info] Enabling robot ...")
+        logger.info("Enabling robot ...")
         robot.Enable()
 
         # Wait for the robot to become operational
         while not robot.operational():
             time.sleep(1)
 
-        print("[info] Robot is now operational")
+        logger.info("Robot is now operational")
 
         # Zero Sensors
         # ==========================================================================================
         # Get and print the current TCP force/moment readings
-        print(
-            "[info] TCP force and moment reading in base frame BEFORE sensor zeroing: "
+        logger.info(
+            "TCP force and moment reading in base frame BEFORE sensor zeroing: "
             + list2str(robot.states().ext_wrench_in_world)
             + "[N][Nm]"
         )
@@ -94,25 +94,25 @@ def main():
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations
-        print(
-            "[warning] Zeroing force/torque sensors, make sure nothing is in contact with the robot"
+        logger.warn(
+            "Zeroing force/torque sensors, make sure nothing is in contact with the robot"
         )
 
         # Wait for the primitive completion
         while robot.busy():
             time.sleep(1)
-        print("[info] Sensor zeroing complete")
+        logger.info("Sensor zeroing complete")
 
         # Get and print the current TCP force/moment readings
-        print(
-            "[info] TCP force and moment reading in base frame AFTER sensor zeroing: "
+        logger.info(
+            "TCP force and moment reading in base frame AFTER sensor zeroing: "
             + list2str(robot.states().ext_wrench_in_world)
             + "[N][Nm]"
         )
 
     except Exception as e:
         # Print exception error message
-        print("[error] ", str(e))
+        logger.error(str(e))
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ __author__ = "Flexiv"
 
 import time
 import argparse
+import spdlog  # pip install spdlog
 
 # Import Flexiv RDK Python library
 # fmt: off
@@ -43,8 +44,11 @@ def main():
     )
     args = argparser.parse_args()
 
+    # Define alias
+    logger = spdlog.ConsoleLogger("Example")
+
     # Print description
-    print("[info] Tutorial description:")
+    logger.info("Tutorial description:")
     print_description()
 
     try:
@@ -57,20 +61,18 @@ def main():
         # ==========================================================================================
         # Clear fault on the connected robot if any
         if robot.fault():
-            print(
-                "[warning] Fault occurred on the connected robot, trying to clear ..."
-            )
+            logger.warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
             if not robot.ClearFault():
-                print("[error] Fault cannot be cleared, exiting ...")
+                logger.error("Fault cannot be cleared, exiting ...")
                 return 1
-            print("[info] Fault on the connected robot is cleared")
+            logger.info("Fault on the connected robot is cleared")
         else:
-            print("[info] No fault on the connected robot")
+            logger.info("No fault on the connected robot")
 
     except Exception as e:
         # Print exception error message
-        print("[error] ", str(e))
+        logger.error(str(e))
 
 
 if __name__ == "__main__":

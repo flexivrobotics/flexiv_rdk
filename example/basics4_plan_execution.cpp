@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
 
                     // Print plan info while the current plan is running
                     while (robot.busy()) {
-                        spdlog::info("===============================================");
+                        spdlog::info("Current plan info:");
                         std::cout << robot.plan_info() << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 
                     // Print plan info while the current plan is running
                     while (robot.busy()) {
-                        spdlog::info("===============================================");
+                        spdlog::info("Current plan info:");
                         std::cout << robot.plan_info() << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }

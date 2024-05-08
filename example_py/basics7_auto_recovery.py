@@ -11,6 +11,7 @@ __author__ = "Flexiv"
 
 import time
 import argparse
+import spdlog  # pip install spdlog
 
 # Import Flexiv RDK Python library
 # fmt: off
@@ -43,8 +44,11 @@ def main():
     )
     args = argparser.parse_args()
 
+    # Define alias
+    logger = spdlog.ConsoleLogger("Example")
+
     # Print description
-    print("[info] Tutorial description:")
+    logger.info("Tutorial description:")
     print_description()
 
     try:
@@ -54,7 +58,7 @@ def main():
         robot = flexivrdk.Robot(args.robot_sn)
 
         # Enable the robot, make sure the E-stop is released before enabling
-        print("[info] Enabling robot ...")
+        logger.info("Enabling robot ...")
         robot.Enable()
 
         # Run Auto-recovery
@@ -69,13 +73,13 @@ def main():
             robot.RunAutoRecovery()
         # Otherwise the system is normal, do nothing
         else:
-            print(
-                "[info] Robot system is not in recovery state, nothing to be done, exiting ..."
+            logger.info(
+                "Robot system is not in recovery state, nothing to be done, exiting ..."
             )
 
     except Exception as e:
         # Print exception error message
-        print("[error] ", str(e))
+        logger.error(str(e))
 
 
 if __name__ == "__main__":
