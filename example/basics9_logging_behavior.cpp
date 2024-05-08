@@ -56,9 +56,11 @@ int main(int argc, char* argv[])
     // messages spdlog::set_level(spdlog::level::off); ///< Suppress all messages
 
     // Instantiate RDK client, all info messages are suppressed
-    {
+    try {
         flexiv::Robot robot(robot_sn);
-    } // robot destructed
+    } catch (const std::exception& e) {
+        spdlog::error(e.what());
+    }
 
     // Output all log messages to a file
     // =========================================================================================
@@ -81,11 +83,13 @@ int main(int argc, char* argv[])
     spdlog::set_level(spdlog::level::info);
 
     // Instantiate RDK client again, all messages are printed to console and output to a log file
-    {
+    try {
         flexiv::Robot robot(robot_sn);
-    } // robot destructed
+    } catch (const std::exception& e) {
+        spdlog::error(e.what());
+    }
 
-    spdlog::warn("This message should also appear in log file");
+    spdlog::warn("This message should also appear in the log file");
     spdlog::info("Program finished");
 
     return 0;
