@@ -79,23 +79,22 @@ def main():
     assert frequency >= 1 and frequency <= 100, "Invalid <frequency> input"
 
     # Define alias
-    log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
     # Print description
-    log.Info("Tutorial description:")
+    print("[info] Tutorial description:")
     print_description()
 
     # Print based on arguments
     if args.hold:
-        log.Info("Robot holding current TCP pose")
+        print("[info] Robot holding current TCP pose")
     else:
-        log.Info("Robot running TCP sine-sweep")
+        print("[info] Robot running TCP sine-sweep")
 
     if args.collision:
-        log.Info("Collision detection enabled")
+        print("[info] Collision detection enabled")
     else:
-        log.Info("Collision detection disabled")
+        print("[info] Collision detection disabled")
 
     try:
         # RDK Initialization
@@ -105,25 +104,27 @@ def main():
 
         # Clear fault on the connected robot if any
         if robot.fault():
-            log.Warn("Fault occurred on the connected robot, trying to clear ...")
+            print(
+                "[warning] Fault occurred on the connected robot, trying to clear ..."
+            )
             # Try to clear the fault
             if not robot.ClearFault():
-                log.Error("Fault cannot be cleared, exiting ...")
+                print("[error] Fault cannot be cleared, exiting ...")
                 return 1
-            log.Info("Fault on the connected robot is cleared")
+            print("[info] Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...")
+        print("[info] Enabling robot ...")
         robot.Enable()
 
         # Wait for the robot to become operational
         while not robot.operational():
             time.sleep(1)
 
-        log.Info("Robot is now operational")
+        print("[info] Robot is now operational")
 
         # Move robot to home pose
-        log.Info("Moving to home pose")
+        print("[info] Moving to home pose")
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
         robot.ExecutePrimitive("Home()")
 
@@ -138,14 +139,14 @@ def main():
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations
-        log.Warn(
-            "Zeroing force/torque sensors, make sure nothing is in contact with the robot"
+        print(
+            "[warning] Zeroing force/torque sensors, make sure nothing is in contact with the robot"
         )
 
         # Wait for primitive completion
         while robot.busy():
             time.sleep(1)
-        log.Info("Sensor zeroing complete")
+        print("[info] Sensor zeroing complete")
 
         # Configure Motion Control
         # =========================================================================================
@@ -209,38 +210,38 @@ def main():
             if time_elapsed % 20.0 == 3.0:
                 preferred_jnt_pos = [0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658]
                 robot.SetNullSpacePosture(preferred_jnt_pos)
-                log.Info("Preferred joint positions set to: ")
+                print("[info] Preferred joint positions set to: ")
                 print(preferred_jnt_pos)
             # Online change stiffness to half of nominal at 6 seconds
             elif time_elapsed % 20.0 == 6.0:
                 new_K = np.multiply(robot.info().K_x_nom, 0.5)
                 robot.SetCartesianImpedance(new_K)
-                log.Info("Cartesian stiffness set to: ")
+                print("[info] Cartesian stiffness set to: ")
                 print(new_K)
             # Online change to another preferred joint positions at 9 seconds
             elif time_elapsed % 20.0 == 9.0:
                 preferred_jnt_pos = [-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658]
                 robot.SetNullSpacePosture(preferred_jnt_pos)
-                log.Info("Preferred joint positions set to: ")
+                print("[info] Preferred joint positions set to: ")
                 print(preferred_jnt_pos)
             # Online reset stiffness to nominal at 12 seconds
             elif time_elapsed % 20.0 == 12.0:
                 robot.ResetCartesianImpedance()
-                log.Info("Cartesian stiffness is reset")
+                print("[info] Cartesian stiffness is reset")
             # Online reset preferred joint positions to nominal at 14 seconds
             elif time_elapsed % 20.0 == 14.0:
                 robot.ResetNullSpacePosture()
-                log.Info("Preferred joint positions are reset")
+                print("[info] Preferred joint positions are reset")
             # Online enable max contact wrench regulation at 16 seconds
             elif time_elapsed % 20.0 == 16.0:
                 max_wrench = [10.0, 10.0, 10.0, 2.0, 2.0, 2.0]
                 robot.SetMaxContactWrench(max_wrench)
-                log.Info("Max contact wrench set to: ")
+                print("[info] Max contact wrench set to: ")
                 print(max_wrench)
             # Disable max contact wrench regulation at 19 seconds
             elif time_elapsed % 20.0 == 19.0:
                 robot.ResetMaxContactWrench()
-                log.Info("Max contact wrench is reset")
+                print("[info] Max contact wrench is reset")
 
             # Simple collision detection: stop robot if collision is detected at
             # end-effector
@@ -262,7 +263,9 @@ def main():
 
                 if collision_detected:
                     robot.Stop()
-                    log.Warn("Collision detected, stopping robot and exit program ...")
+                    print(
+                        "[warning] Collision detected, stopping robot and exit program ..."
+                    )
                     return
 
             # Increment loop counter
@@ -270,7 +273,7 @@ def main():
 
     except Exception as e:
         # Print exception error message
-        log.Error(str(e))
+        print("[error] ", str(e))
 
 
 if __name__ == "__main__":

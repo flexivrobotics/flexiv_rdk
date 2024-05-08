@@ -58,11 +58,10 @@ def main():
     assert frequency >= 1 and frequency <= 100, "Invalid <frequency> input"
 
     # Define alias
-    log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
     # Print description
-    log.Info("Tutorial description:")
+    print("[info] Tutorial description:")
     print_description()
 
     try:
@@ -73,25 +72,27 @@ def main():
 
         # Clear fault on the connected robot if any
         if robot.fault():
-            log.Warn("Fault occurred on the connected robot, trying to clear ...")
+            print(
+                "[warning] Fault occurred on the connected robot, trying to clear ..."
+            )
             # Try to clear the fault
             if not robot.ClearFault():
-                log.Error("Fault cannot be cleared, exiting ...")
+                print("[error] Fault cannot be cleared, exiting ...")
                 return 1
-            log.Info("Fault on the connected robot is cleared")
+            print("[info] Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...")
+        print("[info] Enabling robot ...")
         robot.Enable()
 
         # Wait for the robot to become operational
         while not robot.operational():
             time.sleep(1)
 
-        log.Info("Robot is now operational")
+        print("[info] Robot is now operational")
 
         # Move robot to home pose
-        log.Info("Moving to home pose")
+        print("[info] Moving to home pose")
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
         robot.ExecutePrimitive("Home()")
 
@@ -163,7 +164,7 @@ def main():
 
     except Exception as e:
         # Print exception error message
-        log.Error(str(e))
+        print("[error] ", str(e))
 
 
 if __name__ == "__main__":

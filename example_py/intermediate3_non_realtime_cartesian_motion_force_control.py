@@ -87,26 +87,27 @@ def main():
     assert frequency >= 1 and frequency <= 100, "Invalid <frequency> input"
 
     # Define alias
-    log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
     # Print description
-    log.Info("Tutorial description:")
+    print("[info] Tutorial description:")
     print_description()
 
     # The reference frame to use, see Robot::SendCartesianMotionForce() for more details
     frame_str = "WORLD"
     if args.TCP:
-        log.Info("Reference frame used for force control: robot TCP frame")
+        print("[info] Reference frame used for force control: robot TCP frame")
         frame_str = "TCP"
     else:
-        log.Info("Reference frame used for force control: robot world frame")
+        print("[info] Reference frame used for force control: robot world frame")
 
     # Whether to enable polish motion
     if args.polish:
-        log.Info("Robot will run a polish motion along XY plane in robot world frame")
+        print(
+            "[info] Robot will run a polish motion along XY plane in robot world frame"
+        )
     else:
-        log.Info("Robot will hold its motion in all non-force-controlled axes")
+        print("[info] Robot will hold its motion in all non-force-controlled axes")
 
     try:
         # RDK Initialization
@@ -116,25 +117,27 @@ def main():
 
         # Clear fault on the connected robot if any
         if robot.fault():
-            log.Warn("Fault occurred on the connected robot, trying to clear ...")
+            print(
+                "[warning] Fault occurred on the connected robot, trying to clear ..."
+            )
             # Try to clear the fault
             if not robot.ClearFault():
-                log.Error("Fault cannot be cleared, exiting ...")
+                print("[error] Fault cannot be cleared, exiting ...")
                 return 1
-            log.Info("Fault on the connected robot is cleared")
+            print("[info] Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...")
+        print("[info] Enabling robot ...")
         robot.Enable()
 
         # Wait for the robot to become operational
         while not robot.operational():
             time.sleep(1)
 
-        log.Info("Robot is now operational")
+        print("[info] Robot is now operational")
 
         # Move robot to home pose
-        log.Info("Moving to home pose")
+        print("[info] Moving to home pose")
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
         robot.ExecutePrimitive("Home()")
 
@@ -149,21 +152,21 @@ def main():
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations
-        log.Warn(
-            "Zeroing force/torque sensors, make sure nothing is in contact with the robot"
+        print(
+            "[warning] Zeroing force/torque sensors, make sure nothing is in contact with the robot"
         )
 
         # Wait for primitive completion
         while robot.busy():
             time.sleep(1)
-        log.Info("Sensor zeroing complete")
+        print("[info] Sensor zeroing complete")
 
         # Search for Contact
         # =========================================================================================
         # NOTE: there are several ways to do contact search, such as using primitives, or real-time
         # and non-real-time direct motion controls, etc. Here we use non-real-time direct Cartesian
         # control for example.
-        log.Info("Searching for contact ...")
+        print("[info] Searching for contact ...")
 
         # Set initial pose to current TCP pose
         init_pose = robot.states().tcp_pose.copy()
@@ -201,7 +204,7 @@ def main():
             # Contact is considered to be made if sensed TCP force exceeds the threshold
             if np.linalg.norm(ext_force) > PRESSING_FORCE:
                 is_contacted = True
-                log.Info("Contact detected at robot TCP")
+                print("[info] Contact detected at robot TCP")
 
             # Check at 1ms interval
             time.sleep(0.001)
@@ -299,7 +302,7 @@ def main():
 
     except Exception as e:
         # Print exception error message
-        log.Error(str(e))
+        print("[error] ", str(e))
 
 
 if __name__ == "__main__":

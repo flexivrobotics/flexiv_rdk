@@ -42,7 +42,7 @@ def print_gripper_states(gripper, log):
     """
     while not g_is_done:
         # Print all gripper states, round all float values to 2 decimals
-        log.Info("Current gripper states:")
+        print("[info] Current gripper states:")
         print("width: ", round(gripper.states().width, 2))
         print("force: ", round(gripper.states().force, 2))
         print("max_width: ", round(gripper.states().max_width, 2))
@@ -62,11 +62,10 @@ def main():
     args = argparser.parse_args()
 
     # Define alias
-    log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
     # Print description
-    log.Info("Tutorial description:")
+    print("[info] Tutorial description:")
     print_description()
 
     try:
@@ -77,22 +76,24 @@ def main():
 
         # Clear fault on the connected robot if any
         if robot.fault():
-            log.Warn("Fault occurred on the connected robot, trying to clear ...")
+            print(
+                "[warning] Fault occurred on the connected robot, trying to clear ..."
+            )
             # Try to clear the fault
             if not robot.ClearFault():
-                log.Error("Fault cannot be cleared, exiting ...")
+                print("[error] Fault cannot be cleared, exiting ...")
                 return 1
-            log.Info("Fault on the connected robot is cleared")
+            print("[info] Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...")
+        print("[info] Enabling robot ...")
         robot.Enable()
 
         # Wait for the robot to become operational
         while not robot.operational():
             time.sleep(1)
 
-        log.Info("Robot is now operational")
+        print("[info] Robot is now operational")
 
         # Gripper Control
         # ==========================================================================================
@@ -106,9 +107,9 @@ def main():
         gripper = flexivrdk.Gripper(robot)
 
         # Manually initialize the gripper, not all grippers need this step
-        log.Info("Initializing gripper, this process takes about 10 seconds ...")
+        print("[info] Initializing gripper, this process takes about 10 seconds ...")
         gripper.Init()
-        log.Info("Initialization complete")
+        print("[info] Initialization complete")
 
         # Thread for printing gripper states
         print_thread = threading.Thread(
@@ -117,33 +118,33 @@ def main():
         print_thread.start()
 
         # Position control
-        log.Info("Closing gripper")
+        print("[info] Closing gripper")
         gripper.Move(0.01, 0.1, 20)
         time.sleep(2)
-        log.Info("Opening gripper")
+        print("[info] Opening gripper")
         gripper.Move(0.09, 0.1, 20)
         time.sleep(2)
 
         # Stop
-        log.Info("Closing gripper")
+        print("[info] Closing gripper")
         gripper.Move(0.01, 0.1, 20)
         time.sleep(0.5)
-        log.Info("Stopping gripper")
+        print("[info] Stopping gripper")
         gripper.Stop()
         time.sleep(2)
-        log.Info("Closing gripper")
+        print("[info] Closing gripper")
         gripper.Move(0.01, 0.1, 20)
         time.sleep(2)
-        log.Info("Opening gripper")
+        print("[info] Opening gripper")
         gripper.Move(0.09, 0.1, 20)
         time.sleep(0.5)
-        log.Info("Stopping gripper")
+        print("[info] Stopping gripper")
         gripper.Stop()
         time.sleep(2)
 
         # Force control, if available (sensed force is not zero)
         if abs(gripper.states().force) > sys.float_info.epsilon:
-            log.Info("Gripper running zero force control")
+            print("[info] Gripper running zero force control")
             gripper.Grasp(0)
             # Exit after 10 seconds
             time.sleep(10)
@@ -152,11 +153,11 @@ def main():
         gripper.Stop()
         global g_is_done
         g_is_done = True
-        log.Info("Program finished")
+        print("[info] Program finished")
         print_thread.join()
 
     except Exception as e:
-        log.Error(str(e))
+        print("[error] ", str(e))
 
 
 if __name__ == "__main__":

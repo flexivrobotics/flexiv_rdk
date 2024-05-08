@@ -43,11 +43,8 @@ def main():
     )
     args = argparser.parse_args()
 
-    # Define alias
-    log = flexivrdk.Log()
-
     # Print description
-    log.Info("Tutorial description:")
+    print("[info] Tutorial description:")
     print_description()
 
     try:
@@ -57,7 +54,7 @@ def main():
         robot = flexivrdk.Robot(args.robot_sn)
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...")
+        print("[info] Enabling robot ...")
         robot.Enable()
 
         # Run Auto-recovery
@@ -72,13 +69,13 @@ def main():
             robot.RunAutoRecovery()
         # Otherwise the system is normal, do nothing
         else:
-            log.Info(
-                "Robot system is not in recovery state, nothing to be done, exiting ..."
+            print(
+                "[info] Robot system is not in recovery state, nothing to be done, exiting ..."
             )
 
     except Exception as e:
         # Print exception error message
-        log.Error(str(e))
+        print("[error] ", str(e))
 
 
 if __name__ == "__main__":

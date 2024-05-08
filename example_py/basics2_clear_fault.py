@@ -43,11 +43,8 @@ def main():
     )
     args = argparser.parse_args()
 
-    # Define alias
-    log = flexivrdk.Log()
-
     # Print description
-    log.Info("Tutorial description:")
+    print("[info] Tutorial description:")
     print_description()
 
     try:
@@ -60,18 +57,20 @@ def main():
         # ==========================================================================================
         # Clear fault on the connected robot if any
         if robot.fault():
-            log.Warn("Fault occurred on the connected robot, trying to clear ...")
+            print(
+                "[warning] Fault occurred on the connected robot, trying to clear ..."
+            )
             # Try to clear the fault
             if not robot.ClearFault():
-                log.Error("Fault cannot be cleared, exiting ...")
+                print("[error] Fault cannot be cleared, exiting ...")
                 return 1
-            log.Info("Fault on the connected robot is cleared")
+            print("[info] Fault on the connected robot is cleared")
         else:
-            log.Info("No fault on the connected robot")
+            print("[info] No fault on the connected robot")
 
     except Exception as e:
         # Print exception error message
-        log.Error(str(e))
+        print("[error] ", str(e))
 
 
 if __name__ == "__main__":

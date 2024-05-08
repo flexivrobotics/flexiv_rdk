@@ -46,11 +46,10 @@ def main():
     args = argparser.parse_args()
 
     # Define alias
-    log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
     # Print description
-    log.Info("Tutorial description:")
+    print("[info] Tutorial description:")
     print_description()
 
     try:
@@ -61,28 +60,30 @@ def main():
 
         # Clear fault on the connected robot if any
         if robot.fault():
-            log.Warn("Fault occurred on the connected robot, trying to clear ...")
+            print(
+                "[warning] Fault occurred on the connected robot, trying to clear ..."
+            )
             # Try to clear the fault
             if not robot.ClearFault():
-                log.Error("Fault cannot be cleared, exiting ...")
+                print("[error] Fault cannot be cleared, exiting ...")
                 return 1
-            log.Info("Fault on the connected robot is cleared")
+            print("[info] Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...")
+        print("[info] Enabling robot ...")
         robot.Enable()
 
         # Wait for the robot to become operational
         while not robot.operational():
             time.sleep(1)
 
-        log.Info("Robot is now operational")
+        print("[info] Robot is now operational")
 
         # Zero Sensors
         # ==========================================================================================
         # Get and print the current TCP force/moment readings
-        log.Info(
-            "TCP force and moment reading in base frame BEFORE sensor zeroing: "
+        print(
+            "[info] TCP force and moment reading in base frame BEFORE sensor zeroing: "
             + list2str(robot.states().ext_wrench_in_world)
             + "[N][Nm]"
         )
@@ -93,25 +94,25 @@ def main():
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations
-        log.Warn(
-            "Zeroing force/torque sensors, make sure nothing is in contact with the robot"
+        print(
+            "[warning] Zeroing force/torque sensors, make sure nothing is in contact with the robot"
         )
 
         # Wait for the primitive completion
         while robot.busy():
             time.sleep(1)
-        log.Info("Sensor zeroing complete")
+        print("[info] Sensor zeroing complete")
 
         # Get and print the current TCP force/moment readings
-        log.Info(
-            "TCP force and moment reading in base frame AFTER sensor zeroing: "
+        print(
+            "[info] TCP force and moment reading in base frame AFTER sensor zeroing: "
             + list2str(robot.states().ext_wrench_in_world)
             + "[N][Nm]"
         )
 
     except Exception as e:
         # Print exception error message
-        log.Error(str(e))
+        print("[error] ", str(e))
 
 
 if __name__ == "__main__":

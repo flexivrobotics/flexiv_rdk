@@ -49,11 +49,10 @@ def main():
     args = argparser.parse_args()
 
     # Define alias
-    log = flexivrdk.Log()
     mode = flexivrdk.Mode
 
     # Print description
-    log.Info("Tutorial description:")
+    print("[info] Tutorial description:")
     print_description()
 
     try:
@@ -64,22 +63,24 @@ def main():
 
         # Clear fault on the connected robot if any
         if robot.fault():
-            log.Warn("Fault occurred on the connected robot, trying to clear ...")
+            print(
+                "[warning] Fault occurred on the connected robot, trying to clear ..."
+            )
             # Try to clear the fault
             if not robot.ClearFault():
-                log.Error("Fault cannot be cleared, exiting ...")
+                print("[error] Fault cannot be cleared, exiting ...")
                 return 1
-            log.Info("Fault on the connected robot is cleared")
+            print("[info] Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...")
+        print("[info] Enabling robot ...")
         robot.Enable()
 
         # Wait for the robot to become operational
         while not robot.operational():
             time.sleep(1)
 
-        log.Info("Robot is now operational")
+        print("[info] Robot is now operational")
 
         # Execute Plans
         # ==========================================================================================
@@ -92,7 +93,7 @@ def main():
                 raise Exception("Fault occurred on the connected robot, exiting ...")
 
             # Get user input
-            log.Info("Choose an action:")
+            print("[info] Choose an action:")
             print("[1] Show available plans")
             print("[2] Execute a plan by index")
             print("[3] Execute a plan by name")
@@ -115,7 +116,7 @@ def main():
                 # Print plan info while the current plan is running
                 while robot.busy():
                     plan_info = robot.plan_info()
-                    log.Info(" ")
+                    print("[info]")
                     print("assigned_plan_name: ", plan_info.assigned_plan_name)
                     print("pt_name: ", plan_info.pt_name)
                     print("node_name: ", plan_info.node_name)
@@ -137,7 +138,7 @@ def main():
                 # Print plan info while the current plan is running
                 while robot.busy():
                     plan_info = robot.plan_info()
-                    log.Info(" ")
+                    print("[info]")
                     print("assigned_plan_name: ", plan_info.assigned_plan_name)
                     print("pt_name: ", plan_info.pt_name)
                     print("node_name: ", plan_info.node_name)
@@ -150,11 +151,11 @@ def main():
                     time.sleep(1)
 
             else:
-                log.Warn("Invalid input")
+                print("[warning] Invalid input")
 
     except Exception as e:
         # Print exception error message
-        log.Error(str(e))
+        print("[error] ", str(e))
 
 
 if __name__ == "__main__":
