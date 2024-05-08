@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
     // Change log level to suppress certain type of log messages from RDK client. The log level
     // setting will apply globally to all following spdlog messages
     spdlog::set_level(spdlog::level::warn); ///< Suppress info messages
-    // messages spdlog::set_level(spdlog::level::off);      ///< Suppress all messages
+    // messages spdlog::set_level(spdlog::level::off); ///< Suppress all messages
 
     // Instantiate RDK client, all info messages are suppressed
     {
