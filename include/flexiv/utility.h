@@ -58,21 +58,22 @@ inline std::array<double, N> Rad2Deg(const std::array<double, N>& rad_arr)
  * @param[in] arr std::array of any type and size.
  * @param[in] decimal Decimal places to keep for each number in the array.
  * @param[in] trailing_space Whether to include a space after the last element.
+ * @param[in] separator Character to separate between numbers.
  * @return A string with format "arr[0] arr[1] ... arr[n] ", i.e. each element followed by a space,
  * including the last one if trailing_space = true.
  */
 template <typename T, size_t N>
-inline std::string Arr2Str(
-    const std::array<T, N>& arr, size_t decimal = 3, bool trailing_space = true)
+inline std::string Arr2Str(const std::array<T, N>& arr, size_t decimal = 3,
+    bool trailing_space = true, const std::string& separator = " ")
 {
-    auto padding = "";
+    std::string padding = "";
     std::stringstream ss;
     ss.precision(decimal);
     ss << std::fixed;
 
     for (const auto& v : arr) {
         ss << padding << v;
-        padding = " ";
+        padding = separator;
     }
 
     if (trailing_space) {
