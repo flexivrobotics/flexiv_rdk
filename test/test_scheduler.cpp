@@ -5,8 +5,8 @@
  * @author Flexiv
  */
 
-#include <flexiv/scheduler.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/scheduler.hpp>
+#include <flexiv/rdk/utility.hpp>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
 {
     // Parse Parameters
     //==============================================================================================
-    if (flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
     try {
         // Periodic Tasks
         //==========================================================================================
-        flexiv::Scheduler scheduler;
+        flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.AddTask(std::bind(highPriorityTask), "HP periodic", 1, scheduler.max_priority());
         // Add periodic task with 1s interval and lowest applicable priority
@@ -136,8 +136,8 @@ int main(int argc, char* argv[])
         while (!g_stop_sched) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-        // Received signal to stop scheduler tasks, flexiv::Scheduler's destructor can also do the
-        // thread exit and resources cleanup
+        // Received signal to stop scheduler tasks, flexiv::rdk::Scheduler's destructor can also do
+        // the thread exit and resources cleanup
 
     } catch (const std::exception& e) {
         spdlog::error(e.what());

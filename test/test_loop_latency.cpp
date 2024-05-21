@@ -7,9 +7,9 @@
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/scheduler.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/scheduler.hpp>
+#include <flexiv/rdk/utility.hpp>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
@@ -37,7 +37,7 @@ std::atomic<bool> g_stop_sched = {false};
 }
 
 // callback function for realtime periodic task
-void PeriodicTask(flexiv::Robot& robot)
+void PeriodicTask(flexiv::rdk::Robot& robot)
 {
     // Loop counter
     static unsigned int loop_counter = 0;
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 {
     // Parse Parameters
     //=============================================================================
-    if (argc < 3 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         //=============================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
 
         // Periodic Tasks
         //=============================================================================
-        flexiv::Scheduler scheduler;
+        flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.AddTask(
             std::bind(PeriodicTask, std::ref(robot)), "HP periodic", 1, scheduler.max_priority());

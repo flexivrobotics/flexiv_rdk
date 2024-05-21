@@ -9,9 +9,9 @@
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/scheduler.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/scheduler.hpp>
+#include <flexiv/rdk/utility.hpp>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
@@ -26,7 +26,8 @@ std::atomic<bool> g_stop_sched = {false};
 }
 
 // callback function for realtime periodic task
-void PeriodicTask(flexiv::Robot& robot, const std::array<double, flexiv::kJointDOF>& init_pos)
+void PeriodicTask(
+    flexiv::rdk::Robot& robot, const std::array<double, flexiv::rdk::kJointDOF>& init_pos)
 {
     // Loop counter
     static unsigned int loop_counter = 0;
@@ -38,8 +39,8 @@ void PeriodicTask(flexiv::Robot& robot, const std::array<double, flexiv::kJointD
                 "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
         // Hold position
-        std::array<double, flexiv::kJointDOF> target_vel = {};
-        std::array<double, flexiv::kJointDOF> target_acc = {};
+        std::array<double, flexiv::rdk::kJointDOF> target_vel = {};
+        std::array<double, flexiv::rdk::kJointDOF> target_acc = {};
         robot.StreamJointPosition(init_pos, target_vel, target_acc);
 
         if (loop_counter == 5000) {
@@ -73,7 +74,7 @@ int main(int argc, char* argv[])
 {
     // Parse Parameters
     //==============================================================================================
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -85,7 +86,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         //==========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -109,16 +110,16 @@ int main(int argc, char* argv[])
         spdlog::info("Robot is now operational");
 
         // set mode after robot is operational
-        robot.SwitchMode(flexiv::Mode::RT_JOINT_POSITION);
+        robot.SwitchMode(flexiv::rdk::Mode::RT_JOINT_POSITION);
 
         // Set initial joint positions
         auto init_pos = robot.states().q;
-        spdlog::info("Initial joint positions set to: {}", flexiv::utility::Arr2Str(init_pos));
+        spdlog::info("Initial joint positions set to: {}", flexiv::rdk::utility::Arr2Str(init_pos));
         spdlog::warn(">>>>> Simulated loop delay will be added after 5 seconds <<<<<");
 
         // Periodic Tasks
         //==========================================================================================
-        flexiv::Scheduler scheduler;
+        flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(init_pos)),
             "HP periodic", 1, scheduler.max_priority());

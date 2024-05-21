@@ -5,10 +5,10 @@
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/model.h>
-#include <flexiv/tool.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/model.hpp>
+#include <flexiv/rdk/tool.hpp>
+#include <flexiv/rdk/utility.hpp>
 #include <spdlog/spdlog.h>
 #include <Eigen/Eigen>
 
@@ -31,7 +31,7 @@ struct GroundTruth
 }
 
 /** Step the dynamics engine once */
-void StepDynamics(flexiv::Robot& robot, flexiv::Model& model, const GroundTruth& ref)
+void StepDynamics(flexiv::rdk::Robot& robot, flexiv::rdk::Model& model, const GroundTruth& ref)
 {
     // Mark timer start point
     auto tic = std::chrono::high_resolution_clock::now();
@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 {
     // Parse Parameters
     //==============================================================================================
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         //==========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
         spdlog::info("Robot is now operational");
 
         // Set mode after robot is operational
-        robot.SwitchMode(flexiv::Mode::NRT_PLAN_EXECUTION);
+        robot.SwitchMode(flexiv::rdk::Mode::NRT_PLAN_EXECUTION);
 
         // Bring Robot To Home
         //==========================================================================================
@@ -136,14 +136,14 @@ int main(int argc, char* argv[])
         } while (robot.busy());
 
         // Put mode back to IDLE
-        robot.SwitchMode(flexiv::Mode::IDLE);
+        robot.SwitchMode(flexiv::rdk::Mode::IDLE);
 
         // Test Dynamics Engine without Tool
         //==========================================================================================
         spdlog::info(">>>>> Test 1: no end-effector tool <<<<<");
 
         // Instantiate dynamics engine
-        flexiv::Model model(robot);
+        flexiv::rdk::Model model(robot);
 
         // Ground truth from MATLAB without robot tool
         GroundTruth ref;
@@ -195,11 +195,11 @@ int main(int argc, char* argv[])
         // clang-format on
 
         // Instantiate tool interface
-        flexiv::Tool tool(robot);
+        flexiv::rdk::Tool tool(robot);
 
         // Set name and parameters for the test tool
         std::string tool_name = "DynamicsTestTool";
-        flexiv::ToolParams tool_params;
+        flexiv::rdk::ToolParams tool_params;
         tool_params.mass = 0.9;
         tool_params.CoM = {0.0, 0.0, 0.057};
         tool_params.inertia = {2.768e-03, 3.149e-03, 5.64e-04, 0.0, 0.0, 0.0};

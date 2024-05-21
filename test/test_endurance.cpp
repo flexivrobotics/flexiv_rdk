@@ -6,9 +6,9 @@
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/scheduler.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/scheduler.hpp>
+#include <flexiv/rdk/utility.hpp>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
@@ -29,7 +29,7 @@ const double kSwingAmp = 0.1;
 const double kSwingFreq = 0.025; // = 10mm/s linear velocity
 
 /** Current Cartesian-space pose (position + rotation) of robot TCP */
-std::array<double, flexiv::kPoseSize> g_curr_tcp_pose;
+std::array<double, flexiv::rdk::kPoseSize> g_curr_tcp_pose;
 
 /** Test duration converted from user-specified hours to loop counts */
 uint64_t g_test_duration_loop_counts = 0;
@@ -40,15 +40,16 @@ const unsigned int kLogDurationLoopCounts = 10 * 60 * 1000; // = 10 min/file
 /** Data to be logged in low-priority thread */
 struct LogData
 {
-    std::array<double, flexiv::kPoseSize> tcp_pose;
-    std::array<double, flexiv::kCartDOF> tcp_force;
+    std::array<double, flexiv::rdk::kPoseSize> tcp_pose;
+    std::array<double, flexiv::rdk::kCartDOF> tcp_force;
 } g_log_data;
 
 /** Atomic signal to stop the test */
 std::atomic<bool> g_stop = {false};
 }
 
-void highPriorityTask(flexiv::Robot& robot, const std::array<double, flexiv::kPoseSize>& init_pose)
+void highPriorityTask(
+    flexiv::rdk::Robot& robot, const std::array<double, flexiv::rdk::kPoseSize>& init_pose)
 {
     // Local periodic loop counter
     static uint64_t loop_counter = 0;
@@ -170,7 +171,7 @@ int main(int argc, char* argv[])
 {
     // Parse Parameters
     //==============================================================================================
-    if (argc < 3 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -188,7 +189,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         //==========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -213,7 +214,7 @@ int main(int argc, char* argv[])
 
         // Bring Robot To Home
         //==========================================================================================
-        robot.SwitchMode(flexiv::Mode::NRT_PLAN_EXECUTION);
+        robot.SwitchMode(flexiv::rdk::Mode::NRT_PLAN_EXECUTION);
         robot.ExecutePlan("PLAN-Home");
 
         // Wait fot the plan to finish
@@ -222,17 +223,17 @@ int main(int argc, char* argv[])
         } while (robot.busy());
 
         // Switch mode after robot is at home
-        robot.SwitchMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE);
+        robot.SwitchMode(flexiv::rdk::Mode::RT_CARTESIAN_MOTION_FORCE);
 
         // Set initial pose to current TCP pose
         auto init_pose = robot.states().tcp_pose;
         spdlog::info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
-                     + flexiv::utility::Arr2Str(init_pose));
+                     + flexiv::rdk::utility::Arr2Str(init_pose));
         g_curr_tcp_pose = init_pose;
 
         // Periodic Tasks
         //==========================================================================================
-        flexiv::Scheduler scheduler;
+        flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.AddTask(std::bind(highPriorityTask, std::ref(robot), std::ref(init_pose)),
             "HP periodic", 1, scheduler.max_priority());
