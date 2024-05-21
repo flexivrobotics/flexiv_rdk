@@ -1,17 +1,18 @@
 /**
- * @file data.h
+ * @file data.hpp
  * @brief Header file containing various data structs.
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_DATA_H_
-#define FLEXIVRDK_DATA_H_
+#ifndef FLEXIV_RDK_DATA_HPP_
+#define FLEXIV_RDK_DATA_HPP_
 
 #include <array>
 #include <string>
 #include <ostream>
 
 namespace flexiv {
+namespace rdk {
 
 /** Robot joint-space degrees of freedom \f$ n \f$ */
 constexpr size_t kJointDOF = 7;
@@ -265,7 +266,7 @@ struct ToolParams
  * @param[in] robot_info RobotInfo data struct to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const flexiv::RobotInfo& robot_info);
+std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
 
 /**
  * @brief Operator overloading to out stream all robot states in JSON format:
@@ -274,7 +275,7 @@ std::ostream& operator<<(std::ostream& ostream, const flexiv::RobotInfo& robot_i
  * @param[in] robot_states RobotStates data struct to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const flexiv::RobotStates& robot_states);
+std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states);
 
 /**
  * @brief Operator overloading to out stream all plan info in JSON format:
@@ -283,7 +284,7 @@ std::ostream& operator<<(std::ostream& ostream, const flexiv::RobotStates& robot
  * @param[in] plan_info PlanInfo data struct to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const flexiv::PlanInfo& plan_info);
+std::ostream& operator<<(std::ostream& ostream, const PlanInfo& plan_info);
 
 /**
  * @brief Operator overloading to out stream all gripper states in JSON format:
@@ -292,8 +293,9 @@ std::ostream& operator<<(std::ostream& ostream, const flexiv::PlanInfo& plan_inf
  * @param[in] gripper_states GripperStates data struct to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const flexiv::GripperStates& gripper_states);
+std::ostream& operator<<(std::ostream& ostream, const GripperStates& gripper_states);
 
+} /* namespace rdk */
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_DATA_H_ */
+#endif /* FLEXIV_RDK_DATA_HPP_ */

@@ -1,14 +1,15 @@
 /**
- * @file file_io.h
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @file file_io.hpp
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_FILE_IO_H_
-#define FLEXIVRDK_FILE_IO_H_
+#ifndef FLEXIV_RDK_FILE_IO_HPP_
+#define FLEXIV_RDK_FILE_IO_HPP_
 
-#include "robot.h"
+#include "robot.hpp"
 
 namespace flexiv {
+namespace rdk {
 
 /**
  * @class FileIO
@@ -45,6 +46,7 @@ private:
     std::unique_ptr<Impl> pimpl_;
 };
 
+} /* namespace rdk */
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_FILE_IO_H_ */
+#endif /* FLEXIV_RDK_FILE_IO_HPP_ */

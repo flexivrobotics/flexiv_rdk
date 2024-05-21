@@ -1,16 +1,17 @@
 /**
- * @file model.h
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @file model.hpp
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_MODEL_H_
-#define FLEXIVRDK_MODEL_H_
+#ifndef FLEXIV_RDK_MODEL_HPP_
+#define FLEXIV_RDK_MODEL_HPP_
 
-#include "robot.h"
+#include "robot.hpp"
 #include <Eigen/Eigen>
 #include <memory>
 
 namespace flexiv {
+namespace rdk {
 
 /**
  * @class Model
@@ -118,6 +119,7 @@ private:
     std::unique_ptr<Impl> pimpl_;
 };
 
+} /* namespace rdk */
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_MODEL_H_ */
+#endif /* FLEXIV_RDK_MODEL_HPP_ */

@@ -1,14 +1,15 @@
 /**
- * @file tool.h
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @file tool.hpp
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_TOOL_H_
-#define FLEXIVRDK_TOOL_H_
+#ifndef FLEXIV_RDK_TOOL_HPP_
+#define FLEXIV_RDK_TOOL_HPP_
 
-#include "robot.h"
+#include "robot.hpp"
 
 namespace flexiv {
+namespace rdk {
 
 /**
  * @class Tool
@@ -120,6 +121,7 @@ private:
     std::unique_ptr<Impl> pimpl_;
 };
 
+} /* namespace rdk */
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_TOOL_H_ */
+#endif /* FLEXIV_RDK_TOOL_HPP_ */

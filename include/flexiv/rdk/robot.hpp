@@ -1,19 +1,19 @@
 /**
- * @file robot.h
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @file robot.hpp
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_ROBOT_H_
-#define FLEXIVRDK_ROBOT_H_
+#ifndef FLEXIV_RDK_ROBOT_HPP_
+#define FLEXIV_RDK_ROBOT_HPP_
 
-#include "data.h"
-#include "mode.h"
-
+#include "data.hpp"
+#include "mode.hpp"
 #include <vector>
 #include <memory>
 #include <exception>
 
 namespace flexiv {
+namespace rdk {
 
 /**
  * @class Robot
@@ -717,6 +717,7 @@ private:
     friend class FileIO;
 };
 
+} /* namespace rdk */
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_ROBOT_H_ */
+#endif /* FLEXIV_RDK_ROBOT_HPP_ */

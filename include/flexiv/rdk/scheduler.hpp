@@ -1,16 +1,17 @@
 /**
- * @file scheduler.h
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @file scheduler.hpp
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_SCHEDULER_H_
-#define FLEXIVRDK_SCHEDULER_H_
+#ifndef FLEXIV_RDK_SCHEDULER_HPP_
+#define FLEXIV_RDK_SCHEDULER_HPP_
 
 #include <string>
 #include <functional>
 #include <memory>
 
 namespace flexiv {
+namespace rdk {
 
 /**
  * @class Scheduler
@@ -108,6 +109,7 @@ private:
     std::unique_ptr<Impl> pimpl_;
 };
 
+} /* namespace rdk */
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_SCHEDULER_H_ */
+#endif /* FLEXIV_RDK_SCHEDULER_HPP_ */

@@ -1,15 +1,16 @@
 /**
- * @file utility.h
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @file utility.hpp
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_UTILITY_H_
-#define FLEXIVRDK_UTILITY_H_
+#ifndef FLEXIV_RDK_UTILITY_HPP_
+#define FLEXIV_RDK_UTILITY_HPP_
 
 #include <Eigen/Eigen>
 #include <array>
 
 namespace flexiv {
+namespace rdk {
 namespace utility {
 
 /**
@@ -145,6 +146,7 @@ inline std::string ParsePtStates(
 }
 
 } /* namespace utility */
+} /* namespace rdk */
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_UTILITY_H_ */
+#endif /* FLEXIV_RDK_UTILITY_HPP_ */

@@ -1,12 +1,13 @@
 /**
- * @file mode.h
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @file mode.hpp
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_MODE_H_
-#define FLEXIVRDK_MODE_H_
+#ifndef FLEXIV_RDK_MODE_HPP_
+#define FLEXIV_RDK_MODE_HPP_
 
 namespace flexiv {
+namespace rdk {
 
 /**
  * @enum Mode
@@ -100,6 +101,7 @@ static const std::array<std::string, MODES_CNT> kModeNames
         "RT_JOINT_POSITION", "NRT_JOINT_POSITION", "NRT_PLAN_EXECUTION", "NRT_PRIMITIVE_EXECUTION",
         "RT_CARTESIAN_MOTION_FORCE", "NRT_CARTESIAN_MOTION_FORCE"};
 
+} /* namespace rdk */
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_MODE_H_ */
+#endif /* FLEXIV_RDK_MODE_HPP_ */

@@ -1,15 +1,16 @@
 /**
- * @file device.h
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @file device.hpp
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_DEVICE_H_
-#define FLEXIVRDK_DEVICE_H_
+#ifndef FLEXIV_RDK_DEVICE_HPP_
+#define FLEXIV_RDK_DEVICE_HPP_
 
-#include "robot.h"
+#include "robot.hpp"
 #include <map>
 
 namespace flexiv {
+namespace rdk {
 
 /**
  * @class Device
@@ -69,6 +70,7 @@ private:
     std::unique_ptr<Impl> pimpl_;
 };
 
+} /* namespace rdk */
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_DEVICE_H_ */
+#endif /* FLEXIV_RDK_DEVICE_HPP_ */
