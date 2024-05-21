@@ -6,8 +6,8 @@
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/utility.hpp>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Fault Clearing
         // =========================================================================================

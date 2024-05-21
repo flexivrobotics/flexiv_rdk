@@ -5,8 +5,8 @@
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/utility.hpp>
 #include <spdlog/spdlog.h>
 #include <spdlog/async.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 
     // Instantiate RDK client, all info messages are suppressed
     try {
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
     } catch (const std::exception& e) {
         spdlog::error(e.what());
     }
@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 
     // Instantiate RDK client again, all messages are printed to console and output to a log file
     try {
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
     } catch (const std::exception& e) {
         spdlog::error(e.what());
     }

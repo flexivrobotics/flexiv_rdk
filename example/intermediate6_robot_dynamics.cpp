@@ -6,9 +6,9 @@
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/model.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/model.hpp>
+#include <flexiv/rdk/utility.hpp>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
@@ -30,7 +30,7 @@ void PrintHelp()
 }
 
 /** @brief Periodic task running at 100 Hz */
-int PeriodicTask(flexiv::Robot& robot, flexiv::Model& model)
+int PeriodicTask(flexiv::rdk::Robot& robot, flexiv::rdk::Model& model)
 {
 
     // Local periodic loop counter
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 
         // Move robot to home pose
         spdlog::info("Moving to home pose");
-        robot.SwitchMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
+        robot.SwitchMode(flexiv::rdk::Mode::NRT_PRIMITIVE_EXECUTION);
         robot.ExecutePrimitive("Home()");
 
         // Wait for the primitive to finish
@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
         // Robot Dynamics
         // =========================================================================================
         // Initialize dynamics engine
-        flexiv::Model model(robot);
+        flexiv::rdk::Model model(robot);
 
         // Use std thread for periodic task so this example can run on Windows
         std::thread periodic_task_thread(PeriodicTask, std::ref(robot), std::ref(model));

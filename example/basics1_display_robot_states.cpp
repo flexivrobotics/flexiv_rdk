@@ -6,8 +6,8 @@
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/utility.hpp>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
@@ -26,7 +26,7 @@ void PrintHelp()
 }
 
 /** @brief Print robot states data @ 1Hz */
-void printRobotStates(flexiv::Robot& robot)
+void printRobotStates(flexiv::rdk::Robot& robot)
 {
     while (true) {
         // Print all robot states in JSON format using the built-in ostream operator overloading
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
         // Print States
         // =========================================================================================
         // Use std::thread to do scheduling so that this example can run on all OS, since not all OS
-        // support flexiv::Scheduler
+        // support flexiv::rdk::Scheduler
         std::thread low_priority_thread(std::bind(printRobotStates, std::ref(robot)));
 
         // Properly exit thread

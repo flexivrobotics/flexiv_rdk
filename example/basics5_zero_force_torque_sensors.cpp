@@ -6,8 +6,8 @@
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/utility.hpp>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -74,10 +74,11 @@ int main(int argc, char* argv[])
         // =========================================================================================
         // Get and print the current TCP force/moment readings
         spdlog::info("TCP force and moment reading in base frame BEFORE sensor zeroing: "
-                     + flexiv::utility::Arr2Str(robot.states().ext_wrench_in_world) + "[N][Nm]");
+                     + flexiv::rdk::utility::Arr2Str(robot.states().ext_wrench_in_world)
+                     + "[N][Nm]");
 
         // Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
-        robot.SwitchMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
+        robot.SwitchMode(flexiv::rdk::Mode::NRT_PRIMITIVE_EXECUTION);
         robot.ExecutePrimitive("ZeroFTSensor()");
 
         // WARNING: during the process, the robot must not contact anything, otherwise the result
@@ -93,7 +94,8 @@ int main(int argc, char* argv[])
 
         // Get and print the current TCP force/moment readings
         spdlog::info("TCP force and moment reading in base frame AFTER sensor zeroing: "
-                     + flexiv::utility::Arr2Str(robot.states().ext_wrench_in_world) + "[N][Nm]");
+                     + flexiv::rdk::utility::Arr2Str(robot.states().ext_wrench_in_world)
+                     + "[N][Nm]");
 
     } catch (const std::exception& e) {
         spdlog::error(e.what());

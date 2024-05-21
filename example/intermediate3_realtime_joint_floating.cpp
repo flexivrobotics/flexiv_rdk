@@ -8,9 +8,9 @@
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/scheduler.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/scheduler.hpp>
+#include <flexiv/rdk/utility.hpp>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
@@ -20,7 +20,7 @@
 
 namespace {
 /** Joint velocity damping gains for floating */
-const std::array<double, flexiv::kJointDOF> kFloatingDamping
+const std::array<double, flexiv::rdk::kJointDOF> kFloatingDamping
     = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
 
 /** Atomic signal to stop scheduler tasks */
@@ -40,7 +40,7 @@ void PrintHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void PeriodicTask(flexiv::Robot& robot)
+void PeriodicTask(flexiv::rdk::Robot& robot)
 {
     try {
         // Monitor fault on the connected robot
@@ -50,10 +50,10 @@ void PeriodicTask(flexiv::Robot& robot)
         }
 
         // Set 0 joint torques
-        std::array<double, flexiv::kJointDOF> target_torque = {};
+        std::array<double, flexiv::rdk::kJointDOF> target_torque = {};
 
         // Add some velocity damping
-        for (size_t i = 0; i < flexiv::kJointDOF; ++i) {
+        for (size_t i = 0; i < flexiv::rdk::kJointDOF; ++i) {
             target_torque[i] += -kFloatingDamping[i] * robot.states().dtheta[i];
         }
 
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
 
         // Move robot to home pose
         spdlog::info("Moving to home pose");
-        robot.SwitchMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
+        robot.SwitchMode(flexiv::rdk::Mode::NRT_PRIMITIVE_EXECUTION);
         robot.ExecutePrimitive("Home()");
 
         // Wait for the primitive to finish
@@ -127,10 +127,10 @@ int main(int argc, char* argv[])
         // Real-time Joint Floating
         // =========================================================================================
         // Switch to real-time joint torque control mode
-        robot.SwitchMode(flexiv::Mode::RT_JOINT_TORQUE);
+        robot.SwitchMode(flexiv::rdk::Mode::RT_JOINT_TORQUE);
 
         // Create real-time scheduler to run periodic tasks
-        flexiv::Scheduler scheduler;
+        flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.AddTask(
             std::bind(PeriodicTask, std::ref(robot)), "HP periodic", 1, scheduler.max_priority());

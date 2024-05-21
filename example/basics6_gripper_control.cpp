@@ -5,9 +5,9 @@
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/gripper.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/gripper.hpp>
+#include <flexiv/rdk/utility.hpp>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
@@ -33,7 +33,7 @@ void PrintHelp()
 }
 
 /** @brief Print gripper states data @ 1Hz */
-void PrintGripperStates(flexiv::Gripper& gripper)
+void PrintGripperStates(flexiv::rdk::Gripper& gripper)
 {
     while (!g_finished) {
         // Print all gripper states in JSON format using the built-in ostream operator overloading
@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -92,12 +92,12 @@ int main(int argc, char* argv[])
         // =========================================================================================
         // Gripper control is not available if the robot is in IDLE mode, so switch to some mode
         // other than IDLE
-        robot.SwitchMode(flexiv::Mode::NRT_PLAN_EXECUTION);
+        robot.SwitchMode(flexiv::rdk::Mode::NRT_PLAN_EXECUTION);
         robot.ExecutePlan("PLAN-Home");
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
         // Instantiate gripper control interface
-        flexiv::Gripper gripper(robot);
+        flexiv::rdk::Gripper gripper(robot);
 
         // Manually initialize the gripper, not all grippers need this step
         spdlog::info("Initializing gripper, this process takes about 10 seconds ...");
