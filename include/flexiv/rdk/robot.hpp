@@ -54,7 +54,7 @@ public:
 
     /**
      * @brief [Non-blocking] Access current control mode of the connected robot.
-     * @return flexiv::Mode enum.
+     * @return flexiv::rdk::Mode enum.
      */
     Mode mode() const;
 
@@ -155,7 +155,7 @@ public:
 
     /**
      * @brief [Blocking] Switch to a new control mode and wait until mode transition is finished.
-     * @param[in] mode flexiv::Mode enum.
+     * @param[in] mode flexiv::rdk::Mode enum.
      * @throw std::invalid_argument if the requested mode is invalid or unlicensed.
      * @throw std::logic_error if robot is in an unknown control mode or is not operational.
      * @throw std::runtime_error if failed to transit the robot into the specified control mode

@@ -21,7 +21,7 @@ class Device
 public:
     /**
      * @brief [Non-blocking] Create an instance and initialize device control interface.
-     * @param[in] robot Reference to the instance of flexiv::Robot.
+     * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */
     Device(const Robot& robot);

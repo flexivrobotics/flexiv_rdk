@@ -3,7 +3,7 @@
 """basics7_auto_recovery.py
 
 This tutorial runs an automatic recovery process if the robot's safety system is in recovery
-state. See flexiv::Robot::recovery() and RDK manual for more details.
+state. See Robot::recovery() and RDK manual for more details.
 """
 
 __copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
@@ -28,7 +28,7 @@ def print_description():
     """
     print(
         "This tutorial runs an automatic recovery process if the robot's safety system is in "
-        "recovery state. See flexiv::Robot::recovery() and RDK manual for more details."
+        "recovery state. See Robot::recovery() and RDK manual for more details."
     )
     print()
 

@@ -22,7 +22,7 @@ class Model
 public:
     /**
      * @brief [Non-blocking] Create an instance and initialize the integrated dynamics engine.
-     * @param[in] robot Reference to the instance of flexiv::Robot.
+     * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @param[in] gravity_vector Earth's gravity vector in world frame. Default to \f$ [0.0, 0.0,
      * -9.81]^T \f$. Unit: \f$ [m/s^2] \f$.
      * @throw std::runtime_error if the initialization sequence failed.

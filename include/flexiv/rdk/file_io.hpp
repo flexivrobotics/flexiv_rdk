@@ -21,7 +21,7 @@ class FileIO
 public:
     /**
      * @brief [Non-blocking] Create an instance and initialize file transfer interface.
-     * @param[in] robot Reference to the instance of flexiv::Robot.
+     * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */
     FileIO(const Robot& robot);
