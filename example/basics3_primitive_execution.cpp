@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
         // Optional parameter:
         //   waypoints: waypoints to pass before reaching final target
         //       (same format as above, but can repeat for number of waypoints)
-        //   maxVel: maximum TCP linear velocity
+        //   vel: TCP linear velocity
         //       Unit: m/s
         // NOTE: The rotations use Euler ZYX convention, rot_x means Euler ZYX angle around X axis
         spdlog::info("Executing primitive: MoveL");
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
         // Send command to robot
         robot.ExecutePrimitive(
             "MoveL(target=0.65 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN,waypoints=0.45 0.1 0.2 180 0 "
-            "180 WORLD WORLD_ORIGIN : 0.45 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN, maxVel=0.2)");
+            "180 WORLD WORLD_ORIGIN : 0.45 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN, vel=0.2)");
 
         // The [Move] series primitive won't terminate itself, so we determine if the robot has
         // reached target location by checking the primitive state "reachedTarget = 1" in the list
