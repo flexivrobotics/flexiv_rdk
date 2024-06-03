@@ -175,13 +175,18 @@ public:
     void Stop();
 
     /**
-     * @brief [Blocking] Clear minor fault of the robot.
-     * @return True: successfully cleared fault, false: cannot clear fault.
+     * @brief [Blocking] Try to clear minor or critical fault of the robot without a power cycle.
+     * @param[in] timeout_sec Maximum time in seconds to wait for the fault to be successfully
+     * cleared. Normally, a minor fault should take no more than 3 seconds to clear, and a critical
+     * fault should take no more than 30 seconds to clear.
+     * @return True: successfully cleared fault, false: failed to clear fault.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note This function blocks until robot fault is successfully cleared or maximum number of
-     * attempts is reached.
+     * @note This function blocks until the fault is successfully cleared or [timeout_sec] has
+     * elapsed.
+     * @warning Clearing a critical fault through this function without a power cycle requires a
+     * dedicated device, which may not be installed in older robot models.
      */
-    bool ClearFault();
+    bool ClearFault(unsigned int timeout_sec = 30);
 
     /**
      * @brief [Blocking] Run automatic recovery to bring joints that are outside the allowed
