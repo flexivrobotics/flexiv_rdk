@@ -2,7 +2,7 @@
  * @example basics2_clear_fault.cpp
  * This tutorial clears minor faults from the robot server if any. Note that critical faults cannot
  * be cleared, see RDK manual for more details.
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

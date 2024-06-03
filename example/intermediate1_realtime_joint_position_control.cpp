@@ -1,7 +1,7 @@
 /**
  * @example intermediate1_realtime_joint_position_control.cpp
  * This tutorial runs real-time joint position control to hold or sine-sweep all robot joints.
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

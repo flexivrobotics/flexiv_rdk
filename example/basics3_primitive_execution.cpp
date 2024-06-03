@@ -2,7 +2,7 @@
  * @example basics3_primitive_execution.cpp
  * This tutorial executes several basic robot primitives (unit skills). For detailed documentation
  * on all available primitives, please see [Flexiv Primitives](https://www.flexiv.com/primitives/).
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

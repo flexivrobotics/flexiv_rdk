@@ -1,7 +1,7 @@
 /**
  * @example basics6_gripper_control.cpp
  * This tutorial does position and force control (if available) for grippers supported by Flexiv.
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

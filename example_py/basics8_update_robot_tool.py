@@ -7,7 +7,7 @@ the robot tool system will take effect immediately without needing to reboot. Ho
 must be put into IDLE mode when making these changes.
 """
 
-__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time

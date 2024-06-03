@@ -3,7 +3,7 @@
  * This tutorial shows how to online update and interact with the robot tools. All changes made to
  * the robot tool system will take effect immediately without needing to reboot. However, the robot
  * must be put into IDLE mode when making these changes.
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

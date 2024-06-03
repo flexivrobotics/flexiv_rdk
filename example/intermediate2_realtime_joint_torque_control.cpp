@@ -3,7 +3,7 @@
  * This tutorial runs real-time joint torque control to hold or sine-sweep all robot joints. An
  * outer position loop is used to generate joint torque commands. This outer position loop + inner
  * torque loop together is also known as an impedance controller.
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

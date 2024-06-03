@@ -7,7 +7,7 @@ chosen reference frame will be activated for explicit force control, while the r
 same reference frame will stay motion controlled.
 """
 
-__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
