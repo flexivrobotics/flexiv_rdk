@@ -114,6 +114,21 @@ public:
      */
     const Eigen::VectorXd c();
 
+    /**
+     * @brief [Blocking] Check if a Cartesian pose is reachable. If yes, also return an IK solution
+     * of the corresponding joint positions.
+     * @param[in] pose Cartesian pose to be checked.
+     * @param[in] seed_positions Joint positions to be used as the seed for solving IK.
+     * @param[in] free_orientation Only constrain position and allow orientation to move freely.
+     * @return A pair of <is_reachable, ik_solution>.
+     * @throw std::invalid_argument if size of [seed_positions] does not match robot DoF.
+     * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note Applicable control modes: All.
+     * @note This function blocks until a reply is received.
+     */
+    const std::pair<bool, std::vector<double>> reachable(const std::array<double, kPoseSize>& pose,
+        const std::vector<double>& seed_positions, bool free_orientation);
+
 private:
     class Impl;
     std::unique_ptr<Impl> pimpl_;
