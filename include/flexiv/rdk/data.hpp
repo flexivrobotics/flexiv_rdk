@@ -14,9 +14,6 @@
 namespace flexiv {
 namespace rdk {
 
-/** Robot joint-space degrees of freedom \f$ n \f$ */
-constexpr size_t kJointDOF = 7;
-
 /** Robot Cartesian-space degrees of freedom \f$ m \f$ */
 constexpr size_t kCartDOF = 6;
 
