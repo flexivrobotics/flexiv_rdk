@@ -32,11 +32,17 @@ constexpr size_t kIOPorts = 16;
  */
 struct RobotInfo
 {
-    /** Robot serial number */
+    /** Robot serial number. */
     std::string serial_num = {};
 
-    /** Robot software version */
+    /** Robot software version. */
     std::string software_ver = {};
+
+    /** Robot model name, e.g. Rizon4, Rizon10, Moonlight, etc. */
+    std::string model_name = {};
+
+    /** Joint-space degrees of freedom: \f$ n \f$. */
+    size_t DoF = {};
 
     /**
      * Nominal motion stiffness of the Cartesian motion-force control modes: \f$ K_x^{nom} \in
