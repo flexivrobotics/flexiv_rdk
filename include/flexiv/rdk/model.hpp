@@ -15,7 +15,7 @@ namespace rdk {
 
 /**
  * @class Model
- * @brief Robot model with integrated dynamics engine.
+ * @brief Interface to access certain robot kinematics and dynamics data.
  */
 class Model
 {
@@ -49,16 +49,16 @@ public:
      * \f$ [rad] \f$.
      * @param[in] velocities Current joint velocities: \f$ \dot{q} \in \mathbb{R}^{n \times 1}
      * \f$. Unit: \f$ [rad/s] \f$.
+     * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      */
-    void Update(const std::array<double, kJointDOF>& positions,
-        const std::array<double, kJointDOF>& velocities);
+    void Update(const std::vector<double>& positions, const std::vector<double>& velocities);
 
     /**
      * @brief [Non-blocking] Compute and get the Jacobian matrix at the frame of the specified link
      * \f$ i \f$, expressed in world frame.
      * @param[in] link_name Name of the link to get Jacobian for.
      * @return Jacobian matrix: \f$ ^{0}J_i \in \mathbb{R}^{m \times n} \f$.
-     * @note Call update() before this method.
+     * @note Call Update() before this function.
      * @note Available links can be found in the provided URDF. They are {"base_link", "link1",
      * "link2", "link3", "link4", "link5", "link6", "link7", "flange"}, plus "tool" if any flange
      * tool is mounted.
@@ -72,7 +72,7 @@ public:
      * @param[in] link_name Name of the link to get Jacobian derivative for.
      * @return Time derivative of Jacobian matrix: \f$ ^{0}\dot{J_i} \in \mathbb{R}^{m \times n}
      * \f$.
-     * @note Call update() before this method.
+     * @note Call Update() before this function.
      * @note Available links can be found in the provided URDF. They are {"base_link", "link1",
      * "link2", "link3", "link4", "link5", "link6", "link7", "flange"}, plus "tool" if any flange
      * tool is mounted.
@@ -85,7 +85,7 @@ public:
      * joint space.
      * @return Symmetric positive definite mass matrix: \f$ M(q) \in \mathbb{S}^{n \times n}_{++}
      * \f$. Unit: \f$ [kgm^2] \f$.
-     * @note Call update() before this method.
+     * @note Call Update() before this function.
      */
     const Eigen::MatrixXd M();
 
@@ -93,7 +93,7 @@ public:
      * @brief [Non-blocking] Compute and get the Coriolis/centripetal matrix for the generalized
      * coordinates, i.e. joint space.
      * @return Coriolis/centripetal matrix: \f$ C(q,\dot{q}) \in \mathbb{R}^{n \times n} \f$.
-     * @note Call update() before this method.
+     * @note Call Update() before this function.
      */
     const Eigen::MatrixXd C();
 
@@ -101,7 +101,7 @@ public:
      * @brief [Non-blocking] Compute and get the gravity force vector for the generalized
      * coordinates, i.e. joint space.
      * @return Gravity force vector: \f$ g(q) \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm] \f$.
-     * @note Call update() before this method.
+     * @note Call Update() before this function.
      */
     const Eigen::VectorXd g();
 
@@ -110,7 +110,7 @@ public:
      * coordinates, i.e. joint space.
      * @return Coriolis force vector: \f$ c(q,\dot{q}) \in \mathbb{R}^{n \times 1} \f$. Unit: \f$
      * [Nm] \f$.
-     * @note Call update() before this method.
+     * @note Call Update() before this function.
      */
     const Eigen::VectorXd c();
 
