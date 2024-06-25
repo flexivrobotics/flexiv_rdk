@@ -362,8 +362,8 @@ public:
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
      */
-    void StreamJointTorque(const std::array<double, kJointDOF>& torques,
-        bool enable_gravity_comp = true, bool enable_soft_limits = true);
+    void StreamJointTorque(const std::vector<double>& torques, bool enable_gravity_comp = true,
+        bool enable_soft_limits = true);
 
     /**
      * @brief [Non-blocking] Continuously stream joint position, velocity, and acceleration command
@@ -383,9 +383,8 @@ public:
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
      * @see SetJointImpedance().
      */
-    void StreamJointPosition(const std::array<double, kJointDOF>& positions,
-        const std::array<double, kJointDOF>& velocities,
-        const std::array<double, kJointDOF>& accelerations);
+    void StreamJointPosition(const std::vector<double>& positions,
+        const std::vector<double>& velocities, const std::vector<double>& accelerations);
 
     /**
      * @brief [Non-blocking] Discretely send joint position, velocity, and acceleration command to
@@ -404,6 +403,7 @@ public:
      * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
      * @param[in] max_acc Maximum joint accelerations for the planned trajectory: \f$ \ddot{q}_{max}
      * \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
+     * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @note Applicable control mode(s): NRT_JOINT_IMPEDANCE, NRT_JOINT_POSITION.
      * @warning Calling this function a second time while the motion from the previous call is still
@@ -411,10 +411,9 @@ public:
      * command is aborted and the new command starts to execute.
      * @see SetJointImpedance().
      */
-    void SendJointPosition(const std::array<double, kJointDOF>& positions,
-        const std::array<double, kJointDOF>& velocities,
-        const std::array<double, kJointDOF>& accelerations,
-        const std::array<double, kJointDOF>& max_vel, const std::array<double, kJointDOF>& max_acc);
+    void SendJointPosition(const std::vector<double>& positions,
+        const std::vector<double>& velocities, const std::vector<double>& accelerations,
+        const std::vector<double>& max_vel, const std::vector<double>& max_acc);
 
     /**
      * @brief [Non-blocking] Set impedance properties of the robot's joint motion controller used in
@@ -424,7 +423,8 @@ public:
      * [0, RobotInfo::K_q_nom]. Unit: \f$ [Nm/rad] \f$.
      * @param[in] Z_x Joint motion damping ratio: \f$ Z_q \in \mathbb{R}^{n \times 1} \f$.
      * Valid range: [0.3, 0.8]. The nominal (safe) value is provided as default.
-     * @throw std::invalid_argument if [K_q] or [Z_q] contains any value outside the valid range.
+     * @throw std::invalid_argument if [K_q] or [Z_q] contains any value outside the valid range or
+     * size of any input vector does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @note Applicable control mode(s): RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
      * @warning The robot will automatically reset to its nominal impedance properties upon
@@ -433,8 +433,8 @@ public:
      * stability issues, please use with caution.
      * @see ResetJointImpedance().
      */
-    void SetJointImpedance(const std::array<double, kJointDOF>& K_q,
-        const std::array<double, kJointDOF>& Z_q = {0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7});
+    void SetJointImpedance(const std::vector<double>& K_q,
+        const std::vector<double>& Z_q = {0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7});
 
     /**
      * @brief [Non-blocking] Reset impedance properties of the robot's joint motion controller to
@@ -591,7 +591,7 @@ public:
      * \f$ q_{ns} \in \mathbb{R}^{n \times 1} \f$. Valid range: [RobotInfo::q_min,
      * RobotInfo::q_max]. Unit: \f$ [rad] \f$.
      * @throw std::invalid_argument if [preferred_positions] contains any value outside the valid
-     * range.
+     * range or size of any input vector does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
      * @warning Upon entering the applicable control modes, the robot will automatically set its
@@ -605,7 +605,7 @@ public:
      * Cartesian motion-force control task.
      * @see ResetNullSpacePosture().
      */
-    void SetNullSpacePosture(const std::array<double, kJointDOF>& preferred_positions);
+    void SetNullSpacePosture(const std::vector<double>& preferred_positions);
 
     /**
      * @brief [Non-blocking] Reset preferred joint positions to the ones automatically recorded when
