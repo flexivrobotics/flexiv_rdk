@@ -8,6 +8,7 @@
 #define FLEXIV_RDK_DATA_HPP_
 
 #include <array>
+#include <vector>
 #include <string>
 #include <ostream>
 
@@ -53,31 +54,31 @@ struct RobotInfo
      * Nominal motion stiffness of the joint impedance control modes: \f$ K_q^{nom} \in
      * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm/rad] \f$.
      */
-    std::array<double, kJointDOF> K_q_nom = {};
+    std::vector<double> K_q_nom = {};
 
     /**
      * Lower limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [rad] \f$.
      */
-    std::array<double, kJointDOF> q_min = {};
+    std::vector<double> q_min = {};
 
     /**
      * Upper limits of joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [rad] \f$.
      */
-    std::array<double, kJointDOF> q_max = {};
+    std::vector<double> q_max = {};
 
     /**
      * Upper limits of joint velocities: \f$ \dot{q}_{max} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [rad/s] \f$.
      */
-    std::array<double, kJointDOF> dq_max = {};
+    std::vector<double> dq_max = {};
 
     /**
      * Upper limits of joint torques: \f$ \tau_{max} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [Nm] \f$.
      */
-    std::array<double, kJointDOF> tau_max = {};
+    std::vector<double> tau_max = {};
 };
 
 /**
