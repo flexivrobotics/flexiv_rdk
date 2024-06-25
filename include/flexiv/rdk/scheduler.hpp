@@ -56,7 +56,7 @@ public:
      * @throw std::runtime_error if an error is triggered by the client computer.
      * @note Setting CPU affinity on macOS has no effect, as its Mach kernel takes full control of
      * thread placement so CPU binding is not supported.
-     * @warning Calling this method after start() is not allowed.
+     * @warning Calling this function after start() is not allowed.
      * @warning For maximum scheduling performance, setting CPU affinity to 0 or 1 is not allowed:
      * core 0 is usually the default core for system processes and can be crowded; core 1 is
      * reserved for the scheduler itself.

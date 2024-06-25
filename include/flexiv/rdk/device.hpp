@@ -34,7 +34,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    std::map<std::string, bool> list() const;
+    const std::map<std::string, bool> list() const;
 
     /**
      * @brief [Blocking] Enable the specified device.

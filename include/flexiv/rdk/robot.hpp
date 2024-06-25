@@ -50,7 +50,7 @@ public:
      * @brief [Non-blocking] Access general information of the robot.
      * @return RobotInfo value copy.
      */
-    RobotInfo info() const;
+    const RobotInfo info() const;
 
     /**
      * @brief [Non-blocking] Access current control mode of the connected robot.
@@ -63,7 +63,7 @@ public:
      * @return RobotStates value copy.
      * @note Real-time (RT).
      */
-    RobotStates states() const;
+    const RobotStates states() const;
 
     /**
      * @brief [Non-blocking] Whether the robot has come to a complete stop.
@@ -129,7 +129,7 @@ public:
      * @note Possible log level tags are: [info], [warning], [error], and [critical].
      * @warning Messages before the last successful instantiation of this class are not available.
      */
-    std::vector<std::string> mu_log() const;
+    const std::vector<std::string> mu_log() const;
 
     //======================================= SYSTEM CONTROL =======================================
     /**
@@ -194,7 +194,7 @@ public:
      * @throw std::runtime_error if failed to enter automatic recovery mode.
      * @note Refer to user manual for more details.
      * @note This function blocks until the automatic recovery process is finished.
-     * @see IsRecoveryState().
+     * @see recovery().
      */
     void RunAutoRecovery();
 
@@ -223,7 +223,7 @@ public:
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered.
-     * @note IsBusy() can be used to check if a plan task has finished.
+     * @note busy() can be used to check if a plan task has finished.
      */
     void ExecutePlan(unsigned int index, bool continue_exec = false);
 
@@ -236,7 +236,7 @@ public:
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered.
-     * @note IsBusy() can be used to check if a plan task has finished.
+     * @note busy() can be used to check if a plan task has finished.
      */
     void ExecutePlan(const std::string& name, bool continue_exec = false);
 
@@ -256,7 +256,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    std::vector<std::string> plan_list() const;
+    const std::vector<std::string> plan_list() const;
 
     /**
      * @brief [Blocking] Get detailed information about the currently executing plan. Contains
@@ -267,7 +267,7 @@ public:
      * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
      * @note This function blocks until a reply is received.
      */
-    PlanInfo plan_info() const;
+    const PlanInfo plan_info() const;
 
     /**
      * @brief [Blocking] Set global variables for the robot by specifying name and value.
@@ -290,7 +290,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    std::vector<std::string> global_variables() const;
+    const std::vector<std::string> global_variables() const;
 
     /**
      * @brief [Blocking] Enable or disable the breakpoint mode during plan execution. When enabled,
@@ -333,7 +333,7 @@ public:
      * Primitives documentation for exact unit definition.
      * @warning Some primitives may not terminate automatically and require users to manually
      * terminate them based on specific primitive states, for example, most [Move] primitives. In
-     * such case, IsBusy() will stay true even if it seems everything is done for that primitive.
+     * such case, busy() will stay true even if it seems everything is done for that primitive.
      */
     void ExecutePrimitive(const std::string& pt_cmd);
 
@@ -344,7 +344,7 @@ public:
      * invalid.
      * @note This function blocks until a reply is received.
      */
-    std::vector<std::string> primitive_states() const;
+    const std::vector<std::string> primitive_states() const;
 
     //==================================== DIRECT JOINT CONTROL ====================================
     /**
@@ -355,6 +355,7 @@ public:
      * @param[in] enable_soft_limits Enable/disable soft limits to keep the joints from moving
      * outside allowed position range, which will trigger a safety fault that requires recovery
      * operation.
+     * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
      * @note Applicable control mode(s): RT_JOINT_TORQUE.
@@ -374,6 +375,7 @@ public:
      * \f$. Unit: \f$ [rad/s] \f$.
      * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{n \times
      * 1} \f$. Unit: \f$ [rad/s^2] \f$.
+     * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
      * @note Applicable control mode(s): RT_JOINT_IMPEDANCE, RT_JOINT_POSITION.
@@ -709,7 +711,7 @@ public:
      * @return Digital input readings array whose index corresponds to the digital input port index.
      * True: port high, false: port low.
      */
-    std::array<bool, kIOPorts> ReadDigitalInput();
+    const std::array<bool, kIOPorts> ReadDigitalInput();
 
 private:
     class Impl;

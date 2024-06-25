@@ -76,7 +76,7 @@ public:
      * @return GripperStates value copy.
      * @note Real-time (RT).
      */
-    GripperStates states() const;
+    const GripperStates states() const;
 
 private:
     class Impl;

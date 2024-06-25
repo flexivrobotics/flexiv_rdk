@@ -34,16 +34,16 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    std::vector<std::string> list() const;
+    const std::vector<std::string> list() const;
 
     /**
      * @brief [Blocking] Get name of the tool that the robot is currently using.
      * @return Name of the current tool. Return "Flange" if there's no active tool.
-     * @note Applicable control modes: All.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note Applicable control modes: All.
      * @note This function blocks until a reply is received.
      */
-    std::string name() const;
+    const std::string name() const;
 
     /**
      * @brief [Blocking] Whether the specified tool exists in the tools pool.
@@ -57,21 +57,21 @@ public:
     /**
      * @brief [Blocking] Get parameters of the tool that the robot is currently using.
      * @return Parameters result.
-     * @note Applicable control modes: All.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note Applicable control modes: All.
      * @note This function blocks until a reply is received.
      */
-    ToolParams params() const;
+    const ToolParams params() const;
 
     /**
      * @brief [Blocking] Get parameters of an existing tool.
      * @param[in] name Name of the tool to get parameters for, must exist in the tools pool.
      * @return Parameters result.
-     * @note Applicable control modes: All.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note Applicable control modes: All.
      * @note This function blocks until a reply is received.
      */
-    ToolParams params(const std::string& name) const;
+    const ToolParams params(const std::string& name) const;
 
     /**
      * @brief [Blocking] Add a new tool with user-specified parameters to the tools pool.
