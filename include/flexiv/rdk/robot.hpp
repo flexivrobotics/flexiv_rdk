@@ -482,8 +482,8 @@ public:
      * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
      */
     void StreamCartesianMotionForce(const std::array<double, kPoseSize>& pose,
-        const std::array<double, kCartDOF>& wrench = {},
-        const std::array<double, kCartDOF>& acceleration = {});
+        const std::array<double, kCartDoF>& wrench = {},
+        const std::array<double, kCartDoF>& acceleration = {});
 
     /**
      * @brief [Non-blocking] Discretely send Cartesian motion and/or force command for the robot to
@@ -523,7 +523,7 @@ public:
      * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
      */
     void SendCartesianMotionForce(const std::array<double, kPoseSize>& pose,
-        const std::array<double, kCartDOF>& wrench = {}, double max_linear_vel = 0.5,
+        const std::array<double, kCartDoF>& wrench = {}, double max_linear_vel = 0.5,
         double max_angular_vel = 1.0, double max_linear_acc = 2.0, double max_angular_acc = 5.0);
 
     /**
@@ -547,8 +547,8 @@ public:
      * stability issues, please use with caution.
      * @see ResetCartesianImpedance().
      */
-    void SetCartesianImpedance(const std::array<double, kCartDOF>& K_x,
-        const std::array<double, kCartDOF>& Z_x = {0.7, 0.7, 0.7, 0.7, 0.7, 0.7});
+    void SetCartesianImpedance(const std::array<double, kCartDoF>& K_x,
+        const std::array<double, kCartDoF>& Z_x = {0.7, 0.7, 0.7, 0.7, 0.7, 0.7});
 
     /**
      * @brief [Non-blocking] Reset impedance properties of the robot's Cartesian motion controller
@@ -576,7 +576,7 @@ public:
      * Cartesian axes is enabled for moment control.
      * @see ResetMaxContactWrench().
      */
-    void SetMaxContactWrench(const std::array<double, kCartDOF>& max_wrench);
+    void SetMaxContactWrench(const std::array<double, kCartDoF>& max_wrench);
 
     /**
      * @brief [Non-blocking] Reset max contact wrench regulation to nominal state, i.e. disabled.
@@ -636,8 +636,8 @@ public:
      * @warning Upon disconnection, force control axes will be reset to all disabled and maximum
      * linear velocity in force control axes will be reset to 1.0 m/s.
      */
-    void SetForceControlAxis(const std::array<bool, kCartDOF>& enabled_axis,
-        const std::array<double, kCartDOF / 2>& max_linear_vel = {1.0, 1.0, 1.0});
+    void SetForceControlAxis(const std::array<bool, kCartDoF>& enabled_axis,
+        const std::array<double, kCartDoF / 2>& max_linear_vel = {1.0, 1.0, 1.0});
 
     /**
      * @brief [Blocking] Set force control reference frame for the Cartesian motion-force control

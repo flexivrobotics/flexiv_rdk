@@ -16,7 +16,7 @@ namespace flexiv {
 namespace rdk {
 
 /** Robot Cartesian-space degrees of freedom \f$ m \f$ */
-constexpr size_t kCartDOF = 6;
+constexpr size_t kCartDoF = 6;
 
 /** Size of pose array (3 position + 4 quaternion) */
 constexpr size_t kPoseSize = 7;
@@ -48,7 +48,7 @@ struct RobotInfo
      * \f$ \mathbb{R}^{3 \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry},
      * k_{Rz}]^T \f$. Unit: \f$ [N/m]~[Nm/rad] \f$.
      */
-    std::array<double, kCartDOF> K_x_nom = {};
+    std::array<double, kCartDoF> K_x_nom = {};
 
     /**
      * Nominal motion stiffness of the joint impedance control modes: \f$ K_q^{nom} \in
@@ -160,7 +160,7 @@ struct RobotStates
      * 1} \f$ angular velocity: \f$ [v_x, v_y, v_z, \omega_x, \omega_y, \omega_z]^T \f$.
      * Unit: \f$ [m/s]~[rad/s] \f$.
      */
-    std::array<double, kCartDOF> tcp_vel = {};
+    std::array<double, kCartDoF> tcp_vel = {};
 
     /**
      * Measured flange pose expressed in world frame: \f$ ^{O}T_{flange} \in \mathbb{R}^{7 \times 1}
@@ -175,7 +175,7 @@ struct RobotStates
      * \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y,
      * m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
      */
-    std::array<double, kCartDOF> ft_sensor_raw = {};
+    std::array<double, kCartDoF> ft_sensor_raw = {};
 
     /**
      * Estimated external wrench applied on TCP and expressed in TCP frame: \f$ ^{TCP}F_{ext} \in
@@ -183,7 +183,7 @@ struct RobotStates
      * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
      * Unit: \f$ [N]~[Nm] \f$.
      */
-    std::array<double, kCartDOF> ext_wrench_in_tcp = {};
+    std::array<double, kCartDoF> ext_wrench_in_tcp = {};
 
     /**
      * Estimated external wrench applied on TCP and expressed in world frame: \f$ ^{0}F_{ext} \in
@@ -191,7 +191,7 @@ struct RobotStates
      * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
      * Unit: \f$ [N]~[Nm] \f$.
      */
-    std::array<double, kCartDOF> ext_wrench_in_world = {};
+    std::array<double, kCartDoF> ext_wrench_in_world = {};
 };
 
 /**
