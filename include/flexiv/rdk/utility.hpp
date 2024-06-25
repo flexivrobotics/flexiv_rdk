@@ -55,7 +55,36 @@ inline std::array<double, N> Rad2Deg(const std::array<double, N>& rad_arr)
 }
 
 /**
- * @brief Convert a std::array to a string.
+ * @brief Convert an std::vector to a string.
+ * @param[in] vec std::vector of any type and size.
+ * @param[in] decimal Decimal places to keep for each number in the vector.
+ * @param[in] trailing_space Whether to include a space after the last element.
+ * @param[in] separator Character to separate between numbers.
+ * @return A string with format "vec[0] vec[1] ... vec[n] ", i.e. each element followed by a space,
+ * including the last one if trailing_space = true.
+ */
+template <typename T>
+inline std::string Vec2Str(const std::vector<T>& vec, size_t decimal = 3,
+    bool trailing_space = true, const std::string& separator = " ")
+{
+    std::string padding = "";
+    std::stringstream ss;
+    ss.precision(decimal);
+    ss << std::fixed;
+
+    for (const auto& v : vec) {
+        ss << padding << v;
+        padding = separator;
+    }
+
+    if (trailing_space) {
+        ss << " ";
+    }
+    return ss.str();
+}
+
+/**
+ * @brief Convert an std::array to a string.
  * @param[in] arr std::array of any type and size.
  * @param[in] decimal Decimal places to keep for each number in the array.
  * @param[in] trailing_space Whether to include a space after the last element.
@@ -67,20 +96,9 @@ template <typename T, size_t N>
 inline std::string Arr2Str(const std::array<T, N>& arr, size_t decimal = 3,
     bool trailing_space = true, const std::string& separator = " ")
 {
-    std::string padding = "";
-    std::stringstream ss;
-    ss.precision(decimal);
-    ss << std::fixed;
-
-    for (const auto& v : arr) {
-        ss << padding << v;
-        padding = separator;
-    }
-
-    if (trailing_space) {
-        ss << " ";
-    }
-    return ss.str();
+    std::vector<T> vec(N);
+    std::copy(arr.begin(), arr.end(), vec.begin());
+    return Vec2Str(vec, decimal, trailing_space, separator);
 }
 
 /**
