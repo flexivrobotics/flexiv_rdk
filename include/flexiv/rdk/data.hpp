@@ -92,7 +92,7 @@ struct RobotStates
      * This is the direct measurement of joint positions, preferred for most cases.
      * Unit: \f$ [rad] \f$.
      */
-    std::array<double, kJointDOF> q = {};
+    std::vector<double> q = {};
 
     /**
      * Measured joint positions using motor-side encoder: \f$ \theta \in \mathbb{R}^{n \times 1}
@@ -100,45 +100,45 @@ struct RobotStates
      * \f$ \Delta \f$ is the joint's internal deflection between motor and link.
      * Unit: \f$ [rad] \f$.
      */
-    std::array<double, kJointDOF> theta = {};
+    std::vector<double> theta = {};
 
     /**
      * Measured joint velocities using link-side encoder: \f$ \dot{q} \in \mathbb{R}^{n \times 1}
      * \f$. This is the direct but more noisy measurement of joint velocities.
      * Unit: \f$ [rad/s] \f$.
      */
-    std::array<double, kJointDOF> dq = {};
+    std::vector<double> dq = {};
 
     /**
      * Measured joint velocities using motor-side encoder: \f$ \dot{\theta} \in \mathbb{R}^{n \times
      * 1} \f$. This is the indirect but less noisy measurement of joint velocities, preferred for
      * most cases. Unit: \f$ [rad/s] \f$.
      */
-    std::array<double, kJointDOF> dtheta = {};
+    std::vector<double> dtheta = {};
 
     /**
      * Measured joint torques: \f$ \tau \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm] \f$.
      */
-    std::array<double, kJointDOF> tau = {};
+    std::vector<double> tau = {};
 
     /**
      * Desired joint torques: \f$ \tau_{d} \in \mathbb{R}^{n \times 1} \f$. Compensation of
      * nonlinear dynamics (gravity, centrifugal, and Coriolis) is excluded. Unit: \f$ [Nm] \f$.
      */
-    std::array<double, kJointDOF> tau_des = {};
+    std::vector<double> tau_des = {};
 
     /**
      * Numerical derivative of measured joint torques: \f$ \dot{\tau} \in \mathbb{R}^{n \times 1}
      * \f$. Unit: \f$ [Nm/s] \f$.
      */
-    std::array<double, kJointDOF> tau_dot = {};
+    std::vector<double> tau_dot = {};
 
     /**
      * Estimated external joint torques: \f$ \hat \tau_{ext} \in \mathbb{R}^{n \times 1} \f$.
      * Produced by any external contact (with robot body or end-effector) that does not belong to
      * the known robot model. Unit: \f$ [Nm] \f$.
      */
-    std::array<double, kJointDOF> tau_ext = {};
+    std::vector<double> tau_ext = {};
 
     /**
      * Measured TCP pose expressed in world frame: \f$ ^{O}T_{TCP} \in \mathbb{R}^{7 \times 1} \f$.
