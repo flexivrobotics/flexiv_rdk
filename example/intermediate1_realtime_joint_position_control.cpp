@@ -42,8 +42,8 @@ void PrintHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void PeriodicTask(flexiv::rdk::Robot& robot, const std::string& motion_type,
-    const std::array<double, flexiv::rdk::kJointDOF>& init_pos)
+void PeriodicTask(
+    flexiv::rdk::Robot& robot, const std::string& motion_type, const std::vector<double>& init_pos)
 {
     // Local periodic loop counter
     static unsigned int loop_counter = 0;
@@ -55,16 +55,16 @@ void PeriodicTask(flexiv::rdk::Robot& robot, const std::string& motion_type,
                 "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
 
-        // Initialize target arrays to hold position
-        std::array<double, flexiv::rdk::kJointDOF> target_pos = {};
-        std::array<double, flexiv::rdk::kJointDOF> target_vel = {};
-        std::array<double, flexiv::rdk::kJointDOF> target_acc = {};
+        // Initialize target vectors to hold position
+        std::vector<double> target_pos(robot.info().DoF);
+        std::vector<double> target_vel(robot.info().DoF);
+        std::vector<double> target_acc(robot.info().DoF);
 
-        // Set target arrays based on motion type
+        // Set target vectors based on motion type
         if (motion_type == "hold") {
             target_pos = init_pos;
         } else if (motion_type == "sine-sweep") {
-            for (size_t i = 0; i < flexiv::rdk::kJointDOF; ++i) {
+            for (size_t i = 0; i < target_pos.size(); ++i) {
                 target_pos[i] = init_pos[i]
                                 + kSineAmp * sin(2 * M_PI * kSineFreq * loop_counter * kLoopPeriod);
             }
@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
 
         // Set initial joint positions
         auto init_pos = robot.states().q;
-        spdlog::info("Initial joint positions set to: {}", flexiv::rdk::utility::Arr2Str(init_pos));
+        spdlog::info("Initial joint positions set to: {}", flexiv::rdk::utility::Vec2Str(init_pos));
 
         // Create real-time scheduler to run periodic tasks
         flexiv::rdk::Scheduler scheduler;

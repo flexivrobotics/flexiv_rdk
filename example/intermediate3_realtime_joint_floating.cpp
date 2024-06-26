@@ -20,8 +20,7 @@
 
 namespace {
 /** Joint velocity damping gains for floating */
-const std::array<double, flexiv::rdk::kJointDOF> kFloatingDamping
-    = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
+const std::vector<double> kFloatingDamping = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
 
 /** Atomic signal to stop scheduler tasks */
 std::atomic<bool> g_stop_sched = {false};
@@ -50,10 +49,10 @@ void PeriodicTask(flexiv::rdk::Robot& robot)
         }
 
         // Set 0 joint torques
-        std::array<double, flexiv::rdk::kJointDOF> target_torque = {};
+        std::vector<double> target_torque(robot.info().DoF);
 
         // Add some velocity damping
-        for (size_t i = 0; i < flexiv::rdk::kJointDOF; ++i) {
+        for (size_t i = 0; i < target_torque.size(); ++i) {
             target_torque[i] += -kFloatingDamping[i] * robot.states().dtheta[i];
         }
 

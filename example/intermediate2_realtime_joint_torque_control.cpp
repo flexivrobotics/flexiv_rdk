@@ -23,10 +23,8 @@ namespace {
 constexpr double kLoopPeriod = 0.001;
 
 /** Outer position loop (impedance) gains, values are only for demo purpose */
-const std::array<double, flexiv::rdk::kJointDOF> kImpedanceKp
-    = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
-const std::array<double, flexiv::rdk::kJointDOF> kImpedanceKd
-    = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
+const std::vector<double> kImpedanceKp = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
+const std::vector<double> kImpedanceKd = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
 
 /** Sine-sweep trajectory amplitude and frequency */
 constexpr double kSineAmp = 0.035;
@@ -50,8 +48,8 @@ void PrintHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void PeriodicTask(flexiv::rdk::Robot& robot, const std::string& motion_type,
-    const std::array<double, flexiv::rdk::kJointDOF>& init_pos)
+void PeriodicTask(
+    flexiv::rdk::Robot& robot, const std::string& motion_type, const std::vector<double>& init_pos)
 {
     // Local periodic loop counter
     static unsigned int loop_counter = 0;
@@ -64,13 +62,13 @@ void PeriodicTask(flexiv::rdk::Robot& robot, const std::string& motion_type,
         }
 
         // Target joint positions
-        std::array<double, flexiv::rdk::kJointDOF> target_pos = {};
+        std::vector<double> target_pos(robot.info().DoF);
 
         // Set target position based on motion type
         if (motion_type == "hold") {
             target_pos = init_pos;
         } else if (motion_type == "sine-sweep") {
-            for (size_t i = 0; i < flexiv::rdk::kJointDOF; ++i) {
+            for (size_t i = 0; i < target_pos.size(); ++i) {
                 target_pos[i] = init_pos[i]
                                 + kSineAmp * sin(2 * M_PI * kSineFreq * loop_counter * kLoopPeriod);
             }
@@ -80,8 +78,8 @@ void PeriodicTask(flexiv::rdk::Robot& robot, const std::string& motion_type,
         }
 
         // Run impedance control on all joints
-        std::array<double, flexiv::rdk::kJointDOF> target_torque = {};
-        for (size_t i = 0; i < flexiv::rdk::kJointDOF; ++i) {
+        std::vector<double> target_torque(robot.info().DoF);
+        for (size_t i = 0; i < target_torque.size(); ++i) {
             target_torque[i] = kImpedanceKp[i] * (target_pos[i] - robot.states().q[i])
                                - kImpedanceKd[i] * robot.states().dtheta[i];
         }
@@ -170,7 +168,7 @@ int main(int argc, char* argv[])
 
         // Set initial joint positions
         auto init_pos = robot.states().q;
-        spdlog::info("Initial joint positions set to: {}", flexiv::rdk::utility::Arr2Str(init_pos));
+        spdlog::info("Initial joint positions set to: {}", flexiv::rdk::utility::Vec2Str(init_pos));
 
         // Create real-time scheduler to run periodic tasks
         flexiv::rdk::Scheduler scheduler;

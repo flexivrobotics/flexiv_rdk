@@ -86,11 +86,11 @@ void PeriodicTask(flexiv::rdk::Robot& robot,
         switch (loop_counter % (20 * kLoopFreq)) {
             // Online change preferred joint positions at 3 seconds
             case (3 * kLoopFreq): {
-                std::array<double, flexiv::rdk::kJointDOF> preferred_jnt_pos
+                std::vector<double> preferred_jnt_pos
                     = {0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658};
                 robot.SetNullSpacePosture(preferred_jnt_pos);
                 spdlog::info("Preferred joint positions set to: "
-                             + flexiv::rdk::utility::Arr2Str(preferred_jnt_pos));
+                             + flexiv::rdk::utility::Vec2Str(preferred_jnt_pos));
             } break;
             // Online change stiffness to half of nominal at 6 seconds
             case (6 * kLoopFreq): {
@@ -104,11 +104,11 @@ void PeriodicTask(flexiv::rdk::Robot& robot,
             } break;
             // Online change to another preferred joint positions at 9 seconds
             case (9 * kLoopFreq): {
-                std::array<double, flexiv::rdk::kJointDOF> preferred_jnt_pos
+                std::vector<double> preferred_jnt_pos
                     = {-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658};
                 robot.SetNullSpacePosture(preferred_jnt_pos);
                 spdlog::info("Preferred joint positions set to: "
-                             + flexiv::rdk::utility::Arr2Str(preferred_jnt_pos));
+                             + flexiv::rdk::utility::Vec2Str(preferred_jnt_pos));
             } break;
             // Online reset stiffness to nominal at 12 seconds
             case (12 * kLoopFreq): {

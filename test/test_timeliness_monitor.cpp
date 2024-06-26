@@ -26,8 +26,7 @@ std::atomic<bool> g_stop_sched = {false};
 }
 
 // callback function for realtime periodic task
-void PeriodicTask(
-    flexiv::rdk::Robot& robot, const std::array<double, flexiv::rdk::kJointDOF>& init_pos)
+void PeriodicTask(flexiv::rdk::Robot& robot, const std::vector<double>& init_pos)
 {
     // Loop counter
     static unsigned int loop_counter = 0;
@@ -39,8 +38,8 @@ void PeriodicTask(
                 "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
         // Hold position
-        std::array<double, flexiv::rdk::kJointDOF> target_vel = {};
-        std::array<double, flexiv::rdk::kJointDOF> target_acc = {};
+        std::vector<double> target_vel(robot.info().DoF);
+        std::vector<double> target_acc(robot.info().DoF);
         robot.StreamJointPosition(init_pos, target_vel, target_acc);
 
         if (loop_counter == 5000) {
@@ -114,7 +113,7 @@ int main(int argc, char* argv[])
 
         // Set initial joint positions
         auto init_pos = robot.states().q;
-        spdlog::info("Initial joint positions set to: {}", flexiv::rdk::utility::Arr2Str(init_pos));
+        spdlog::info("Initial joint positions set to: {}", flexiv::rdk::utility::Vec2Str(init_pos));
         spdlog::warn(">>>>> Simulated loop delay will be added after 5 seconds <<<<<");
 
         // Periodic Tasks
