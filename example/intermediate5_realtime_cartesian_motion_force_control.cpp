@@ -37,7 +37,7 @@ constexpr double kSearchVelocity = 0.02;
 constexpr double kSearchDistance = 1.0;
 
 /** Maximum contact wrench during contact search for soft contact */
-const std::array<double, flexiv::rdk::kCartDOF> kMaxWrenchForContactSearch
+const std::array<double, flexiv::rdk::kCartDoF> kMaxWrenchForContactSearch
     = {10.0, 10.0, 10.0, 3.0, 3.0, 3.0};
 
 /** Atomic signal to stop scheduler tasks */
@@ -84,7 +84,7 @@ void PeriodicTask(flexiv::rdk::Robot& robot,
         } else if (frame_str == "TCP") {
             Fz = kPressingForce;
         }
-        std::array<double, flexiv::rdk::kCartDOF> target_wrench = {0.0, 0.0, Fz, 0.0, 0.0, 0.0};
+        std::array<double, flexiv::rdk::kCartDoF> target_wrench = {0.0, 0.0, Fz, 0.0, 0.0, 0.0};
 
         // Apply constant force along Z axis of chosen reference frame, and do a simple polish
         // motion along XY plane in robot world frame
@@ -256,7 +256,7 @@ int main(int argc, char* argv[])
         // Set which Cartesian axis(s) to activate for force control. See function doc for more
         // details. Here we only active Z axis
         robot.SetForceControlAxis(
-            std::array<bool, flexiv::rdk::kCartDOF> {false, false, true, false, false, false});
+            std::array<bool, flexiv::rdk::kCartDoF> {false, false, true, false, false, false});
 
         // Uncomment the following line to enable passive force control, otherwise active force
         // control is used by default. See function doc for more details

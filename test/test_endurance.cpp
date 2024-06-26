@@ -41,7 +41,7 @@ const unsigned int kLogDurationLoopCounts = 10 * 60 * 1000; // = 10 min/file
 struct LogData
 {
     std::array<double, flexiv::rdk::kPoseSize> tcp_pose;
-    std::array<double, flexiv::rdk::kCartDOF> tcp_force;
+    std::array<double, flexiv::rdk::kCartDoF> tcp_force;
 } g_log_data;
 
 /** Atomic signal to stop the test */

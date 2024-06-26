@@ -122,7 +122,7 @@ void PeriodicTask(flexiv::rdk::Robot& robot,
             } break;
             // Online enable max contact wrench regulation at 16 seconds
             case (16 * kLoopFreq): {
-                std::array<double, flexiv::rdk::kCartDOF> max_wrench
+                std::array<double, flexiv::rdk::kCartDoF> max_wrench
                     = {10.0, 10.0, 10.0, 2.0, 2.0, 2.0};
                 robot.SetMaxContactWrench(max_wrench);
                 spdlog::info(
