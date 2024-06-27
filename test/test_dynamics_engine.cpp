@@ -207,6 +207,9 @@ int main(int argc, char* argv[])
 
         // Remove any existing tool with the same name
         if (tool.exist(tool_name)) {
+            spdlog::warn("Tool with the same name [{}] already exists, removing it now", tool_name);
+            // Switch to other tool or no tool (Flange) before removing the current tool
+            tool.Switch("Flange");
             tool.Remove(tool_name);
         }
 
@@ -230,6 +233,9 @@ int main(int argc, char* argv[])
             StepDynamics(robot, model, ref);
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
+
+        // Switch to other tool or no tool (Flange) before removing the current tool
+        tool.Switch("Flange");
 
         // Clean up by removing the test tool
         spdlog::info("Removing tool [{}]", tool_name);
