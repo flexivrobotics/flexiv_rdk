@@ -23,7 +23,7 @@ set(EXAMPLE_LIST
   basics7_auto_recovery
   basics8_update_robot_tool
   basics9_logging_behavior
-  intermediate6_robot_dynamics
+  intermediate7_robot_dynamics
 )
 
 # Additional examples for Linux and Mac
@@ -31,10 +31,10 @@ if(CMAKE_HOST_UNIX)
   list(APPEND EXAMPLE_LIST
     intermediate1_realtime_joint_position_control
     intermediate2_realtime_joint_impedance_control
-    intermediate2_realtime_joint_torque_control
-    intermediate3_realtime_joint_floating
-    intermediate4_realtime_cartesian_pure_motion_control
-    intermediate5_realtime_cartesian_motion_force_control
+    intermediate3_realtime_joint_torque_control
+    intermediate4_realtime_joint_floating
+    intermediate5_realtime_cartesian_pure_motion_control
+    intermediate6_realtime_cartesian_motion_force_control
   )
 endif()
 

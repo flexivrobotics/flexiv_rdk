@@ -1,8 +1,9 @@
 /**
- * @example intermediate2_realtime_joint_torque_control.cpp
- * This tutorial runs real-time joint torque control to hold or sine-sweep all robot joints. An
- * outer position loop is used to generate joint torque commands. This outer position loop + inner
- * torque loop together is also known as an impedance controller.
+ * @example intermediate4_realtime_joint_floating.cpp
+ * This tutorial runs real-time joint floating with gentle velocity damping, gravity compensation,
+ * and soft protection against position limits. This example is ideal for verifying the system's
+ * whole-loop real-timeliness, accuracy of the robot dynamics model, and joint torque control
+ * performance. If everything works well, all joints should float smoothly.
  * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -14,21 +15,12 @@
 
 #include <iostream>
 #include <string>
-#include <cmath>
 #include <thread>
 #include <atomic>
 
 namespace {
-/** RT loop period [sec] */
-constexpr double kLoopPeriod = 0.001;
-
-/** Outer position loop (impedance) gains, values are only for demo purpose */
-const std::vector<double> kImpedanceKp = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
-const std::vector<double> kImpedanceKd = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
-
-/** Sine-sweep trajectory amplitude and frequency */
-constexpr double kSineAmp = 0.035;
-constexpr double kSineFreq = 0.3;
+/** Joint velocity damping gains for floating */
+const std::vector<double> kFloatingDamping = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
 
 /** Atomic signal to stop scheduler tasks */
 std::atomic<bool> g_stop_sched = {false};
@@ -41,19 +33,14 @@ void PrintHelp()
     std::cout << "Required arguments: [robot SN]" << std::endl;
     std::cout << "    robot SN: Serial number of the robot to connect to. "
                  "Remove any space, for example: Rizon4s-123456" << std::endl;
-    std::cout << "Optional arguments: [--hold]" << std::endl;
-    std::cout << "    --hold: robot holds current joint positions, otherwise do a sine-sweep" << std::endl;
+    std::cout << "Optional arguments: None" << std::endl;
     std::cout << std::endl;
     // clang-format on
 }
 
 /** @brief Callback function for realtime periodic task */
-void PeriodicTask(
-    flexiv::rdk::Robot& robot, const std::string& motion_type, const std::vector<double>& init_pos)
+void PeriodicTask(flexiv::rdk::Robot& robot)
 {
-    // Local periodic loop counter
-    static unsigned int loop_counter = 0;
-
     try {
         // Monitor fault on the connected robot
         if (robot.fault()) {
@@ -61,33 +48,17 @@ void PeriodicTask(
                 "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
 
-        // Target joint positions
-        std::vector<double> target_pos(robot.info().DoF);
-
-        // Set target position based on motion type
-        if (motion_type == "hold") {
-            target_pos = init_pos;
-        } else if (motion_type == "sine-sweep") {
-            for (size_t i = 0; i < target_pos.size(); ++i) {
-                target_pos[i] = init_pos[i]
-                                + kSineAmp * sin(2 * M_PI * kSineFreq * loop_counter * kLoopPeriod);
-            }
-        } else {
-            throw std::invalid_argument(
-                "PeriodicTask: unknown motion type. Accepted motion types: hold, sine-sweep");
-        }
-
-        // Run impedance control on all joints
+        // Set 0 joint torques
         std::vector<double> target_torque(robot.info().DoF);
+
+        // Add some velocity damping
         for (size_t i = 0; i < target_torque.size(); ++i) {
-            target_torque[i] = kImpedanceKp[i] * (target_pos[i] - robot.states().q[i])
-                               - kImpedanceKd[i] * robot.states().dtheta[i];
+            target_torque[i] += -kFloatingDamping[i] * robot.states().dtheta[i];
         }
 
-        // Send target joint torque to RDK server
-        robot.StreamJointTorque(target_torque, true);
-
-        loop_counter++;
+        // Send target joint torque to RDK server, enable gravity compensation and joint limits soft
+        // protection
+        robot.StreamJointTorque(target_torque, true, true);
 
     } catch (const std::exception& e) {
         spdlog::error(e.what());
@@ -109,20 +80,11 @@ int main(int argc, char* argv[])
 
     // Print description
     spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial runs real-time joint torque control to hold "
-        "or sine-sweep all robot joints. An outer position loop is used to generate joint torque "
-        "commands. This outer position loop + inner torque loop together is also known as an "
-        "impedance controller.");
-
-    // Type of motion specified by user
-    std::string motion_type = "";
-    if (flexiv::rdk::utility::ProgramArgsExist(argc, argv, "--hold")) {
-        spdlog::info("Robot holding current pose");
-        motion_type = "hold";
-    } else {
-        spdlog::info("Robot running joint sine-sweep");
-        motion_type = "sine-sweep";
-    }
+        ">>> Tutorial description <<<\nThis tutorial runs real-time joint floating with gentle "
+        "velocity damping, gravity compensation, and soft protection against position limits. This "
+        "example is ideal for verifying the system's whole-loop real-timeliness, accuracy of the "
+        "robot dynamics model, and joint torque control performance. If everything works well, all "
+        "joints should float smoothly.");
 
     try {
         // RDK Initialization
@@ -161,21 +123,16 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
-        // Real-time Joint Torque Control
+        // Real-time Joint Floating
         // =========================================================================================
         // Switch to real-time joint torque control mode
         robot.SwitchMode(flexiv::rdk::Mode::RT_JOINT_TORQUE);
-
-        // Set initial joint positions
-        auto init_pos = robot.states().q;
-        spdlog::info("Initial joint positions set to: {}", flexiv::rdk::utility::Vec2Str(init_pos));
 
         // Create real-time scheduler to run periodic tasks
         flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.AddTask(
-            std::bind(PeriodicTask, std::ref(robot), std::ref(motion_type), std::ref(init_pos)),
-            "HP periodic", 1, scheduler.max_priority());
+            std::bind(PeriodicTask, std::ref(robot)), "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();
 

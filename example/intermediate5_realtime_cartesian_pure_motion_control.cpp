@@ -1,5 +1,5 @@
 /**
- * @example intermediate4_realtime_cartesian_pure_motion_control.cpp
+ * @example intermediate5_realtime_cartesian_pure_motion_control.cpp
  * This tutorial runs real-time Cartesian-space pure motion control to hold or sine-sweep the robot
  * TCP. A simple collision detection is also included.
  * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.

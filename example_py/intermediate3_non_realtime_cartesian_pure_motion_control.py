@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""intermediate2_non_realtime_cartesian_pure_motion_control.py
+"""intermediate3_non_realtime_cartesian_pure_motion_control.py
 
 This tutorial runs non-real-time Cartesian-space pure motion control to hold or sine-sweep the robot
 TCP. A simple collision detection is also included.

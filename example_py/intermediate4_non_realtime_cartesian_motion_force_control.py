@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""intermediate3_non_realtime_cartesian_motion_force_control.py
+"""intermediate4_non_realtime_cartesian_motion_force_control.py
 
 This tutorial runs real-time Cartesian-space unified motion-force control. The Z axis of the
 chosen reference frame will be activated for explicit force control, while the rest axes in the

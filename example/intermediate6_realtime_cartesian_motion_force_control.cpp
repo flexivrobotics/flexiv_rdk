@@ -1,5 +1,5 @@
 /**
- * @example intermediate5_realtime_cartesian_motion_force_control.cpp
+ * @example intermediate6_realtime_cartesian_motion_force_control.cpp
  * This tutorial runs real-time Cartesian-space unified motion-force control. The Z axis of the
  * chosen reference frame will be activated for explicit force control, while the rest axes in the
  * same reference frame will stay motion controlled.
