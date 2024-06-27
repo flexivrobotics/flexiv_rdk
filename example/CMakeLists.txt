@@ -30,6 +30,7 @@ set(EXAMPLE_LIST
 if(CMAKE_HOST_UNIX)
   list(APPEND EXAMPLE_LIST
     intermediate1_realtime_joint_position_control
+    intermediate2_realtime_joint_impedance_control
     intermediate2_realtime_joint_torque_control
     intermediate3_realtime_joint_floating
     intermediate4_realtime_cartesian_pure_motion_control
