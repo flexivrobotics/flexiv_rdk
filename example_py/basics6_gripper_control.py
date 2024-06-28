@@ -20,9 +20,6 @@ sys.path.insert(0, "../lib_py")
 import flexivrdk
 # fmt: on
 
-# Global flag: whether the gripper control tasks are finished
-g_is_done = False
-
 
 def print_description():
     """
@@ -36,22 +33,26 @@ def print_description():
     print()
 
 
-def print_gripper_states(gripper, logger):
+def print_gripper_states(gripper, logger, stop_event):
     """
     Print gripper states data @ 1Hz.
 
     """
-    while not g_is_done:
+    while not stop_event.is_set():
         # Print all gripper states, round all float values to 2 decimals
         logger.info("Current gripper states:")
-        print("width: ", round(gripper.states().width, 2))
-        print("force: ", round(gripper.states().force, 2))
-        print("max_width: ", round(gripper.states().max_width, 2))
-        print("moving: ", gripper.moving())
+        print(f"width: {round(gripper.states().width, 2)}")
+        print(f"force: {round(gripper.states().force, 2)}")
+        print(f"max_width: {round(gripper.states().max_width, 2)}")
+        print(f"moving: {gripper.moving()}")
+        print("", flush=True)
         time.sleep(1)
 
 
 def main():
+    # Create an event to signal the thread to stop
+    stop_event = threading.Event()
+
     # Program Setup
     # ==============================================================================================
     # Parse arguments
@@ -113,7 +114,7 @@ def main():
 
         # Thread for printing gripper states
         print_thread = threading.Thread(
-            target=print_gripper_states, args=[gripper, logger]
+            target=print_gripper_states, args=[gripper, logger, stop_event]
         )
         print_thread.start()
 
@@ -149,12 +150,15 @@ def main():
             # Exit after 10 seconds
             time.sleep(10)
 
-        # Finished, exit all threads
+        # Finished
         gripper.Stop()
-        global g_is_done
-        g_is_done = True
-        logger.info("Program finished")
+
+        # Stop all threads
+        logger.info("Stopping print thread")
+        stop_event.set()
         print_thread.join()
+        logger.info("Print thread exited")
+        logger.info("Program finished")
 
     except Exception as e:
         logger.error(str(e))
