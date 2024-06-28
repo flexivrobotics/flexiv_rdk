@@ -103,7 +103,7 @@ def main():
             if user_input == 1:
                 plan_list = robot.plan_list()
                 for i in range(len(plan_list)):
-                    print("[" + str(i) + "]", plan_list[i])
+                    print(f"[{i}] {plan_list[i]}")
                 print("")
 
             # Execute plan by index
@@ -117,15 +117,15 @@ def main():
                 while robot.busy():
                     plan_info = robot.plan_info()
                     logger.info("Current plan info:")
-                    print("assigned_plan_name: ", plan_info.assigned_plan_name)
-                    print("pt_name: ", plan_info.pt_name)
-                    print("node_name: ", plan_info.node_name)
-                    print("node_path: ", plan_info.node_path)
-                    print("node_path_time_period: ", plan_info.node_path_time_period)
-                    print("node_path_number: ", plan_info.node_path_number)
-                    print("velocity_scale: ", plan_info.velocity_scale)
-                    print("waiting_for_step: ", plan_info.waiting_for_step)
-                    print("")
+                    print(f"assigned_plan_name: {plan_info.assigned_plan_name}")
+                    print(f"pt_name: {plan_info.pt_name}")
+                    print(f"node_name: {plan_info.node_name}")
+                    print(f"node_path: {plan_info.node_path}")
+                    print(f"node_path_time_period: {plan_info.node_path_time_period}")
+                    print(f"node_path_number: {plan_info.node_path_number}")
+                    print(f"velocity_scale: {plan_info.velocity_scale}")
+                    print(f"waiting_for_step: {plan_info.waiting_for_step}")
+                    print("", flush=True)
                     time.sleep(1)
 
             # Execute plan by name
@@ -139,15 +139,15 @@ def main():
                 while robot.busy():
                     plan_info = robot.plan_info()
                     logger.info("Current plan info:")
-                    print("assigned_plan_name: ", plan_info.assigned_plan_name)
-                    print("pt_name: ", plan_info.pt_name)
-                    print("node_name: ", plan_info.node_name)
-                    print("node_path: ", plan_info.node_path)
-                    print("node_path_time_period: ", plan_info.node_path_time_period)
-                    print("node_path_number: ", plan_info.node_path_number)
-                    print("velocity_scale: ", plan_info.velocity_scale)
-                    print("waiting_for_step: ", plan_info.waiting_for_step)
-                    print("")
+                    print(f"assigned_plan_name: {plan_info.assigned_plan_name}")
+                    print(f"pt_name: {plan_info.pt_name}")
+                    print(f"node_name: {plan_info.node_name}")
+                    print(f"node_path: {plan_info.node_path}")
+                    print(f"node_path_time_period: {plan_info.node_path_time_period}")
+                    print(f"node_path_number: {plan_info.node_path_number}")
+                    print(f"velocity_scale: {plan_info.velocity_scale}")
+                    print(f"waiting_for_step: {plan_info.waiting_for_step}")
+                    print("", flush=True)
                     time.sleep(1)
 
             else:

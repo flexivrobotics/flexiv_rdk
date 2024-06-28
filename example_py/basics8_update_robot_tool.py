@@ -91,11 +91,11 @@ def main():
         logger.info("All configured tools:")
         tool_list = tool.list()
         for i in range(len(tool_list)):
-            print("[" + str(i) + "]", tool_list[i])
+            print(f"[{i}] {tool_list[i]}")
         print()
 
         # Get and print the current active tool
-        logger.info("Current active tool: " + tool.name())
+        logger.info(f"Current active tool: [{tool.name()}]")
 
         # Set name and parameters for a new tool
         new_tool_name = "ExampleTool1"
@@ -117,38 +117,36 @@ def main():
         # first, because duplicate tool names are not allowed
         if tool.exist(new_tool_name):
             logger.warn(
-                "Tool with the same name ["
-                + new_tool_name
-                + "] already exists, removing it now"
+                f"Tool with the same name [{new_tool_name}] already exists, removing it now"
             )
             # Switch to other tool or no tool (Flange) before removing the current tool
             tool.Switch("Flange")
             tool.Remove(new_tool_name)
 
         # Add the new tool
-        logger.info("Adding new tool [" + new_tool_name + "] to the robot")
+        logger.info(f"Adding new tool [{new_tool_name}] to the robot")
         tool.Add(new_tool_name, new_tool_params)
 
         # Get and print the tools list again, the new tool should appear at the end
         logger.info("All configured tools:")
         tool_list = tool.list()
         for i in range(len(tool_list)):
-            print("[" + str(i) + "]", tool_list[i])
+            print(f"[{i}] {tool_list[i]}")
         print()
 
         # Switch to the newly added tool, i.e. set it as the active tool
-        logger.info("Switching to tool [" + new_tool_name + "]")
+        logger.info(f"Switching to tool [{new_tool_name}]")
         tool.Switch(new_tool_name)
 
         # Get and print the current active tool again, should be the new tool
-        logger.info("Current active tool: " + tool.name())
+        logger.info(f"Current active tool: [{tool.name()}]")
 
         # Switch to other tool or no tool (Flange) before removing the current tool
         tool.Switch("Flange")
 
         # Clean up by removing the new tool
         time.sleep(2)
-        logger.info("Removing tool [" + new_tool_name + "]")
+        logger.info(f"Removing tool [{new_tool_name}]")
         tool.Remove(new_tool_name)
 
         logger.info("Program finished")

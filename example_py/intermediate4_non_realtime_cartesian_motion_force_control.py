@@ -170,9 +170,8 @@ def main():
 
         # Set initial pose to current TCP pose
         init_pose = robot.states().tcp_pose.copy()
-        print(
-            "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",
-            init_pose,
+        logger.info(
+            f"Initial TCP pose set to {init_pose} (position 3x1, rotation (quaternion) 4x1)"
         )
 
         # Use non-real-time mode to make the robot go to a set point with its own motion generator
@@ -242,9 +241,8 @@ def main():
 
         # Update initial pose to current TCP pose
         init_pose = robot.states().tcp_pose.copy()
-        print(
-            "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",
-            init_pose,
+        logger.info(
+            f"Initial TCP pose set to {init_pose} (position 3x1, rotation (quaternion) 4x1)"
         )
 
         # Periodic Task
@@ -252,11 +250,7 @@ def main():
         # Set loop period
         period = 1.0 / frequency
         logger.info(
-            "Sending command to robot at "
-            + str(frequency)
-            + " Hz, or "
-            + str(period)
-            + " seconds interval",
+            f"Sending command to robot at {frequency} Hz, or {period} seconds interval"
         )
 
         # Periodic loop counter

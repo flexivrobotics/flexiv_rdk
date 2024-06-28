@@ -109,16 +109,12 @@ def main():
         period = 1.0 / frequency
         loop_counter = 0
         logger.info(
-            "Sending command to robot at "
-            + str(frequency)
-            + " Hz, or "
-            + str(period)
-            + " seconds interval",
+            f"Sending command to robot at {frequency} Hz, or {period} seconds interval"
         )
 
         # Use current robot joint positions as initial positions
         init_pos = robot.states().q.copy()
-        print("Initial positions set to: ", init_pos)
+        logger.info(f"Initial positions set to: {init_pos}")
 
         # Robot degrees of freedom
         DOF = len(robot.states().q)

@@ -163,9 +163,8 @@ def main():
 
         # Set initial pose to current TCP pose
         init_pose = robot.states().tcp_pose.copy()
-        print(
-            "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",
-            init_pose,
+        logger.info(
+            f"Initial TCP pose set to {init_pose} (position 3x1, rotation (quaternion) 4x1)"
         )
 
         # Periodic Task
@@ -174,11 +173,7 @@ def main():
         period = 1.0 / frequency
         loop_counter = 0
         logger.info(
-            "Sending command to robot at "
-            + str(frequency)
-            + " Hz, or "
-            + str(period)
-            + " seconds interval",
+            f"Sending command to robot at {frequency} Hz, or {period} seconds interval"
         )
 
         # Send command periodically at user-specified frequency
@@ -210,20 +205,17 @@ def main():
             if time_elapsed % 20.0 == 3.0:
                 preferred_jnt_pos = [0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658]
                 robot.SetNullSpacePosture(preferred_jnt_pos)
-                logger.info("Preferred joint positions set to: ")
-                print(preferred_jnt_pos)
+                logger.info(f"Preferred joint positions set to {preferred_jnt_pos}")
             # Online change stiffness to half of nominal at 6 seconds
             elif time_elapsed % 20.0 == 6.0:
                 new_K = np.multiply(robot.info().K_x_nom, 0.5)
                 robot.SetCartesianImpedance(new_K)
-                logger.info("Cartesian stiffness set to: ")
-                print(new_K)
+                logger.info(f"Cartesian stiffness set to {new_K}")
             # Online change to another preferred joint positions at 9 seconds
             elif time_elapsed % 20.0 == 9.0:
                 preferred_jnt_pos = [-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658]
                 robot.SetNullSpacePosture(preferred_jnt_pos)
-                logger.info("Preferred joint positions set to: ")
-                print(preferred_jnt_pos)
+                logger.info(f"Preferred joint positions set to {preferred_jnt_pos}")
             # Online reset stiffness to nominal at 12 seconds
             elif time_elapsed % 20.0 == 12.0:
                 robot.ResetCartesianImpedance()
@@ -236,8 +228,7 @@ def main():
             elif time_elapsed % 20.0 == 16.0:
                 max_wrench = [10.0, 10.0, 10.0, 2.0, 2.0, 2.0]
                 robot.SetMaxContactWrench(max_wrench)
-                logger.info("Max contact wrench set to: ")
-                print(max_wrench)
+                logger.info(f"Max contact wrench set to {max_wrench}")
             # Disable max contact wrench regulation at 19 seconds
             elif time_elapsed % 20.0 == 19.0:
                 robot.ResetMaxContactWrench()
