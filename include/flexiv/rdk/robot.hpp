@@ -396,9 +396,9 @@ public:
      * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{n \times 1}
      * \f$. Each joint will maintain this amount of velocity when it reaches the target position.
      * Unit: \f$ [rad/s] \f$.
-     * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{DOF
-     * \times 1} \f$. Each joint will maintain this amount of acceleration when it reaches the
-     * target position. Unit: \f$ [rad/s^2] \f$.
+     * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{n \times
+     * 1} \f$. Each joint will maintain this amount of acceleration when it reaches the target
+     * position. Unit: \f$ [rad/s^2] \f$.
      * @param[in] max_vel Maximum joint velocities for the planned trajectory: \f$ \dot{q}_{max} \in
      * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
      * @param[in] max_acc Maximum joint accelerations for the planned trajectory: \f$ \ddot{q}_{max}
@@ -597,7 +597,7 @@ public:
      * @warning Upon entering the applicable control modes, the robot will automatically set its
      * current joint positions as the preferred joint positions.
      * @par Null-space posture control
-     * Similar to human arm, a robotic arm with redundant joint-space degree(s) of freedom (DOF > 6)
+     * Similar to human arm, a robotic arm with redundant joint-space degree(s) of freedom (DoF > 6)
      * can change its overall posture without affecting the ongoing primary task. This is achieved
      * through a technique called "null-space control". After the preferred joint positions for a
      * desired robot posture is set using this function, the robot's null-space control module will
