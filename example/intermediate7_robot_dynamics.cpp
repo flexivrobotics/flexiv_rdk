@@ -1,7 +1,7 @@
 /**
  * @example intermediate7_robot_dynamics.cpp
  * This tutorial runs the integrated dynamics engine to obtain robot Jacobian, mass matrix, and
- * gravity force.
+ * gravity force. Also checks reachability of a Cartesian pose.
  * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -29,64 +29,6 @@ void PrintHelp()
     // clang-format on
 }
 
-/** @brief Periodic task running at 100 Hz */
-int PeriodicTask(flexiv::rdk::Robot& robot, flexiv::rdk::Model& model)
-{
-
-    // Local periodic loop counter
-    uint64_t loop_counter = 0;
-
-    try {
-        while (true) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            loop_counter++;
-
-            // Monitor fault on the connected robot
-            if (robot.fault()) {
-                throw std::runtime_error(
-                    "PeriodicTask: Fault occurred on the connected robot, exiting ...");
-            }
-
-            // Mark timer start point
-            auto tic = std::chrono::high_resolution_clock::now();
-
-            // Update robot model in dynamics engine
-            model.Update(robot.states().q, robot.states().dtheta);
-
-            // Compute gravity vector
-            auto g = model.g();
-
-            // Compute mass matrix
-            auto M = model.M();
-
-            // Compute Jacobian
-            auto J = model.J("flange");
-
-            // Mark timer end point and get loop time
-            auto toc = std::chrono::high_resolution_clock::now();
-            auto computation_time
-                = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
-
-            // Print at 1Hz
-            if (loop_counter % 100 == 0) {
-                // Print time used to compute g, M, J
-                spdlog::info("Computation time = {} us", computation_time);
-                std::cout << std::endl;
-                // Print gravity
-                std::cout << std::fixed << std::setprecision(5) << "g = " << g.transpose() << "\n"
-                          << std::endl;
-                // Print mass matrix
-                std::cout << std::fixed << std::setprecision(5) << "M = " << M << "\n" << std::endl;
-                // Print Jacobian
-                std::cout << std::fixed << std::setprecision(5) << "J = " << J << "\n" << std::endl;
-            }
-        }
-    } catch (const std::exception& e) {
-        spdlog::error(e.what());
-        return 1;
-    }
-}
-
 int main(int argc, char* argv[])
 {
     // Program Setup
@@ -102,7 +44,8 @@ int main(int argc, char* argv[])
     // Print description
     spdlog::info(
         ">>> Tutorial description <<<\nThis tutorial runs the integrated dynamics engine to obtain "
-        "robot Jacobian, mass matrix, and gravity force.");
+        "robot Jacobian, mass matrix, and gravity force. Also checks reachability of a Cartesian "
+        "pose.");
 
     try {
         // RDK Initialization
@@ -146,9 +89,48 @@ int main(int argc, char* argv[])
         // Initialize dynamics engine
         flexiv::rdk::Model model(robot);
 
-        // Use std thread for periodic task so this example can run on Windows
-        std::thread periodic_task_thread(PeriodicTask, std::ref(robot), std::ref(model));
-        periodic_task_thread.join();
+        // Step dynamics engine 5 times
+        for (size_t i = 0; i < 5; i++) {
+            // Mark timer start point
+            auto tic = std::chrono::high_resolution_clock::now();
+
+            // Update robot model in dynamics engine
+            model.Update(robot.states().q, robot.states().dtheta);
+
+            // Compute gravity vector
+            auto g = model.g();
+
+            // Compute mass matrix
+            auto M = model.M();
+
+            // Compute Jacobian
+            auto J = model.J("flange");
+
+            // Mark timer end point and get loop time
+            auto toc = std::chrono::high_resolution_clock::now();
+            auto computation_time
+                = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
+
+            // Print time used to compute g, M, J
+            spdlog::info("Computation time = {} us", computation_time);
+            // Print gravity
+            std::cout << "g = \n"
+                      << std::fixed << std::setprecision(5) << g.transpose() << std::endl;
+            // Print mass matrix
+            std::cout << "M = \n" << std::fixed << std::setprecision(5) << M << std::endl;
+            // Print Jacobian
+            std::cout << "J = \n" << std::fixed << std::setprecision(5) << J << std::endl;
+            std::cout << std::endl;
+        }
+
+        // Check reachability of a Cartesian pose based on current pose
+        auto pose_to_check = robot.states().tcp_pose;
+        pose_to_check[0] += 0.1;
+        spdlog::info("Checking reachability of Cartesian pose [{}]",
+            flexiv::rdk::utility::Arr2Str(pose_to_check));
+        auto result = model.reachable(pose_to_check, robot.states().q, true);
+        spdlog::info("Got a result: reachable = {}, IK solution = [{}]", result.first,
+            flexiv::rdk::utility::Vec2Str(result.second));
 
     } catch (const std::exception& e) {
         spdlog::error(e.what());
