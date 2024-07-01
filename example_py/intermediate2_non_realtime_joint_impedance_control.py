@@ -106,17 +106,17 @@ def main():
         init_pos = robot.states().q.copy()
         logger.info(f"Initial positions set to: {init_pos}")
 
-        # Robot degrees of freedom
-        DOF = len(robot.states().q)
+        # Robot joint degrees of freedom
+        DoF = robot.info().DoF
 
         # Initialize target vectors
         target_pos = init_pos.copy()
-        target_vel = [0.0] * DOF
-        target_acc = [0.0] * DOF
+        target_vel = [0.0] * DoF
+        target_acc = [0.0] * DoF
 
         # Joint motion constraints
-        MAX_VEL = [2.0] * DOF
-        MAX_ACC = [3.0] * DOF
+        MAX_VEL = [2.0] * DoF
+        MAX_ACC = [3.0] * DoF
 
         # Joint sine-sweep amplitude [rad]
         SWING_AMP = 0.1
@@ -135,7 +135,7 @@ def main():
 
             # Sine-sweep all joints
             if not args.hold:
-                for i in range(DOF):
+                for i in range(DoF):
                     target_pos[i] = init_pos[i] + SWING_AMP * math.sin(
                         2 * math.pi * SWING_FREQ * loop_counter * period
                     )
