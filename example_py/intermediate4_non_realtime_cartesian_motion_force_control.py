@@ -2,7 +2,7 @@
 
 """intermediate4_non_realtime_cartesian_motion_force_control.py
 
-This tutorial runs real-time Cartesian-space unified motion-force control. The Z axis of the
+This tutorial runs non-real-time Cartesian-space unified motion-force control. The Z axis of the
 chosen reference frame will be activated for explicit force control, while the rest axes in the
 same reference frame will stay motion controlled.
 """
@@ -44,19 +44,6 @@ SEARCH_DISTANCE = 1.0
 MAX_WRENCH_FOR_CONTACT_SEARCH = [10.0, 10.0, 10.0, 3.0, 3.0, 3.0]
 
 
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial runs real-time Cartesian-space unified motion-force control. The Z "
-        "axis of the chosen reference frame will be activated for explicit force control, "
-        "while the rest axes in the same reference frame will stay motion controlled."
-    )
-    print()
-
-
 def main():
     # Program Setup
     # ==============================================================================================
@@ -92,8 +79,12 @@ def main():
     mode = flexivrdk.Mode
 
     # Print description
-    logger.info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial runs non-real-time Cartesian-space unified "
+        "motion-force control. The Z axis of the chosen reference frame will be activated for "
+        "explicit force control, while the rest axes in the same reference frame will stay motion "
+        "controlled."
+    )
 
     # The reference frame to use, see Robot::SendCartesianMotionForce() for more details
     frame_str = "WORLD"

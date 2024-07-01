@@ -22,18 +22,6 @@ import flexivrdk
 # fmt: on
 
 
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial does the very first thing: check connection with the robot server "
-        "and print received robot states."
-    )
-    print()
-
-
 def print_robot_states(robot, logger, stop_event):
     """
     Print robot states data @ 1Hz.
@@ -84,8 +72,10 @@ def main():
     mode = flexivrdk.Mode
 
     # Print description
-    logger.info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial does the very first thing: check connection "
+        "with the robot server and print received robot states."
+    )
 
     try:
         # RDK Initialization

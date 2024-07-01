@@ -23,21 +23,6 @@ import flexivrdk
 # fmt: on
 
 
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial executes a plan selected by the user from a list of available "
-        "plans. A plan is a pre-written script to execute a series of robot primitives "
-        "with pre-defined transition conditions between 2 adjacent primitives. Users can "
-        "use Flexiv Elements to compose their own plan and assign to the robot, which "
-        "will appear in the plan list."
-    )
-    print()
-
-
 def main():
     # Program Setup
     # ==============================================================================================
@@ -54,8 +39,13 @@ def main():
     mode = flexivrdk.Mode
 
     # Print description
-    logger.info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial executes a plan selected by the user from a "
+        "list of available plans. A plan is a pre-written script to execute a series of robot "
+        "primitives with pre-defined transition conditions between 2 adjacent primitives. Users "
+        "can use Flexiv Elements to compose their own plan and assign to the robot, which "
+        "will appear in the plan list."
+    )
 
     try:
         # RDK Initialization

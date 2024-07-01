@@ -3,7 +3,7 @@
 """intermediate5_robot_dynamics.py
 
 This tutorial runs the integrated dynamics engine to obtain robot Jacobian, mass matrix, and
-gravity force. Also checks reachability of a Cartesian pose.
+gravity torques. Also checks reachability of a Cartesian pose.
 """
 
 __copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
@@ -39,7 +39,8 @@ def main():
     # Print description
     logger.info(
         ">>> Tutorial description <<<\nThis tutorial runs the integrated dynamics engine to obtain "
-        "robot Jacobian, mass matrix, and gravity force. Also checks reachability of a Cartesian pose."
+        "robot Jacobian, mass matrix, and gravity torques. Also checks reachability of a Cartesian "
+        "pose."
     )
 
     try:

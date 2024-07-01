@@ -26,19 +26,6 @@ import flexivrdk
 # fmt: on
 
 
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial executes several basic robot primitives (unit skills). For "
-        "detailed documentation on all available primitives, please see [Flexiv "
-        "Primitives](https://www.flexiv.com/primitives/)."
-    )
-    print()
-
-
 def main():
     # Program Setup
     # ==============================================================================================
@@ -55,8 +42,11 @@ def main():
     mode = flexivrdk.Mode
 
     # Print description
-    logger.info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial executes several basic robot primitives (unit "
+        "skills). For detailed documentation on all available primitives, please see [Flexiv "
+        "Primitives](https://www.flexiv.com/primitives/)."
+    )
 
     try:
         # RDK Initialization

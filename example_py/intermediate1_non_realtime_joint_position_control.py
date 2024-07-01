@@ -21,18 +21,6 @@ import flexivrdk
 # fmt: on
 
 
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial runs non-real-time joint position control to hold or sine-sweep all "
-        "robot joints."
-    )
-    print()
-
-
 def main():
     # Program Setup
     # ==============================================================================================
@@ -63,8 +51,10 @@ def main():
     mode = flexivrdk.Mode
 
     # Print description
-    logger.info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial runs non-real-time joint position control to "
+        "hold or sine-sweep all robot joints."
+    )
 
     try:
         # RDK Initialization

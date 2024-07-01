@@ -21,18 +21,6 @@ import flexivrdk
 # fmt: on
 
 
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial runs an automatic recovery process if the robot's safety system is in "
-        "recovery state. See Robot::recovery() and RDK manual for more details."
-    )
-    print()
-
-
 def main():
     # Program Setup
     # ==============================================================================================
@@ -48,8 +36,11 @@ def main():
     logger = spdlog.ConsoleLogger("Example")
 
     # Print description
-    logger.info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial runs an automatic recovery process if the "
+        "robot's safety system is in recovery state. See flexiv::rdk::Robot::recovery() and RDK "
+        "manual for more details."
+    )
 
     try:
         # RDK Initialization

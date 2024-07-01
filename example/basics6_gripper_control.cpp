@@ -1,6 +1,6 @@
 /**
  * @example basics6_gripper_control.cpp
- * This tutorial does position and force control (if available) for grippers supported by Flexiv.
+ * This tutorial does position and force (if available) control of grippers supported by Flexiv.
  * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -58,8 +58,8 @@ int main(int argc, char* argv[])
 
     // Print description
     spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial does position and force control (if "
-        "available) for grippers supported by Flexiv.");
+        ">>> Tutorial description <<<\nThis tutorial does position and force (if available) "
+        "control of grippers supported by Flexiv.");
 
     try {
         // RDK Initialization

@@ -22,19 +22,6 @@ import flexivrdk
 # fmt: on
 
 
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial shows how to online update and interact with the robot tools. All "
-        "changes made to the robot tool system will take effect immediately without needing to "
-        "reboot. However, the robot must be put into IDLE mode when making these changes."
-    )
-    print()
-
-
 def main():
     # Program Setup
     # ==============================================================================================
@@ -51,8 +38,12 @@ def main():
     mode = flexivrdk.Mode
 
     # Print description
-    logger.info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial shows how to online update and interact with "
+        "the robot tools. All changes made to the robot tool system will take effect immediately "
+        "without needing to reboot. However, the robot must be put into IDLE mode when making "
+        "these changes."
+    )
 
     try:
         # RDK Initialization

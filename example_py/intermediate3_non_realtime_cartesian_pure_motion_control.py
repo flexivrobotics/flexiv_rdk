@@ -37,18 +37,6 @@ EXT_FORCE_THRESHOLD = 10.0
 EXT_TORQUE_THRESHOLD = 5.0
 
 
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial runs non-real-time Cartesian-space pure motion control to hold or "
-        "sine-sweep the robot TCP. A simple collision detection is also included."
-    )
-    print()
-
-
 def main():
     # Program Setup
     # ==============================================================================================
@@ -84,8 +72,11 @@ def main():
     mode = flexivrdk.Mode
 
     # Print description
-    logger.info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial runs non-real-time Cartesian-space pure "
+        "motion control to hold or sine-sweep the robot TCP. A simple collision detection is also "
+        "included."
+    )
 
     # Print based on arguments
     if args.hold:

@@ -22,19 +22,6 @@ import flexivrdk
 # fmt: on
 
 
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial zeros the robot's force and torque sensors, which is a recommended "
-        "(but not mandatory) step before any operations that require accurate "
-        "force/torque measurement."
-    )
-    print()
-
-
 def main():
     # Program Setup
     # ==============================================================================================
@@ -51,8 +38,11 @@ def main():
     mode = flexivrdk.Mode
 
     # Print description
-    logger.info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial zeros the robot's force and torque sensors, "
+        "which is a recommended (but not mandatory) step before any operations that require "
+        "accurate force/torque measurement."
+    )
 
     try:
         # RDK Initialization

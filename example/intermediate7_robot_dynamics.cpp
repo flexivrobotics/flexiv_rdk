@@ -1,7 +1,7 @@
 /**
  * @example intermediate7_robot_dynamics.cpp
  * This tutorial runs the integrated dynamics engine to obtain robot Jacobian, mass matrix, and
- * gravity force. Also checks reachability of a Cartesian pose.
+ * gravity torques. Also checks reachability of a Cartesian pose.
  * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
     // Print description
     spdlog::info(
         ">>> Tutorial description <<<\nThis tutorial runs the integrated dynamics engine to obtain "
-        "robot Jacobian, mass matrix, and gravity force. Also checks reachability of a Cartesian "
+        "robot Jacobian, mass matrix, and gravity torques. Also checks reachability of a Cartesian "
         "pose.");
 
     try {

@@ -2,7 +2,7 @@
 
 """basics6_gripper_control.py
 
-This tutorial does position and force control (if available) for grippers supported by Flexiv.
+This tutorial does position and force (if available) control of grippers supported by Flexiv.
 """
 
 __copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
@@ -19,18 +19,6 @@ import sys
 sys.path.insert(0, "../lib_py")
 import flexivrdk
 # fmt: on
-
-
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial does position and force control (if available) for grippers "
-        "supported by Flexiv."
-    )
-    print()
 
 
 def print_gripper_states(gripper, logger, stop_event):
@@ -68,8 +56,10 @@ def main():
     mode = flexivrdk.Mode
 
     # Print description
-    logger.info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial does position and force (if available) "
+        "control of grippers supported by Flexiv."
+    )
 
     try:
         # RDK Initialization
