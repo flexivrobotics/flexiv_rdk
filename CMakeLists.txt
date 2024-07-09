@@ -11,26 +11,36 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "RelWithDebInfo")
 
-# Set static library
+# Configure project options
+option(INSTALL_PYTHON_RDK "Install RDK Python library to user site packages path" OFF)
+if(INSTALL_PYTHON_RDK)
+  find_package(Python3 COMPONENTS Interpreter REQUIRED)
+endif()
+
+# Set C++ and Python library filename
 message("OS: ${CMAKE_SYSTEM_NAME}")
 message("Processor: ${CMAKE_SYSTEM_PROCESSOR}")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
-    set(RDK_STATIC_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/lib/libflexiv_rdk.x86_64-linux-gnu.a")
+    set(RDK_CPP_LIB "libflexiv_rdk.x86_64-linux-gnu.a")
+    set(RDK_PY_LIB "flexivrdk.cpython-${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}-x86_64-linux-gnu.so")
   elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
-    set(RDK_STATIC_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/lib/libflexiv_rdk.aarch64-linux-gnu.a")
+    set(RDK_CPP_LIB "libflexiv_rdk.aarch64-linux-gnu.a")
+    set(RDK_PY_LIB "flexivrdk.cpython-${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}-aarch64-linux-gnu.so")
   else()
     message(FATAL_ERROR "Linux with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
   endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64")
-    set(RDK_STATIC_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/lib/libflexiv_rdk.arm64-darwin.a")
+    set(RDK_CPP_LIB "libflexiv_rdk.arm64-darwin.a")
+    set(RDK_PY_LIB "flexivrdk.cpython-${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}-darwin.so")
   else()
     message(FATAL_ERROR "Mac with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
   endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "AMD64")
-    set(RDK_STATIC_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/lib/flexiv_rdk.win_amd64.lib")
+    set(RDK_CPP_LIB "flexiv_rdk.win_amd64.lib")
+    set(RDK_PY_LIB "flexivrdk.cp${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}-win_amd64.pyd")
   else()
     message(FATAL_ERROR "Windows with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
   endif()
@@ -71,7 +81,7 @@ if(fastrtps_FOUND)
 endif()
 
 # ===================================================================
-#      CREATE LIBRARY
+#      INSTALL C++ LIBRARY
 # ===================================================================
 # Create an INTERFACE library with no source file to compile
 add_library(${PROJECT_NAME} INTERFACE)
@@ -86,7 +96,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 
 target_link_libraries(${PROJECT_NAME} INTERFACE
-  ${RDK_STATIC_LIBRARY}
+  ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_CPP_LIB}
   Threads::Threads
   Eigen3::Eigen
   spdlog::spdlog
@@ -102,5 +112,25 @@ else()
 endif()
 
 # Install the INTERFACE library
+message(STATUS "RDK C++ library: ${RDK_CPP_LIB}")
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FlexivInstallLibrary.cmake)
 FlexivInstallLibrary()
+
+# ===================================================================
+#      INSTALL PYTHON LIBRARY
+# ===================================================================
+if(INSTALL_PYTHON_RDK)
+  # Get user site packages path
+  message(STATUS "Python executable: ${Python3_EXECUTABLE}")
+  execute_process(
+    COMMAND ${Python3_EXECUTABLE} -c "import site; print(site.getusersitepackages())"
+    OUTPUT_VARIABLE USER_SITE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  message(STATUS "Python user site packages path: ${USER_SITE}")
+
+  # Install RDK Python library to user site packages path
+  message(STATUS "RDK Python library: ${RDK_PY_LIB}")
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib_py/${RDK_PY_LIB}" DESTINATION ${USER_SITE})
+endif()
+
