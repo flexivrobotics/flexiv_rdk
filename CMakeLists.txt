@@ -131,10 +131,9 @@ if(INSTALL_PYTHON_RDK)
     OUTPUT_VARIABLE USER_SITE
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
-  message(STATUS "Python user site packages path: ${USER_SITE}")
+  message(STATUS "Python site packages path: ${USER_SITE}")
 
   # Install Python RDK to user site packages path
   message(STATUS "Python RDK library: ${RDK_PY_LIB}")
   install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib_py/${RDK_PY_LIB}" DESTINATION ${USER_SITE})
 endif()
-

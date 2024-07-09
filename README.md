@@ -78,14 +78,14 @@ NOTE: if you will only be using Python RDK, you can skip this section and jump t
 
 #### Compile and install for macOS
 
-1. In a Terminal, use ``xcode-select`` command to invoke the installation of Xcode Command Line Tools, then follow the prompted window to finish the installation.
+1. In a Terminal, enter command ``xcode-select`` to invoke the installation of Xcode Command Line Tools, then follow the prompted window to finish the installation.
 2. Download ``cmake-3.x.x-macos-universal.dmg`` from [CMake download page](https://cmake.org/download/) and install the dmg file. The minimum required version is 3.16.3.
-3. When done, start CMake from Launchpad and navigate to Tools -> How to Install For Command Line Use. Then follow the instruction "Or, to install symlinks to '/usr/local/bin', run:" to install ``cmake`` and ``cmake-gui`` command for use in Terminal.
+3. When done, start CMake from Launchpad and navigate to Tools -> How to Install For Command Line Use. Then follow the instruction "Or, to install symlinks to '/usr/local/bin', run:" to install ``cmake`` and ``cmake-gui`` commands for use in Terminal.
 4. The rest steps are the same as [Compile and install for Linux](#compile-and-install-for-linux), beginning from step 2.
 
 #### Compile and install for Windows
 
-1. Install Microsoft Visual Studio 2019 (MSVC v142) or above . Choose "Desktop development with C++" under the *Workloads* tab during installation. You only need to keep the following components for the selected workload:
+1. Install Microsoft Visual Studio 2019 (MSVC v14.2) or above . Choose "Desktop development with C++" under the *Workloads* tab during installation. You only need to keep the following components for the selected workload:
    * MSVC ... C++ x64/x86 build tools (Latest)
    * C++ CMake tools for Windows
    * Windows 10 SDK or Windows 11 SDK, depending on your actual Windows version
