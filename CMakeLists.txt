@@ -11,10 +11,14 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "RelWithDebInfo")
 
-# Configure project options
-option(INSTALL_PYTHON_RDK "Install RDK Python library to user site packages path" OFF)
+# Configure Python RDK
+option(INSTALL_PYTHON_RDK "Install Python RDK (to user site packages path)" OFF)
 if(INSTALL_PYTHON_RDK)
-  find_package(Python3 COMPONENTS Interpreter REQUIRED)
+  if(NOT RDK_PYTHON_VERSION)
+    set(RDK_PYTHON_VERSION 3.10 CACHE STRING "Python version to install RDK for" FORCE)
+  endif()
+  set_property(CACHE RDK_PYTHON_VERSION PROPERTY STRINGS "3.10" "3.12")
+  find_package(Python3 ${RDK_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
 endif()
 
 # Set C++ and Python library filename
@@ -112,7 +116,7 @@ else()
 endif()
 
 # Install the INTERFACE library
-message(STATUS "RDK C++ library: ${RDK_CPP_LIB}")
+message(STATUS "C++ RDK library: ${RDK_CPP_LIB}")
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FlexivInstallLibrary.cmake)
 FlexivInstallLibrary()
 
@@ -129,8 +133,8 @@ if(INSTALL_PYTHON_RDK)
   )
   message(STATUS "Python user site packages path: ${USER_SITE}")
 
-  # Install RDK Python library to user site packages path
-  message(STATUS "RDK Python library: ${RDK_PY_LIB}")
+  # Install Python RDK to user site packages path
+  message(STATUS "Python RDK library: ${RDK_PY_LIB}")
   install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/lib_py/${RDK_PY_LIB}" DESTINATION ${USER_SITE})
 endif()
 
