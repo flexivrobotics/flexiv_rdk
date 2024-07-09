@@ -19,7 +19,7 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 ## Quick Start
 
-The C++ and Python RDK libraries are packed into a unified modern CMake project named ``flexiv_rdk``, which can be configured and installed via CMake on all supported OS.
+The **C++ and Python** RDK libraries are packed into a unified modern CMake project named ``flexiv_rdk``, which can be configured and installed via CMake on all supported OS.
 
 ### Note
 
@@ -94,7 +94,7 @@ For example:
 
     ./basics1_display_robot_states Rizon4s-123456
 
-Note: ``sudo`` is not required unless prompted by the program.
+NOTE: ``sudo`` is only required if a program uses the real-time scheduler API ``flexiv::rdk::Scheduler``.
 
 #### Python
 
