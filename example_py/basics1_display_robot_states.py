@@ -14,7 +14,7 @@ import argparse
 import threading
 import spdlog  # pip install spdlog
 
-# Flexiv RDK Python library
+# Flexiv RDK Python library is installed to user site packages
 import flexivrdk
 
 

@@ -14,7 +14,7 @@ import argparse
 import spdlog  # pip install spdlog
 from utility import list2str
 
-# Flexiv RDK Python library
+# Flexiv RDK Python library is installed to user site packages
 import flexivrdk
 
 

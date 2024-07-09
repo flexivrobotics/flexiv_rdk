@@ -18,7 +18,7 @@ from utility import quat2eulerZYX
 from utility import parse_pt_states
 from utility import list2str
 
-# Flexiv RDK Python library
+# Flexiv RDK Python library is installed to user site packages
 import flexivrdk
 
 
