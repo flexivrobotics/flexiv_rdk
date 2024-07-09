@@ -55,19 +55,22 @@ The **C++ and Python** RDK libraries are packed into a unified modern CMake proj
 
 ### Install on macOS
 
-1. In a Terminal, enter command ``xcode-select`` to invoke the installation of Xcode Command Line Tools, then follow the prompted window to finish the installation.
-2. Download ``cmake-3.x.x-macos-universal.dmg`` from [CMake download page](https://cmake.org/download/) and install the dmg file. The minimum required version is 3.16.3.
-3. When done, start CMake from Launchpad and navigate to Tools -> How to Install For Command Line Use. Then follow the instruction "Or, to install symlinks to '/usr/local/bin', run:" to install ``cmake`` and ``cmake-gui`` commands for use in Terminal.
+1. Install compiler kit: In a new Terminal, enter command ``xcode-select`` to invoke the installation of Xcode Command Line Tools, then follow the prompted window to finish the installation.
+2. Install CMake (with GUI): Download ``cmake-3.x.x-macos-universal.dmg`` from [CMake download page](https://cmake.org/download/) and install the dmg file. The minimum required version is 3.16.3. When done, start CMake from Launchpad and navigate to Tools -> How to Install For Command Line Use. Then follow the instruction "Or, to install symlinks to '/usr/local/bin', run:" to install ``cmake`` and ``cmake-gui`` commands for use in Terminal.
+3. Install Python interpreter and package manager (replace "3.x" with the actual Python3 version you wish to use):
+
+       brew install python@3.x
+
 4. The rest are identical to steps 2 and below in [Install on Linux](#install-on-linux).
 
 ### Install on Windows
 
-1. Install Microsoft Visual Studio 2019 (MSVC v14.2) or above . Choose "Desktop development with C++" under the *Workloads* tab during installation. You only need to keep the following components for the selected workload:
+1. Install compiler kit: Download and install Microsoft Visual Studio 2019 (MSVC v14.2) or above. Choose "Desktop development with C++" under the *Workloads* tab during installation. You only need to keep the following components for the selected workload:
    * MSVC ... C++ x64/x86 build tools (Latest)
    * C++ CMake tools for Windows
    * Windows 10 SDK or Windows 11 SDK, depending on your actual Windows version
-2. Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or a bash emulator.
-3. Install a bash emulator. Git Bash that comes with Git (for Windows) installation is recommended.
+2. Install CMake (with GUI): Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or a bash emulator.
+3. Install bash emulator: Download and install [Git for Windows](https://git-scm.com/download/win/), which comes with a bash emulator Git Bash.
 4. Within the bash emulator, the rest are identical to steps 2 and below in [Install on Linux](#install-on-linux).
 
 ### Link to C++ RDK from a user program
