@@ -14,12 +14,8 @@ import argparse
 import threading
 import spdlog  # pip install spdlog
 
-# Import Flexiv RDK Python library
-# fmt: off
-import sys
-sys.path.insert(0, "../lib_py")
+# Flexiv RDK Python library
 import flexivrdk
-# fmt: on
 
 
 def print_robot_states(robot, logger, stop_event):

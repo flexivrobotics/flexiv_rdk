@@ -14,12 +14,8 @@ import argparse
 import spdlog  # pip install spdlog
 from utility import list2str
 
-# Import Flexiv RDK Python library
-# fmt: off
-import sys
-sys.path.insert(0, "../lib_py")
+# Flexiv RDK Python library
 import flexivrdk
-# fmt: on
 
 
 def main():
