@@ -97,7 +97,7 @@ For example:
 
     ./basics1_display_robot_states Rizon4s-123456
 
-NOTE: ``sudo`` is only required if a program uses the real-time scheduler API ``flexiv::rdk::Scheduler``.
+NOTE: ``sudo`` is only required if the real-time scheduler API ``flexiv::rdk::Scheduler`` is used.
 
 #### Python
 
