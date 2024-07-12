@@ -11,8 +11,9 @@ namespace rdk {
 
 /**
  * @enum Mode
- * @brief Robot control modes. Must put the robot into the correct control mode before sending any
- * corresponding commands.
+ * @brief Robot control modes. The robot needs to be switched into the correct control mode before
+ * the corresponding commands can be sent. Refer to Flexiv RDK Manual for more details.
+ * @see Robot::SwitchMode().
  */
 enum Mode
 {
@@ -26,68 +27,68 @@ enum Mode
 
     /**
      * Run real-time joint torque control to track continuous commands @1kHz.
-     * @note Real-time (RT) mode
-     * @see Robot::StreamJointTorque()
+     * @note Real-time (RT) mode.
+     * @see Robot::StreamJointTorque().
      */
     RT_JOINT_TORQUE,
 
     /**
      * Run real-time joint impedance control to track continuous commands @ 1kHz.
-     * @note Real-time (RT) mode
-     * @see Robot::StreamJointPosition()
+     * @note Real-time (RT) mode.
+     * @see Robot::StreamJointPosition().
      */
     RT_JOINT_IMPEDANCE,
 
     /**
      * Run non-real-time joint impedance control to track discrete commands (smoothened by internal
      * motion generator).
-     * @note Non-real-time (NRT) mode
-     * @see Robot::SendJointPosition()
+     * @note Non-real-time (NRT) mode.
+     * @see Robot::SendJointPosition().
      */
     NRT_JOINT_IMPEDANCE,
 
     /**
      * Run real-time joint position control to track continuous commands @ 1kHz.
-     * @note Real-time (RT) mode
-     * @see Robot::StreamJointPosition()
+     * @note Real-time (RT) mode.
+     * @see Robot::StreamJointPosition().
      */
     RT_JOINT_POSITION,
 
     /**
      * Run non-real-time joint position control to track discrete commands (smoothened by internal
      * motion generator).
-     * @note Non-real-time (NRT) mode
-     * @see Robot::SendJointPosition()
+     * @note Non-real-time (NRT) mode.
+     * @see Robot::SendJointPosition().
      */
     NRT_JOINT_POSITION,
 
     /**
      * Execute pre-configured robot task plans.
-     * @note Non-real-time (NRT) mode
-     * @see Robot::ExecutePlan()
+     * @note Non-real-time (NRT) mode.
+     * @see Robot::ExecutePlan().
      */
     NRT_PLAN_EXECUTION,
 
     /**
      * Execute robot primitives (unit skills).
-     * @note Non-real-time (NRT) mode
-     * @see Robot::ExecutePrimitive()
-     * @see [Flexiv Primitives](https://www.flexiv.com/primitives/) documentation
+     * @note Non-real-time (NRT) mode.
+     * @see Robot::ExecutePrimitive().
+     * @see [Flexiv Primitives](https://www.flexiv.com/primitives/) documentation.
      */
     NRT_PRIMITIVE_EXECUTION,
 
     /**
      * Run real-time Cartesian motion-force control to track continuous commands @ 1kHz.
-     * @note Real-time (RT) mode
-     * @see Robot::StreamCartesianMotionForce()
+     * @note Real-time (RT) mode.
+     * @see Robot::StreamCartesianMotionForce().
      */
     RT_CARTESIAN_MOTION_FORCE,
 
     /**
      * Run non-real-time Cartesian motion-force control to track discrete commands, smoothened by
      * internal motion generator.
-     * @note Non-real-time (NRT) mode
-     * @see Robot::SendCartesianMotionForce()
+     * @note Non-real-time (NRT) mode.
+     * @see Robot::SendCartesianMotionForce().
      */
     NRT_CARTESIAN_MOTION_FORCE,
 

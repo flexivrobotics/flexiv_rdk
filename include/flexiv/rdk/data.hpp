@@ -26,7 +26,7 @@ constexpr size_t kIOPorts = 16;
 
 /**
  * @struct RobotInfo
- * @brief General information of the connected robot.
+ * @brief General information about the connected robot.
  */
 struct RobotInfo
 {
@@ -83,7 +83,7 @@ struct RobotInfo
 
 /**
  * @struct RobotStates
- * @brief Data struct containing the joint- and Cartesian-space robot states.
+ * @brief Data structure containing the joint- and Cartesian-space robot states.
  */
 struct RobotStates
 {
@@ -196,7 +196,7 @@ struct RobotStates
 
 /**
  * @struct PlanInfo
- * @brief Data struct containing information of the on-going primitive/plan.
+ * @brief Data structure containing information of the on-going primitive/plan.
  */
 struct PlanInfo
 {
@@ -227,7 +227,7 @@ struct PlanInfo
 
 /**
  * @struct GripperStates
- * @brief Data struct containing the gripper states.
+ * @brief Data structure containing the gripper states.
  */
 struct GripperStates
 {
@@ -244,7 +244,7 @@ struct GripperStates
 
 /**
  * @struct ToolParams
- * @brief Data struct containing robot tool parameters.
+ * @brief Data structure containing robot tool parameters.
  */
 struct ToolParams
 {
@@ -267,7 +267,7 @@ struct ToolParams
  * @brief Operator overloading to out stream all robot info in JSON format:
  * {"info_1": [val1,val2,val3,...], "info_2": [val1,val2,val3,...], ...}.
  * @param[in] ostream Ostream instance.
- * @param[in] robot_info RobotInfo data struct to out stream.
+ * @param[in] robot_info RobotInfo data structure to out stream.
  * @return Updated ostream instance.
  */
 std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
@@ -276,7 +276,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
  * @brief Operator overloading to out stream all robot states in JSON format:
  * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}.
  * @param[in] ostream Ostream instance.
- * @param[in] robot_states RobotStates data struct to out stream.
+ * @param[in] robot_states RobotStates data structure to out stream.
  * @return Updated ostream instance.
  */
 std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states);
@@ -285,7 +285,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states)
  * @brief Operator overloading to out stream all plan info in JSON format:
  * {"info_1": [val1,val2,val3,...], "info_2": [val1,val2,val3,...], ...}.
  * @param[in] ostream Ostream instance.
- * @param[in] plan_info PlanInfo data struct to out stream.
+ * @param[in] plan_info PlanInfo data structure to out stream.
  * @return Updated ostream instance.
  */
 std::ostream& operator<<(std::ostream& ostream, const PlanInfo& plan_info);
@@ -294,7 +294,7 @@ std::ostream& operator<<(std::ostream& ostream, const PlanInfo& plan_info);
  * @brief Operator overloading to out stream all gripper states in JSON format:
  * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}.
  * @param[in] ostream Ostream instance.
- * @param[in] gripper_states GripperStates data struct to out stream.
+ * @param[in] gripper_states GripperStates data structure to out stream.
  * @return Updated ostream instance.
  */
 std::ostream& operator<<(std::ostream& ostream, const GripperStates& gripper_states);

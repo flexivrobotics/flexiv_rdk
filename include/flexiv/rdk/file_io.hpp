@@ -13,8 +13,8 @@ namespace rdk {
 
 /**
  * @class FileIO
- * @brief Interface for doing file transfer with the robot. The robot must be put into IDLE mode
- * when transferring files.
+ * @brief Interface for file transfer with the robot. The robot must be put into IDLE mode when
+ * transferring files.
  */
 class FileIO
 {

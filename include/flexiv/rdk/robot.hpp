@@ -168,7 +168,7 @@ public:
     void SwitchMode(Mode mode);
 
     /**
-     * @brief [Blocking] Stop the robot and transit robot mode to Idle.
+     * @brief [Blocking] Stop the robot and transit robot mode to IDLE.
      * @throw std::runtime_error if failed to stop the robot.
      * @note This function blocks until the robot comes to a complete stop.
      */
@@ -421,7 +421,7 @@ public:
      * @param[in] K_q Joint motion stiffness: \f$ K_q \in \mathbb{R}^{n \times 1} \f$.
      * Setting motion stiffness of a joint axis to 0 will make this axis free-floating. Valid range:
      * [0, RobotInfo::K_q_nom]. Unit: \f$ [Nm/rad] \f$.
-     * @param[in] Z_x Joint motion damping ratio: \f$ Z_q \in \mathbb{R}^{n \times 1} \f$.
+     * @param[in] Z_q Joint motion damping ratio: \f$ Z_q \in \mathbb{R}^{n \times 1} \f$.
      * Valid range: [0.3, 0.8]. The nominal (safe) value is provided as default.
      * @throw std::invalid_argument if [K_q] or [Z_q] contains any value outside the valid range or
      * size of any input vector does not match robot DoF.
