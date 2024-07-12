@@ -112,11 +112,11 @@ For example:
 
 ## API Documentation
 
-API doc of the latest release is available at https://rdk.flexiv.com/api/. API doc of a previous release can be manually generated:
+The complete and detailed API documentation of the **latest release** can be found at https://rdk.flexiv.com/api/. The API documentation of a previous release can be generated manually using Doxygen. For example, on Linux:
 
     sudo apt install doxygen-latex graphviz
     cd flexiv_rdk
     git checkout <previous_release_tag>
     doxygen doc/Doxyfile.in
 
-The generated API doc is under `flexiv_rdk/doc/html/`. Open any html file with your browser to view it.
+The generated API documentation is under ``flexiv_rdk/doc/html/`` directory. Open any html file with your browser to view it.
