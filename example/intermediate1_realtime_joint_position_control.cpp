@@ -1,14 +1,14 @@
 /**
  * @example intermediate1_realtime_joint_position_control.cpp
  * This tutorial runs real-time joint position control to hold or sine-sweep all robot joints.
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/log.h>
-#include <flexiv/scheduler.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/scheduler.hpp>
+#include <flexiv/rdk/utility.hpp>
+#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <string>
@@ -28,15 +28,6 @@ constexpr double kSineFreq = 0.3;
 std::atomic<bool> g_stop_sched = {false};
 }
 
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial runs real-time joint position control to hold or sine-sweep all "
-                 "robot joints."
-              << std::endl
-              << std::endl;
-}
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -51,8 +42,8 @@ void PrintHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log, const std::string& motion_type,
-    const std::array<double, flexiv::kJointDOF>& init_pos)
+void PeriodicTask(
+    flexiv::rdk::Robot& robot, const std::string& motion_type, const std::vector<double>& init_pos)
 {
     // Local periodic loop counter
     static unsigned int loop_counter = 0;
@@ -64,16 +55,16 @@ void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log, const std::string& mot
                 "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
 
-        // Initialize target arrays to hold position
-        std::array<double, flexiv::kJointDOF> target_pos = {};
-        std::array<double, flexiv::kJointDOF> target_vel = {};
-        std::array<double, flexiv::kJointDOF> target_acc = {};
+        // Initialize target vectors to hold position
+        std::vector<double> target_pos(robot.info().DoF);
+        std::vector<double> target_vel(robot.info().DoF);
+        std::vector<double> target_acc(robot.info().DoF);
 
-        // Set target arrays based on motion type
+        // Set target vectors based on motion type
         if (motion_type == "hold") {
             target_pos = init_pos;
         } else if (motion_type == "sine-sweep") {
-            for (size_t i = 0; i < flexiv::kJointDOF; ++i) {
+            for (size_t i = 0; i < target_pos.size(); ++i) {
                 target_pos[i] = init_pos[i]
                                 + kSineAmp * sin(2 * M_PI * kSineFreq * loop_counter * kLoopPeriod);
             }
@@ -88,7 +79,7 @@ void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log, const std::string& mot
         loop_counter++;
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         g_stop_sched = true;
     }
 }
@@ -97,11 +88,8 @@ int main(int argc, char* argv[])
 {
     // Program Setup
     // =============================================================================================
-    // Logger for printing message with timestamp and coloring
-    flexiv::Log log;
-
     // Parse parameters
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -109,16 +97,17 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    log.Info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial runs real-time joint position control to hold "
+        "or sine-sweep all robot joints.");
 
     // Type of motion specified by user
     std::string motion_type = "";
-    if (flexiv::utility::ProgramArgsExist(argc, argv, "--hold")) {
-        log.Info("Robot holding current pose");
+    if (flexiv::rdk::utility::ProgramArgsExist(argc, argv, "--hold")) {
+        spdlog::info("Robot holding current pose");
         motion_type = "hold";
     } else {
-        log.Info("Robot running joint sine-sweep");
+        spdlog::info("Robot running joint sine-sweep");
         motion_type = "sine-sweep";
     }
 
@@ -126,32 +115,32 @@ int main(int argc, char* argv[])
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            log.Warn("Fault occurred on the connected robot, trying to clear ...");
+            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                log.Error("Fault cannot be cleared, exiting ...");
+                spdlog::error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.Info("Fault on the connected robot is cleared");
+            spdlog::info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...");
+        spdlog::info("Enabling robot ...");
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.Info("Robot is now operational");
+        spdlog::info("Robot is now operational");
 
         // Move robot to home pose
-        log.Info("Moving to home pose");
-        robot.SwitchMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
+        spdlog::info("Moving to home pose");
+        robot.SwitchMode(flexiv::rdk::Mode::NRT_PRIMITIVE_EXECUTION);
         robot.ExecutePrimitive("Home()");
 
         // Wait for the primitive to finish
@@ -162,17 +151,17 @@ int main(int argc, char* argv[])
         // Real-time Joint Position Control
         // =========================================================================================
         // Switch to real-time joint position control mode
-        robot.SwitchMode(flexiv::Mode::RT_JOINT_POSITION);
+        robot.SwitchMode(flexiv::rdk::Mode::RT_JOINT_POSITION);
 
         // Set initial joint positions
         auto init_pos = robot.states().q;
-        log.Info("Initial joint positions set to: " + flexiv::utility::Arr2Str(init_pos));
+        spdlog::info("Initial joint positions set to: {}", flexiv::rdk::utility::Vec2Str(init_pos));
 
         // Create real-time scheduler to run periodic tasks
-        flexiv::Scheduler scheduler;
+        flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(log),
-                              std::ref(motion_type), std::ref(init_pos)),
+        scheduler.AddTask(
+            std::bind(PeriodicTask, std::ref(robot), std::ref(motion_type), std::ref(init_pos)),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();
@@ -185,7 +174,7 @@ int main(int argc, char* argv[])
         scheduler.Stop();
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         return 1;
     }
 

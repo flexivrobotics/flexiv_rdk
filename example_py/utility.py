@@ -5,7 +5,7 @@
 Utility methods.
 """
 
-__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import math

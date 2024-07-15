@@ -5,31 +5,16 @@
 This tutorial runs non-real-time joint position control to hold or sine-sweep all robot joints.
 """
 
-__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
 import math
 import argparse
+import spdlog  # pip install spdlog
 
-# Import Flexiv RDK Python library
-# fmt: off
-import sys
-sys.path.insert(0, "../lib_py")
+# Flexiv RDK Python library is installed to user site packages
 import flexivrdk
-# fmt: on
-
-
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial runs non-real-time joint position control to hold or sine-sweep all "
-        "robot joints."
-    )
-    print()
 
 
 def main():
@@ -58,12 +43,14 @@ def main():
     assert frequency >= 1 and frequency <= 100, "Invalid <frequency> input"
 
     # Define alias
-    log = flexivrdk.Log()
+    logger = spdlog.ConsoleLogger("Example")
     mode = flexivrdk.Mode
 
     # Print description
-    log.Info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial runs non-real-time joint position control to "
+        "hold or sine-sweep all robot joints."
+    )
 
     try:
         # RDK Initialization
@@ -73,25 +60,25 @@ def main():
 
         # Clear fault on the connected robot if any
         if robot.fault():
-            log.Warn("Fault occurred on the connected robot, trying to clear ...")
+            logger.warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
             if not robot.ClearFault():
-                log.Error("Fault cannot be cleared, exiting ...")
+                logger.error("Fault cannot be cleared, exiting ...")
                 return 1
-            log.Info("Fault on the connected robot is cleared")
+            logger.info("Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...")
+        logger.info("Enabling robot ...")
         robot.Enable()
 
         # Wait for the robot to become operational
         while not robot.operational():
             time.sleep(1)
 
-        log.Info("Robot is now operational")
+        logger.info("Robot is now operational")
 
         # Move robot to home pose
-        log.Info("Moving to home pose")
+        logger.info("Moving to home pose")
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
         robot.ExecutePrimitive("Home()")
 
@@ -106,29 +93,25 @@ def main():
 
         period = 1.0 / frequency
         loop_time = 0
-        print(
-            "Sending command to robot at",
-            frequency,
-            "Hz, or",
-            period,
-            "seconds interval",
+        logger.info(
+            f"Sending command to robot at {frequency} Hz, or {period} seconds interval"
         )
 
         # Use current robot joint positions as initial positions
         init_pos = robot.states().q.copy()
-        print("Initial positions set to: ", init_pos)
+        logger.info(f"Initial positions set to: {init_pos}")
 
-        # Robot degrees of freedom
-        DOF = len(robot.states().q)
+        # Robot joint degrees of freedom
+        DoF = robot.info().DoF
 
         # Initialize target vectors
         target_pos = init_pos.copy()
-        target_vel = [0.0] * DOF
-        target_acc = [0.0] * DOF
+        target_vel = [0.0] * DoF
+        target_acc = [0.0] * DoF
 
         # Joint motion constraints
-        MAX_VEL = [2.0] * DOF
-        MAX_ACC = [3.0] * DOF
+        MAX_VEL = [2.0] * DoF
+        MAX_ACC = [3.0] * DoF
 
         # Joint sine-sweep amplitude [rad]
         SWING_AMP = 0.1
@@ -147,7 +130,7 @@ def main():
 
             # Sine-sweep all joints
             if not args.hold:
-                for i in range(DOF):
+                for i in range(DoF):
                     target_pos[i] = init_pos[i] + SWING_AMP * math.sin(
                         2 * math.pi * SWING_FREQ * loop_time
                     )
@@ -163,7 +146,7 @@ def main():
 
     except Exception as e:
         # Print exception error message
-        log.Error(str(e))
+        logger.error(str(e))
 
 
 if __name__ == "__main__":

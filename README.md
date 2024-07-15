@@ -15,93 +15,108 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 | -------------------------- | ----------------------- | ---------------------- | ------------------------- |
 | Linux (Ubuntu 20.04/22.04) | x86_64, arm64           | C++, Python            | build-essential           |
 | macOS 12 and above         | arm64                   | C++, Python            | Xcode Command Line Tools  |
-| Windows 10/11              | x86_64                  | C++, Python            | MSVC v142+                |
+| Windows 10/11              | x86_64                  | C++, Python            | MSVC v14.2+               |
 
 ## Quick Start
 
+The **C++ and Python** RDK libraries are packed into a unified modern CMake project named ``flexiv_rdk``, which can be configured and installed via CMake on all supported OS.
+
 ### Note
 
-* The full documentation is in [Flexiv RDK Manual](https://rdk.flexiv.com/manual/).
-* You might need to turn off your computer's firewall to be able to connect to the robot.
+* The instructions below serve as a quick reference. You can find the full documentation at [Flexiv RDK Manual](https://rdk.flexiv.com/manual/).
+* You might need to turn off your computer's firewall or whitelist the RDK programs to be able to establish connection with the robot.
 
-### C++ RDK
+### Install on Linux
 
-The C++ interface of Flexiv RDK is packed into a unified modern CMake library named ``flexiv_rdk``, which can be configured via CMake on all supported OS.
+1. In a new Terminal, install compiler kit, CMake (with GUI), Python interpreter, and Python package manager:
 
-NOTE: if you will only be using Python RDK, you can skip this section and jump to [Python RDK](#python-rdk).
+       sudo apt install build-essential cmake cmake-qt-gui python3 python3-pip -y
 
-#### Compile and install for Linux
+2. Choose a directory for installing C++ RDK library and all its dependencies. This directory can be under system path or not, depending on whether you want RDK to be globally discoverable by CMake. For example, a new folder named ``rdk_install`` under the home directory.
+3. In a new Terminal, run the provided script to compile and install all C++ dependencies to the installation directory chosen in step 2:
 
-1. In a new Terminal, install C++ compiler, Git, and CMake (with GUI) using the package manager:
+       cd flexiv_rdk/thirdparty
+       bash build_and_install_dependencies.sh ~/rdk_install
 
-        sudo apt install build-essential git cmake cmake-qt-gui -y
+4. In a new Terminal, use CMake to configure the ``flexiv_rdk`` project:
 
-2. Choose a directory for installing ``flexiv_rdk`` library and all its dependencies. For example, a new folder named ``rdk_install`` under the home directory.
-3. In a new Terminal, run the provided script to compile and install all dependencies to the installation directory chosen in step 2:
+       cd flexiv_rdk
+       mkdir build && cd build
+       cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install -DINSTALL_PYTHON_RDK=ON
 
-        cd flexiv_rdk/thirdparty
-        bash build_and_install_dependencies.sh ~/rdk_install
+   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` sets the CMake variable that specifies the path of the installation directory. ``-D`` followed by ``INSTALL_PYTHON_RDK=ON`` enables the installation of Python RDK besides C++ RDK. The configuration process can also be done using CMake GUI.
 
-4. In a new Terminal, use CMake to configure ``flexiv_rdk``:
+5. Install C++ and Python RDK:
 
-        cd flexiv_rdk
-        mkdir build && cd build
-        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+       cd flexiv_rdk/build
+       cmake --build . --target install --config Release
 
-   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` is a CMake parameter specifying the path of the chosen installation directory. Alternatively, this configuration step can also be done through CMake GUI.
+   C++ RDK is installed to the path specified by ``CMAKE_INSTALL_PREFIX``, which may or may not be globally discoverable by CMake. Python RDK is installed to the user site packages path, which is globally discoverable by Python interpreter.
 
-5. Compile and install ``flexiv_rdk`` library:
+### Install on macOS
 
-        cd flexiv_rdk/build
-        cmake --build . --target install --config Release
+1. Install compiler kit: In a new Terminal, enter command ``xcode-select`` to invoke the installation of Xcode Command Line Tools, then follow the prompted window to finish the installation.
+2. Install CMake (with GUI): Download ``cmake-3.x.x-macos-universal.dmg`` from [CMake download page](https://cmake.org/download/) and install the dmg file. The minimum required version is 3.16.3. When done, start CMake from Launchpad and navigate to Tools -> How to Install For Command Line Use. Then follow the instruction "Or, to install symlinks to '/usr/local/bin', run:" to install ``cmake`` and ``cmake-gui`` commands for use in Terminal.
+3. Install Python interpreter and package manager (replace "3.x" with the actual Python3 version you wish to use):
 
-   NOTE: the installation of ``flexiv_rdk`` library is complete now. The following steps show how to link to the installed library from a user project.
+       brew install python@3.x
 
-6. To find and link to the installed ``flexiv_rdk`` library from a user project, using the provided example project for instance:
+4. The rest are identical to steps 2 and below in [Install on Linux](#install-on-linux).
 
-        cd flexiv_rdk/example
-        mkdir build && cd build
-        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-        cmake --build . --config Release -j 4
+### Install on Windows
 
-   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` tells user project's CMake where to find the installed ``flexiv_rdk`` library.
-
-7. Assuming the system setup detailed in the Flexiv RDK Manual is done, to run an compiled example program:
-
-        ./<program_name> [robot_serial_number]
-
-   For example:
-
-        ./display_robot_states Rizon4s-123456
-
-   Note: ``sudo`` is not required unless prompted by the program.
-
-#### Compile and install for macOS
-
-1. In a Terminal, use ``xcode-select`` command to invoke the installation of Xcode Command Line Tools, then follow the prompted window to finish the installation.
-2. Download ``cmake-3.x.x-macos-universal.dmg`` from [CMake download page](https://cmake.org/download/) and install the dmg file. The minimum required version is 3.16.3.
-3. When done, start CMake from Launchpad and navigate to Tools -> How to Install For Command Line Use. Then follow the instruction "Or, to install symlinks to '/usr/local/bin', run:" to install ``cmake`` and ``cmake-gui`` command for use in Terminal.
-4. The rest steps are the same as [Compile and install for Linux](#compile-and-install-for-linux), beginning from step 2.
-
-#### Compile and install for Windows
-
-1. Install Microsoft Visual Studio 2019 (MSVC v142) or above . Choose "Desktop development with C++" under the *Workloads* tab during installation. You only need to keep the following components for the selected workload:
+1. Install compiler kit: Download and install Microsoft Visual Studio 2019 (MSVC v14.2) or above. Choose "Desktop development with C++" under the *Workloads* tab during installation. You only need to keep the following components for the selected workload:
    * MSVC ... C++ x64/x86 build tools (Latest)
    * C++ CMake tools for Windows
    * Windows 10 SDK or Windows 11 SDK, depending on your actual Windows version
-2. Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or a bash emulator.
-3. Install a bash emulator. Git Bash that comes with Git (for Windows) installation is recommended.
-4. Within the bash emulator, the rest steps are the same as [Compile and install for Linux](#compile-and-install-for-linux), beginning from step 2.
+2. Install CMake (with GUI): Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or a bash emulator.
+3. Install bash emulator: Download and install [Git for Windows](https://git-scm.com/download/win/), which comes with a bash emulator Git Bash.
+4. Within the bash emulator, the rest are identical to steps 2 and below in [Install on Linux](#install-on-linux).
 
-### Python RDK
+### Link to C++ RDK from a user program
 
-Python 3.10 and 3.12 are supported by RDK, see Flexiv RDK Manual for more details. A brief instruction is provided below and applies to all supported OS.
+After C++ RDK is installed, it can be found as a CMake library and linked to by other CMake projects. Use the provided examples project for instance::
 
-1. Check Python version is 3.10.x or 3.12.x:
+    cd flexiv_rdk/example
+    mkdir build && cd build
+    cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+    cmake --build . --config Release -j 4
 
-        python3 --version
+NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` tells the user project's CMake where to find the installed C++ RDK library. The instruction above applies to all supported OS.
 
-2. Assume the system setup detailed in Flexiv RDK Manual is done, to run an example Python program:
+### Run example programs
 
-        cd flexiv_rdk/example_py
-        python3 <program_name>.py [robot_serial_number]
+#### C++
+
+To run a compiled example C++ program:
+
+    cd flexiv_rdk/example/build
+    ./<program_name> [robot_serial_number]
+
+For example:
+
+    ./basics1_display_robot_states Rizon4s-123456
+
+NOTE: ``sudo`` is only required if the real-time scheduler API ``flexiv::rdk::Scheduler`` is used.
+
+#### Python
+
+To run a example Python program:
+
+    cd flexiv_rdk/example_py
+    python3 <program_name>.py [robot_serial_number]
+
+For example:
+
+    python3 ./basics1_display_robot_states.py Rizon4s-123456
+
+## API Documentation
+
+The complete and detailed API documentation of the **latest release** can be found at https://rdk.flexiv.com/api/. The API documentation of a previous release can be generated manually using Doxygen. For example, on Linux:
+
+    sudo apt install doxygen-latex graphviz
+    cd flexiv_rdk
+    git checkout <previous_release_tag>
+    doxygen doc/Doxyfile.in
+
+The generated API documentation is under ``flexiv_rdk/doc/html/`` directory. Open any html file with your browser to view it.

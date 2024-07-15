@@ -15,6 +15,7 @@ else
 fi
 
 # Use specific version
+git fetch -p
 git checkout v1.2.1
 git submodule update --init --recursive
 

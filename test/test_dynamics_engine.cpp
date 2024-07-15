@@ -1,16 +1,15 @@
 /**
  * @test test_dynamics_engine.cpp
  * A test to evaluate the dynamics engine (J, M, G), with and without end-effector tool.
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/model.h>
-#include <flexiv/tool.h>
-#include <flexiv/log.h>
-#include <flexiv/utility.h>
-
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/model.hpp>
+#include <flexiv/rdk/tool.hpp>
+#include <flexiv/rdk/utility.hpp>
+#include <spdlog/spdlog.h>
 #include <Eigen/Eigen>
 
 #include <iostream>
@@ -32,7 +31,7 @@ struct GroundTruth
 }
 
 /** Step the dynamics engine once */
-void StepDynamics(flexiv::Robot& robot, flexiv::Model& model, const GroundTruth& ref)
+void StepDynamics(flexiv::rdk::Robot& robot, flexiv::rdk::Model& model, const GroundTruth& ref)
 {
     // Mark timer start point
     auto tic = std::chrono::high_resolution_clock::now();
@@ -87,12 +86,9 @@ void PrintHelp()
 
 int main(int argc, char* argv[])
 {
-    // Log object for printing message with timestamp and coloring
-    flexiv::Log log;
-
     // Parse Parameters
     //==============================================================================================
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -104,31 +100,31 @@ int main(int argc, char* argv[])
         // RDK Initialization
         //==========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            log.Warn("Fault occurred on the connected robot, trying to clear ...");
+            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                log.Error("Fault cannot be cleared, exiting ...");
+                spdlog::error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.Info("Fault on the connected robot is cleared");
+            spdlog::info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...");
+        spdlog::info("Enabling robot ...");
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.Info("Robot is now operational");
+        spdlog::info("Robot is now operational");
 
         // Set mode after robot is operational
-        robot.SwitchMode(flexiv::Mode::NRT_PLAN_EXECUTION);
+        robot.SwitchMode(flexiv::rdk::Mode::NRT_PLAN_EXECUTION);
 
         // Bring Robot To Home
         //==========================================================================================
@@ -140,14 +136,14 @@ int main(int argc, char* argv[])
         } while (robot.busy());
 
         // Put mode back to IDLE
-        robot.SwitchMode(flexiv::Mode::IDLE);
+        robot.SwitchMode(flexiv::rdk::Mode::IDLE);
 
         // Test Dynamics Engine without Tool
         //==========================================================================================
-        log.Info(">>>>> Test 1: no end-effector tool <<<<<");
+        spdlog::info(">>>>> Test 1: no end-effector tool <<<<<");
 
         // Instantiate dynamics engine
-        flexiv::Model model(robot);
+        flexiv::rdk::Model model(robot);
 
         // Ground truth from MATLAB without robot tool
         GroundTruth ref;
@@ -180,7 +176,7 @@ int main(int argc, char* argv[])
 
         // Test Dynamics Engine with Tool
         //==========================================================================================
-        log.Info(">>>>> Test 2: with end-effector tool <<<<<");
+        spdlog::info(">>>>> Test 2: with end-effector tool <<<<<");
 
         // Ground truth from MATLAB with robot tool
         // clang-format off
@@ -199,11 +195,11 @@ int main(int argc, char* argv[])
         // clang-format on
 
         // Instantiate tool interface
-        flexiv::Tool tool(robot);
+        flexiv::rdk::Tool tool(robot);
 
         // Set name and parameters for the test tool
         std::string tool_name = "DynamicsTestTool";
-        flexiv::ToolParams tool_params;
+        flexiv::rdk::ToolParams tool_params;
         tool_params.mass = 0.9;
         tool_params.CoM = {0.0, 0.0, 0.057};
         tool_params.inertia = {2.768e-03, 3.149e-03, 5.64e-04, 0.0, 0.0, 0.0};
@@ -211,19 +207,22 @@ int main(int argc, char* argv[])
 
         // Remove any existing tool with the same name
         if (tool.exist(tool_name)) {
+            spdlog::warn("Tool with the same name [{}] already exists, removing it now", tool_name);
+            // Switch to other tool or no tool (Flange) before removing the current tool
+            tool.Switch("Flange");
             tool.Remove(tool_name);
         }
 
         // Add the test tool
-        log.Info("Adding test tool [" + tool_name + "] to the robot");
+        spdlog::info("Adding test tool [{}] to the robot", tool_name);
         tool.Add(tool_name, tool_params);
 
         // Switch to the newly added test tool, i.e. set it as the active tool
-        log.Info("Switching to test tool [" + tool_name + "]");
+        spdlog::info("Switching to test tool [{}]", tool_name);
         tool.Switch(tool_name);
 
         // Get and print the current active tool, should be the test tool
-        log.Info("Current active tool: " + tool.name());
+        spdlog::info("Current active tool: {}", tool.name());
 
         // Reload robot + tool model using the latest data synced from the connected robot
         model.Reload();
@@ -235,13 +234,16 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
+        // Switch to other tool or no tool (Flange) before removing the current tool
+        tool.Switch("Flange");
+
         // Clean up by removing the test tool
-        log.Info("Removing tool [" + tool_name + "]");
+        spdlog::info("Removing tool [{}]", tool_name);
         tool.Remove(tool_name);
 
-        log.Info("Program finished");
+        spdlog::info("Program finished");
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         return 1;
     }
 
