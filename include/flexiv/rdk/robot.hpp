@@ -1,19 +1,19 @@
 /**
- * @file robot.h
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @file robot.hpp
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_ROBOT_H_
-#define FLEXIVRDK_ROBOT_H_
+#ifndef FLEXIV_RDK_ROBOT_HPP_
+#define FLEXIV_RDK_ROBOT_HPP_
 
-#include "data.h"
-#include "mode.h"
-
+#include "data.hpp"
+#include "mode.hpp"
 #include <vector>
 #include <memory>
 #include <exception>
 
 namespace flexiv {
+namespace rdk {
 
 /**
  * @class Robot
@@ -28,6 +28,7 @@ public:
      * initialize and connection with the robot will be established.
      * @param[in] robot_sn Serial number of the robot to connect. The accepted formats are:
      * "Rizon 4s-123456" and "Rizon4s-123456".
+     * @throw std::invalid_argument if the format of [robot_sn] is invalid.
      * @throw std::runtime_error if the initialization sequence failed.
      * @throw std::logic_error if the connected robot does not have a valid RDK license; or this RDK
      * library version is incompatible with the connected robot; or model of the connected robot is
@@ -49,11 +50,11 @@ public:
      * @brief [Non-blocking] Access general information of the robot.
      * @return RobotInfo value copy.
      */
-    RobotInfo info() const;
+    const RobotInfo info() const;
 
     /**
      * @brief [Non-blocking] Access current control mode of the connected robot.
-     * @return flexiv::Mode enum.
+     * @return flexiv::rdk::Mode enum.
      */
     Mode mode() const;
 
@@ -62,7 +63,7 @@ public:
      * @return RobotStates value copy.
      * @note Real-time (RT).
      */
-    RobotStates states() const;
+    const RobotStates states() const;
 
     /**
      * @brief [Non-blocking] Whether the robot has come to a complete stop.
@@ -128,7 +129,7 @@ public:
      * @note Possible log level tags are: [info], [warning], [error], and [critical].
      * @warning Messages before the last successful instantiation of this class are not available.
      */
-    std::vector<std::string> mu_log() const;
+    const std::vector<std::string> mu_log() const;
 
     //======================================= SYSTEM CONTROL =======================================
     /**
@@ -141,8 +142,20 @@ public:
     void Enable();
 
     /**
+     * @brief [Blocking] Force robot brakes to engage or release during normal operation.
+     * Restrictions apply, see warning.
+     * @param[in] engage True: engage brakes, false: release brakes.
+     * @throw std::logic_error if the connected robot is not a medical one or the robot is moving.
+     * @throw std::runtime_error if failed to engage/release the brakes.
+     * @note This function blocks until the brakes are successfully engaged/released.
+     * @warning This function is accessible only if a) the connected robot is a medical one AND
+     * b) the robot is not moving.
+     */
+    void Brake(bool engage);
+
+    /**
      * @brief [Blocking] Switch to a new control mode and wait until mode transition is finished.
-     * @param[in] mode flexiv::Mode enum.
+     * @param[in] mode flexiv::rdk::Mode enum.
      * @throw std::invalid_argument if the requested mode is invalid or unlicensed.
      * @throw std::logic_error if robot is in an unknown control mode or is not operational.
      * @throw std::runtime_error if failed to transit the robot into the specified control mode
@@ -155,20 +168,25 @@ public:
     void SwitchMode(Mode mode);
 
     /**
-     * @brief [Blocking] Stop the robot and transit robot mode to Idle.
+     * @brief [Blocking] Stop the robot and transit robot mode to IDLE.
      * @throw std::runtime_error if failed to stop the robot.
      * @note This function blocks until the robot comes to a complete stop.
      */
     void Stop();
 
     /**
-     * @brief [Blocking] Clear minor fault of the robot.
-     * @return True: successfully cleared fault, false: cannot clear fault.
+     * @brief [Blocking] Try to clear minor or critical fault of the robot without a power cycle.
+     * @param[in] timeout_sec Maximum time in seconds to wait for the fault to be successfully
+     * cleared. Normally, a minor fault should take no more than 3 seconds to clear, and a critical
+     * fault should take no more than 30 seconds to clear.
+     * @return True: successfully cleared fault, false: failed to clear fault.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note This function blocks until robot fault is successfully cleared or maximum number of
-     * attempts is reached.
+     * @note This function blocks until the fault is successfully cleared or [timeout_sec] has
+     * elapsed.
+     * @warning Clearing a critical fault through this function without a power cycle requires a
+     * dedicated device, which may not be installed in older robot models.
      */
-    bool ClearFault();
+    bool ClearFault(unsigned int timeout_sec = 30);
 
     /**
      * @brief [Blocking] Run automatic recovery to bring joints that are outside the allowed
@@ -176,7 +194,7 @@ public:
      * @throw std::runtime_error if failed to enter automatic recovery mode.
      * @note Refer to user manual for more details.
      * @note This function blocks until the automatic recovery process is finished.
-     * @see IsRecoveryState().
+     * @see recovery().
      */
     void RunAutoRecovery();
 
@@ -205,7 +223,7 @@ public:
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered.
-     * @note IsBusy() can be used to check if a plan task has finished.
+     * @note busy() can be used to check if a plan task has finished.
      */
     void ExecutePlan(unsigned int index, bool continue_exec = false);
 
@@ -218,7 +236,7 @@ public:
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered.
-     * @note IsBusy() can be used to check if a plan task has finished.
+     * @note busy() can be used to check if a plan task has finished.
      */
     void ExecutePlan(const std::string& name, bool continue_exec = false);
 
@@ -238,7 +256,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    std::vector<std::string> plan_list() const;
+    const std::vector<std::string> plan_list() const;
 
     /**
      * @brief [Blocking] Get detailed information about the currently executing plan. Contains
@@ -249,12 +267,12 @@ public:
      * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
      * @note This function blocks until a reply is received.
      */
-    PlanInfo plan_info() const;
+    const PlanInfo plan_info() const;
 
     /**
      * @brief [Blocking] Set global variables for the robot by specifying name and value.
      * @param[in] global_vars Command to set global variables using the format:
-     * globalVar1=value(s), globalVar2=value(s), ...
+     * global_var1=value(s), global_var2=value(s), ...
      * @throw std::length_error if size of global_vars exceeds the limit (10 Kb).
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
@@ -272,7 +290,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    std::vector<std::string> global_variables() const;
+    const std::vector<std::string> global_variables() const;
 
     /**
      * @brief [Blocking] Enable or disable the breakpoint mode during plan execution. When enabled,
@@ -315,7 +333,7 @@ public:
      * Primitives documentation for exact unit definition.
      * @warning Some primitives may not terminate automatically and require users to manually
      * terminate them based on specific primitive states, for example, most [Move] primitives. In
-     * such case, IsBusy() will stay true even if it seems everything is done for that primitive.
+     * such case, busy() will stay true even if it seems everything is done for that primitive.
      */
     void ExecutePrimitive(const std::string& pt_cmd);
 
@@ -326,7 +344,7 @@ public:
      * invalid.
      * @note This function blocks until a reply is received.
      */
-    std::vector<std::string> primitive_states() const;
+    const std::vector<std::string> primitive_states() const;
 
     //==================================== DIRECT JOINT CONTROL ====================================
     /**
@@ -337,59 +355,94 @@ public:
      * @param[in] enable_soft_limits Enable/disable soft limits to keep the joints from moving
      * outside allowed position range, which will trigger a safety fault that requires recovery
      * operation.
+     * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
      * @note Applicable control mode(s): RT_JOINT_TORQUE.
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
      */
-    void StreamJointTorque(const std::array<double, kJointDOF>& torques,
-        bool enable_gravity_comp = true, bool enable_soft_limits = true);
+    void StreamJointTorque(const std::vector<double>& torques, bool enable_gravity_comp = true,
+        bool enable_soft_limits = true);
 
     /**
      * @brief [Non-blocking] Continuously stream joint position, velocity, and acceleration command
-     * to the robot.
+     * to the robot. The commands are tracked by either the joint impedance controller or the joint
+     * position controller, depending on the control mode.
      * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{n \times 1} \f$. Unit:
      * \f$ [rad] \f$.
      * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{n \times 1}
      * \f$. Unit: \f$ [rad/s] \f$.
      * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{n \times
      * 1} \f$. Unit: \f$ [rad/s^2] \f$.
+     * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
-     * @note Applicable control mode(s): RT_JOINT_POSITION.
+     * @note Applicable control mode(s): RT_JOINT_IMPEDANCE, RT_JOINT_POSITION.
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
+     * @see SetJointImpedance().
      */
-    void StreamJointPosition(const std::array<double, kJointDOF>& positions,
-        const std::array<double, kJointDOF>& velocities,
-        const std::array<double, kJointDOF>& accelerations);
+    void StreamJointPosition(const std::vector<double>& positions,
+        const std::vector<double>& velocities, const std::vector<double>& accelerations);
 
     /**
-     * @brief [Non-blocking] Discretely send joint position, velocity, and acceleration command. The
-     * robot's internal motion generator will smoothen the discrete commands.
-     * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{DOF \times 1} \f$. Unit:
+     * @brief [Non-blocking] Discretely send joint position, velocity, and acceleration command to
+     * the robot. The robot's internal motion generator will smoothen the discrete commands, which
+     * are tracked by either the joint impedance controller or the joint position controller,
+     * depending on the control mode.
+     * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{n \times 1} \f$. Unit:
      * \f$ [rad] \f$.
-     * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{DOF \times 1}
+     * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{n \times 1}
      * \f$. Each joint will maintain this amount of velocity when it reaches the target position.
      * Unit: \f$ [rad/s] \f$.
-     * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{DOF
-     * \times 1} \f$. Each joint will maintain this amount of acceleration when it reaches the
-     * target position. Unit: \f$ [rad/s^2] \f$.
+     * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{n \times
+     * 1} \f$. Each joint will maintain this amount of acceleration when it reaches the target
+     * position. Unit: \f$ [rad/s^2] \f$.
      * @param[in] max_vel Maximum joint velocities for the planned trajectory: \f$ \dot{q}_{max} \in
      * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
      * @param[in] max_acc Maximum joint accelerations for the planned trajectory: \f$ \ddot{q}_{max}
      * \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
+     * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @note Applicable control mode(s): NRT_JOINT_POSITION.
+     * @note Applicable control mode(s): NRT_JOINT_IMPEDANCE, NRT_JOINT_POSITION.
      * @warning Calling this function a second time while the motion from the previous call is still
      * ongoing will trigger an online re-planning of the joint trajectory, such that the previous
      * command is aborted and the new command starts to execute.
+     * @see SetJointImpedance().
      */
-    void SendJointPosition(const std::array<double, kJointDOF>& positions,
-        const std::array<double, kJointDOF>& velocities,
-        const std::array<double, kJointDOF>& accelerations,
-        const std::array<double, kJointDOF>& max_vel, const std::array<double, kJointDOF>& max_acc);
+    void SendJointPosition(const std::vector<double>& positions,
+        const std::vector<double>& velocities, const std::vector<double>& accelerations,
+        const std::vector<double>& max_vel, const std::vector<double>& max_acc);
+
+    /**
+     * @brief [Non-blocking] Set impedance properties of the robot's joint motion controller used in
+     * the joint impedance control modes.
+     * @param[in] K_q Joint motion stiffness: \f$ K_q \in \mathbb{R}^{n \times 1} \f$.
+     * Setting motion stiffness of a joint axis to 0 will make this axis free-floating. Valid range:
+     * [0, RobotInfo::K_q_nom]. Unit: \f$ [Nm/rad] \f$.
+     * @param[in] Z_q Joint motion damping ratio: \f$ Z_q \in \mathbb{R}^{n \times 1} \f$.
+     * Valid range: [0.3, 0.8]. The nominal (safe) value is provided as default.
+     * @throw std::invalid_argument if [K_q] or [Z_q] contains any value outside the valid range or
+     * size of any input vector does not match robot DoF.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @note Applicable control mode(s): RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
+     * @warning The robot will automatically reset to its nominal impedance properties upon
+     * re-entering the applicable control modes.
+     * @warning Changing damping ratio [Z_q] to a non-nominal value may lead to performance and
+     * stability issues, please use with caution.
+     * @see ResetJointImpedance().
+     */
+    void SetJointImpedance(const std::vector<double>& K_q,
+        const std::vector<double>& Z_q = {0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7});
+
+    /**
+     * @brief [Non-blocking] Reset impedance properties of the robot's joint motion controller to
+     * nominal values.
+     * @note Applicable control mode(s): RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
+     * @see SetJointImpedance().
+     */
+    void ResetJointImpedance();
 
     //================================== DIRECT CARTESIAN CONTROL ==================================
     /**
@@ -425,12 +478,12 @@ public:
      * Use SetForceControlAxis() to enable force control for one or more Cartesian axes and leave
      * the rest axes motion-controlled, then provide target pose for the motion-controlled axes and
      * target wrench for the force-controlled axes.
-     * @see SetCartesianStiffness(), SetMaxContactWrench(), SetNullSpacePosture(),
+     * @see SetCartesianImpedance(), SetMaxContactWrench(), SetNullSpacePosture(),
      * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
      */
     void StreamCartesianMotionForce(const std::array<double, kPoseSize>& pose,
-        const std::array<double, kCartDOF>& wrench = {},
-        const std::array<double, kCartDOF>& acceleration = {});
+        const std::array<double, kCartDoF>& wrench = {},
+        const std::array<double, kCartDoF>& acceleration = {});
 
     /**
      * @brief [Non-blocking] Discretely send Cartesian motion and/or force command for the robot to
@@ -466,34 +519,44 @@ public:
      * Use SetForceControlAxis() to enable force control for one or more Cartesian axes and leave
      * the rest axes motion-controlled, then provide target pose for the motion-controlled axes and
      * target wrench for the force-controlled axes.
-     * @see SetCartesianStiffness(), SetMaxContactWrench(), SetNullSpacePosture(),
+     * @see SetCartesianImpedance(), SetMaxContactWrench(), SetNullSpacePosture(),
      * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
      */
     void SendCartesianMotionForce(const std::array<double, kPoseSize>& pose,
-        const std::array<double, kCartDOF>& wrench = {}, double max_linear_vel = 0.5,
+        const std::array<double, kCartDoF>& wrench = {}, double max_linear_vel = 0.5,
         double max_angular_vel = 1.0, double max_linear_acc = 2.0, double max_angular_acc = 5.0);
 
     /**
-     * @brief [Non-blocking] Set motion stiffness for the Cartesian motion-force control modes.
-     * @param[in] stiffness Cartesian motion stiffness: \f$ K_d \in \mathbb{R}^{6 \times 1} \f$.
+     * @brief [Non-blocking] Set impedance properties of the robot's Cartesian motion controller
+     * used in the Cartesian motion-force control modes.
+     * @param[in] K_x Cartesian motion stiffness: \f$ K_x \in \mathbb{R}^{6 \times 1} \f$.
      * Setting motion stiffness of a motion-controlled Cartesian axis to 0 will make this axis
      * free-floating. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and \f$
      * \mathbb{R}^{3 \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry}, k_{Rz}]^T
-     * \f$. Valid range: [0, RobotInfo::nominal_K]. Unit: \f$ [N/m]~[Nm/rad] \f$.
-     * @throw std::invalid_argument if [stiffness] contains any value outside the valid range.
+     * \f$. Valid range: [0, RobotInfo::K_x_nom]. Unit: \f$ [N/m]~[Nm/rad] \f$.
+     * @param[in] Z_x Cartesian motion damping ratio: \f$ Z_x \in \mathbb{R}^{6 \times 1} \f$.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear damping ratio and \f$ \mathbb{R}^{3 \times
+     * 1} \f$ angular damping ratio: \f$ [\zeta_x, \zeta_y, \zeta_z, \zeta_{Rx}, \zeta_{Ry},
+     * \zeta_{Rz}]^T \f$. Valid range: [0.3, 0.8]. The nominal (safe) value is provided as default.
+     * @throw std::invalid_argument if [K_x] or [Z_x] contains any value outside the valid range.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
-     * @warning The robot will automatically reset to its nominal stiffness upon re-entering the
-     * applicable control modes.
+     * @warning The robot will automatically reset to its nominal impedance properties upon
+     * re-entering the applicable control modes.
+     * @warning Changing damping ratio [Z_x] to a non-nominal value may lead to performance and
+     * stability issues, please use with caution.
+     * @see ResetCartesianImpedance().
      */
-    void SetCartesianStiffness(const std::array<double, kCartDOF>& stiffness);
+    void SetCartesianImpedance(const std::array<double, kCartDoF>& K_x,
+        const std::array<double, kCartDoF>& Z_x = {0.7, 0.7, 0.7, 0.7, 0.7, 0.7});
 
     /**
-     * @brief [Non-blocking] Reset motion stiffness for the Cartesian motion-force control modes to
-     * nominal value.
+     * @brief [Non-blocking] Reset impedance properties of the robot's Cartesian motion controller
+     * to nominal values.
      * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @see SetCartesianImpedance().
      */
-    void ResetCartesianStiffness();
+    void ResetCartesianImpedance();
 
     /**
      * @brief [Non-blocking] Set maximum contact wrench for the motion control part of the Cartesian
@@ -511,8 +574,9 @@ public:
      * re-entering the applicable control modes.
      * @warning The maximum contact wrench regulation cannot be enabled if any of the rotational
      * Cartesian axes is enabled for moment control.
+     * @see ResetMaxContactWrench().
      */
-    void SetMaxContactWrench(const std::array<double, kCartDOF>& max_wrench);
+    void SetMaxContactWrench(const std::array<double, kCartDoF>& max_wrench);
 
     /**
      * @brief [Non-blocking] Reset max contact wrench regulation to nominal state, i.e. disabled.
@@ -527,20 +591,21 @@ public:
      * \f$ q_{ns} \in \mathbb{R}^{n \times 1} \f$. Valid range: [RobotInfo::q_min,
      * RobotInfo::q_max]. Unit: \f$ [rad] \f$.
      * @throw std::invalid_argument if [preferred_positions] contains any value outside the valid
-     * range.
+     * range or size of any input vector does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
      * @warning Upon entering the applicable control modes, the robot will automatically set its
      * current joint positions as the preferred joint positions.
      * @par Null-space posture control
-     * Similar to human arm, a robotic arm with redundant joint-space degree(s) of freedom (DOF > 6)
+     * Similar to human arm, a robotic arm with redundant joint-space degree(s) of freedom (DoF > 6)
      * can change its overall posture without affecting the ongoing primary task. This is achieved
      * through a technique called "null-space control". After the preferred joint positions for a
      * desired robot posture is set using this function, the robot's null-space control module will
      * try to pull the arm as close to this posture as possible without affecting the primary
      * Cartesian motion-force control task.
+     * @see ResetNullSpacePosture().
      */
-    void SetNullSpacePosture(const std::array<double, kJointDOF>& preferred_positions);
+    void SetNullSpacePosture(const std::vector<double>& preferred_positions);
 
     /**
      * @brief [Non-blocking] Reset preferred joint positions to the ones automatically recorded when
@@ -571,8 +636,8 @@ public:
      * @warning Upon disconnection, force control axes will be reset to all disabled and maximum
      * linear velocity in force control axes will be reset to 1.0 m/s.
      */
-    void SetForceControlAxis(const std::array<bool, kCartDOF>& enabled_axis,
-        const std::array<double, kCartDOF / 2>& max_linear_vel = {1.0, 1.0, 1.0});
+    void SetForceControlAxis(const std::array<bool, kCartDoF>& enabled_axis,
+        const std::array<double, kCartDoF / 2>& max_linear_vel = {1.0, 1.0, 1.0});
 
     /**
      * @brief [Blocking] Set force control reference frame for the Cartesian motion-force control
@@ -646,7 +711,7 @@ public:
      * @return Digital input readings array whose index corresponds to the digital input port index.
      * True: port high, false: port low.
      */
-    std::array<bool, kIOPorts> ReadDigitalInput();
+    const std::array<bool, kIOPorts> ReadDigitalInput();
 
 private:
     class Impl;
@@ -659,6 +724,7 @@ private:
     friend class FileIO;
 };
 
+} /* namespace rdk */
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_ROBOT_H_ */
+#endif /* FLEXIV_RDK_ROBOT_HPP_ */

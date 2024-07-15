@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-"""basics5_zero_force_torque_sensors.py
+"""intermediate5_robot_dynamics.py
 
-This tutorial zeros the robot's force and torque sensors, which is a recommended (but not
-mandatory) step before any operations that require accurate force/torque measurement.
+This tutorial runs the integrated dynamics engine to obtain robot Jacobian, mass matrix, and
+gravity torques. Also checks reachability of a Cartesian pose.
 """
 
 __copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
@@ -12,7 +12,6 @@ __author__ = "Flexiv"
 import time
 import argparse
 import spdlog  # pip install spdlog
-from utility import list2str
 
 # Flexiv RDK Python library is installed to user site packages
 import flexivrdk
@@ -35,9 +34,9 @@ def main():
 
     # Print description
     logger.info(
-        ">>> Tutorial description <<<\nThis tutorial zeros the robot's force and torque sensors, "
-        "which is a recommended (but not mandatory) step before any operations that require "
-        "accurate force/torque measurement."
+        ">>> Tutorial description <<<\nThis tutorial runs the integrated dynamics engine to obtain "
+        "robot Jacobian, mass matrix, and gravity torques. Also checks reachability of a Cartesian "
+        "pose."
     )
 
     try:
@@ -65,35 +64,51 @@ def main():
 
         logger.info("Robot is now operational")
 
-        # Zero Sensors
-        # ==========================================================================================
-        # Get and print the current TCP force/moment readings
-        logger.info(
-            f"TCP force and moment reading in base frame BEFORE sensor zeroing: {robot.states().ext_wrench_in_world} N-Nm"
-        )
-
-        # Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
+        # Move robot to home pose
+        logger.info("Moving to home pose")
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
-        robot.ExecutePrimitive("ZeroFTSensor()")
+        robot.ExecutePrimitive("Home()")
 
-        # WARNING: during the process, the robot must not contact anything, otherwise the result
-        # will be inaccurate and affect following operations
-        logger.warn(
-            "Zeroing force/torque sensors, make sure nothing is in contact with the robot"
-        )
-
-        # Wait for the primitive completion
+        # Wait for the primitive to finish
         while robot.busy():
             time.sleep(1)
-        logger.info("Sensor zeroing complete")
 
-        # Get and print the current TCP force/moment readings
-        logger.info(
-            f"TCP force and moment reading in base frame AFTER sensor zeroing: {robot.states().ext_wrench_in_world} N-Nm"
-        )
+        # Robot Dynamics
+        # ==========================================================================================
+        # Initialize dynamics engine
+        model = flexivrdk.Model(robot)
+
+        # Step dynamics engine 5 times
+        for i in range(5):
+            # Update robot model in dynamics engine
+            model.Update(robot.states().q, robot.states().dtheta)
+
+            # Compute gravity vector
+            g = model.g()
+
+            # Compute mass matrix
+            M = model.M()
+
+            # Compute Jacobian
+            J = model.J("flange")
+
+            # Print result
+            logger.info("g = ")
+            print(g, flush=True)
+            logger.info("M = ")
+            print(M, flush=True)
+            logger.info("J = ")
+            print(J, flush=True)
+            print()
+
+        # Check reachability of a Cartesian pose based on current pose
+        pose_to_check = robot.states().tcp_pose.copy()
+        pose_to_check[0] += 0.1
+        logger.info(f"Checking reachability of Cartesian pose {pose_to_check}")
+        result = model.reachable(pose_to_check, robot.states().q, True)
+        logger.info(f"Got a result: reachable = {result[0]}, IK solution = {result[1]}")
 
     except Exception as e:
-        # Print exception error message
         logger.error(str(e))
 
 

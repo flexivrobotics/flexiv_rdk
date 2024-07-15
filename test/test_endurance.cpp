@@ -2,14 +2,14 @@
  * @test test_endurance.cpp
  * Endurance test running Cartesian impedance control to slowly sine-sweep near home for a duration
  * of user-specified hours. Raw data will be logged to CSV files continuously.
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/log.h>
-#include <flexiv/scheduler.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/scheduler.hpp>
+#include <flexiv/rdk/utility.hpp>
+#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <fstream>
@@ -29,7 +29,7 @@ const double kSwingAmp = 0.1;
 const double kSwingFreq = 0.025; // = 10mm/s linear velocity
 
 /** Current Cartesian-space pose (position + rotation) of robot TCP */
-std::array<double, flexiv::kPoseSize> g_curr_tcp_pose;
+std::array<double, flexiv::rdk::kPoseSize> g_curr_tcp_pose;
 
 /** Test duration converted from user-specified hours to loop counts */
 uint64_t g_test_duration_loop_counts = 0;
@@ -40,8 +40,8 @@ const unsigned int kLogDurationLoopCounts = 10 * 60 * 1000; // = 10 min/file
 /** Data to be logged in low-priority thread */
 struct LogData
 {
-    std::array<double, flexiv::kPoseSize> tcp_pose;
-    std::array<double, flexiv::kCartDOF> tcp_force;
+    std::array<double, flexiv::rdk::kPoseSize> tcp_pose;
+    std::array<double, flexiv::rdk::kCartDoF> tcp_force;
 } g_log_data;
 
 /** Atomic signal to stop the test */
@@ -49,7 +49,7 @@ std::atomic<bool> g_stop = {false};
 }
 
 void highPriorityTask(
-    flexiv::Robot& robot, flexiv::Log& log, const std::array<double, flexiv::kPoseSize>& init_pose)
+    flexiv::rdk::Robot& robot, const std::array<double, flexiv::rdk::kPoseSize>& init_pose)
 {
     // Local periodic loop counter
     static uint64_t loop_counter = 0;
@@ -77,7 +77,7 @@ void highPriorityTask(
         }
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         g_stop = true;
     }
 }
@@ -96,9 +96,6 @@ void lowPriorityTask()
     // CSV file counter (data during the test is divided to multiple files)
     unsigned int file_counter = 0;
 
-    // Log object for printing message with timestamp and coloring
-    flexiv::Log log;
-
     // Wait for a while for the robot states data to be available
     std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -112,7 +109,7 @@ void lowPriorityTask()
         if (loop_counter % kLogDurationLoopCounts == 0) {
             if (csv_file.is_open()) {
                 csv_file.close();
-                log.Info("Saved log file: " + csv_file_name);
+                spdlog::info("Saved log file: {}", csv_file_name);
             }
 
             // Increment log file counter
@@ -124,9 +121,9 @@ void lowPriorityTask()
             // Open new log file
             csv_file.open(csv_file_name);
             if (csv_file.is_open()) {
-                log.Info("Created new log file: " + csv_file_name);
+                spdlog::info("Created new log file: {}", csv_file_name);
             } else {
-                log.Error("Failed to create log file: " + csv_file_name);
+                spdlog::error("Failed to create log file: {}", csv_file_name);
             }
         }
 
@@ -146,11 +143,11 @@ void lowPriorityTask()
 
         // Check if the test duration has elapsed
         if (g_stop) {
-            log.Info("Test duration has elapsed, saving any open log file ...");
+            spdlog::info("Test duration has elapsed, saving any open log file ...");
             // Close log file
             if (csv_file.is_open()) {
                 csv_file.close();
-                log.Info("Saved log file: " + csv_file_name);
+                spdlog::info("Saved log file: {}", csv_file_name);
             }
             // Exit thread
             return;
@@ -172,12 +169,9 @@ void PrintHelp()
 
 int main(int argc, char* argv[])
 {
-    // log object for printing message with timestamp and coloring
-    flexiv::Log log;
-
     // Parse Parameters
     //==============================================================================================
-    if (argc < 3 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -189,39 +183,38 @@ int main(int argc, char* argv[])
     double test_hours = std::stof(argv[2]);
     // convert duration in hours to loop counts
     g_test_duration_loop_counts = (uint64_t)(test_hours * 3600.0 * 1000.0);
-    log.Info("Test duration: " + std::to_string(test_hours)
-             + " hours = " + std::to_string(g_test_duration_loop_counts) + " cycles");
+    spdlog::info("Test duration: {} hours = {} cycles", test_hours, g_test_duration_loop_counts);
 
     try {
         // RDK Initialization
         //==========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            log.Warn("Fault occurred on the connected robot, trying to clear ...");
+            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                log.Error("Fault cannot be cleared, exiting ...");
+                spdlog::error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.Info("Fault on the connected robot is cleared");
+            spdlog::info("Fault on the connected robot is cleared");
         }
 
         // enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...");
+        spdlog::info("Enabling robot ...");
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.Info("Robot is now operational");
+        spdlog::info("Robot is now operational");
 
         // Bring Robot To Home
         //==========================================================================================
-        robot.SwitchMode(flexiv::Mode::NRT_PLAN_EXECUTION);
+        robot.SwitchMode(flexiv::rdk::Mode::NRT_PLAN_EXECUTION);
         robot.ExecutePlan("PLAN-Home");
 
         // Wait fot the plan to finish
@@ -230,20 +223,19 @@ int main(int argc, char* argv[])
         } while (robot.busy());
 
         // Switch mode after robot is at home
-        robot.SwitchMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE);
+        robot.SwitchMode(flexiv::rdk::Mode::RT_CARTESIAN_MOTION_FORCE);
 
         // Set initial pose to current TCP pose
         auto init_pose = robot.states().tcp_pose;
-        log.Info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
-                 + flexiv::utility::Arr2Str(init_pose));
+        spdlog::info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
+                     + flexiv::rdk::utility::Arr2Str(init_pose));
         g_curr_tcp_pose = init_pose;
 
         // Periodic Tasks
         //==========================================================================================
-        flexiv::Scheduler scheduler;
+        flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(
-            std::bind(highPriorityTask, std::ref(robot), std::ref(log), std::ref(init_pose)),
+        scheduler.AddTask(std::bind(highPriorityTask, std::ref(robot), std::ref(init_pose)),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();
@@ -255,7 +247,7 @@ int main(int argc, char* argv[])
         low_priority_thread.join();
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         return 1;
     }
 

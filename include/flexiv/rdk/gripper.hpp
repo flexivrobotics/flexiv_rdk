@@ -1,15 +1,16 @@
 /**
- * @file gripper.h
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @file gripper.hpp
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_GRIPPER_H_
-#define FLEXIVRDK_GRIPPER_H_
+#ifndef FLEXIV_RDK_GRIPPER_HPP_
+#define FLEXIV_RDK_GRIPPER_HPP_
 
-#include "robot.h"
+#include "robot.hpp"
 #include <memory>
 
 namespace flexiv {
+namespace rdk {
 
 /**
  * @class Gripper
@@ -20,7 +21,7 @@ class Gripper
 public:
     /**
      * @brief [Non-blocking] Create an instance and initialize gripper control interface.
-     * @param[in] robot Reference to the instance of flexiv::Robot.
+     * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */
     Gripper(const Robot& robot);
@@ -75,13 +76,14 @@ public:
      * @return GripperStates value copy.
      * @note Real-time (RT).
      */
-    GripperStates states() const;
+    const GripperStates states() const;
 
 private:
     class Impl;
     std::unique_ptr<Impl> pimpl_;
 };
 
+} /* namespace rdk */
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_GRIPPER_H_ */
+#endif /* FLEXIV_RDK_GRIPPER_HPP_ */

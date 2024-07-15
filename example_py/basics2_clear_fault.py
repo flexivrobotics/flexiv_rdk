@@ -2,34 +2,18 @@
 
 """basics2_clear_fault.py
 
-This tutorial clears minor faults from the robot server if any. Note that critical faults cannot
-be cleared, see RDK manual for more details.
+This tutorial clears minor or critical faults, if any, of the connected robot.
 """
 
-__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
 import argparse
+import spdlog  # pip install spdlog
 
-# Import Flexiv RDK Python library
-# fmt: off
-import sys
-sys.path.insert(0, "../lib_py")
+# Flexiv RDK Python library is installed to user site packages
 import flexivrdk
-# fmt: on
-
-
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial clears minor faults from the robot server if any. Note that "
-        "critical faults cannot be cleared, see RDK manual for more details."
-    )
-    print()
 
 
 def main():
@@ -44,11 +28,13 @@ def main():
     args = argparser.parse_args()
 
     # Define alias
-    log = flexivrdk.Log()
+    logger = spdlog.ConsoleLogger("Example")
 
     # Print description
-    log.Info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial clears minor or critical faults, if any, of "
+        "the connected robot."
+    )
 
     try:
         # RDK Initialization
@@ -60,18 +46,18 @@ def main():
         # ==========================================================================================
         # Clear fault on the connected robot if any
         if robot.fault():
-            log.Warn("Fault occurred on the connected robot, trying to clear ...")
+            logger.warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
             if not robot.ClearFault():
-                log.Error("Fault cannot be cleared, exiting ...")
+                logger.error("Fault cannot be cleared, exiting ...")
                 return 1
-            log.Info("Fault on the connected robot is cleared")
+            logger.info("Fault on the connected robot is cleared")
         else:
-            log.Info("No fault on the connected robot")
+            logger.info("No fault on the connected robot")
 
     except Exception as e:
         # Print exception error message
-        log.Error(str(e))
+        logger.error(str(e))
 
 
 if __name__ == "__main__":

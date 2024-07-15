@@ -1,17 +1,17 @@
 /**
- * @example intermediate3_realtime_joint_floating.cpp
+ * @example intermediate4_realtime_joint_floating.cpp
  * This tutorial runs real-time joint floating with gentle velocity damping, gravity compensation,
  * and soft protection against position limits. This example is ideal for verifying the system's
  * whole-loop real-timeliness, accuracy of the robot dynamics model, and joint torque control
  * performance. If everything works well, all joints should float smoothly.
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/log.h>
-#include <flexiv/scheduler.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/scheduler.hpp>
+#include <flexiv/rdk/utility.hpp>
+#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <string>
@@ -20,23 +20,10 @@
 
 namespace {
 /** Joint velocity damping gains for floating */
-const std::array<double, flexiv::kJointDOF> kFloatingDamping
-    = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
+const std::vector<double> kFloatingDamping = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
 
 /** Atomic signal to stop scheduler tasks */
 std::atomic<bool> g_stop_sched = {false};
-}
-
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial runs real-time joint floating with gentle velocity damping, "
-                 "gravity compensation, and soft protection against position limits. This example "
-                 "is ideal for verifying the system's whole-loop real-timeliness, accuracy of the "
-                 "robot dynamics model, and joint torque control performance. If everything works "
-                 "well, all joints should float smoothly."
-              << std::endl
-              << std::endl;
 }
 
 /** @brief Print program usage help */
@@ -52,7 +39,7 @@ void PrintHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log)
+void PeriodicTask(flexiv::rdk::Robot& robot)
 {
     try {
         // Monitor fault on the connected robot
@@ -62,10 +49,10 @@ void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log)
         }
 
         // Set 0 joint torques
-        std::array<double, flexiv::kJointDOF> target_torque = {};
+        std::vector<double> target_torque(robot.info().DoF);
 
         // Add some velocity damping
-        for (size_t i = 0; i < flexiv::kJointDOF; ++i) {
+        for (size_t i = 0; i < target_torque.size(); ++i) {
             target_torque[i] += -kFloatingDamping[i] * robot.states().dtheta[i];
         }
 
@@ -74,7 +61,7 @@ void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log)
         robot.StreamJointTorque(target_torque, true, true);
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         g_stop_sched = true;
     }
 }
@@ -83,11 +70,8 @@ int main(int argc, char* argv[])
 {
     // Program Setup
     // =============================================================================================
-    // Logger for printing message with timestamp and coloring
-    flexiv::Log log;
-
     // Parse parameters
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -95,39 +79,43 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    log.Info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial runs real-time joint floating with gentle "
+        "velocity damping, gravity compensation, and soft protection against position limits. This "
+        "example is ideal for verifying the system's whole-loop real-timeliness, accuracy of the "
+        "robot dynamics model, and joint torque control performance. If everything works well, all "
+        "joints should float smoothly.");
 
     try {
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            log.Warn("Fault occurred on the connected robot, trying to clear ...");
+            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                log.Error("Fault cannot be cleared, exiting ...");
+                spdlog::error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.Info("Fault on the connected robot is cleared");
+            spdlog::info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...");
+        spdlog::info("Enabling robot ...");
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.Info("Robot is now operational");
+        spdlog::info("Robot is now operational");
 
         // Move robot to home pose
-        log.Info("Moving to home pose");
-        robot.SwitchMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
+        spdlog::info("Moving to home pose");
+        robot.SwitchMode(flexiv::rdk::Mode::NRT_PRIMITIVE_EXECUTION);
         robot.ExecutePrimitive("Home()");
 
         // Wait for the primitive to finish
@@ -138,13 +126,13 @@ int main(int argc, char* argv[])
         // Real-time Joint Floating
         // =========================================================================================
         // Switch to real-time joint torque control mode
-        robot.SwitchMode(flexiv::Mode::RT_JOINT_TORQUE);
+        robot.SwitchMode(flexiv::rdk::Mode::RT_JOINT_TORQUE);
 
         // Create real-time scheduler to run periodic tasks
-        flexiv::Scheduler scheduler;
+        flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(log)), "HP periodic", 1,
-            scheduler.max_priority());
+        scheduler.AddTask(
+            std::bind(PeriodicTask, std::ref(robot)), "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();
 
@@ -156,7 +144,7 @@ int main(int argc, char* argv[])
         scheduler.Stop();
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         return 1;
     }
 

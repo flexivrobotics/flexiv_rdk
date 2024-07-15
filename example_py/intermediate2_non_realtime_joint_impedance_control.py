@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-"""intermediate1_non_realtime_joint_position_control.py
+"""intermediate2_non_realtime_joint_impedance_control.py
 
-This tutorial runs non-real-time joint position control to hold or sine-sweep all robot joints.
+This tutorial runs non-real-time joint impedance control to hold or sine-sweep all robot joints.
 """
 
 __copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
@@ -12,6 +12,7 @@ import time
 import math
 import argparse
 import spdlog  # pip install spdlog
+import numpy as np  # pip install numpy
 
 # Flexiv RDK Python library is installed to user site packages
 import flexivrdk
@@ -48,7 +49,7 @@ def main():
 
     # Print description
     logger.info(
-        ">>> Tutorial description <<<\nThis tutorial runs non-real-time joint position control to "
+        ">>> Tutorial description <<<\nThis tutorial runs non-real-time joint impedance control to "
         "hold or sine-sweep all robot joints."
     )
 
@@ -86,13 +87,13 @@ def main():
         while robot.busy():
             time.sleep(1)
 
-        # Non-real-time Joint Position Control
+        # Non-real-time Joint Impedance Control
         # ==========================================================================================
-        # Switch to non-real-time joint position control mode
-        robot.SwitchMode(mode.NRT_JOINT_POSITION)
+        # Switch to non-real-time joint impedance control mode
+        robot.SwitchMode(mode.NRT_JOINT_IMPEDANCE)
 
         period = 1.0 / frequency
-        loop_time = 0
+        loop_counter = 0
         logger.info(
             f"Sending command to robot at {frequency} Hz, or {period} seconds interval"
         )
@@ -132,17 +133,28 @@ def main():
             if not args.hold:
                 for i in range(DoF):
                     target_pos[i] = init_pos[i] + SWING_AMP * math.sin(
-                        2 * math.pi * SWING_FREQ * loop_time
+                        2 * math.pi * SWING_FREQ * loop_counter * period
                     )
             # Otherwise all joints will hold at initial positions
 
-            # Send command
+            # Reduce joint stiffness to half of nominal values after 5 seconds
+            if loop_counter == 5 / period:
+                new_Kq = np.multiply(robot.info().K_q_nom, 0.5)
+                robot.SetJointImpedance(new_Kq)
+                logger.info(f"Joint stiffness set to {new_Kq}")
+
+            # Reset joint stiffness to nominal values after another 5 seconds
+            if loop_counter == 10 / period:
+                robot.ResetJointImpedance()
+                logger.info(f"Joint stiffness reset to {robot.info().K_q_nom}")
+
+            # Send commands
             robot.SendJointPosition(
                 target_pos, target_vel, target_acc, MAX_VEL, MAX_ACC
             )
 
-            # Increment loop time
-            loop_time += period
+            # Increment loop counter
+            loop_counter += 1
 
     except Exception as e:
         # Print exception error message

@@ -1,6 +1,11 @@
 /**
- * @example intermediate1_realtime_joint_position_control.cpp
- * This tutorial runs real-time joint position control to hold or sine-sweep all robot joints.
+ * @example intermediate3_realtime_joint_torque_control.cpp
+ * This tutorial runs real-time joint torque control to hold or sine-sweep all robot joints. An
+ * outer position loop is used to generate joint torque commands. This outer position loop + inner
+ * torque loop together is also known as an impedance controller.
+ * @warning The impedance controller in this example is for demo purpose only and has no performance
+ * guarantee. To use the robot's built-in high-performance joint impedance controller, please refer
+ * to intermediate2_realtime_joint_impedance_control.cpp.
  * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -19,6 +24,10 @@
 namespace {
 /** RT loop period [sec] */
 constexpr double kLoopPeriod = 0.001;
+
+/** Outer position loop (impedance) gains, values are only for demo purpose */
+const std::vector<double> kImpedanceKp = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
+const std::vector<double> kImpedanceKd = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
 
 /** Sine-sweep trajectory amplitude and frequency */
 constexpr double kSineAmp = 0.035;
@@ -55,12 +64,10 @@ void PeriodicTask(
                 "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
 
-        // Initialize target vectors to hold position
+        // Target joint positions
         std::vector<double> target_pos(robot.info().DoF);
-        std::vector<double> target_vel(robot.info().DoF);
-        std::vector<double> target_acc(robot.info().DoF);
 
-        // Set target vectors based on motion type
+        // Set target position based on motion type
         if (motion_type == "hold") {
             target_pos = init_pos;
         } else if (motion_type == "sine-sweep") {
@@ -73,8 +80,15 @@ void PeriodicTask(
                 "PeriodicTask: unknown motion type. Accepted motion types: hold, sine-sweep");
         }
 
-        // Send target joint position to RDK server
-        robot.StreamJointPosition(target_pos, target_vel, target_acc);
+        // Run impedance control on all joints
+        std::vector<double> target_torque(robot.info().DoF);
+        for (size_t i = 0; i < target_torque.size(); ++i) {
+            target_torque[i] = kImpedanceKp[i] * (target_pos[i] - robot.states().q[i])
+                               - kImpedanceKd[i] * robot.states().dtheta[i];
+        }
+
+        // Send target joint torque to RDK server
+        robot.StreamJointTorque(target_torque, true);
 
         loop_counter++;
 
@@ -98,8 +112,10 @@ int main(int argc, char* argv[])
 
     // Print description
     spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial runs real-time joint position control to hold "
-        "or sine-sweep all robot joints.");
+        ">>> Tutorial description <<<\nThis tutorial runs real-time joint torque control to hold "
+        "or sine-sweep all robot joints. An outer position loop is used to generate joint torque "
+        "commands. This outer position loop + inner torque loop together is also known as an "
+        "impedance controller.");
 
     // Type of motion specified by user
     std::string motion_type = "";
@@ -148,10 +164,10 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
-        // Real-time Joint Position Control
+        // Real-time Joint Torque Control
         // =========================================================================================
-        // Switch to real-time joint position control mode
-        robot.SwitchMode(flexiv::rdk::Mode::RT_JOINT_POSITION);
+        // Switch to real-time joint torque control mode
+        robot.SwitchMode(flexiv::rdk::Mode::RT_JOINT_TORQUE);
 
         // Set initial joint positions
         auto init_pos = robot.states().q;

@@ -1,15 +1,16 @@
 /**
- * @file device.h
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @file device.hpp
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_DEVICE_H_
-#define FLEXIVRDK_DEVICE_H_
+#ifndef FLEXIV_RDK_DEVICE_HPP_
+#define FLEXIV_RDK_DEVICE_HPP_
 
-#include "robot.h"
+#include "robot.hpp"
 #include <map>
 
 namespace flexiv {
+namespace rdk {
 
 /**
  * @class Device
@@ -20,7 +21,7 @@ class Device
 public:
     /**
      * @brief [Non-blocking] Create an instance and initialize device control interface.
-     * @param[in] robot Reference to the instance of flexiv::Robot.
+     * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */
     Device(const Robot& robot);
@@ -33,7 +34,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    std::map<std::string, bool> list() const;
+    const std::map<std::string, bool> list() const;
 
     /**
      * @brief [Blocking] Enable the specified device.
@@ -69,6 +70,7 @@ private:
     std::unique_ptr<Impl> pimpl_;
 };
 
+} /* namespace rdk */
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_DEVICE_H_ */
+#endif /* FLEXIV_RDK_DEVICE_HPP_ */

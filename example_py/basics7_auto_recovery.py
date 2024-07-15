@@ -3,33 +3,18 @@
 """basics7_auto_recovery.py
 
 This tutorial runs an automatic recovery process if the robot's safety system is in recovery
-state. See flexiv::Robot::recovery() and RDK manual for more details.
+state. See Robot::recovery() and RDK manual for more details.
 """
 
-__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
 import argparse
+import spdlog  # pip install spdlog
 
-# Import Flexiv RDK Python library
-# fmt: off
-import sys
-sys.path.insert(0, "../lib_py")
+# Flexiv RDK Python library is installed to user site packages
 import flexivrdk
-# fmt: on
-
-
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial runs an automatic recovery process if the robot's safety system is in "
-        "recovery state. See flexiv::Robot::recovery() and RDK manual for more details."
-    )
-    print()
 
 
 def main():
@@ -44,11 +29,14 @@ def main():
     args = argparser.parse_args()
 
     # Define alias
-    log = flexivrdk.Log()
+    logger = spdlog.ConsoleLogger("Example")
 
     # Print description
-    log.Info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial runs an automatic recovery process if the "
+        "robot's safety system is in recovery state. See flexiv::rdk::Robot::recovery() and RDK "
+        "manual for more details."
+    )
 
     try:
         # RDK Initialization
@@ -57,7 +45,7 @@ def main():
         robot = flexivrdk.Robot(args.robot_sn)
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...")
+        logger.info("Enabling robot ...")
         robot.Enable()
 
         # Run Auto-recovery
@@ -72,13 +60,13 @@ def main():
             robot.RunAutoRecovery()
         # Otherwise the system is normal, do nothing
         else:
-            log.Info(
+            logger.info(
                 "Robot system is not in recovery state, nothing to be done, exiting ..."
             )
 
     except Exception as e:
         # Print exception error message
-        log.Error(str(e))
+        logger.error(str(e))
 
 
 if __name__ == "__main__":

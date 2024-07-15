@@ -2,26 +2,16 @@
  * @example basics3_primitive_execution.cpp
  * This tutorial executes several basic robot primitives (unit skills). For detailed documentation
  * on all available primitives, please see [Flexiv Primitives](https://www.flexiv.com/primitives/).
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/log.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/utility.hpp>
+#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <thread>
-
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial executes several basic robot primitives (unit skills). For "
-                 "detailed documentation on all available primitives, please see [Flexiv "
-                 "Primitives](https://www.flexiv.com/primitives/)."
-              << std::endl
-              << std::endl;
-}
 
 /** @brief Print program usage help */
 void PrintHelp()
@@ -39,11 +29,8 @@ int main(int argc, char* argv[])
 {
     // Program Setup
     // =============================================================================================
-    // Logger for printing message with timestamp and coloring
-    flexiv::Log log;
-
     // Parse parameters
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -51,46 +38,48 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    log.Info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial executes several basic robot primitives (unit "
+        "skills). For detailed documentation on all available primitives, please see [Flexiv "
+        "Primitives](https://www.flexiv.com/primitives/).");
 
     try {
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            log.Warn("Fault occurred on the connected robot, trying to clear ...");
+            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                log.Error("Fault cannot be cleared, exiting ...");
+                spdlog::error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.Info("Fault on the connected robot is cleared");
+            spdlog::info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...");
+        spdlog::info("Enabling robot ...");
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.Info("Robot is now operational");
+        spdlog::info("Robot is now operational");
 
         // Execute Primitives
         // =========================================================================================
         // Switch to primitive execution mode
-        robot.SwitchMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
+        robot.SwitchMode(flexiv::rdk::Mode::NRT_PRIMITIVE_EXECUTION);
 
         // (1) Go to home pose
         // -----------------------------------------------------------------------------------------
         // All parameters of the "Home" primitive are optional, thus we can skip the parameters and
         // the default values will be used
-        log.Info("Executing primitive: Home");
+        spdlog::info("Executing primitive: Home");
 
         // Send command to robot
         robot.ExecutePrimitive("Home()");
@@ -103,13 +92,14 @@ int main(int argc, char* argv[])
         // (2) Move robot joints to target positions
         // -----------------------------------------------------------------------------------------
         // The required parameter <target> takes in 7 target joint positions. Unit: degrees
-        log.Info("Executing primitive: MoveJ");
+        spdlog::info("Executing primitive: MoveJ");
 
         // Send command to robot
         robot.ExecutePrimitive("MoveJ(target=30 -45 0 90 0 40 30)");
 
         // Wait for reached target
-        while (flexiv::utility::ParsePtStates(robot.primitive_states(), "reachedTarget") != "1") {
+        while (
+            flexiv::rdk::utility::ParsePtStates(robot.primitive_states(), "reachedTarget") != "1") {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -122,21 +112,22 @@ int main(int argc, char* argv[])
         // Optional parameter:
         //   waypoints: waypoints to pass before reaching final target
         //       (same format as above, but can repeat for number of waypoints)
-        //   maxVel: maximum TCP linear velocity
+        //   vel: TCP linear velocity
         //       Unit: m/s
         // NOTE: The rotations use Euler ZYX convention, rot_x means Euler ZYX angle around X axis
-        log.Info("Executing primitive: MoveL");
+        spdlog::info("Executing primitive: MoveL");
 
         // Send command to robot
         robot.ExecutePrimitive(
             "MoveL(target=0.65 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN,waypoints=0.45 0.1 0.2 180 0 "
-            "180 WORLD WORLD_ORIGIN : 0.45 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN, maxVel=0.2)");
+            "180 WORLD WORLD_ORIGIN : 0.45 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN, vel=0.2)");
 
         // The [Move] series primitive won't terminate itself, so we determine if the robot has
         // reached target location by checking the primitive state "reachedTarget = 1" in the list
         // of current primitive states, and terminate the current primitive manually by sending a
         // new primitive command.
-        while (flexiv::utility::ParsePtStates(robot.primitive_states(), "reachedTarget") != "1") {
+        while (
+            flexiv::rdk::utility::ParsePtStates(robot.primitive_states(), "reachedTarget") != "1") {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -144,20 +135,22 @@ int main(int argc, char* argv[])
         // -----------------------------------------------------------------------------------------
         // In this example the reference frame is changed from WORLD::WORLD_ORIGIN to TRAJ::START,
         // which represents the current TCP frame
-        log.Info("Executing primitive: MoveL");
+        spdlog::info("Executing primitive: MoveL");
 
         // Example to convert target quaternion [w,x,y,z] to Euler ZYX using utility functions
         std::array<double, 4> targetQuat = {0.9185587, 0.1767767, 0.3061862, 0.1767767};
         // ZYX = [30, 30, 30] degrees
-        auto targetEulerDeg = flexiv::utility::Rad2Deg(flexiv::utility::Quat2EulerZYX(targetQuat));
+        auto targetEulerDeg
+            = flexiv::rdk::utility::Rad2Deg(flexiv::rdk::utility::Quat2EulerZYX(targetQuat));
 
         // Send command to robot. This motion will hold current TCP position and only do TCP
         // rotation
-        robot.ExecutePrimitive(
-            "MoveL(target=0.0 0.0 0.0 " + flexiv::utility::Arr2Str(targetEulerDeg) + "TRAJ START)");
+        robot.ExecutePrimitive("MoveL(target=0.0 0.0 0.0 "
+                               + flexiv::rdk::utility::Arr2Str(targetEulerDeg) + "TRAJ START)");
 
         // Wait for reached target
-        while (flexiv::utility::ParsePtStates(robot.primitive_states(), "reachedTarget") != "1") {
+        while (
+            flexiv::rdk::utility::ParsePtStates(robot.primitive_states(), "reachedTarget") != "1") {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -165,7 +158,7 @@ int main(int argc, char* argv[])
         robot.Stop();
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         return 1;
     }
 

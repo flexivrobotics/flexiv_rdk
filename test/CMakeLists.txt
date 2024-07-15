@@ -15,7 +15,6 @@ endif()
 # Tests for Windows
 set(TEST_LIST
   test_dynamics_engine
-  test_log
 )
 
 # Additional tests for Linux and Mac

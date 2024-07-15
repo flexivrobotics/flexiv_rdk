@@ -1,28 +1,18 @@
 /**
  * @example basics7_auto_recovery.cpp
  * This tutorial runs an automatic recovery process if the robot's safety system is in recovery
- * state. See flexiv::Robot::recovery() and RDK manual for more details.
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * state. See flexiv::rdk::Robot::recovery() and RDK manual for more details.
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/log.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/utility.hpp>
+#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <string>
 #include <thread>
-
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout
-        << "This tutorial runs an automatic recovery process if the robot's safety system is in "
-           "recovery state. See flexiv::Robot::recovery() and RDK manual for more details."
-        << std::endl
-        << std::endl;
-}
 
 /** @brief Print program usage help */
 void PrintHelp()
@@ -40,11 +30,8 @@ int main(int argc, char* argv[])
 {
     // Program Setup
     // =============================================================================================
-    // Logger for printing message with timestamp and coloring
-    flexiv::Log log;
-
     // Parse parameters
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -52,17 +39,19 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    log.Info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial runs an automatic recovery process if the "
+        "robot's safety system is in recovery state. See flexiv::rdk::Robot::recovery() and RDK "
+        "manual for more details.");
 
     try {
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...");
+        spdlog::info("Enabling robot ...");
         robot.Enable();
 
         // Run Auto-recovery
@@ -78,10 +67,10 @@ int main(int argc, char* argv[])
         }
         // Otherwise the system is normal, do nothing
         else {
-            log.Info("Robot system is not in recovery state, nothing to be done, exiting ...");
+            spdlog::info("Robot system is not in recovery state, nothing to be done, exiting ...");
         }
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         return 1;
     }
 

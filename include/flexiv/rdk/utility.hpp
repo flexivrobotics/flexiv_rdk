@@ -1,15 +1,16 @@
 /**
- * @file utility.h
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @file utility.hpp
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_UTILITY_H_
-#define FLEXIVRDK_UTILITY_H_
+#ifndef FLEXIV_RDK_UTILITY_HPP_
+#define FLEXIV_RDK_UTILITY_HPP_
 
 #include <Eigen/Eigen>
 #include <array>
 
 namespace flexiv {
+namespace rdk {
 namespace utility {
 
 /**
@@ -54,31 +55,50 @@ inline std::array<double, N> Rad2Deg(const std::array<double, N>& rad_arr)
 }
 
 /**
- * @brief Convert a std::array to a string.
- * @param[in] arr std::array of any type and size.
- * @param[in] decimal Decimal places to keep for each number in the array.
+ * @brief Convert an std::vector to a string.
+ * @param[in] vec std::vector of any type and size.
+ * @param[in] decimal Decimal places to keep for each number in the vector.
  * @param[in] trailing_space Whether to include a space after the last element.
- * @return A string with format "arr[0] arr[1] ... arr[n] ", i.e. each element followed by a space,
+ * @param[in] separator Character to separate between numbers.
+ * @return A string with format "vec[0] vec[1] ... vec[n] ", i.e. each element followed by a space,
  * including the last one if trailing_space = true.
  */
-template <typename T, size_t N>
-inline std::string Arr2Str(
-    const std::array<T, N>& arr, size_t decimal = 3, bool trailing_space = true)
+template <typename T>
+inline std::string Vec2Str(const std::vector<T>& vec, size_t decimal = 3,
+    bool trailing_space = true, const std::string& separator = " ")
 {
-    auto padding = "";
+    std::string padding = "";
     std::stringstream ss;
     ss.precision(decimal);
     ss << std::fixed;
 
-    for (const auto& v : arr) {
+    for (const auto& v : vec) {
         ss << padding << v;
-        padding = " ";
+        padding = separator;
     }
 
     if (trailing_space) {
         ss << " ";
     }
     return ss.str();
+}
+
+/**
+ * @brief Convert an std::array to a string.
+ * @param[in] arr std::array of any type and size.
+ * @param[in] decimal Decimal places to keep for each number in the array.
+ * @param[in] trailing_space Whether to include a space after the last element.
+ * @param[in] separator Character to separate between numbers.
+ * @return A string with format "arr[0] arr[1] ... arr[n] ", i.e. each element followed by a space,
+ * including the last one if trailing_space = true.
+ */
+template <typename T, size_t N>
+inline std::string Arr2Str(const std::array<T, N>& arr, size_t decimal = 3,
+    bool trailing_space = true, const std::string& separator = " ")
+{
+    std::vector<T> vec(N);
+    std::copy(arr.begin(), arr.end(), vec.begin());
+    return Vec2Str(vec, decimal, trailing_space, separator);
 }
 
 /**
@@ -144,6 +164,7 @@ inline std::string ParsePtStates(
 }
 
 } /* namespace utility */
+} /* namespace rdk */
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_UTILITY_H_ */
+#endif /* FLEXIV_RDK_UTILITY_HPP_ */

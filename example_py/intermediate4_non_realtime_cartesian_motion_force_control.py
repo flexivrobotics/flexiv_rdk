@@ -1,26 +1,23 @@
 #!/usr/bin/env python
 
-"""intermediate3_non_realtime_cartesian_motion_force_control.py
+"""intermediate4_non_realtime_cartesian_motion_force_control.py
 
-This tutorial runs real-time Cartesian-space unified motion-force control. The Z axis of the
+This tutorial runs non-real-time Cartesian-space unified motion-force control. The Z axis of the
 chosen reference frame will be activated for explicit force control, while the rest axes in the
 same reference frame will stay motion controlled.
 """
 
-__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
 import math
 import argparse
-import numpy as np
+import spdlog  # pip install spdlog
+import numpy as np  # pip install numpy
 
-# Import Flexiv RDK Python library
-# fmt: off
-import sys
-sys.path.insert(0, "../lib_py")
+# Flexiv RDK Python library is installed to user site packages
 import flexivrdk
-# fmt: on
 
 # Global constants
 # ==================================================================================================
@@ -41,19 +38,6 @@ SEARCH_DISTANCE = 1.0
 
 # Maximum contact wrench during contact search for soft contact
 MAX_WRENCH_FOR_CONTACT_SEARCH = [10.0, 10.0, 10.0, 3.0, 3.0, 3.0]
-
-
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial runs real-time Cartesian-space unified motion-force control. The Z "
-        "axis of the chosen reference frame will be activated for explicit force control, "
-        "while the rest axes in the same reference frame will stay motion controlled."
-    )
-    print()
 
 
 def main():
@@ -87,26 +71,32 @@ def main():
     assert frequency >= 1 and frequency <= 100, "Invalid <frequency> input"
 
     # Define alias
-    log = flexivrdk.Log()
+    logger = spdlog.ConsoleLogger("Example")
     mode = flexivrdk.Mode
 
     # Print description
-    log.Info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial runs non-real-time Cartesian-space unified "
+        "motion-force control. The Z axis of the chosen reference frame will be activated for "
+        "explicit force control, while the rest axes in the same reference frame will stay motion "
+        "controlled."
+    )
 
     # The reference frame to use, see Robot::SendCartesianMotionForce() for more details
     frame_str = "WORLD"
     if args.TCP:
-        log.Info("Reference frame used for force control: robot TCP frame")
+        logger.info("Reference frame used for force control: robot TCP frame")
         frame_str = "TCP"
     else:
-        log.Info("Reference frame used for force control: robot world frame")
+        logger.info("Reference frame used for force control: robot world frame")
 
     # Whether to enable polish motion
     if args.polish:
-        log.Info("Robot will run a polish motion along XY plane in robot world frame")
+        logger.info(
+            "Robot will run a polish motion along XY plane in robot world frame"
+        )
     else:
-        log.Info("Robot will hold its motion in all non-force-controlled axes")
+        logger.info("Robot will hold its motion in all non-force-controlled axes")
 
     try:
         # RDK Initialization
@@ -116,25 +106,25 @@ def main():
 
         # Clear fault on the connected robot if any
         if robot.fault():
-            log.Warn("Fault occurred on the connected robot, trying to clear ...")
+            logger.warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
             if not robot.ClearFault():
-                log.Error("Fault cannot be cleared, exiting ...")
+                logger.error("Fault cannot be cleared, exiting ...")
                 return 1
-            log.Info("Fault on the connected robot is cleared")
+            logger.info("Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...")
+        logger.info("Enabling robot ...")
         robot.Enable()
 
         # Wait for the robot to become operational
         while not robot.operational():
             time.sleep(1)
 
-        log.Info("Robot is now operational")
+        logger.info("Robot is now operational")
 
         # Move robot to home pose
-        log.Info("Moving to home pose")
+        logger.info("Moving to home pose")
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
         robot.ExecutePrimitive("Home()")
 
@@ -149,27 +139,26 @@ def main():
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations
-        log.Warn(
+        logger.warn(
             "Zeroing force/torque sensors, make sure nothing is in contact with the robot"
         )
 
         # Wait for primitive completion
         while robot.busy():
             time.sleep(1)
-        log.Info("Sensor zeroing complete")
+        logger.info("Sensor zeroing complete")
 
         # Search for Contact
         # =========================================================================================
         # NOTE: there are several ways to do contact search, such as using primitives, or real-time
         # and non-real-time direct motion controls, etc. Here we use non-real-time direct Cartesian
         # control for example.
-        log.Info("Searching for contact ...")
+        logger.info("Searching for contact ...")
 
         # Set initial pose to current TCP pose
         init_pose = robot.states().tcp_pose.copy()
-        print(
-            "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",
-            init_pose,
+        logger.info(
+            f"Initial TCP pose set to {init_pose} (position 3x1, rotation (quaternion) 4x1)"
         )
 
         # Use non-real-time mode to make the robot go to a set point with its own motion generator
@@ -201,7 +190,7 @@ def main():
             # Contact is considered to be made if sensed TCP force exceeds the threshold
             if np.linalg.norm(ext_force) > PRESSING_FORCE:
                 is_contacted = True
-                log.Info("Contact detected at robot TCP")
+                logger.info("Contact detected at robot TCP")
 
             # Check at 1ms interval
             time.sleep(0.001)
@@ -239,21 +228,16 @@ def main():
 
         # Update initial pose to current TCP pose
         init_pose = robot.states().tcp_pose.copy()
-        print(
-            "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",
-            init_pose,
+        logger.info(
+            f"Initial TCP pose set to {init_pose} (position 3x1, rotation (quaternion) 4x1)"
         )
 
         # Periodic Task
         # =========================================================================================
         # Set loop period
         period = 1.0 / frequency
-        print(
-            "Sending command to robot at",
-            frequency,
-            "Hz, or",
-            period,
-            "seconds interval",
+        logger.info(
+            f"Sending command to robot at {frequency} Hz, or {period} seconds interval"
         )
 
         # Periodic loop counter
@@ -299,7 +283,7 @@ def main():
 
     except Exception as e:
         # Print exception error message
-        log.Error(str(e))
+        logger.error(str(e))
 
 
 if __name__ == "__main__":

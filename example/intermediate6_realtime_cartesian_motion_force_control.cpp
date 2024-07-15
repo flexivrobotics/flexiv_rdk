@@ -1,16 +1,16 @@
 /**
- * @example intermediate5_realtime_cartesian_motion_force_control.cpp
+ * @example intermediate6_realtime_cartesian_motion_force_control.cpp
  * This tutorial runs real-time Cartesian-space unified motion-force control. The Z axis of the
  * chosen reference frame will be activated for explicit force control, while the rest axes in the
  * same reference frame will stay motion controlled.
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/log.h>
-#include <flexiv/scheduler.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/scheduler.hpp>
+#include <flexiv/rdk/utility.hpp>
+#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <cmath>
@@ -37,21 +37,11 @@ constexpr double kSearchVelocity = 0.02;
 constexpr double kSearchDistance = 1.0;
 
 /** Maximum contact wrench during contact search for soft contact */
-const std::array<double, flexiv::kCartDOF> kMaxWrenchForContactSearch
+const std::array<double, flexiv::rdk::kCartDoF> kMaxWrenchForContactSearch
     = {10.0, 10.0, 10.0, 3.0, 3.0, 3.0};
 
 /** Atomic signal to stop scheduler tasks */
 std::atomic<bool> g_stop_sched = {false};
-}
-
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial runs real-time Cartesian-space unified motion-force control. The Z "
-                 "axis of the chosen reference frame will be activated for explicit force control, "
-                 "while the rest axes in the same reference frame will stay motion controlled."
-              << std::endl
-              << std::endl;
 }
 
 /** @brief Print program usage help */
@@ -70,8 +60,8 @@ void PrintHelp()
 }
 
 /** Callback function for realtime periodic task */
-void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log,
-    const std::array<double, flexiv::kPoseSize>& init_pose, const std::string frame_str,
+void PeriodicTask(flexiv::rdk::Robot& robot,
+    const std::array<double, flexiv::rdk::kPoseSize>& init_pose, const std::string frame_str,
     bool enable_polish)
 {
     // Local periodic loop counter
@@ -94,7 +84,7 @@ void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log,
         } else if (frame_str == "TCP") {
             Fz = kPressingForce;
         }
-        std::array<double, flexiv::kCartDOF> target_wrench = {0.0, 0.0, Fz, 0.0, 0.0, 0.0};
+        std::array<double, flexiv::rdk::kCartDoF> target_wrench = {0.0, 0.0, Fz, 0.0, 0.0, 0.0};
 
         // Apply constant force along Z axis of chosen reference frame, and do a simple polish
         // motion along XY plane in robot world frame
@@ -116,7 +106,7 @@ void PeriodicTask(flexiv::Robot& robot, flexiv::Log& log,
         loop_counter++;
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         g_stop_sched = true;
     }
 }
@@ -125,11 +115,8 @@ int main(int argc, char* argv[])
 {
     // Program Setup
     // =============================================================================================
-    // Logger for printing message with timestamp and coloring
-    flexiv::Log log;
-
     // Parse parameters
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -137,58 +124,61 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    log.Info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial runs real-time Cartesian-space unified "
+        "motion-force control. The Z axis of the chosen reference frame will be activated for "
+        "explicit force control, while the rest axes in the same reference frame will stay motion "
+        "controlled.");
 
     // The reference frame to use for force control, see Robot::SetForceControlFrame() for more
     // details
     std::string frame_str = "WORLD";
-    if (flexiv::utility::ProgramArgsExist(argc, argv, "--TCP")) {
-        log.Info("Reference frame used for force control: robot TCP frame");
+    if (flexiv::rdk::utility::ProgramArgsExist(argc, argv, "--TCP")) {
+        spdlog::info("Reference frame used for force control: robot TCP frame");
         frame_str = "TCP";
     } else {
-        log.Info("Reference frame used for force control: robot world frame");
+        spdlog::info("Reference frame used for force control: robot world frame");
     }
 
     // Whether to enable polish motion
     bool enable_polish = false;
-    if (flexiv::utility::ProgramArgsExist(argc, argv, "--polish")) {
-        log.Info("Robot will run a polish motion along XY plane in robot world frame");
+    if (flexiv::rdk::utility::ProgramArgsExist(argc, argv, "--polish")) {
+        spdlog::info("Robot will run a polish motion along XY plane in robot world frame");
         enable_polish = true;
     } else {
-        log.Info("Robot will hold its motion in all non-force-controlled axes");
+        spdlog::info("Robot will hold its motion in all non-force-controlled axes");
     }
 
     try {
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            log.Warn("Fault occurred on the connected robot, trying to clear ...");
+            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                log.Error("Fault cannot be cleared, exiting ...");
+                spdlog::error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.Info("Fault on the connected robot is cleared");
+            spdlog::info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...");
+        spdlog::info("Enabling robot ...");
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.Info("Robot is now operational");
+        spdlog::info("Robot is now operational");
 
         // Move robot to home pose
-        log.Info("Moving to home pose");
-        robot.SwitchMode(flexiv::Mode::NRT_PRIMITIVE_EXECUTION);
+        spdlog::info("Moving to home pose");
+        robot.SwitchMode(flexiv::rdk::Mode::NRT_PRIMITIVE_EXECUTION);
         robot.ExecutePrimitive("Home()");
 
         // Wait for the primitive to finish
@@ -203,28 +193,29 @@ int main(int argc, char* argv[])
 
         // WARNING: during the process, the robot must not contact anything, otherwise the result
         // will be inaccurate and affect following operations
-        log.Warn("Zeroing force/torque sensors, make sure nothing is in contact with the robot");
+        spdlog::warn(
+            "Zeroing force/torque sensors, make sure nothing is in contact with the robot");
 
         // Wait for primitive completion
         while (robot.busy()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.Info("Sensor zeroing complete");
+        spdlog::info("Sensor zeroing complete");
 
         // Search for Contact
         // =========================================================================================
         // NOTE: there are several ways to do contact search, such as using primitives, or real-time
         // and non-real-time direct motion controls, etc. Here we use non-real-time direct Cartesian
         // control for example.
-        log.Info("Searching for contact ...");
+        spdlog::info("Searching for contact ...");
 
         // Set initial pose to current TCP pose
         auto init_pose = robot.states().tcp_pose;
-        log.Info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
-                 + flexiv::utility::Arr2Str(init_pose));
+        spdlog::info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
+                     + flexiv::rdk::utility::Arr2Str(init_pose));
 
         // Use non-real-time mode to make the robot go to a set point with its own motion generator
-        robot.SwitchMode(flexiv::Mode::NRT_CARTESIAN_MOTION_FORCE);
+        robot.SwitchMode(flexiv::rdk::Mode::NRT_CARTESIAN_MOTION_FORCE);
 
         // Search for contact with max contact wrench set to a small value for making soft contact
         robot.SetMaxContactWrench(kMaxWrenchForContactSearch);
@@ -247,7 +238,7 @@ int main(int argc, char* argv[])
             // Contact is considered to be made if sensed TCP force exceeds the threshold
             if (ext_force.norm() > kPressingForce) {
                 is_contacted = true;
-                log.Info("Contact detected at robot TCP");
+                spdlog::info("Contact detected at robot TCP");
             }
             // Check at 1ms interval
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -265,7 +256,7 @@ int main(int argc, char* argv[])
         // Set which Cartesian axis(s) to activate for force control. See function doc for more
         // details. Here we only active Z axis
         robot.SetForceControlAxis(
-            std::array<bool, flexiv::kCartDOF> {false, false, true, false, false, false});
+            std::array<bool, flexiv::rdk::kCartDoF> {false, false, true, false, false, false});
 
         // Uncomment the following line to enable passive force control, otherwise active force
         // control is used by default. See function doc for more details
@@ -277,7 +268,7 @@ int main(int argc, char* argv[])
         // Start Unified Motion Force Control
         // =========================================================================================
         // Switch to real-time mode for continuous motion force control
-        robot.SwitchMode(flexiv::Mode::RT_CARTESIAN_MOTION_FORCE);
+        robot.SwitchMode(flexiv::rdk::Mode::RT_CARTESIAN_MOTION_FORCE);
 
         // Disable max contact wrench regulation. Need to do this AFTER the force control in Z axis
         // is activated (i.e. motion control disabled in Z axis) and the motion force control mode
@@ -289,10 +280,10 @@ int main(int argc, char* argv[])
         init_pose = robot.states().tcp_pose;
 
         // Create real-time scheduler to run periodic tasks
-        flexiv::Scheduler scheduler;
+        flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(log),
-                              std::ref(init_pose), std::ref(frame_str), enable_polish),
+        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(init_pose),
+                              std::ref(frame_str), enable_polish),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();
@@ -305,7 +296,7 @@ int main(int argc, char* argv[])
         scheduler.Stop();
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         return 1;
     }
 

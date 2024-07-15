@@ -1,25 +1,22 @@
 #!/usr/bin/env python
 
-"""intermediate2_non_realtime_cartesian_pure_motion_control.py
+"""intermediate3_non_realtime_cartesian_pure_motion_control.py
 
 This tutorial runs non-real-time Cartesian-space pure motion control to hold or sine-sweep the robot
 TCP. A simple collision detection is also included.
 """
 
-__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
 import math
 import argparse
-import numpy as np
+import spdlog  # pip install spdlog
+import numpy as np  # pip install numpy
 
-# Import Flexiv RDK Python library
-# fmt: off
-import sys
-sys.path.insert(0, "../lib_py")
+# Flexiv RDK Python library is installed to user site packages
 import flexivrdk
-# fmt: on
 
 # Global constants
 # ==================================================================================================
@@ -34,18 +31,6 @@ EXT_FORCE_THRESHOLD = 10.0
 
 # External joint torque threshold for collision detection, value is only for demo purpose [Nm]
 EXT_TORQUE_THRESHOLD = 5.0
-
-
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial runs non-real-time Cartesian-space pure motion control to hold or "
-        "sine-sweep the robot TCP. A simple collision detection is also included."
-    )
-    print()
 
 
 def main():
@@ -79,23 +64,26 @@ def main():
     assert frequency >= 1 and frequency <= 100, "Invalid <frequency> input"
 
     # Define alias
-    log = flexivrdk.Log()
+    logger = spdlog.ConsoleLogger("Example")
     mode = flexivrdk.Mode
 
     # Print description
-    log.Info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial runs non-real-time Cartesian-space pure "
+        "motion control to hold or sine-sweep the robot TCP. A simple collision detection is also "
+        "included."
+    )
 
     # Print based on arguments
     if args.hold:
-        log.Info("Robot holding current TCP pose")
+        logger.info("Robot holding current TCP pose")
     else:
-        log.Info("Robot running TCP sine-sweep")
+        logger.info("Robot running TCP sine-sweep")
 
     if args.collision:
-        log.Info("Collision detection enabled")
+        logger.info("Collision detection enabled")
     else:
-        log.Info("Collision detection disabled")
+        logger.info("Collision detection disabled")
 
     try:
         # RDK Initialization
@@ -105,25 +93,25 @@ def main():
 
         # Clear fault on the connected robot if any
         if robot.fault():
-            log.Warn("Fault occurred on the connected robot, trying to clear ...")
+            logger.warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
             if not robot.ClearFault():
-                log.Error("Fault cannot be cleared, exiting ...")
+                logger.error("Fault cannot be cleared, exiting ...")
                 return 1
-            log.Info("Fault on the connected robot is cleared")
+            logger.info("Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...")
+        logger.info("Enabling robot ...")
         robot.Enable()
 
         # Wait for the robot to become operational
         while not robot.operational():
             time.sleep(1)
 
-        log.Info("Robot is now operational")
+        logger.info("Robot is now operational")
 
         # Move robot to home pose
-        log.Info("Moving to home pose")
+        logger.info("Moving to home pose")
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
         robot.ExecutePrimitive("Home()")
 
@@ -138,14 +126,14 @@ def main():
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations
-        log.Warn(
+        logger.warn(
             "Zeroing force/torque sensors, make sure nothing is in contact with the robot"
         )
 
         # Wait for primitive completion
         while robot.busy():
             time.sleep(1)
-        log.Info("Sensor zeroing complete")
+        logger.info("Sensor zeroing complete")
 
         # Configure Motion Control
         # =========================================================================================
@@ -162,9 +150,8 @@ def main():
 
         # Set initial pose to current TCP pose
         init_pose = robot.states().tcp_pose.copy()
-        print(
-            "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: ",
-            init_pose,
+        logger.info(
+            f"Initial TCP pose set to {init_pose} (position 3x1, rotation (quaternion) 4x1)"
         )
 
         # Periodic Task
@@ -172,12 +159,8 @@ def main():
         # Set loop period
         period = 1.0 / frequency
         loop_counter = 0
-        print(
-            "Sending command to robot at",
-            frequency,
-            "Hz, or",
-            period,
-            "seconds interval",
+        logger.info(
+            f"Sending command to robot at {frequency} Hz, or {period} seconds interval"
         )
 
         # Send command periodically at user-specified frequency
@@ -209,38 +192,34 @@ def main():
             if time_elapsed % 20.0 == 3.0:
                 preferred_jnt_pos = [0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658]
                 robot.SetNullSpacePosture(preferred_jnt_pos)
-                log.Info("Preferred joint positions set to: ")
-                print(preferred_jnt_pos)
+                logger.info(f"Preferred joint positions set to {preferred_jnt_pos}")
             # Online change stiffness to half of nominal at 6 seconds
             elif time_elapsed % 20.0 == 6.0:
-                new_K = np.multiply(robot.info().nominal_K, 0.5)
-                robot.SetCartesianStiffness(new_K)
-                log.Info("Cartesian stiffness set to: ")
-                print(new_K)
+                new_K = np.multiply(robot.info().K_x_nom, 0.5)
+                robot.SetCartesianImpedance(new_K)
+                logger.info(f"Cartesian stiffness set to {new_K}")
             # Online change to another preferred joint positions at 9 seconds
             elif time_elapsed % 20.0 == 9.0:
                 preferred_jnt_pos = [-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658]
                 robot.SetNullSpacePosture(preferred_jnt_pos)
-                log.Info("Preferred joint positions set to: ")
-                print(preferred_jnt_pos)
+                logger.info(f"Preferred joint positions set to {preferred_jnt_pos}")
             # Online reset stiffness to nominal at 12 seconds
             elif time_elapsed % 20.0 == 12.0:
-                robot.ResetCartesianStiffness()
-                log.Info("Cartesian stiffness is reset")
+                robot.ResetCartesianImpedance()
+                logger.info("Cartesian stiffness is reset")
             # Online reset preferred joint positions to nominal at 14 seconds
             elif time_elapsed % 20.0 == 14.0:
                 robot.ResetNullSpacePosture()
-                log.Info("Preferred joint positions are reset")
+                logger.info("Preferred joint positions are reset")
             # Online enable max contact wrench regulation at 16 seconds
             elif time_elapsed % 20.0 == 16.0:
                 max_wrench = [10.0, 10.0, 10.0, 2.0, 2.0, 2.0]
                 robot.SetMaxContactWrench(max_wrench)
-                log.Info("Max contact wrench set to: ")
-                print(max_wrench)
+                logger.info(f"Max contact wrench set to {max_wrench}")
             # Disable max contact wrench regulation at 19 seconds
             elif time_elapsed % 20.0 == 19.0:
                 robot.ResetMaxContactWrench()
-                log.Info("Max contact wrench is reset")
+                logger.info("Max contact wrench is reset")
 
             # Simple collision detection: stop robot if collision is detected at
             # end-effector
@@ -262,7 +241,9 @@ def main():
 
                 if collision_detected:
                     robot.Stop()
-                    log.Warn("Collision detected, stopping robot and exit program ...")
+                    logger.warn(
+                        "Collision detected, stopping robot and exit program ..."
+                    )
                     return
 
             # Increment loop counter
@@ -270,7 +251,7 @@ def main():
 
     except Exception as e:
         # Print exception error message
-        log.Error(str(e))
+        logger.error(str(e))
 
 
 if __name__ == "__main__":

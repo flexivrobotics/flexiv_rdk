@@ -4,28 +4,16 @@
  * pre-written script to execute a series of robot primitives with pre-defined transition conditions
  * between 2 adjacent primitives. Users can use Flexiv Elements to compose their own plan and assign
  * to the robot, which will appear in the plan list.
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
-#include <flexiv/robot.h>
-#include <flexiv/log.h>
-#include <flexiv/utility.h>
+#include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/utility.hpp>
+#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <thread>
-
-/** @brief Print tutorial description */
-void PrintDescription()
-{
-    std::cout << "This tutorial executes a plan selected by the user from a list of available "
-                 "plans. A plan is a pre-written script to execute a series of robot primitives "
-                 "with pre-defined transition conditions between 2 adjacent primitives. Users can "
-                 "use Flexiv Elements to compose their own plan and assign to the robot, which "
-                 "will appear in the plan list."
-              << std::endl
-              << std::endl;
-}
 
 /** @brief Print program usage help */
 void PrintHelp()
@@ -43,11 +31,8 @@ int main(int argc, char* argv[])
 {
     // Program Setup
     // =============================================================================================
-    // Logger for printing message with timestamp and coloring
-    flexiv::Log log;
-
     // Parse parameters
-    if (argc < 2 || flexiv::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -55,40 +40,44 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    log.Info("Tutorial description:");
-    PrintDescription();
+    spdlog::info(
+        ">>> Tutorial description <<<\nThis tutorial executes a plan selected by the user from a "
+        "list of available plans. A plan is a pre-written script to execute a series of robot "
+        "primitives with pre-defined transition conditions between 2 adjacent primitives. Users "
+        "can use Flexiv Elements to compose their own plan and assign to the robot, which "
+        "will appear in the plan list.");
 
     try {
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::Robot robot(robot_sn);
+        flexiv::rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            log.Warn("Fault occurred on the connected robot, trying to clear ...");
+            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                log.Error("Fault cannot be cleared, exiting ...");
+                spdlog::error("Fault cannot be cleared, exiting ...");
                 return 1;
             }
-            log.Info("Fault on the connected robot is cleared");
+            spdlog::info("Fault on the connected robot is cleared");
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...");
+        spdlog::info("Enabling robot ...");
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        log.Info("Robot is now operational");
+        spdlog::info("Robot is now operational");
 
         // Execute Plans
         // =========================================================================================
         // Switch to plan execution mode
-        robot.SwitchMode(flexiv::Mode::NRT_PLAN_EXECUTION);
+        robot.SwitchMode(flexiv::rdk::Mode::NRT_PLAN_EXECUTION);
 
         while (true) {
             // Monitor fault on the connected robot
@@ -97,7 +86,7 @@ int main(int argc, char* argv[])
             }
 
             // Get user input
-            log.Info("Choose an action:");
+            spdlog::info("Choose an action:");
             std::cout << "[1] Show available plans" << std::endl;
             std::cout << "[2] Execute a plan by index" << std::endl;
             std::cout << "[3] Execute a plan by name" << std::endl;
@@ -117,7 +106,7 @@ int main(int argc, char* argv[])
                 } break;
                 // Execute plan by index
                 case 2: {
-                    log.Info("Enter plan index to execute:");
+                    spdlog::info("Enter plan index to execute:");
                     int index;
                     std::cin >> index;
                     // Allow the plan to continue its execution even if the RDK program is closed or
@@ -126,14 +115,14 @@ int main(int argc, char* argv[])
 
                     // Print plan info while the current plan is running
                     while (robot.busy()) {
-                        log.Info("===============================================");
+                        spdlog::info("Current plan info:");
                         std::cout << robot.plan_info() << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
                 } break;
                 // Execute plan by name
                 case 3: {
-                    log.Info("Enter plan name to execute:");
+                    spdlog::info("Enter plan name to execute:");
                     std::string name;
                     std::cin >> name;
                     // Allow the plan to continue its execution even if the RDK program is closed or
@@ -142,19 +131,19 @@ int main(int argc, char* argv[])
 
                     // Print plan info while the current plan is running
                     while (robot.busy()) {
-                        log.Info("===============================================");
+                        spdlog::info("Current plan info:");
                         std::cout << robot.plan_info() << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
                 } break;
                 default:
-                    log.Warn("Invalid input");
+                    spdlog::warn("Invalid input");
                     break;
             }
         }
 
     } catch (const std::exception& e) {
-        log.Error(e.what());
+        spdlog::error(e.what());
         return 1;
     }
 

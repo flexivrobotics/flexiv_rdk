@@ -1,14 +1,15 @@
 /**
- * @file tool.h
- * @copyright Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved.
+ * @file tool.hpp
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
-#ifndef FLEXIVRDK_TOOL_H_
-#define FLEXIVRDK_TOOL_H_
+#ifndef FLEXIV_RDK_TOOL_HPP_
+#define FLEXIV_RDK_TOOL_HPP_
 
-#include "robot.h"
+#include "robot.hpp"
 
 namespace flexiv {
+namespace rdk {
 
 /**
  * @class Tool
@@ -21,7 +22,7 @@ class Tool
 public:
     /**
      * @brief [Non-blocking] Create an instance and initialize tool update interface.
-     * @param[in] robot Reference to the instance of flexiv::Robot.
+     * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */
     Tool(const Robot& robot);
@@ -33,16 +34,16 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    std::vector<std::string> list() const;
+    const std::vector<std::string> list() const;
 
     /**
      * @brief [Blocking] Get name of the tool that the robot is currently using.
      * @return Name of the current tool. Return "Flange" if there's no active tool.
-     * @note Applicable control modes: All.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note Applicable control modes: All.
      * @note This function blocks until a reply is received.
      */
-    std::string name() const;
+    const std::string name() const;
 
     /**
      * @brief [Blocking] Whether the specified tool exists in the tools pool.
@@ -56,21 +57,21 @@ public:
     /**
      * @brief [Blocking] Get parameters of the tool that the robot is currently using.
      * @return Parameters result.
-     * @note Applicable control modes: All.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note Applicable control modes: All.
      * @note This function blocks until a reply is received.
      */
-    ToolParams params() const;
+    const ToolParams params() const;
 
     /**
      * @brief [Blocking] Get parameters of an existing tool.
      * @param[in] name Name of the tool to get parameters for, must exist in the tools pool.
      * @return Parameters result.
-     * @note Applicable control modes: All.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note Applicable control modes: All.
      * @note This function blocks until a reply is received.
      */
-    ToolParams params(const std::string& name) const;
+    const ToolParams params(const std::string& name) const;
 
     /**
      * @brief [Blocking] Add a new tool with user-specified parameters to the tools pool.
@@ -120,6 +121,7 @@ private:
     std::unique_ptr<Impl> pimpl_;
 };
 
+} /* namespace rdk */
 } /* namespace flexiv */
 
-#endif /* FLEXIVRDK_TOOL_H_ */
+#endif /* FLEXIV_RDK_TOOL_HPP_ */

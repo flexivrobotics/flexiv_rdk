@@ -6,36 +6,20 @@ This tutorial executes several basic robot primitives (unit skills). For detaile
 on all available primitives, please see [Flexiv Primitives](https://www.flexiv.com/primitives/).
 """
 
-__copyright__ = "Copyright (C) 2016-2023 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
 import argparse
+import spdlog  # pip install spdlog
 
 # Utility methods
 from utility import quat2eulerZYX
 from utility import parse_pt_states
 from utility import list2str
 
-# Import Flexiv RDK Python library
-# fmt: off
-import sys
-sys.path.insert(0, "../lib_py")
+# Flexiv RDK Python library is installed to user site packages
 import flexivrdk
-# fmt: on
-
-
-def print_description():
-    """
-    Print tutorial description.
-
-    """
-    print(
-        "This tutorial executes several basic robot primitives (unit skills). For "
-        "detailed documentation on all available primitives, please see [Flexiv "
-        "Primitives](https://www.flexiv.com/primitives/)."
-    )
-    print()
 
 
 def main():
@@ -50,12 +34,15 @@ def main():
     args = argparser.parse_args()
 
     # Define alias
-    log = flexivrdk.Log()
+    logger = spdlog.ConsoleLogger("Example")
     mode = flexivrdk.Mode
 
     # Print description
-    log.Info("Tutorial description:")
-    print_description()
+    logger.info(
+        ">>> Tutorial description <<<\nThis tutorial executes several basic robot primitives (unit "
+        "skills). For detailed documentation on all available primitives, please see [Flexiv "
+        "Primitives](https://www.flexiv.com/primitives/)."
+    )
 
     try:
         # RDK Initialization
@@ -65,22 +52,22 @@ def main():
 
         # Clear fault on the connected robot if any
         if robot.fault():
-            log.Warn("Fault occurred on the connected robot, trying to clear ...")
+            logger.warn("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
             if not robot.ClearFault():
-                log.Error("Fault cannot be cleared, exiting ...")
+                logger.error("Fault cannot be cleared, exiting ...")
                 return 1
-            log.Info("Fault on the connected robot is cleared")
+            logger.info("Fault on the connected robot is cleared")
 
         # Enable the robot, make sure the E-stop is released before enabling
-        log.Info("Enabling robot ...")
+        logger.info("Enabling robot ...")
         robot.Enable()
 
         # Wait for the robot to become operational
         while not robot.operational():
             time.sleep(1)
 
-        log.Info("Robot is now operational")
+        logger.info("Robot is now operational")
 
         # Execute Primitives
         # ==========================================================================================
@@ -91,7 +78,7 @@ def main():
         # ------------------------------------------------------------------------------------------
         # All parameters of the "Home" primitive are optional, thus we can skip the parameters and
         # the default values will be used
-        log.Info("Executing primitive: Home")
+        logger.info("Executing primitive: Home")
 
         # Send command to robot
         robot.ExecutePrimitive("Home()")
@@ -103,7 +90,7 @@ def main():
         # (2) Move robot joints to target positions
         # ------------------------------------------------------------------------------------------
         # The required parameter <target> takes in 7 target joint positions. Unit: degrees
-        log.Info("Executing primitive: MoveJ")
+        logger.info("Executing primitive: MoveJ")
 
         # Send command to robot
         robot.ExecutePrimitive("MoveJ(target=30 -45 0 90 0 40 30)")
@@ -121,15 +108,15 @@ def main():
         # Optional parameter:
         #   waypoints: waypoints to pass before reaching final target
         #       (same format as above, but can repeat for number of waypoints)
-        #   maxVel: maximum TCP linear velocity
+        #   vel: TCP linear velocity
         #       Unit: m/s
         # NOTE: The rotations use Euler ZYX convention, rot_x means Euler ZYX angle around X axis
-        log.Info("Executing primitive: MoveL")
+        logger.info("Executing primitive: MoveL")
 
         # Send command to robot
         robot.ExecutePrimitive(
             "MoveL(target=0.65 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN,waypoints=0.45 0.1 0.2 180 0 "
-            "180 WORLD WORLD_ORIGIN : 0.45 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN, maxVel=0.2)"
+            "180 WORLD WORLD_ORIGIN : 0.45 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN, vel=0.2)"
         )
 
         # The [Move] series primitive won't terminate itself, so we determine if the robot has
@@ -143,7 +130,7 @@ def main():
         # ------------------------------------------------------------------------------------------
         # In this example the reference frame is changed from WORLD::WORLD_ORIGIN to TRAJ::START,
         # which represents the current TCP frame
-        log.Info("Executing primitive: MoveL")
+        logger.info("Executing primitive: MoveL")
 
         # Example to convert target quaternion [w,x,y,z] to Euler ZYX using scipy package's 'xyz'
         # extrinsic rotation
@@ -166,7 +153,7 @@ def main():
 
     except Exception as e:
         # Print exception error message
-        log.Error(str(e))
+        logger.error(str(e))
 
 
 if __name__ == "__main__":
