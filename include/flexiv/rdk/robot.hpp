@@ -629,7 +629,8 @@ public:
      * @throw std::invalid_argument if [max_linear_vel] contains any value outside the valid range.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control mode(s): IDLE.
+     * @note Applicable control mode(s): IDLE, RT_CARTESIAN_MOTION_FORCE,
+     * NRT_CARTESIAN_MOTION_FORCE.
      * @note This function blocks until the request is successfully delivered.
      * @warning The maximum linear velocity protection for force control axes is only effective
      * under active force control (passive force control disabled), see SetPassiveForceControl().
@@ -648,7 +649,8 @@ public:
      * @throw std::invalid_argument if [reference_frame] is invalid.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control mode(s): IDLE.
+     * @note Applicable control mode(s): IDLE, RT_CARTESIAN_MOTION_FORCE,
+     * NRT_CARTESIAN_MOTION_FORCE.
      * @note This function blocks until the request is successfully delivered.
      * @warning Upon disconnection, this setting will be reset to world frame.
      * @par Force control reference frame
