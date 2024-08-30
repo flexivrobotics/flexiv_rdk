@@ -109,8 +109,9 @@ public:
 
     /**
      * @brief [Blocking] Remove an existing tool.
-     * @param[in] name Name of the tool to remove, must exist in the tools pool.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @param[in] name Name of the tool to remove, must be an existing one but cannot be "Flange".
+     * @throw std::logic_error if robot is not in the correct control mode or the specified tool
+     * does not exist or trying to remove "Flange".
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
