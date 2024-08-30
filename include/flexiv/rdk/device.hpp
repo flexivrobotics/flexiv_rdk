@@ -37,6 +37,15 @@ public:
     const std::map<std::string, bool> list() const;
 
     /**
+     * @brief [Blocking] Whether the specified device already exists.
+     * @param[in] name Name of the device to check.
+     * @return True if the specified device exists.
+     * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note This function blocks until a reply is received.
+     */
+    bool exist(const std::string& name) const;
+
+    /**
      * @brief [Blocking] Enable the specified device.
      * @param[in] name Name of the device to enable, must be an existing device.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
