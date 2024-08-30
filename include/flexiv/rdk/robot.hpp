@@ -219,7 +219,7 @@ public:
      * @param[in] timeout_sec Maximum time in seconds to wait for the fault to be successfully
      * cleared. Normally, a minor fault should take no more than 3 seconds to clear, and a critical
      * fault should take no more than 30 seconds to clear.
-     * @return True: successfully cleared fault, false: failed to clear fault.
+     * @return True: successfully cleared fault; false: failed to clear fault.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the fault is successfully cleared or [timeout_sec] has
      * elapsed.
@@ -256,29 +256,41 @@ public:
     /**
      * @brief [Blocking] Execute a plan by specifying its index.
      * @param[in] index Index of the plan to execute, can be obtained via plan_list().
-     * @param[in] continue_exec Whether to continue executing the plan when
-     * the RDK program is closed or the connection is lost.
+     * @param[in] continue_exec Whether to continue executing the plan when the RDK program is
+     * closed or the connection is lost.
+     * @param[in] block_until_started Whether to wait for the commanded plan to finish loading
+     * and start execution before the function returns. Depending on the amount of computation
+     * needed to get the plan ready, the loading process typically takes no more than 200 ms.
      * @throw std::invalid_argument if [index] is outside the valid range.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
-     * @note This function blocks until the request is successfully delivered.
-     * @note busy() can be used to check if a plan task has finished.
+     * @note This function blocks until the request is successfully delivered if
+     * [block_until_started] is disabled, or until the plan has started execution if
+     * [block_until_started] is enabled.
+     * @note busy() can be used to check if the plan has finished.
      */
-    void ExecutePlan(unsigned int index, bool continue_exec = false);
+    void ExecutePlan(
+        unsigned int index, bool continue_exec = false, bool block_until_started = true);
 
     /**
      * @brief [Blocking] Execute a plan by specifying its name.
      * @param[in] name Name of the plan to execute, can be obtained via plan_list().
-     * @param[in] continue_exec Whether to continue executing the plan when
-     * the RDK program is closed or the connection is lost.
+     * @param[in] continue_exec Whether to continue executing the plan when the RDK program is
+     * closed or the connection is lost.
+     * @param[in] block_until_started Whether to wait for the commanded plan to finish loading
+     * and start execution before the function returns. Depending on the amount of computation
+     * needed to get the plan ready, the loading process typically takes no more than 200 ms.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
-     * @note This function blocks until the request is successfully delivered.
-     * @note busy() can be used to check if a plan task has finished.
+     * @note This function blocks until the request is successfully delivered if
+     * [block_until_started] is disabled, or until the plan has started execution if
+     * [block_until_started] is enabled.
+     * @note busy() can be used to check if the plan has finished.
      */
-    void ExecutePlan(const std::string& name, bool continue_exec = false);
+    void ExecutePlan(
+        const std::string& name, bool continue_exec = false, bool block_until_started = true);
 
     /**
      * @brief [Blocking] Pause or resume the execution of the current plan.
