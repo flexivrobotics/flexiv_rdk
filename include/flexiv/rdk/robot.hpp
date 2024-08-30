@@ -767,21 +767,25 @@ public:
         const std::vector<unsigned int>& port_idx, const std::vector<bool>& values);
 
     /**
-     * @brief [Non-blocking] Read all digital input ports on the control box.
-     * @return Digital input readings array whose index corresponds to the digital input port index.
+     * @brief [Non-blocking] Current reading of all digital input ports on the control box.
+     * @return A boolean array whose index corresponds to that of the digital input ports.
      * True: port high, false: port low.
      */
-    const std::array<bool, kIOPorts> ReadDigitalInput();
+    const std::array<bool, kIOPorts> digital_inputs();
+
+    [[deprecated("Use digital_inputs() instead")]] const std::array<bool, kIOPorts>
+    ReadDigitalInput();
 
 private:
     class Impl;
     std::unique_ptr<Impl> pimpl_;
 
-    friend class Model;
-    friend class Gripper;
     friend class Device;
-    friend class Tool;
     friend class FileIO;
+    friend class Gripper;
+    friend class Model;
+    friend class Tool;
+    friend class WorkCoord;
 };
 
 } /* namespace rdk */
