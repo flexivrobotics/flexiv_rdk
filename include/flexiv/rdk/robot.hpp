@@ -376,18 +376,23 @@ public:
      * "primitive_name(input_param1=xxx, input_param2=xxx, ...)". For an input parameter of type
      * ARRAY_COORD (e.g. waypoints), use colon with space on both sides (" : ") to separate
      * coordinate sets within this parameter.
+     * @param[in] block_until_started Whether to wait for the commanded primitive to finish loading
+     * and start execution before the function returns. Depending on the amount of computation
+     * needed to get the primitive ready, the loading process typically takes no more than 200 ms.
      * @throw std::length_error if size of pt_cmd exceeds the limit (10 Kb).
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control mode(s): NRT_PRIMITIVE_EXECUTION.
-     * @note This function blocks until the request is successfully delivered.
+     * @note This function blocks until the request is successfully delivered if
+     * [block_until_started] is disabled, or until the primitive has started execution if
+     * [block_until_started] is enabled.
      * @warning The primitive input parameters may not use SI units, please refer to the Flexiv
      * Primitives documentation for exact unit definition.
      * @warning Some primitives may not terminate automatically and require users to manually
      * terminate them based on specific primitive states, for example, most [Move] primitives. In
      * such case, busy() will stay true even if it seems everything is done for that primitive.
      */
-    void ExecutePrimitive(const std::string& pt_cmd);
+    void ExecutePrimitive(const std::string& pt_cmd, bool block_until_started = true);
 
     /**
      * @brief [Blocking] Get feedback states of the currently executing primitive.
