@@ -686,8 +686,7 @@ public:
      * @throw std::invalid_argument if [max_linear_vel] contains any value outside the valid range.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control mode(s): IDLE, RT_CARTESIAN_MOTION_FORCE,
-     * NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control mode(s): IDLE.
      * @note This function blocks until the request is successfully delivered.
      * @warning The maximum linear velocity protection for force control axes is only effective
      * under active force control (passive force control disabled), see SetPassiveForceControl().
@@ -706,8 +705,7 @@ public:
      * @throw std::invalid_argument if [reference_frame] is invalid.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control mode(s): IDLE, RT_CARTESIAN_MOTION_FORCE,
-     * NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control mode(s): IDLE.
      * @note This function blocks until the request is successfully delivered.
      * @warning Upon disconnection, this setting will be reset to world frame.
      * @par Force control reference frame
@@ -752,17 +750,20 @@ public:
 
     //======================================== IO CONTROL ========================================
     /**
-     * @brief [Blocking] Write to single or multiple digital output port(s) on the control box.
-     * @param[in] port_idx Index of port(s) to write, can be a single port or multiple ports.
+     * @brief [Blocking] Set one or more digital output port(s) on the control box.
+     * @param[in] port_idx Index of port(s) to set, can be a single port or multiple ports.
      * E.g. {0, 5, 7, 15} or {1, 3, 10} or {8}. Valid range of the index number is [0–15].
-     * @param[in] values Corresponding values to write to the specified ports. True: set port high,
+     * @param[in] values Corresponding values to set to the specified ports. True: set port high,
      * false: set port low. Vector size must match the size of port_idx.
      * @throw std::invalid_argument if [port_idx] contains any index number outside the valid range.
      * @throw std::length_error if the two input vectors have different sizes.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      */
-    void WriteDigitalOutput(
+    void SetDigitalOutputs(
+        const std::vector<unsigned int>& port_idx, const std::vector<bool>& values);
+
+    [[deprecated("Use SetDigitalOutputs() instead")]] void WriteDigitalOutput(
         const std::vector<unsigned int>& port_idx, const std::vector<bool>& values);
 
     /**
