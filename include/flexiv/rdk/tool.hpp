@@ -13,15 +13,14 @@ namespace rdk {
 
 /**
  * @class Tool
- * @brief Interface to online update and interact with the robot tools. All changes made to the
- * robot tool system will take effect immediately without needing to reboot. However, the robot must
- * be put into IDLE mode when making these changes.
+ * @brief Interface to online update and interact with the robot tools. All updates will take effect
+ * immediately without a power cycle. However, the robot must be in IDLE mode when applying changes.
  */
 class Tool
 {
 public:
     /**
-     * @brief [Non-blocking] Create an instance and initialize tool update interface.
+     * @brief [Non-blocking] Create an instance and initialize the interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */

@@ -58,11 +58,11 @@ public:
      * \f$ i \f$, expressed in world frame.
      * @param[in] link_name Name of the link to get Jacobian for.
      * @return Jacobian matrix: \f$ ^{0}J_i \in \mathbb{R}^{m \times n} \f$.
+     * @throw std::out_of_range if the specified link_name does not exist.
      * @note Call Update() before this function.
      * @note Available links can be found in the provided URDF. They are {"base_link", "link1",
      * "link2", "link3", "link4", "link5", "link6", "link7", "flange"}, plus "tool" if any flange
      * tool is mounted.
-     * @throw std::out_of_range if the specified link_name does not exist.
      */
     const Eigen::MatrixXd J(const std::string& link_name);
 
@@ -70,13 +70,13 @@ public:
      * @brief [Non-blocking] Compute and get the time derivative of Jacobian matrix at the frame of
      * the specified link \f$ i \f$, expressed in world frame.
      * @param[in] link_name Name of the link to get Jacobian derivative for.
-     * @return Time derivative of Jacobian matrix: \f$ ^{0}\dot{J_i} \in \mathbb{R}^{m \times n}
+     * @return Time derivative of the Jacobian matrix: \f$ ^{0}\dot{J_i} \in \mathbb{R}^{m \times n}
      * \f$.
+     * @throw std::out_of_range if the specified link_name does not exist.
      * @note Call Update() before this function.
      * @note Available links can be found in the provided URDF. They are {"base_link", "link1",
      * "link2", "link3", "link4", "link5", "link6", "link7", "flange"}, plus "tool" if any flange
      * tool is mounted.
-     * @throw std::out_of_range if the specified link_name does not exist.
      */
     const Eigen::MatrixXd dJ(const std::string& link_name);
 
