@@ -29,8 +29,8 @@ public:
     virtual ~Tool();
 
     /**
-     * @brief [Blocking] Get a name list of all tools currently in the tools pool.
-     * @return Tool names in the format of a string list.
+     * @brief [Blocking] Get a name list of all configured tools.
+     * @return Tool names as a string list.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
@@ -40,13 +40,12 @@ public:
      * @brief [Blocking] Get name of the tool that the robot is currently using.
      * @return Name of the current tool. Return "Flange" if there's no active tool.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
-     * @note Applicable control modes: All.
      * @note This function blocks until a reply is received.
      */
     const std::string name() const;
 
     /**
-     * @brief [Blocking] Whether the specified tool exists in the tools pool.
+     * @brief [Blocking] Whether the specified tool already exists.
      * @param[in] name Name of the tool to check.
      * @return True if the specified tool exists.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
@@ -58,17 +57,16 @@ public:
      * @brief [Blocking] Get parameters of the tool that the robot is currently using.
      * @return Parameters result.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
-     * @note Applicable control modes: All.
      * @note This function blocks until a reply is received.
      */
     const ToolParams params() const;
 
     /**
      * @brief [Blocking] Get parameters of an existing tool.
-     * @param[in] name Name of the tool to get parameters for, must exist in the tools pool.
+     * @param[in] name Name of the tool to get parameters for, must be an existing one.
      * @return Parameters result.
+     * @throw std::logic_error if the specified tool does not exist.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
-     * @note Applicable control modes: All.
      * @note This function blocks until a reply is received.
      */
     const ToolParams params(const std::string& name) const;
