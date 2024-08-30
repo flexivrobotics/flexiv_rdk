@@ -113,43 +113,56 @@ public:
      * @brief [Non-blocking] Whether the robot is currently executing a task. This includes any
      * user commanded operations that requires the robot to execute. For example, plans, primitives,
      * Cartesian and joint motions, etc.
-     * @return True: busy, false: idle.
+     * @return True: busy; false: idle.
      * @warning Some exceptions exist for primitives, see ExecutePrimitive() for more details.
      */
     bool busy() const;
 
     /**
      * @brief [Non-blocking] Whether the robot is in fault state.
-     * @return True: robot has fault, false: robot normal.
+     * @return True: robot has fault; false: robot normal.
      */
     bool fault() const;
 
     /**
-     * @brief [Non-blocking] Whether the robot system is in recovery state.
-     * @return True: in recovery state, false: not in recovery state.
+     * @brief [Non-blocking] Whether the robot is in reduced state.
+     * @return True: in reduced state; false: not in reduced state.
+     * @par Reduced state
+     * The robot will enter reduced state if a) the safety input for reduced state goes low or b)
+     * robot TCP passes through any safety plane. The safety limits are lowered in reduced state
+     * compared to normal state. Specific values for the safety limits can be configured in Flexiv
+     * Elements under Settings -> Safety Configuration. Please refer to the robot user manual for
+     * more details about system reduced state.
+     */
+    bool reduced() const;
+
+    /**
+     * @brief [Non-blocking] Whether the robot is in recovery state.
+     * @return True: in recovery state; false: not in recovery state.
      * @note Use RunAutoRecovery() to execute automatic recovery operation.
      * @par Recovery state
-     * The robot system will enter recovery state if it needs to recover from joint position limit
+     * The robot will enter recovery state if it needs to recover from joint position limit
      * violation (a critical system fault that requires a recovery operation, during which the
      * joints that moved outside the allowed position range will need to move very slowly back into
-     * the allowed range). Refer to user manual for more details about system recovery state.
+     * the allowed range). Please refer to the robot user manual for more details about system
+     * recovery state.
      */
     bool recovery() const;
 
     /**
      * @brief [Non-blocking] Whether the emergency stop is released.
-     * @return True: released, false: pressed.
+     * @return True: released; false: pressed.
      */
     bool estop_released() const;
 
     /**
      * @brief [Non-blocking] Whether the enabling button is pressed.
-     * @return True: pressed, false: released.
+     * @return True: pressed; false: released.
      */
     bool enabling_button_pressed() const;
 
     /**
-     * @brief [Non-blocking] Access the multilingual log messages of the connected robot.
+     * @brief [Non-blocking] Get multilingual log messages of the connected robot.
      * @return Robot log messages stored since the last successful instantiation of this class. Each
      * element in the string list corresponds to one message with timestamp and log level added. New
      * message is pushed to the back of the vector.
