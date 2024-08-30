@@ -86,8 +86,9 @@ public:
     /**
      * @brief [Blocking] Switch to an existing tool. All following robot operations will default to
      * use this tool.
-     * @param[in] name Name of the tool to switch to, must exist in the tools pool.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @param[in] name Name of the tool to switch to, must be an existing one.
+     * @throw std::logic_error if robot is not in the correct control mode or the specified tool
+     * does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
@@ -96,9 +97,10 @@ public:
 
     /**
      * @brief [Blocking] Update the parameters of an existing tool.
-     * @param[in] name Name of the tool to update, must exist in the tools pool.
+     * @param[in] name Name of the tool to update, must be an existing one.
      * @param[in] params New parameters for the specified tool.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in the correct control mode or the specified tool
+     * does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
