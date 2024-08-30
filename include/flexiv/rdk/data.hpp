@@ -27,6 +27,7 @@ constexpr size_t kIOPorts = 16;
 /**
  * @struct RobotInfo
  * @brief General information about the connected robot.
+ * @see Robot::info().
  */
 struct RobotInfo
 {
@@ -38,6 +39,9 @@ struct RobotInfo
 
     /** Robot model name, e.g. Rizon4, Rizon10, Moonlight, etc. */
     std::string model_name = {};
+
+    /** Type of license */
+    std::string license_type = {};
 
     /** Joint-space degrees of freedom: \f$ n \f$. */
     size_t DoF = {};
@@ -197,6 +201,7 @@ struct RobotStates
 /**
  * @struct PlanInfo
  * @brief Data structure containing information of the on-going primitive/plan.
+ * @see Robot::plan_info().
  */
 struct PlanInfo
 {
@@ -228,6 +233,7 @@ struct PlanInfo
 /**
  * @struct GripperStates
  * @brief Data structure containing the gripper states.
+ * @see Gripper::states().
  */
 struct GripperStates
 {
@@ -245,6 +251,7 @@ struct GripperStates
 /**
  * @struct ToolParams
  * @brief Data structure containing robot tool parameters.
+ * @see Tool::params().
  */
 struct ToolParams
 {
