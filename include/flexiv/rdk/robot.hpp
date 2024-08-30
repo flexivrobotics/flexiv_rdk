@@ -42,24 +42,24 @@ public:
     //========================================= ACCESSORS ==========================================
     /**
      * @brief [Non-blocking] Whether the connection with the robot is established.
-     * @return True: connected, false: disconnected.
+     * @return True: connected; false: disconnected.
      */
     bool connected() const;
 
     /**
-     * @brief [Non-blocking] Access general information of the robot.
+     * @brief [Non-blocking] General information about the connected robot.
      * @return RobotInfo value copy.
      */
     const RobotInfo info() const;
 
     /**
-     * @brief [Non-blocking] Access current control mode of the connected robot.
+     * @brief [Non-blocking] Current control mode of the robot.
      * @return flexiv::rdk::Mode enum.
      */
     Mode mode() const;
 
     /**
-     * @brief [Non-blocking] Access the current robot states.
+     * @brief [Non-blocking] Current states data of the robot.
      * @return RobotStates value copy.
      * @note Real-time (RT).
      */
@@ -67,20 +67,47 @@ public:
 
     /**
      * @brief [Non-blocking] Whether the robot has come to a complete stop.
-     * @return True: stopped, false: still moving.
+     * @return True: stopped; false: still moving.
      */
     bool stopped() const;
 
     /**
-     * @brief [Non-blocking] Whether the robot is normally operational, which requires the
+     * @brief [Non-blocking] Whether the robot is ready to be operated, which requires the
      * following conditions to be met: enabled, brakes fully released, in auto mode, no fault, and
      * not in reduced state.
      * @param[in] verbose Whether to print warning message indicating why the robot is not
      * operational when this function returns false.
-     * @return True: operational, false: not operational.
-     * @warning The robot won't execute any user command until it becomes normally operational.
+     * @return True: operational (operational_status() == READY); false: not operational.
+     * @warning The robot won't execute any user command until it's ready to be operated.
      */
     bool operational(bool verbose = true) const;
+
+    /**
+     * @brief Operational status of the robot. Except for the first two, the other enumerators
+     * indicate the cause of the robot being not ready to operate.
+     * @see operational_status().
+     */
+    enum OperationalStatus
+    {
+        UNKNOWN = 0,        ///< Unkown status.
+        READY,              ///< Ready to be operated.
+        BOOTING,            ///< System still booting, please wait.
+        ESTOP_NOT_RELEASED, ///< E-Stop is not released.
+        NOT_ENABLED,        ///< Not enabled, call Enable() to send the signal.
+        RELEASING_BRAKE,    ///< Brake release in progress, please wait.
+        MINOR_FAULT,        ///< Minor fault occurred, call ClearFault() to try clearing it.
+        CRITICAL_FAULT,     ///< Critical fault occurred, call ClearFault() to try clearing it.
+        IN_REDUCED_STATE,   ///< In reduced state, see reduced().
+        IN_RECOVERY_STATE,  ///< In recovery state, see recovery().
+        IN_MANUAL_MODE,     ///< In Manual mode, need to switch to Auto (Remote) mode.
+        IN_AUTO_MODE,       ///< In regular Auto mode, need to switch to Auto (Remote) mode.
+    };
+
+    /**
+     * @brief [Non-blocking] Current operational status of the robot.
+     * @return OperationalStatus enum.
+     */
+    OperationalStatus operational_status() const;
 
     /**
      * @brief [Non-blocking] Whether the robot is currently executing a task. This includes any
