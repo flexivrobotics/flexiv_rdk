@@ -72,10 +72,11 @@ public:
     const ToolParams params(const std::string& name) const;
 
     /**
-     * @brief [Blocking] Add a new tool with user-specified parameters to the tools pool.
+     * @brief [Blocking] Add a new tool with user-specified parameters.
      * @param[in] name Name of the new tool, must be unique.
      * @param[in] params Parameters of the new tool.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in the correct control mode or the specified tool
+     * already exists.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
