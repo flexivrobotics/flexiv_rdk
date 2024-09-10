@@ -50,7 +50,7 @@ public:
      * @param[in] name Name of the work coordinate to get pose for, must be an existing one.
      * @return Pose of the work coordinate in world frame: \f$ ^{O}T_{work} \in \mathbb{R}^{7 \times
      * 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1}
-     * \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
+     * \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
@@ -62,7 +62,7 @@ public:
      * @param[in] pose Pose of the new work coordinate in world frame: \f$ ^{O}T_{work} \in
      * \mathbb{R}^{7 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$
      * \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$
-     * [m]~[] \f$.
+     * [m]:[] \f$.
      * @throw std::logic_error if robot is not in the correct control mode or the specified work
      * coordinate already exists.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
@@ -77,7 +77,7 @@ public:
      * @param[in] pose New pose for the specified work coordinate in world frame: \f$ ^{O}T_{work}
      * \in \mathbb{R}^{7 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$
      * \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$
-     * [m]~[] \f$.
+     * [m]:[] \f$.
      * @throw std::logic_error if robot is not in the correct control mode or the specified work
      * coordinate does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.

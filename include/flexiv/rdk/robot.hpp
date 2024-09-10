@@ -556,12 +556,12 @@ public:
      * generator will smoothen the discrete commands.
      * @param[in] pose Target TCP pose in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7
      * \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
-     * \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
+     * \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
      * @param[in] wrench Target TCP wrench (force and moment) in the force control reference frame
      * (configured by SetForceControlFrame()): \f$ ^{0}F_d \in \mathbb{R}^{6 \times 1} \f$. The
      * robot will track the target wrench using an explicit force controller. Consists of \f$
      * \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y,
-     * f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
+     * f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]:[Nm] \f$.
      * @param[in] max_linear_vel  Maximum Cartesian linear velocity when moving to the target pose.
      * A safe value is provided as default. Unit: \f$ [m/s] \f$.
      * @param[in] max_angular_vel  Maximum Cartesian angular velocity when moving to the target
@@ -597,7 +597,7 @@ public:
      * Setting motion stiffness of a motion-controlled Cartesian axis to 0 will make this axis
      * free-floating. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and \f$
      * \mathbb{R}^{3 \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry}, k_{Rz}]^T
-     * \f$. Valid range: [0, RobotInfo::K_x_nom]. Unit: \f$ [N/m]~[Nm/rad] \f$.
+     * \f$. Valid range: [0, RobotInfo::K_x_nom]. Unit: \f$ [N/m]:[Nm/rad] \f$.
      * @param[in] Z_x Cartesian motion damping ratio: \f$ Z_x \in \mathbb{R}^{6 \times 1} \f$.
      * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear damping ratio and \f$ \mathbb{R}^{3 \times
      * 1} \f$ angular damping ratio: \f$ [\zeta_x, \zeta_y, \zeta_z, \zeta_{Rx}, \zeta_{Ry},
@@ -629,7 +629,7 @@ public:
      * @param[in] max_wrench Maximum contact wrench (force and moment): \f$ F_max \in \mathbb{R}^{6
      * \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ maximum force and \f$
      * \mathbb{R}^{3 \times 1} \f$ maximum moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$. Unit:
-     * \f$ [N]~[Nm] \f$.
+     * \f$ [N]:[Nm] \f$.
      * @throw std::invalid_argument if [max_wrench] contains any negative value.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @note The maximum contact wrench regulation only applies to the motion control part.
@@ -737,7 +737,7 @@ public:
      * target wrench, i.e. passive force control. When disabled, a closed-loop force controller will
      * be used to track the target wrench, i.e. active force control. This function can only be
      * called when the robot is in IDLE mode.
-     * @param[in] is_enabled True: enable, false: disable. By default, passive force control is
+     * @param[in] is_enabled True: enable; false: disable. By default, passive force control is
      * disabled and active force control is used.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
@@ -776,7 +776,7 @@ public:
     /**
      * @brief [Non-blocking] Current reading of all digital input ports on the control box.
      * @return A boolean array whose index corresponds to that of the digital input ports.
-     * True: port high, false: port low.
+     * True: port high; false: port low.
      */
     const std::array<bool, kIOPorts> digital_inputs();
 
