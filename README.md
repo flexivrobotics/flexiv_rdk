@@ -7,7 +7,7 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 ## References
 
-[Flexiv RDK Home Page](https://rdk.flexiv.com/) is the main reference. It contains important information including user manual and API documentation.
+[Flexiv RDK Home Page](https://www.flexiv.com/software/rdk) is the main reference. It contains important information including user manual and API documentation.
 
 ## Compatibility Overview
 
@@ -23,7 +23,7 @@ The **C++ and Python** RDK libraries are packed into a unified modern CMake proj
 
 ### Note
 
-* The instructions below serve as a quick reference. You can find the full documentation at [Flexiv RDK Manual](https://rdk.flexiv.com/manual/).
+* The instructions below serve as a quick reference. You can find the full documentation at [Flexiv RDK Manual](https://www.flexiv.com/software/rdk/manual).
 * You might need to turn off your computer's firewall or whitelist the RDK programs to be able to establish connection with the robot.
 
 ### Install on Linux
@@ -112,7 +112,7 @@ For example:
 
 ## API Documentation
 
-The complete and detailed API documentation of the **latest release** can be found at https://rdk.flexiv.com/api/. The API documentation of a previous release can be generated manually using Doxygen. For example, on Linux:
+The complete and detailed API documentation of the **latest release** can be found at https://www.flexiv.com/software/rdk/api. The API documentation of a previous release can be generated manually using Doxygen. For example, on Linux:
 
     sudo apt install doxygen-latex graphviz
     cd flexiv_rdk
