@@ -50,7 +50,7 @@ struct RobotInfo
      * Nominal motion stiffness of the Cartesian motion-force control modes: \f$ K_x^{nom} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and
      * \f$ \mathbb{R}^{3 \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry},
-     * k_{Rz}]^T \f$. Unit: \f$ [N/m]~[Nm/rad] \f$.
+     * k_{Rz}]^T \f$. Unit: \f$ [N/m]:[Nm/rad] \f$.
      */
     std::array<double, kCartDoF> K_x_nom = {};
 
@@ -167,14 +167,14 @@ struct RobotStates
     /**
      * Measured TCP pose expressed in world frame: \f$ ^{O}T_{TCP} \in \mathbb{R}^{7 \times 1} \f$.
      * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
-     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
+     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
      */
     std::array<double, kPoseSize> tcp_pose = {};
 
     /**
      * Desired TCP pose expressed in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7 \times 1}
      * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
-     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
+     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
      */
     std::array<double, kPoseSize> tcp_pose_des = {};
 
@@ -182,14 +182,14 @@ struct RobotStates
      * Measured TCP velocity expressed in world frame: \f$ ^{O}\dot{X} \in \mathbb{R}^{6 \times 1}
      * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear velocity and \f$ \mathbb{R}^{3 \times
      * 1} \f$ angular velocity: \f$ [v_x, v_y, v_z, \omega_x, \omega_y, \omega_z]^T \f$.
-     * Unit: \f$ [m/s]~[rad/s] \f$.
+     * Unit: \f$ [m/s]:[rad/s] \f$.
      */
     std::array<double, kCartDoF> tcp_vel = {};
 
     /**
      * Measured flange pose expressed in world frame: \f$ ^{O}T_{flange} \in \mathbb{R}^{7 \times 1}
      * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
-     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
+     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
      */
     std::array<double, kPoseSize> flange_pose = {};
 
@@ -197,7 +197,7 @@ struct RobotStates
      * Force-torque (FT) sensor raw reading in flange frame: \f$ ^{flange}F_{raw} \in \mathbb{R}^{6
      * \times 1} \f$. The value is 0 if no FT sensor is installed. Consists of \f$ \mathbb{R}^{3
      * \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y,
-     * m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
+     * m_z]^T \f$. Unit: \f$ [N]:[Nm] \f$.
      */
     std::array<double, kCartDoF> ft_sensor_raw = {};
 
@@ -205,7 +205,7 @@ struct RobotStates
      * Estimated external wrench applied on TCP and expressed in TCP frame: \f$ ^{TCP}F_{ext} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
      * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
-     * Unit: \f$ [N]~[Nm] \f$.
+     * Unit: \f$ [N]:[Nm] \f$.
      */
     std::array<double, kCartDoF> ext_wrench_in_tcp = {};
 
@@ -213,9 +213,19 @@ struct RobotStates
      * Estimated external wrench applied on TCP and expressed in world frame: \f$ ^{0}F_{ext} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
      * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
-     * Unit: \f$ [N]~[Nm] \f$.
+     * Unit: \f$ [N]:[Nm] \f$.
      */
     std::array<double, kCartDoF> ext_wrench_in_world = {};
+
+    /**
+     * Unfiltered version of ext_wrench_in_tcp. The data is more noisy but has no filter latency.
+     */
+    std::array<double, kCartDoF> ext_wrench_in_tcp_raw = {};
+
+    /**
+     * Unfiltered version of ext_wrench_in_world The data is more noisy but has no filter latency.
+     */
+    std::array<double, kCartDoF> ext_wrench_in_world_raw = {};
 };
 
 /**
@@ -286,7 +296,7 @@ struct ToolParams
 
     /** Position and orientation of the tool center point (TCP) in flange frame. Consists of \f$
      * \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x,
-     * y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$ */
+     * y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$ */
     std::array<double, kPoseSize> tcp_location = {};
 };
 
