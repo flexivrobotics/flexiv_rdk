@@ -184,7 +184,7 @@ public:
     /**
      * @brief [Blocking] Force robot brakes to engage or release during normal operation.
      * Restrictions apply, see warning.
-     * @param[in] engage True: engage brakes, false: release brakes.
+     * @param[in] engage True: engage brakes; false: release brakes.
      * @throw std::logic_error if the connected robot is not a medical one or the robot is moving.
      * @throw std::runtime_error if failed to engage/release the brakes.
      * @note This function blocks until the brakes are successfully engaged/released.
@@ -294,7 +294,7 @@ public:
 
     /**
      * @brief [Blocking] Pause or resume the execution of the current plan.
-     * @param[in] pause True: pause plan, false: resume plan.
+     * @param[in] pause True: pause plan; false: resume plan.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
@@ -348,7 +348,7 @@ public:
      * @brief [Blocking] Enable or disable the breakpoint mode during plan execution. When enabled,
      * the currently executing plan will pause at the pre-defined breakpoints. Use StepBreakpoint()
      * to continue the execution and pause at the next breakpoint.
-     * @param[in] is_enabled True: enable, false: disable. By default, breakpoint mode is disabled.
+     * @param[in] is_enabled True: enable; false: disable. By default, breakpoint mode is disabled.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
@@ -508,17 +508,23 @@ public:
      * or more Cartesian axes and motion control in the rest axes.
      * @param[in] pose Target TCP pose in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7
      * \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
-     * \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
+     * \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
      * @param[in] wrench Target TCP wrench (force and moment) in the force control reference frame
      * (configured by SetForceControlFrame()): \f$ ^{0}F_d \in \mathbb{R}^{6 \times 1} \f$. The
      * robot will track the target wrench using an explicit force controller. Consists of \f$
      * \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y,
-     * f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]~[Nm] \f$.
+     * f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]:[Nm] \f$.
+     * @param[in] velocity Target TCP velocity (linear and angular) in world frame: \f$
+     * ^{0}\dot{x}_d \in \mathbb{R}^{6 \times 1} \f$. Providing properly calculated target velocity
+     * can improve the robot's overall tracking performance at the cost of reduced robustness.
+     * Leaving this input 0 can maximize robustness at the cost of reduced tracking performance.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear and \f$ \mathbb{R}^{3 \times 1} \f$
+     * angular velocity. Unit: \f$ [m/s]:[rad/s] \f$.
      * @param[in] acceleration Target TCP acceleration (linear and angular) in world frame: \f$
      * ^{0}\ddot{x}_d \in \mathbb{R}^{6 \times 1} \f$. Feeding forward target acceleration can
-     * improve the robot's tracking performance for highly dynamic motions. But it's also okay to
+     * improve the robot's tracking performance for highly dynamic motions, but it's also okay to
      * leave this input 0. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear and \f$
-     * \mathbb{R}^{3 \times 1} \f$ angular acceleration. Unit: \f$ [m/s^2]~[rad/s^2] \f$.
+     * \mathbb{R}^{3 \times 1} \f$ angular acceleration. Unit: \f$ [m/s^2]:[rad/s^2] \f$.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
      * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE.
@@ -540,6 +546,7 @@ public:
      */
     void StreamCartesianMotionForce(const std::array<double, kPoseSize>& pose,
         const std::array<double, kCartDoF>& wrench = {},
+        const std::array<double, kCartDoF>& velocity = {},
         const std::array<double, kCartDoF>& acceleration = {});
 
     /**
