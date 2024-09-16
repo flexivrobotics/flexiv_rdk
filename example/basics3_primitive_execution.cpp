@@ -98,8 +98,7 @@ int main(int argc, char* argv[])
         robot.ExecutePrimitive("MoveJ(target=30 -45 0 90 0 40 30)");
 
         // Wait for reached target
-        while (
-            flexiv::rdk::utility::ParsePtStates(robot.primitive_states(), "reachedTarget") != "1") {
+        while (!std::get<int>(robot.primitive_states()["reachedTarget"].front())) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -126,8 +125,7 @@ int main(int argc, char* argv[])
         // reached target location by checking the primitive state "reachedTarget = 1" in the list
         // of current primitive states, and terminate the current primitive manually by sending a
         // new primitive command.
-        while (
-            flexiv::rdk::utility::ParsePtStates(robot.primitive_states(), "reachedTarget") != "1") {
+        while (!std::get<int>(robot.primitive_states()["reachedTarget"].front())) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -149,8 +147,7 @@ int main(int argc, char* argv[])
                                + flexiv::rdk::utility::Arr2Str(targetEulerDeg) + "TRAJ START)");
 
         // Wait for reached target
-        while (
-            flexiv::rdk::utility::ParsePtStates(robot.primitive_states(), "reachedTarget") != "1") {
+        while (!std::get<int>(robot.primitive_states()["reachedTarget"].front())) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
