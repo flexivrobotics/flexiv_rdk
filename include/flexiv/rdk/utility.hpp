@@ -134,35 +134,6 @@ inline bool ProgramArgsExist(int argc, char** argv, const std::string& ref_strin
     return ProgramArgsExistAny(argc, argv, {ref_strings});
 }
 
-/**
- * @brief Parse the value of a specified primitive state from the pt_states string list.
- * @param[in] pt_states Primitive states string list returned from Robot::primitive_states().
- * @param[in] parse_target Name of the primitive state to parse for.
- * @return Value of the specified primitive state in string format. Empty string is returned if
- * parse_target does not exist.
- */
-inline std::string ParsePtStates(
-    const std::vector<std::string>& pt_states, const std::string& parse_target)
-{
-    for (const auto& state : pt_states) {
-        // Skip if empty
-        if (state.empty()) {
-            continue;
-        }
-        std::stringstream ss(state);
-        std::string buffer;
-        std::vector<std::string> parsed_state;
-        while (ss >> buffer) {
-            parsed_state.push_back(buffer);
-        }
-        if (parsed_state.front() == parse_target) {
-            return parsed_state.back();
-        }
-    }
-
-    return "";
-}
-
 } /* namespace utility */
 } /* namespace rdk */
 } /* namespace flexiv */
