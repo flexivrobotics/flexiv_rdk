@@ -15,7 +15,6 @@ import spdlog  # pip install spdlog
 
 # Utility methods
 from utility import quat2eulerZYX
-from utility import parse_pt_states
 from utility import list2str
 
 # Flexiv RDK Python library is installed to user site packages
@@ -83,8 +82,9 @@ def main():
         # Send command to robot
         robot.ExecutePrimitive("Home()")
 
-        # Wait for the primitive to finish
-        while robot.busy():
+        # Wait for reached target
+        # Note: primitive_states() returns a dictionary of {pt_state_name, [pt_state_values]}
+        while not robot.primitive_states()["reachedTarget"][0]:
             time.sleep(1)
 
         # (2) Move robot joints to target positions
@@ -96,7 +96,7 @@ def main():
         robot.ExecutePrimitive("MoveJ(target=30 -45 0 90 0 40 30)")
 
         # Wait for reached target
-        while parse_pt_states(robot.primitive_states(), "reachedTarget") != "1":
+        while not robot.primitive_states()["reachedTarget"][0]:
             time.sleep(1)
 
         # (3) Move robot TCP to a target position in world (base) frame
@@ -123,7 +123,7 @@ def main():
         # reached target location by checking the primitive state "reachedTarget = 1" in the list
         # of current primitive states, and terminate the current primitive manually by sending a
         # new primitive command.
-        while parse_pt_states(robot.primitive_states(), "reachedTarget") != "1":
+        while not robot.primitive_states()["reachedTarget"][0]:
             time.sleep(1)
 
         # (4) Another MoveL that uses TCP frame
@@ -145,7 +145,7 @@ def main():
         )
 
         # Wait for reached target
-        while parse_pt_states(robot.primitive_states(), "reachedTarget") != "1":
+        while not robot.primitive_states()["reachedTarget"][0]:
             time.sleep(1)
 
         # All done, stop robot and put into IDLE mode
