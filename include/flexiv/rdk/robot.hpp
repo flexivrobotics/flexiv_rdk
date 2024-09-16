@@ -408,13 +408,18 @@ public:
     void ExecutePrimitive(const std::string& pt_cmd, bool block_until_started = true);
 
     /**
-     * @brief [Blocking] Get feedback states of the currently executing primitive.
-     * @return Primitive states in the format of a string list.
-     * @throw std::runtime_error if failed to get a reply from the connected robot or the result is
-     * invalid.
+     * @brief [Blocking] State parameters of the executing primitive and their current values.
+     * @return A map of {pt_state_name, pt_state_value(s)}. Booleans are represented by int 1
+     * and 0. For example,
+     * {{"reachedTarget", {1}}, {"timePeriod", {5.6}}, {"forceOffset", {0.1, 0.2, -1.3}}}.
+     * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const std::vector<std::string> primitive_states() const;
+    std::map<std::string, std::vector<std::variant<int, double, std::string>>>
+    primitive_states() const;
+
+    [[deprecated("Use the other primitive_states() instead")]] const std::vector<std::string>
+    primitive_states(bool dummy); ///< Unused parameter [dummy] is needed for function overloading
 
     //==================================== DIRECT JOINT CONTROL ====================================
     /**
