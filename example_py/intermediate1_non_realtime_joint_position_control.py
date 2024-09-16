@@ -79,10 +79,9 @@ def main():
 
         # Move robot to home pose
         logger.info("Moving to home pose")
-        robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
-        robot.ExecutePrimitive("Home()")
-
-        # Wait for the primitive to finish
+        robot.SwitchMode(mode.NRT_PLAN_EXECUTION)
+        robot.ExecutePlan("PLAN-Home")
+        # Wait for the plan to finish
         while robot.busy():
             time.sleep(1)
 

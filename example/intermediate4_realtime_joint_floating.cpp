@@ -115,10 +115,9 @@ int main(int argc, char* argv[])
 
         // Move robot to home pose
         spdlog::info("Moving to home pose");
-        robot.SwitchMode(flexiv::rdk::Mode::NRT_PRIMITIVE_EXECUTION);
-        robot.ExecutePrimitive("Home()");
-
-        // Wait for the primitive to finish
+        robot.SwitchMode(flexiv::rdk::Mode::NRT_PLAN_EXECUTION);
+        robot.ExecutePlan("PLAN-Home");
+        // Wait for the plan to finish
         while (robot.busy()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
