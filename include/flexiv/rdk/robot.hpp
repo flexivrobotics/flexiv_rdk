@@ -11,6 +11,8 @@
 #include <vector>
 #include <memory>
 #include <exception>
+#include <variant>
+#include <map>
 
 namespace flexiv {
 namespace rdk {
@@ -322,19 +324,24 @@ public:
     const PlanInfo plan_info() const;
 
     /**
-     * @brief [Blocking] Set global variables for the robot by specifying name and value.
-     * @param[in] global_vars Command to set global variables using the format:
-     * global_var1=value(s), global_var2=value(s), ...
-     * @throw std::length_error if size of global_vars exceeds the limit (10 Kb).
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @brief [Blocking] Set values to global variables that already exist in the robot.
+     * @param[in] global_vars A map of {global_var_name, global_var_value(s)}. Use int 1 and 0 to
+     * represent booleans. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", {1}}}.
+     * @throw std::length_error if [global_vars] is empty or too long to transmit in one request.
+     * @throw std::logic_error if robot is not in the correct control mode or any of the specified
+     * global variables does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
-     * @note This function blocks until the request is successfully delivered.
-     * @warning The specified global variable(s) must have already been created in the robot using
-     * Flexiv Elements, otherwise setting a nonexistent global variable will have no effect. To
-     * check if a global variable is successfully set, use global_variables().
+     * @note This function blocks until the global variables are successfully set.
+     * @warning The specified global variables need to be created first using Flexiv Elements.
+     * @see global_variables().
      */
-    void SetGlobalVariables(const std::string& global_vars);
+    void SetGlobalVariables(
+        const std::map<std::string, std::vector<std::variant<int, double, std::string>>>&
+            global_vars);
+
+    [[deprecated("Use the other SetGlobalVariables() instead")]] void SetGlobalVariables(
+        const std::string& global_vars);
 
     /**
      * @brief [Blocking] Get available global variables from the robot.
