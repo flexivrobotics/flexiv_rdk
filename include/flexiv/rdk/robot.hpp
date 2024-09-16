@@ -344,12 +344,18 @@ public:
         const std::string& global_vars);
 
     /**
-     * @brief [Blocking] Get available global variables from the robot.
-     * @return Global variables in the format of a string list.
+     * @brief [Blocking] Existing global variables and their current values.
+     * @return A map of {global_var_name, global_var_value(s)}. Booleans are represented by int 1
+     * and 0. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", {1}}}.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
+     * @see SetGlobalVariables().
      */
-    const std::vector<std::string> global_variables() const;
+    std::map<std::string, std::vector<std::variant<int, double, std::string>>>
+    global_variables() const;
+
+    [[deprecated("Use the other global_variables() instead")]] const std::vector<std::string>
+    global_variables(bool dummy); ///< Unused parameter [dummy] is needed for function overloading
 
     /**
      * @brief [Blocking] Enable or disable the breakpoint mode during plan execution. When enabled,
