@@ -84,8 +84,8 @@ int main(int argc, char* argv[])
         // Send command to robot
         robot.ExecutePrimitive("Home()");
 
-        // Wait for the primitive to finish
-        while (robot.busy()) {
+        // Wait for reached target
+        while (!std::get<int>(robot.primitive_states()["reachedTarget"].front())) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
