@@ -79,7 +79,7 @@ if(fastcdr_FOUND)
 endif()
 
 # Fast-DDS (Fast-RTPS)
-find_package(fastrtps 2.6.2 REQUIRED)
+find_package(fastrtps 2.6.7 REQUIRED)
 if(fastrtps_FOUND)
   message(STATUS "Found fastrtps: ${fastrtps_DIR}")
 endif()
