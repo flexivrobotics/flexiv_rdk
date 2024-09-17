@@ -97,6 +97,8 @@ def main():
 
         # Wait for reached target
         while not robot.primitive_states()["reachedTarget"][0]:
+            # Print current primitive states
+            print(robot.primitive_states())
             time.sleep(1)
 
         # (3) Move robot TCP to a target position in world (base) frame

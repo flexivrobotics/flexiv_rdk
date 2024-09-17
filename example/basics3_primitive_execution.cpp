@@ -11,6 +11,7 @@
 #include <spdlog/spdlog.h>
 
 #include <iostream>
+#include <iomanip>
 #include <thread>
 
 /** @brief Print program usage help */
@@ -99,6 +100,16 @@ int main(int argc, char* argv[])
 
         // Wait for reached target
         while (!std::get<int>(robot.primitive_states()["reachedTarget"].front())) {
+            // Print current primitive states
+            spdlog::info("Current primitive states:");
+            for (const auto& st : robot.primitive_states()) {
+                std::cout << st.first << ": " << std::fixed << std::setprecision(3);
+                for (const auto& v : st.second) {
+                    std::visit([](auto&& value) { std::cout << value << ' '; }, v);
+                }
+                std::cout << std::endl;
+            }
+
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
