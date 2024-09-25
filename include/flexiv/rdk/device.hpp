@@ -75,7 +75,8 @@ public:
      * @note This function blocks until the request is successfully delivered.
      * @warning Commanding a disabled or nonexistent device will trigger an error on the robot.
      */
-    void Command(const std::string& name, const std::map<std::string, double>& cmds);
+    void Command(
+        const std::string& name, const std::map<std::string, std::variant<int, double>>& cmds);
 
 private:
     class Impl;
