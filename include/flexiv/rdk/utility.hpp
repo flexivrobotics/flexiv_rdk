@@ -94,6 +94,43 @@ inline std::string Arr2Str(
     return Vec2Str(vec, decimal, separator);
 }
 
+/**
+ * @brief Convert the commonly used std::variant to a string.
+ * @param[in] variant std::variant used by multiple rdk::Robot functions.
+ * @param[in] decimal Decimal places to keep for each floating-point number in the variant.
+ * @param[in] separator Character to separate between numbers in the vector.
+ * @return The converted string.
+ */
+inline std::string FlexivTypes2Str(
+    const rdk::FlexivDataTypes& variant, size_t decimal = 3, const std::string& separator = " ")
+{
+    if (auto* val = std::get_if<int>(&variant)) {
+        return Vec2Str(std::vector<int> {*val}, decimal);
+    } else if (auto* val = std::get_if<double>(&variant)) {
+        return Vec2Str(std::vector<double> {*val}, decimal);
+    } else if (auto* val = std::get_if<std::string>(&variant)) {
+        return *val;
+    } else if (auto* val = std::get_if<rdk::Coord>(&variant)) {
+        return (*val).str();
+    } else if (auto* vec = std::get_if<std::vector<int>>(&variant)) {
+        return Vec2Str(*vec, decimal, separator);
+    } else if (auto* vec = std::get_if<std::vector<double>>(&variant)) {
+        return Vec2Str(*vec, decimal, separator);
+    } else if (auto* vec = std::get_if<std::vector<std::string>>(&variant)) {
+        return Vec2Str(*vec, decimal, separator);
+    } else if (auto* vec = std::get_if<std::vector<rdk::Coord>>(&variant)) {
+        std::string ret;
+        // Separate two Coord by " : "
+        for (const auto& v : (*vec)) {
+            ret += v.str() + " : ";
+        }
+        // Remove the trailing " : "
+        if (!ret.empty()) {
+            ret.erase(ret.size() - 3);
+        }
+        return ret;
+    }
+    return "";
 }
 
 /**
