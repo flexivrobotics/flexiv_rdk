@@ -11,7 +11,6 @@
 #include <vector>
 #include <memory>
 #include <exception>
-#include <variant>
 #include <map>
 
 namespace flexiv {
@@ -220,16 +219,20 @@ public:
     void RunAutoRecovery();
 
     /**
-     * @brief [Blocking] Set overall velocity scale for robot motions during plan and primitive
-     * execution.
-     * @param[in] velocity_scale Percentage scale to adjust the overall velocity of robot motions.
-     * Valid range: [0, 100]. Setting to 100 means to move with 100% of specified motion velocity,
-     * and 0 means not moving at all.
-     * @throw std::invalid_argument if [velocity_scale] is outside the valid range.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @brief [Blocking] Set values to global variables that already exist in the robot.
+     * @param[in] global_vars A map of {global_var_name, global_var_value(s)}. Use int 1 and 0 to
+     * represent booleans. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", {1}}}.
+     * @throw std::length_error if [global_vars] is empty or too long to transmit in one request.
+     * @throw std::logic_error if any of the specified global variables does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control mode(s): NRT_PLAN_EXECUTION, NRT_PRIMITIVE_EXECUTION.
-     * @note This function blocks until the request is successfully delivered.
+     * @note This function blocks until the global variables are successfully set.
+     * @warning The specified global variables need to be created first using Flexiv Elements.
+     * @see global_variables().
+     */
+    void SetGlobalVariables(const std::map<std::string, FlexivDataTypes>& global_vars);
+
+    [[deprecated("Use the other SetGlobalVariables() instead")]] void SetGlobalVariables(
+        const std::string& global_vars);
      */
     void SetVelocityScale(unsigned int velocity_scale);
 
