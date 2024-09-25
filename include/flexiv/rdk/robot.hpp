@@ -728,15 +728,14 @@ public:
      * @brief [Blocking] Enable or disable passive force control for the Cartesian motion-force
      * control modes. When enabled, an open-loop force controller will be used to feed forward the
      * target wrench, i.e. passive force control. When disabled, a closed-loop force controller will
-     * be used to track the target wrench, i.e. active force control. This function can only be
-     * called when the robot is in IDLE mode.
+     * be used to track the target wrench, i.e. active force control.
      * @param[in] is_enabled True: enable; false: disable. By default, passive force control is
      * disabled and active force control is used.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control mode(s): IDLE.
+     * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
-     * @warning Upon disconnection, this setting will be reset to disabled.
+     * @note If not set, the passive force control is disabled by default.
      * @par Difference between active and passive force control
      * Active force control uses a feedback loop to reduce the error between target wrench and
      * measured wrench. This method results in better force tracking performance, but at the cost of
