@@ -409,9 +409,9 @@ public:
      * outside allowed position range, which will trigger a safety fault that requires recovery
      * operation.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
-     * @note Applicable control mode(s): RT_JOINT_TORQUE.
+     * @note Applicable control modes: RT_JOINT_TORQUE.
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
      */
@@ -429,9 +429,9 @@ public:
      * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{n \times
      * 1} \f$. Unit: \f$ [rad/s^2] \f$.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
-     * @note Applicable control mode(s): RT_JOINT_IMPEDANCE, RT_JOINT_POSITION.
+     * @note Applicable control modes: RT_JOINT_IMPEDANCE, RT_JOINT_POSITION.
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
      * @see SetJointImpedance().
@@ -457,8 +457,8 @@ public:
      * @param[in] max_acc Maximum joint accelerations for the planned trajectory: \f$ \ddot{q}_{max}
      * \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
-     * @throw std::logic_error if robot is not in the correct control mode.
-     * @note Applicable control mode(s): NRT_JOINT_IMPEDANCE, NRT_JOINT_POSITION.
+     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @note Applicable control modes: NRT_JOINT_IMPEDANCE, NRT_JOINT_POSITION.
      * @warning Calling this function a second time while the motion from the previous call is still
      * ongoing will trigger an online re-planning of the joint trajectory, such that the previous
      * command is aborted and the new command starts to execute.
@@ -469,7 +469,7 @@ public:
         const std::vector<double>& max_vel, const std::vector<double>& max_acc);
 
     /**
-     * @brief [Non-blocking] Set impedance properties of the robot's joint motion controller used in
+     * @brief [Blocking] Set impedance properties of the robot's joint motion controller used in
      * the joint impedance control modes.
      * @param[in] K_q Joint motion stiffness: \f$ K_q \in \mathbb{R}^{n \times 1} \f$.
      * Setting motion stiffness of a joint axis to 0 will make this axis free-floating. Valid range:
@@ -478,13 +478,11 @@ public:
      * Valid range: [0.3, 0.8]. The nominal (safe) value is provided as default.
      * @throw std::invalid_argument if [K_q] or [Z_q] contains any value outside the valid range or
      * size of any input vector does not match robot DoF.
-     * @throw std::logic_error if robot is not in the correct control mode.
-     * @note Applicable control mode(s): RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
-     * @warning The robot will automatically reset to its nominal impedance properties upon
-     * re-entering the applicable control modes.
+     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
+     * @note This function blocks until the request is successfully delivered.
      * @warning Changing damping ratio [Z_q] to a non-nominal value may lead to performance and
      * stability issues, please use with caution.
-     * @see ResetJointImpedance().
      */
     void SetJointImpedance(const std::vector<double>& K_q,
         const std::vector<double>& Z_q = {0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7});
