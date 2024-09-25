@@ -583,7 +583,7 @@ public:
         double max_angular_vel = 1.0, double max_linear_acc = 2.0, double max_angular_acc = 5.0);
 
     /**
-     * @brief [Non-blocking] Set impedance properties of the robot's Cartesian motion controller
+     * @brief [Blocking] Set impedance properties of the robot's Cartesian motion controller
      * used in the Cartesian motion-force control modes.
      * @param[in] K_x Cartesian motion stiffness: \f$ K_x \in \mathbb{R}^{6 \times 1} \f$.
      * Setting motion stiffness of a motion-controlled Cartesian axis to 0 will make this axis
@@ -595,13 +595,11 @@ public:
      * 1} \f$ angular damping ratio: \f$ [\zeta_x, \zeta_y, \zeta_z, \zeta_{Rx}, \zeta_{Ry},
      * \zeta_{Rz}]^T \f$. Valid range: [0.3, 0.8]. The nominal (safe) value is provided as default.
      * @throw std::invalid_argument if [K_x] or [Z_x] contains any value outside the valid range.
-     * @throw std::logic_error if robot is not in the correct control mode.
-     * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
-     * @warning The robot will automatically reset to its nominal impedance properties upon
-     * re-entering the applicable control modes.
+     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @note This function blocks until the request is successfully delivered.
      * @warning Changing damping ratio [Z_x] to a non-nominal value may lead to performance and
      * stability issues, please use with caution.
-     * @see ResetCartesianImpedance().
      */
     void SetCartesianImpedance(const std::array<double, kCartDoF>& K_x,
         const std::array<double, kCartDoF>& Z_x = {0.7, 0.7, 0.7, 0.7, 0.7, 0.7});
