@@ -257,9 +257,9 @@ public:
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the plan ready, the loading process typically takes no more than 200 ms.
      * @throw std::invalid_argument if [index] is outside the valid range.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
+     * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered if
      * [block_until_started] is disabled, or until the plan has started execution if
      * [block_until_started] is enabled.
@@ -276,9 +276,9 @@ public:
      * @param[in] block_until_started Whether to wait for the commanded plan to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the plan ready, the loading process typically takes no more than 200 ms.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
+     * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered if
      * [block_until_started] is disabled, or until the plan has started execution if
      * [block_until_started] is enabled.
@@ -290,10 +290,11 @@ public:
     /**
      * @brief [Blocking] Pause or resume the execution of the current plan.
      * @param[in] pause True: pause plan; false: resume plan.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
+     * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered.
+     * @warning Internal plans (not created by user) cannot be resumed due to safety concerns.
      */
     void PausePlan(bool pause);
 
