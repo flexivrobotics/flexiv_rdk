@@ -1,6 +1,6 @@
 /**
  * @file data.hpp
- * @brief Header file containing various data structs.
+ * @brief Header file containing various constant expressions, data structs, and enums.
  * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
@@ -11,18 +11,25 @@
 #include <vector>
 #include <string>
 #include <ostream>
+#include <variant>
 
 namespace flexiv {
 namespace rdk {
-
-/** Robot Cartesian-space degrees of freedom \f$ m \f$ */
+/** Cartesian-space degrees of freedom */
 constexpr size_t kCartDoF = 6;
+
+/** Joint-space degrees of freedom of Flexiv's serial robots */
+constexpr size_t kSerialJointDoF = 7;
 
 /** Size of pose array (3 position + 4 quaternion) */
 constexpr size_t kPoseSize = 7;
 
 /** Number of digital IO ports */
 constexpr size_t kIOPorts = 16;
+
+/** Maximum number of external axes */
+constexpr size_t kMaxExtAxes = 6;
+
 
 /**
  * @struct RobotInfo
@@ -300,6 +307,66 @@ struct ToolParams
     std::array<double, kPoseSize> tcp_location = {};
 };
 
+/**
+ * @struct Coord
+ * @brief Data structure representing the customized data type "COORD" in Flexiv Elements.
+ * @warning Here [m] is used as the unit of length, whereas [mm] is used in Flexiv Elements. The
+ * conversion is automatically done when exchanging "COORD" data type with the robot via functions
+ * like Robot::ExecutePrimitive(), Robot::SetGlobalVariables(), Robot::global_variables(), etc.
+ */
+struct Coord
+{
+    /**
+     * @brief Construct an instance of Coord.
+     * @param[in] _position Sets the [position] member.
+     * @param[in] _orientation Sets the [orientation] member.
+     * @param[in] _ref_frame Sets the [ref_frame] member.
+     * @param[in] _ref_joint_positions Sets the [ref_joint_positions] member. Leave empty to use
+     * default values.
+     * @param[in] _ext_axis_positions Sets the [ext_axis_positions] member. Leave empty if there's
+     * no external axis.
+     */
+    Coord(const std::array<double, kCartDoF / 2>& _position,
+        const std::array<double, kCartDoF / 2>& _orientation,
+        const std::array<std::string, 2>& _ref_frame,
+        const std::array<double, kSerialJointDoF>& _ref_joint_positions = {},
+        const std::array<double, kMaxExtAxes>& _ext_axis_positions = {})
+    : position(_position)
+    , orientation(_orientation)
+    , ref_frame(_ref_frame)
+    , ref_joint_positions(_ref_joint_positions)
+    , ext_axis_positions(_ext_axis_positions)
+    {
+    }
+    Coord() = default;
+
+    /** Position in [ref_frame]. Unit: [m] */
+    std::array<double, kCartDoF / 2> position = {};
+
+    /** Orientation in terms of Euler angles in [ref_frame]. Unit: [degree] */
+    std::array<double, kCartDoF / 2> orientation = {};
+
+    /** Name of the reference frame "root::branch" represented as {"root", "branch"}.
+     *  Refer to Flexiv Elements for available options. Some common ones are:
+     * - World origin: {"WORLD", "WORLD_ORIGIN"}
+     * - Current pose: {"TRAJ", "START"}
+     * - A work coordinate: {"WORK", "WorkCoord0"}
+     * - A global variable: {"GVAR", "MyCoord0"}
+     */
+    std::array<std::string, 2> ref_frame = {};
+
+    /** Reference joint positions for robot with a redundant degree of freedom. Unit: [degree]
+     * @note Leave empty to use default values. However, this array cannot be empty if
+     * [ext_axis_positions] has values */
+    std::array<double, kSerialJointDoF> ref_joint_positions = {};
+
+    /** Linear or angular positions of the external axes. Unit: [m] or [degree]
+     * @note Leave empty if there's no external axis. */
+    std::array<double, kMaxExtAxes> ext_axis_positions = {};
+
+    /** String representation of all data in the struct, separated by space */
+    std::string str() const;
+};
 /**
  * @brief Operator overloading to out stream all robot info in JSON format:
  * {"info_1": [val1,val2,val3,...], "info_2": [val1,val2,val3,...], ...}.
