@@ -613,14 +613,12 @@ public:
      * \mathbb{R}^{3 \times 1} \f$ maximum moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$. Unit:
      * \f$ [N]:[Nm] \f$.
      * @throw std::invalid_argument if [max_wrench] contains any negative value.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in an applicable control mode.
      * @note The maximum contact wrench regulation only applies to the motion control part.
-     * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
-     * @warning The maximum contact wrench regulation will automatically reset to disabled upon
-     * re-entering the applicable control modes.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @note This function blocks until the request is successfully delivered.
      * @warning The maximum contact wrench regulation cannot be enabled if any of the rotational
      * Cartesian axes is enabled for moment control.
-     * @see ResetMaxContactWrench().
      */
     void SetMaxContactWrench(const std::array<double, kCartDoF>& max_wrench);
 
