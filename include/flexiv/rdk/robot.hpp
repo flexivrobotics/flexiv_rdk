@@ -511,15 +511,18 @@ public:
      * improve the robot's tracking performance for highly dynamic motions, but it's also okay to
      * leave this input 0. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear and \f$
      * \mathbb{R}^{3 \times 1} \f$ angular acceleration. Unit: \f$ [m/s^2]:[rad/s^2] \f$.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
-     * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE.
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous motion commands to avoid sudden movements. The
      * force commands don't need to be continuous.
+     * @warning Same as Flexiv Elements, the target wrench is expressed as wrench sensed at TCP
+     * instead of wrench exerted by TCP. E.g. commanding f_z = +5 N will make the end-effector move
+     * towards -Z direction, so that upon contact, the sensed force will be +5 N.
      * @par How to achieve pure motion control?
      * Use SetForceControlAxis() to disable force control for all Cartesian axes to achieve pure
-     * motion control. This function does pure motion control out of the box.
+     * motion control. This function does pure motion control by default.
      * @par How to achieve pure force control?
      * Use SetForceControlAxis() to enable force control for all Cartesian axes to achieve pure
      * force control, active or passive.
@@ -557,11 +560,14 @@ public:
      * @param[in] max_angular_acc  Maximum Cartesian angular acceleration when moving to the target
      * pose. A safe value is provided as default. Unit: \f$ [rad/s^2] \f$.
      * @throw std::invalid_argument if any of the last 4 input parameters is negative.
-     * @throw std::logic_error if robot is not in the correct control mode.
-     * @note Applicable control mode(s): NRT_CARTESIAN_MOTION_FORCE.
+     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @note Applicable control modes: NRT_CARTESIAN_MOTION_FORCE.
+     * @warning Same as Flexiv Elements, the target wrench is expressed as wrench sensed at TCP
+     * instead of wrench exerted by TCP. E.g. commanding f_z = +5 N will make the end-effector move
+     * towards -Z direction, so that upon contact, the sensed force will be +5 N.
      * @par How to achieve pure motion control?
      * Use SetForceControlAxis() to disable force control for all Cartesian axes to achieve pure
-     * motion control. This function does pure motion control out of the box.
+     * motion control. This function does pure motion control by default.
      * @par How to achieve pure force control?
      * Use SetForceControlAxis() to enable force control for all Cartesian axes to achieve pure
      * force control, active or passive.
