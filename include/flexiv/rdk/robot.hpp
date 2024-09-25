@@ -487,14 +487,6 @@ public:
     void SetJointImpedance(const std::vector<double>& K_q,
         const std::vector<double>& Z_q = {0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7});
 
-    /**
-     * @brief [Non-blocking] Reset impedance properties of the robot's joint motion controller to
-     * nominal values.
-     * @note Applicable control mode(s): RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
-     * @see SetJointImpedance().
-     */
-    void ResetJointImpedance();
-
     //================================== DIRECT CARTESIAN CONTROL ==================================
     /**
      * @brief [Non-blocking] Continuously stream Cartesian motion and/or force command for the robot
