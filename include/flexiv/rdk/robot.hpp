@@ -605,15 +605,7 @@ public:
         const std::array<double, kCartDoF>& Z_x = {0.7, 0.7, 0.7, 0.7, 0.7, 0.7});
 
     /**
-     * @brief [Non-blocking] Reset impedance properties of the robot's Cartesian motion controller
-     * to nominal values.
-     * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
-     * @see SetCartesianImpedance().
-     */
-    void ResetCartesianImpedance();
-
-    /**
-     * @brief [Non-blocking] Set maximum contact wrench for the motion control part of the Cartesian
+     * @brief [Blocking] Set maximum contact wrench for the motion control part of the Cartesian
      * motion-force control modes. The controller will regulate its output to maintain contact
      * wrench (force and moment) with the environment under the set values.
      * @param[in] max_wrench Maximum contact wrench (force and moment): \f$ F_max \in \mathbb{R}^{6
