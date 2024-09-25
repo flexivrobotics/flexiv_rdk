@@ -322,9 +322,9 @@ public:
      * the currently executing plan will pause at the pre-defined breakpoints. Use StepBreakpoint()
      * to continue the execution and pause at the next breakpoint.
      * @param[in] is_enabled True: enable; false: disable. By default, breakpoint mode is disabled.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
+     * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered.
      */
     void SetBreakpointMode(bool is_enabled);
@@ -332,14 +332,28 @@ public:
     /**
      * @brief [Blocking] If breakpoint mode is enabled, step to the next breakpoint. The plan
      * execution will continue and pause at the next breakpoint.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
+     * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered.
      * @note Use PlanInfo::waiting_for_step to check if the plan is currently waiting for user
      * signal to step the breakpoint.
      */
     void StepBreakpoint();
+
+    /**
+     * @brief [Blocking] Set overall velocity scale for robot motions during plan and primitive
+     * execution.
+     * @param[in] velocity_scale Percentage scale to adjust the overall velocity of robot motions.
+     * Valid range: [0, 100]. Setting to 100 means to move with 100% of specified motion velocity,
+     * and 0 means not moving at all.
+     * @throw std::invalid_argument if [velocity_scale] is outside the valid range.
+     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: NRT_PLAN_EXECUTION, NRT_PRIMITIVE_EXECUTION.
+     * @note This function blocks until the request is successfully delivered.
+     */
+    void SetVelocityScale(unsigned int velocity_scale);
 
     //==================================== PRIMITIVE EXECUTION =====================================
     /**
@@ -353,17 +367,17 @@ public:
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the primitive ready, the loading process typically takes no more than 200 ms.
      * @throw std::length_error if size of pt_cmd exceeds the limit (10 Kb).
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control mode(s): NRT_PRIMITIVE_EXECUTION.
+     * @note Applicable control modes: NRT_PRIMITIVE_EXECUTION.
      * @note This function blocks until the request is successfully delivered if
      * [block_until_started] is disabled, or until the primitive has started execution if
      * [block_until_started] is enabled.
      * @warning The primitive input parameters may not use SI units, please refer to the Flexiv
      * Primitives documentation for exact unit definition.
-     * @warning Some primitives may not terminate automatically and require users to manually
-     * terminate them based on specific primitive states, for example, most [Move] primitives. In
-     * such case, busy() will stay true even if it seems everything is done for that primitive.
+     * @warning Most primitives won't exit by themselves and require users to explicitly trigger
+     * transitions based on specific primitive states. In such case, busy() will stay true even if
+     * it seems everything is done for that primitive.
      */
     void ExecutePrimitive(const std::string& pt_cmd, bool block_until_started = true);
 
