@@ -692,32 +692,37 @@ public:
         const std::array<double, kCartDoF / 2>& max_linear_vel = {1.0, 1.0, 1.0});
 
     /**
-     * @brief [Blocking] Set force control reference frame for the Cartesian motion-force control
-     * modes. This function can only be called when the robot is in IDLE mode.
-     * @param[in] reference_frame The reference frame to use for force control. Options are: "TCP"
-     * and "WORLD". The target wrench and force control axis should also be expressed in the
-     * selected reference frame. By default, world frame is used for force control.
-     * @throw std::invalid_argument if [reference_frame] is invalid.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @brief [Blocking] Set reference frame for force control while in the Cartesian motion-force
+     * control modes. The force control frame is defined by specifying its transformation with
+     * regard to the root coordinate.
+     * @param[in] root_coord Reference coordinate of [T_in_root].
+     * @param[in] T_in_root Transformation from [root_coord] to the user-defined force control
+     * frame: \f$ ^{root}T_{force} \in \mathbb{R}^{7 \times 1} \f$. Consists of \f$ \mathbb{R}^{3
+     * \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x, y, z, q_w,
+     * q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$. If root coordinate is a fixed one (e.g. WORLD),
+     * then the force control frame will also be fixed; if root coordinate is a moving one (e.g.
+     * TCP), then the force control frame will also be moving with the root coordinate. An identity
+     * transformation is provided as default.
+     * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control mode(s): IDLE.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
      * @note This function blocks until the request is successfully delivered.
-     * @warning Upon disconnection, this setting will be reset to world frame.
-     * @par Force control reference frame
+     * @note If not set, the robot will use WORLD origin as the force control frame by default.
+     * @par Force control frame
      * In Cartesian motion-force control modes, the reference frame of motion control is always the
-     * world frame, but the reference frame of force control can be either world frame or the
-     * robot's current TCP frame. While the world frame is the commonly used global coordinate,
-     * the current TCP frame is a dynamic local coordinate whose transformation with regard to the
-     * world frame changes as the robot TCP moves. When using world frame for force control, the
-     * force-controlled axis(s) and motion-controlled axis(s) are guaranteed to be orthogonal.
-     * However, when using current TCP frame for force control, the force-controlled axis(s) and
-     * motion-controlled axis(s) are NOT guaranteed to be orthogonal because different reference
-     * frames are used. In this case, it's recommended but not required to set the target pose such
-     * that the actual robot motion direction(s) are orthogonal to force direction(s). If they are
-     * not orthogonal, the motion control's vector component(s) in the force direction(s) will be
-     * eliminated.
+     * world frame, but the reference frame of force control can be an arbitrary one. While the
+     * world frame is the commonly used global coordinate, the current TCP frame is a dynamic local
+     * coordinate whose transformation with regard to the world frame changes as the robot TCP
+     * moves. When using world frame with no transformation as the force control frame, the
+     * force-controlled axes and motion-controlled axes are guaranteed to be orthogonal. Otherwise,
+     * the force-controlled axes and motion-controlled axes are NOT guaranteed to be orthogonal
+     * because different reference frames are used. In this case, it's recommended but not required
+     * to set the target pose such that the actual robot motion direction(s) are orthogonal to force
+     * direction(s). If they are not orthogonal, the motion control's vector component(s) in the
+     * force direction(s) will be eliminated.
      */
-    void SetForceControlFrame(const std::string& reference_frame);
+    void SetForceControlFrame(CoordType root_coord,
+        const std::array<double, kPoseSize>& T_in_root = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0});
 
     /**
      * @brief [Blocking] Enable or disable passive force control for the Cartesian motion-force
