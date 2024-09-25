@@ -625,25 +625,25 @@ public:
     /**
      * @brief [Blocking] Set reference joint positions for the null-space posture control module
      * used in the Cartesian motion-force control modes.
-     * @param[in] preferred_positions Preferred joint positions for the null-space posture control:
+     * @param[in] ref_positions Reference joint positions for the null-space posture control:
      * \f$ q_{ns} \in \mathbb{R}^{n \times 1} \f$. Valid range: [RobotInfo::q_min,
      * RobotInfo::q_max]. Unit: \f$ [rad] \f$.
-     * @throw std::invalid_argument if [preferred_positions] contains any value outside the valid
+     * @throw std::invalid_argument if [ref_positions] contains any value outside the valid
      * range or size of any input vector does not match robot DoF.
-     * @throw std::logic_error if robot is not in the correct control mode.
-     * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
-     * @warning Upon entering the applicable control modes, the robot will automatically set its
-     * current joint positions as the preferred joint positions.
+     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @note This function blocks until the request is successfully delivered.
+     * @warning The reference joint positions will be automatically reset to the robot's current
+     * joint positions upon re-entering the applicable control modes.
      * @par Null-space posture control
      * Similar to human arm, a robotic arm with redundant joint-space degree(s) of freedom (DoF > 6)
      * can change its overall posture without affecting the ongoing primary task. This is achieved
-     * through a technique called "null-space control". After the preferred joint positions for a
-     * desired robot posture is set using this function, the robot's null-space control module will
+     * through a technique called "null-space control". After the reference joint positions of a
+     * desired robot posture are set using this function, the robot's null-space control module will
      * try to pull the arm as close to this posture as possible without affecting the primary
      * Cartesian motion-force control task.
-     * @see ResetNullSpacePosture().
      */
-    void SetNullSpacePosture(const std::vector<double>& preferred_positions);
+    void SetNullSpacePosture(const std::vector<double>& ref_positions);
 
     /**
      * @brief [Non-blocking] Reset preferred joint positions to the ones automatically recorded when
