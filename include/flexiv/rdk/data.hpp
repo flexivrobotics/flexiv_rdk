@@ -51,6 +51,14 @@ enum class OperationalStatus
     IN_AUTO_MODE,       ///< In regular Auto mode, need to switch to Auto (Remote) mode.
 };
 
+/**
+ * @brief Type of commonly-used reference coordinates.
+ */
+enum class CoordType
+{
+    WORLD, ///< World frame (fixed).
+    TCP,   ///< TCP frame (move with the robot's end effector).
+};
 
 /**
  * @struct RobotInfo
