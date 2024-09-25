@@ -6,8 +6,9 @@
 #ifndef FLEXIV_RDK_UTILITY_HPP_
 #define FLEXIV_RDK_UTILITY_HPP_
 
+#include "data.hpp"
 #include <Eigen/Eigen>
-#include <array>
+#include <sstream>
 
 namespace flexiv {
 namespace rdk {
@@ -57,48 +58,42 @@ inline std::array<double, N> Rad2Deg(const std::array<double, N>& rad_arr)
 /**
  * @brief Convert an std::vector to a string.
  * @param[in] vec std::vector of any type and size.
- * @param[in] decimal Decimal places to keep for each number in the vector.
- * @param[in] trailing_space Whether to include a space after the last element.
+ * @param[in] decimal Decimal places to keep for each floating-point number in the vector.
  * @param[in] separator Character to separate between numbers.
- * @return A string with format "vec[0] vec[1] ... vec[n] ", i.e. each element followed by a space,
- * including the last one if trailing_space = true.
+ * @return The converted string.
  */
 template <typename T>
-inline std::string Vec2Str(const std::vector<T>& vec, size_t decimal = 3,
-    bool trailing_space = true, const std::string& separator = " ")
+inline std::string Vec2Str(
+    const std::vector<T>& vec, size_t decimal = 3, const std::string& separator = " ")
 {
     std::string padding = "";
-    std::stringstream ss;
-    ss.precision(decimal);
-    ss << std::fixed;
+    std::ostringstream oss;
+    oss.precision(decimal);
+    oss << std::fixed;
 
     for (const auto& v : vec) {
-        ss << padding << v;
+        oss << padding << v;
         padding = separator;
     }
-
-    if (trailing_space) {
-        ss << " ";
-    }
-    return ss.str();
+    return oss.str();
 }
 
 /**
  * @brief Convert an std::array to a string.
  * @param[in] arr std::array of any type and size.
- * @param[in] decimal Decimal places to keep for each number in the array.
- * @param[in] trailing_space Whether to include a space after the last element.
+ * @param[in] decimal Decimal places to keep for each floating-point number in the array.
  * @param[in] separator Character to separate between numbers.
- * @return A string with format "arr[0] arr[1] ... arr[n] ", i.e. each element followed by a space,
- * including the last one if trailing_space = true.
+ * @return The converted string.
  */
 template <typename T, size_t N>
-inline std::string Arr2Str(const std::array<T, N>& arr, size_t decimal = 3,
-    bool trailing_space = true, const std::string& separator = " ")
+inline std::string Arr2Str(
+    const std::array<T, N>& arr, size_t decimal = 3, const std::string& separator = " ")
 {
     std::vector<T> vec(N);
     std::copy(arr.begin(), arr.end(), vec.begin());
-    return Vec2Str(vec, decimal, trailing_space, separator);
+    return Vec2Str(vec, decimal, separator);
+}
+
 }
 
 /**
