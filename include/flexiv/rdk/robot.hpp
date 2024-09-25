@@ -669,17 +669,26 @@ public:
     void SetNullSpaceObjectives(double linear_manipulability = 0.0,
         double angular_manipulability = 0.0, double ref_positions_tracking = 0.5);
 
+    /**
+     * @brief [Blocking] Set Cartesian axes to enable force control while in the Cartesian
+     * motion-force control modes. Axes not enabled for force control will be motion-controlled.
+     * @param[in] enabled_axes Flags to enable/disable force control for certain Cartesian axes in
+     * the force control reference frame (configured by SetForceControlFrame()). The axis order is
+     * \f$ [X, Y, Z, Rx, Ry, Rz] \f$.
+     * @param[in] max_linear_vel For linear Cartesian axes that are enabled for force control, limit
+     * the moving velocity to these values as a protection mechanism in case of contact loss. The
+     * axis order is \f$ [X, Y, Z] \f$. Valid range: [0.005, 2.0]. Unit: \f$ [m/s] \f$.
      * @throw std::invalid_argument if [max_linear_vel] contains any value outside the valid range.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control mode(s): IDLE.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
      * @note This function blocks until the request is successfully delivered.
+     * @note If not set, force control is disabled for all Cartesian axes by default.
      * @warning The maximum linear velocity protection for force control axes is only effective
-     * under active force control (passive force control disabled), see SetPassiveForceControl().
-     * @warning Upon disconnection, force control axes will be reset to all disabled and maximum
-     * linear velocity in force control axes will be reset to 1.0 m/s.
+     * under active force control (i.e. passive force control disabled), see
+     * SetPassiveForceControl().
      */
-    void SetForceControlAxis(const std::array<bool, kCartDoF>& enabled_axis,
+    void SetForceControlAxis(const std::array<bool, kCartDoF>& enabled_axes,
         const std::array<double, kCartDoF / 2>& max_linear_vel = {1.0, 1.0, 1.0});
 
     /**
