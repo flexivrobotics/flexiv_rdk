@@ -68,9 +68,9 @@ public:
     /**
      * @brief [Blocking] Send command(s) for the specified device.
      * @param[in] name Name of the device to send command(s) for, must be an existing device.
-     * @param[in] cmds A map of {command_name, command_value}. Use number 1 and 0 to represent
+     * @param[in] cmds A map of {command_name, command_value}. Use int 1 and 0 to represent
      * booleans. For example, {{"setSpeed", 6000}, {"startMotor", 1}}.
-     * @throw std::logic_error if the specified device does not exist.
+     * @throw std::logic_error if the specified device does not exist or not enabled yet.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      * @warning Commanding a disabled or nonexistent device will trigger an error on the robot.
