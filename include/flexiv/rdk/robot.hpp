@@ -623,13 +623,7 @@ public:
     void SetMaxContactWrench(const std::array<double, kCartDoF>& max_wrench);
 
     /**
-     * @brief [Non-blocking] Reset max contact wrench regulation to nominal state, i.e. disabled.
-     * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
-     */
-    void ResetMaxContactWrench();
-
-    /**
-     * @brief [Non-blocking] Set preferred joint positions for the null-space posture control module
+     * @brief [Blocking] Set reference joint positions for the null-space posture control module
      * used in the Cartesian motion-force control modes.
      * @param[in] preferred_positions Preferred joint positions for the null-space posture control:
      * \f$ q_{ns} \in \mathbb{R}^{n \times 1} \f$. Valid range: [RobotInfo::q_min,
