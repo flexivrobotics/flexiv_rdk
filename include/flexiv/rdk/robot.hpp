@@ -394,8 +394,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    std::map<std::string, std::vector<std::variant<int, double, std::string>>>
-    primitive_states() const;
+    std::map<std::string, FlexivDataTypes> primitive_states() const;
 
     [[deprecated("Use the other primitive_states() instead")]] const std::vector<std::string>
     primitive_states(bool dummy); ///< Unused parameter [dummy] is needed for function overloading
