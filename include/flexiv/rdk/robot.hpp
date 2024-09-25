@@ -379,7 +379,12 @@ public:
      * transitions based on specific primitive states. In such case, busy() will stay true even if
      * it seems everything is done for that primitive.
      */
-    void ExecutePrimitive(const std::string& pt_cmd, bool block_until_started = true);
+    void ExecutePrimitive(const std::string& primitive_name,
+        const std::map<std::string, FlexivDataTypes>& input_params,
+        bool block_until_started = true);
+
+    [[deprecated("Use the other ExecutePrimitive() instead")]] void ExecutePrimitive(
+        const std::string& pt_cmd, bool block_until_started = true);
 
     /**
      * @brief [Blocking] State parameters of the executing primitive and their current values.
