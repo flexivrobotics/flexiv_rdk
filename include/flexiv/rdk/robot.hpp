@@ -646,11 +646,7 @@ public:
     void SetNullSpacePosture(const std::vector<double>& ref_positions);
 
     /**
-     * @brief [Non-blocking] Reset preferred joint positions to the ones automatically recorded when
-     * entering the applicable control modes.
-     * @note Applicable control mode(s): RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
-     */
-    void ResetNullSpacePosture();
+     * @throw std::logic_error if robot is not in an applicable control mode.
 
     /**
      * @brief [Blocking] Set force-controlled Cartesian axis(s) for the Cartesian motion-force
