@@ -367,6 +367,11 @@ struct Coord
     /** String representation of all data in the struct, separated by space */
     std::string str() const;
 };
+
+/** Alias of the variant that holds all possible types of data exchanged with Flexiv robots */
+using FlexivDataTypes = std::variant<int, double, std::string, rdk::Coord, std::vector<int>,
+    std::vector<double>, std::vector<std::string>, std::vector<rdk::Coord>>;
+
 /**
  * @brief Operator overloading to out stream all robot info in JSON format:
  * {"info_1": [val1,val2,val3,...], "info_2": [val1,val2,val3,...], ...}.
