@@ -310,46 +310,12 @@ public:
      * @brief [Blocking] Get detailed information about the currently executing plan. Contains
      * information like plan name, primitive name, node name, node path, node path time period, etc.
      * @return PlanInfo data struct.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
-     * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
+     * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until a reply is received.
      */
     const PlanInfo plan_info() const;
-
-    /**
-     * @brief [Blocking] Set values to global variables that already exist in the robot.
-     * @param[in] global_vars A map of {global_var_name, global_var_value(s)}. Use int 1 and 0 to
-     * represent booleans. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", {1}}}.
-     * @throw std::length_error if [global_vars] is empty or too long to transmit in one request.
-     * @throw std::logic_error if robot is not in the correct control mode or any of the specified
-     * global variables does not exist.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control mode(s): NRT_PLAN_EXECUTION.
-     * @note This function blocks until the global variables are successfully set.
-     * @warning The specified global variables need to be created first using Flexiv Elements.
-     * @see global_variables().
-     */
-    void SetGlobalVariables(
-        const std::map<std::string, std::vector<std::variant<int, double, std::string>>>&
-            global_vars);
-
-    [[deprecated("Use the other SetGlobalVariables() instead")]] void SetGlobalVariables(
-        const std::string& global_vars);
-
-    /**
-     * @brief [Blocking] Existing global variables and their current values.
-     * @return A map of {global_var_name, global_var_value(s)}. Booleans are represented by int 1
-     * and 0. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", {1}}}.
-     * @throw std::runtime_error if failed to get a reply from the connected robot.
-     * @note This function blocks until a reply is received.
-     * @see SetGlobalVariables().
-     */
-    std::map<std::string, std::vector<std::variant<int, double, std::string>>>
-    global_variables() const;
-
-    [[deprecated("Use the other global_variables() instead")]] const std::vector<std::string>
-    global_variables(bool dummy); ///< Unused parameter [dummy] is needed for function overloading
 
     /**
      * @brief [Blocking] Enable or disable the breakpoint mode during plan execution. When enabled,
