@@ -646,20 +646,29 @@ public:
     void SetNullSpacePosture(const std::vector<double>& ref_positions);
 
     /**
+     * @brief [Blocking] Set weights of the three optimization objectives while computing the
+     * robot's null-space posture. Change the weights to optimize robot performance for different
+     * use cases.
+     * @param[in] linear_manipulability Increase this weight to improve the robot's capability to
+     * translate freely in Cartesian space, i.e. a broader range of potential translation movements.
+     * Valid range: [0.0, 1.0].
+     * @param[in] angular_manipulability Increase this weight to improve the robot's capability to
+     * rotate freely in Cartesian space, i.e. a broader range of potential rotation movements. Valid
+     * range: [0.0, 1.0].
+     * @param[in] ref_positions_tracking Increase this weight to make the robot track closer to the
+     * reference joint positions specified using SetNullSpacePosture(). Valid range: [0.1, 1.0].
+     * @throw std::invalid_argument if any of the input parameters is outside its valid range.
      * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note The default value is provided for each parameter.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @note This function blocks until the request is successfully delivered.
+     * @warning The optimization weights will be automatically reset to the provided default values
+     * upon re-entering the applicable control modes.
+     */
+    void SetNullSpaceObjectives(double linear_manipulability = 0.0,
+        double angular_manipulability = 0.0, double ref_positions_tracking = 0.5);
 
-    /**
-     * @brief [Blocking] Set force-controlled Cartesian axis(s) for the Cartesian motion-force
-     * control modes. The axis(s) not enabled for force control will be motion controlled. This
-     * function can only be called when the robot is in IDLE mode.
-     * @param[in] enabled_axis Flags to enable/disable force control for certain Cartesian axis(s)
-     * in the force control reference frame (configured by SetForceControlFrame()). The
-     * corresponding axis order is \f$ [X, Y, Z, Rx, Ry, Rz] \f$. By default, force control is
-     * disabled for all Cartesian axes.
-     * @param[in] max_linear_vel For Cartesian linear axis(s) enabled with force control, limit the
-     * moving velocity to these values as a protection mechanism in case of contact loss. The
-     * corresponding axis order is \f$ [X, Y, Z] \f$. Valid range: [0.005, 2.0]. Unit: \f$ [m/s]
-     * \f$.
      * @throw std::invalid_argument if [max_linear_vel] contains any value outside the valid range.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
