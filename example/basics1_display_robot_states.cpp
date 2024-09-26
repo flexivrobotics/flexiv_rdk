@@ -28,7 +28,7 @@ void PrintHelp()
 }
 
 /** @brief Print robot states data @ 1Hz */
-void printRobotStates(rdk::Robot& robot)
+void PrintRobotStates(rdk::Robot& robot)
 {
     while (true) {
         // Print all robot states in JSON format using the built-in ostream operator overloading
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
         // =========================================================================================
         // Use std::thread to do scheduling so that this example can run on all OS, since not all OS
         // support rdk::Scheduler
-        std::thread low_priority_thread(std::bind(printRobotStates, std::ref(robot)));
+        std::thread low_priority_thread(std::bind(PrintRobotStates, std::ref(robot)));
 
         // Properly exit thread
         low_priority_thread.join();

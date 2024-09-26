@@ -79,7 +79,7 @@ void PeriodicTask(
             }
         } else {
             throw std::invalid_argument(
-                "PeriodicTask: unknown motion type. Accepted motion types: hold, sine-sweep");
+                "PeriodicTask: Unknown motion type. Accepted motion types: hold, sine-sweep");
         }
 
         // Run impedance control on all joints

@@ -72,7 +72,7 @@ void PeriodicTask(
             }
         } else {
             throw std::invalid_argument(
-                "PeriodicTask: unknown motion type. Accepted motion types: hold, sine-sweep");
+                "PeriodicTask: Unknown motion type. Accepted motion types: hold, sine-sweep");
         }
 
         // Send target joint position to RDK server

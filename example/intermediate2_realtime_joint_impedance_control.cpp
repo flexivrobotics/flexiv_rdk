@@ -72,7 +72,7 @@ void PeriodicTask(
             }
         } else {
             throw std::invalid_argument(
-                "PeriodicTask: unknown motion type. Accepted motion types: hold, sine-sweep");
+                "PeriodicTask: Unknown motion type. Accepted motion types: hold, sine-sweep");
         }
 
         // Reduce stiffness to half of nominal values after 5 seconds
@@ -82,8 +82,7 @@ void PeriodicTask(
                 v *= 0.5;
             }
             robot.SetJointImpedance(new_Kq);
-            spdlog::info(
-                "PeriodicTask: joint stiffness set to [{}]", rdk::utility::Vec2Str(new_Kq));
+            spdlog::info("Joint stiffness set to [{}]", rdk::utility::Vec2Str(new_Kq));
         }
 
         // Reset impedance properties to nominal values after another 5 seconds
