@@ -14,6 +14,8 @@
 #include <iomanip>
 #include <thread>
 
+using namespace flexiv;
+
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -31,7 +33,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -48,7 +50,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::rdk::Robot robot(robot_sn);
+        rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -74,7 +76,7 @@ int main(int argc, char* argv[])
         // Execute Primitives
         // =========================================================================================
         // Switch to primitive execution mode
-        robot.SwitchMode(flexiv::rdk::Mode::NRT_PRIMITIVE_EXECUTION);
+        robot.SwitchMode(rdk::Mode::NRT_PRIMITIVE_EXECUTION);
 
         // (1) Go to home pose
         // -----------------------------------------------------------------------------------------
@@ -83,10 +85,10 @@ int main(int argc, char* argv[])
         spdlog::info("Executing primitive: Home");
 
         // Send command to robot
-        robot.ExecutePrimitive("Home()");
+        robot.ExecutePrimitive("Home", std::map<std::string, rdk::FlexivDataTypes> {});
 
         // Wait for reached target
-        while (!std::get<int>(robot.primitive_states()["reachedTarget"].front())) {
+        while (!std::get<int>(robot.primitive_states()["reachedTarget"])) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -96,20 +98,17 @@ int main(int argc, char* argv[])
         spdlog::info("Executing primitive: MoveJ");
 
         // Send command to robot
-        robot.ExecutePrimitive("MoveJ(target=30 -45 0 90 0 40 30)");
+        robot.ExecutePrimitive(
+            "MoveJ", {{"target", std::vector<double> {30, -45, 0, 90, 0, 40, 30}}});
 
         // Wait for reached target
-        while (!std::get<int>(robot.primitive_states()["reachedTarget"].front())) {
+        while (!std::get<int>(robot.primitive_states()["reachedTarget"])) {
             // Print current primitive states
             spdlog::info("Current primitive states:");
             for (const auto& st : robot.primitive_states()) {
-                std::cout << st.first << ": " << std::fixed << std::setprecision(3);
-                for (const auto& v : st.second) {
-                    std::visit([](auto&& value) { std::cout << value << ' '; }, v);
-                }
+                std::cout << st.first << ": " << rdk::utility::FlexivTypes2Str(st.second);
                 std::cout << std::endl;
             }
-
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -128,15 +127,19 @@ int main(int argc, char* argv[])
         spdlog::info("Executing primitive: MoveL");
 
         // Send command to robot
-        robot.ExecutePrimitive(
-            "MoveL(target=0.65 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN,waypoints=0.45 0.1 0.2 180 0 "
-            "180 WORLD WORLD_ORIGIN : 0.45 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN, vel=0.2)");
+        robot.ExecutePrimitive("MoveL",
+            {{"target", rdk::Coord({0.65, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})},
+                {"waypoints",
+                    std::vector<rdk::Coord> {
+                        rdk::Coord({0.45, 0.1, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"}),
+                        rdk::Coord({0.45, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})}},
+                {"vel", 0.6}, {"zoneRadius", "Z50"}});
 
         // The [Move] series primitive won't terminate itself, so we determine if the robot has
         // reached target location by checking the primitive state "reachedTarget = 1" in the list
         // of current primitive states, and terminate the current primitive manually by sending a
         // new primitive command.
-        while (!std::get<int>(robot.primitive_states()["reachedTarget"].front())) {
+        while (!std::get<int>(robot.primitive_states()["reachedTarget"])) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -149,16 +152,14 @@ int main(int argc, char* argv[])
         // Example to convert target quaternion [w,x,y,z] to Euler ZYX using utility functions
         std::array<double, 4> targetQuat = {0.9185587, 0.1767767, 0.3061862, 0.1767767};
         // ZYX = [30, 30, 30] degrees
-        auto targetEulerDeg
-            = flexiv::rdk::utility::Rad2Deg(flexiv::rdk::utility::Quat2EulerZYX(targetQuat));
+        auto targetEulerDeg = rdk::utility::Rad2Deg(rdk::utility::Quat2EulerZYX(targetQuat));
 
-        // Send command to robot. This motion will hold current TCP position and only do TCP
-        // rotation
-        robot.ExecutePrimitive("MoveL(target=0.0 0.0 0.0 "
-                               + flexiv::rdk::utility::Arr2Str(targetEulerDeg) + "TRAJ START)");
-
+        // Send command to robot. This motion will hold current TCP position and only do rotation
+        robot.ExecutePrimitive(
+            "MoveL", {{"target", rdk::Coord({0.0, 0.0, 0.0}, targetEulerDeg, {"TRAJ", "START"})},
+                         {"vel", 0.2}});
         // Wait for reached target
-        while (!std::get<int>(robot.primitive_states()["reachedTarget"].front())) {
+        while (!std::get<int>(robot.primitive_states()["reachedTarget"])) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 

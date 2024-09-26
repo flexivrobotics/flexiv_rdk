@@ -80,11 +80,11 @@ def main():
         logger.info("Executing primitive: Home")
 
         # Send command to robot
-        robot.ExecutePrimitive("Home()")
+        robot.ExecutePrimitive("Home", dict())
 
         # Wait for reached target
         # Note: primitive_states() returns a dictionary of {pt_state_name, [pt_state_values]}
-        while not robot.primitive_states()["reachedTarget"][0]:
+        while not robot.primitive_states()["reachedTarget"]:
             time.sleep(1)
 
         # (2) Move robot joints to target positions
@@ -93,10 +93,9 @@ def main():
         logger.info("Executing primitive: MoveJ")
 
         # Send command to robot
-        robot.ExecutePrimitive("MoveJ(target=30 -45 0 90 0 40 30)")
-
+        robot.ExecutePrimitive("MoveJ", {"target": [30, -45, 0, 90, 0, 40, 30]})
         # Wait for reached target
-        while not robot.primitive_states()["reachedTarget"][0]:
+        while not robot.primitive_states()["reachedTarget"]:
             # Print current primitive states
             print(robot.primitive_states())
             time.sleep(1)
@@ -117,15 +116,28 @@ def main():
 
         # Send command to robot
         robot.ExecutePrimitive(
-            "MoveL(target=0.65 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN,waypoints=0.45 0.1 0.2 180 0 "
-            "180 WORLD WORLD_ORIGIN : 0.45 -0.3 0.2 180 0 180 WORLD WORLD_ORIGIN, vel=0.2)"
+            "MoveL",
+            {
+                "target": flexivrdk.Coord(
+                    [0.65, -0.3, 0.2], [180, 0, 180], ["WORLD", "WORLD_ORIGIN"]
+                ),
+                "waypoints": [
+                    flexivrdk.Coord(
+                        [0.45, 0.1, 0.2], [180, 0, 180], ["WORLD", "WORLD_ORIGIN"]
+                    ),
+                    flexivrdk.Coord(
+                        [0.45, -0.3, 0.2], [180, 0, 180], ["WORLD", "WORLD_ORIGIN"]
+                    ),
+                ],
+                "vel": 0.6,
+                "zoneRadius": "Z50",
+            },
         )
-
         # The [Move] series primitive won't terminate itself, so we determine if the robot has
         # reached target location by checking the primitive state "reachedTarget = 1" in the list
         # of current primitive states, and terminate the current primitive manually by sending a
         # new primitive command.
-        while not robot.primitive_states()["reachedTarget"][0]:
+        while not robot.primitive_states()["reachedTarget"]:
             time.sleep(1)
 
         # (4) Another MoveL that uses TCP frame
@@ -140,14 +152,19 @@ def main():
         # ZYX = [30, 30, 30] degrees
         eulerZYX_deg = quat2eulerZYX(target_quat, degree=True)
 
-        # Send command to robot. This motion will hold current TCP position and
-        # only do TCP rotation
+        # Send command to robot. This motion will hold current TCP position and only do rotation
         robot.ExecutePrimitive(
-            "MoveL(target=0.0 0.0 0.0 " + list2str(eulerZYX_deg) + "TRAJ START)"
+            "MoveL",
+            {
+                "target": flexivrdk.Coord(
+                    [0.0, 0.0, 0.0], eulerZYX_deg, ["TRAJ", "START"]
+                ),
+                "vel": 0.2,
+            },
         )
 
         # Wait for reached target
-        while not robot.primitive_states()["reachedTarget"][0]:
+        while not robot.primitive_states()["reachedTarget"]:
             time.sleep(1)
 
         # All done, stop robot and put into IDLE mode
