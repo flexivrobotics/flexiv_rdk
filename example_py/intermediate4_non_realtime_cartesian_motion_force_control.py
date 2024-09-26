@@ -83,10 +83,10 @@ def main():
     )
 
     # The reference frame to use, see Robot::SendCartesianMotionForce() for more details
-    frame_str = "WORLD"
+    force_ctrl_frame = flexivrdk.CoordType.WORLD
     if args.TCP:
         logger.info("Reference frame used for force control: robot TCP frame")
-        frame_str = "TCP"
+        force_ctrl_frame = flexivrdk.CoordType.TCP
     else:
         logger.info("Reference frame used for force control: robot world frame")
 
@@ -202,7 +202,7 @@ def main():
 
         # Set force control reference frame based on program argument. See function doc for more
         # details
-        robot.SetForceControlFrame(frame_str)
+        robot.SetForceControlFrame(force_ctrl_frame)
 
         # Set which Cartesian axis(s) to activate for force control. See function doc for more
         # details. Here we only active Z axis
@@ -257,10 +257,10 @@ def main():
 
             # Set Fz according to reference frame to achieve a "pressing down" behavior
             Fz = 0.0
-            if frame_str == "WORLD":
-                Fz = -PRESSING_FORCE
-            elif frame_str == "TCP":
+            if force_ctrl_frame == flexivrdk.CoordType.WORLD:
                 Fz = PRESSING_FORCE
+            elif force_ctrl_frame == flexivrdk.CoordType.TCP:
+                Fz = -PRESSING_FORCE
             target_wrench = [0.0, 0.0, Fz, 0.0, 0.0, 0.0]
 
             # Apply constant force along Z axis of chosen reference frame, and do a simple polish

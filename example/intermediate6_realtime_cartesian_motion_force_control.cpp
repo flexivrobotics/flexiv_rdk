@@ -61,8 +61,8 @@ void PrintHelp()
 
 /** Callback function for realtime periodic task */
 void PeriodicTask(flexiv::rdk::Robot& robot,
-    const std::array<double, flexiv::rdk::kPoseSize>& init_pose, const std::string frame_str,
-    bool enable_polish)
+    const std::array<double, flexiv::rdk::kPoseSize>& init_pose,
+    flexiv::rdk::CoordType force_ctrl_frame, bool enable_polish)
 {
     // Local periodic loop counter
     static uint64_t loop_counter = 0;
@@ -79,10 +79,10 @@ void PeriodicTask(flexiv::rdk::Robot& robot,
 
         // Set Fz according to reference frame to achieve a "pressing down" behavior
         double Fz = 0.0;
-        if (frame_str == "WORLD") {
-            Fz = -kPressingForce;
-        } else if (frame_str == "TCP") {
+        if (force_ctrl_frame == flexiv::rdk::CoordType::WORLD) {
             Fz = kPressingForce;
+        } else if (force_ctrl_frame == flexiv::rdk::CoordType::TCP) {
+            Fz = -kPressingForce;
         }
         std::array<double, flexiv::rdk::kCartDoF> target_wrench = {0.0, 0.0, Fz, 0.0, 0.0, 0.0};
 
@@ -130,12 +130,11 @@ int main(int argc, char* argv[])
         "explicit force control, while the rest axes in the same reference frame will stay motion "
         "controlled.");
 
-    // The reference frame to use for force control, see Robot::SetForceControlFrame() for more
-    // details
-    std::string frame_str = "WORLD";
+    // The reference frame used for force control, see Robot::SetForceControlFrame()
+    auto force_ctrl_frame = flexiv::rdk::CoordType::WORLD;
     if (flexiv::rdk::utility::ProgramArgsExist(argc, argv, "--TCP")) {
         spdlog::info("Reference frame used for force control: robot TCP frame");
-        frame_str = "TCP";
+        force_ctrl_frame = flexiv::rdk::CoordType::TCP;
     } else {
         spdlog::info("Reference frame used for force control: robot world frame");
     }
@@ -251,7 +250,7 @@ int main(int argc, char* argv[])
 
         // Set force control reference frame based on program argument. See function doc for more
         // details
-        robot.SetForceControlFrame(frame_str);
+        robot.SetForceControlFrame(force_ctrl_frame);
 
         // Set which Cartesian axis(s) to activate for force control. See function doc for more
         // details. Here we only active Z axis
@@ -274,7 +273,9 @@ int main(int argc, char* argv[])
         // is activated (i.e. motion control disabled in Z axis) and the motion force control mode
         // is entered, this way the contact force along Z axis is explicitly regulated and will not
         // spike after the max contact wrench regulation for motion control is disabled
-        robot.ResetMaxContactWrench();
+        std::array<double, flexiv::rdk::kCartDoF> inf;
+        inf.fill(std::numeric_limits<double>::infinity());
+        robot.SetMaxContactWrench(inf);
 
         // Update initial pose to current TCP pose
         init_pose = robot.states().tcp_pose;
@@ -283,7 +284,7 @@ int main(int argc, char* argv[])
         flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(init_pose),
-                              std::ref(frame_str), enable_polish),
+                              std::ref(force_ctrl_frame), enable_polish),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();
