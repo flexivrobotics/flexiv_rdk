@@ -17,6 +17,8 @@
 #include <chrono>
 #include <mutex>
 
+using namespace flexiv;
+
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -34,7 +36,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -51,7 +53,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::rdk::Robot robot(robot_sn);
+        rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -76,7 +78,7 @@ int main(int argc, char* argv[])
 
         // Move robot to home pose
         spdlog::info("Moving to home pose");
-        robot.SwitchMode(flexiv::rdk::Mode::NRT_PLAN_EXECUTION);
+        robot.SwitchMode(rdk::Mode::NRT_PLAN_EXECUTION);
         robot.ExecutePlan("PLAN-Home");
         // Wait for the plan to finish
         while (robot.busy()) {
@@ -86,7 +88,7 @@ int main(int argc, char* argv[])
         // Robot Dynamics
         // =========================================================================================
         // Initialize dynamics engine
-        flexiv::rdk::Model model(robot);
+        rdk::Model model(robot);
 
         // Step dynamics engine 5 times
         for (size_t i = 0; i < 5; i++) {
@@ -125,11 +127,11 @@ int main(int argc, char* argv[])
         // Check reachability of a Cartesian pose based on current pose
         auto pose_to_check = robot.states().tcp_pose;
         pose_to_check[0] += 0.1;
-        spdlog::info("Checking reachability of Cartesian pose [{}]",
-            flexiv::rdk::utility::Arr2Str(pose_to_check));
+        spdlog::info(
+            "Checking reachability of Cartesian pose [{}]", rdk::utility::Arr2Str(pose_to_check));
         auto result = model.reachable(pose_to_check, robot.states().q, true);
         spdlog::info("Got a result: reachable = {}, IK solution = [{}]", result.first,
-            flexiv::rdk::utility::Vec2Str(result.second));
+            rdk::utility::Vec2Str(result.second));
 
     } catch (const std::exception& e) {
         spdlog::error(e.what());

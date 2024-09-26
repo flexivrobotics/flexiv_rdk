@@ -15,6 +15,8 @@
 #include <thread>
 #include <atomic>
 
+using namespace flexiv;
+
 namespace {
 /** Global flag: whether the gripper control tasks are finished */
 std::atomic<bool> g_finished = {false};
@@ -33,7 +35,7 @@ void PrintHelp()
 }
 
 /** @brief Print gripper states data @ 1Hz */
-void PrintGripperStates(flexiv::rdk::Gripper& gripper)
+void PrintGripperStates(rdk::Gripper& gripper)
 {
     while (!g_finished) {
         // Print all gripper states in JSON format using the built-in ostream operator overloading
@@ -49,7 +51,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -65,7 +67,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::rdk::Robot robot(robot_sn);
+        rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -92,12 +94,12 @@ int main(int argc, char* argv[])
         // =========================================================================================
         // Gripper control is not available if the robot is in IDLE mode, so switch to some mode
         // other than IDLE
-        robot.SwitchMode(flexiv::rdk::Mode::NRT_PLAN_EXECUTION);
+        robot.SwitchMode(rdk::Mode::NRT_PLAN_EXECUTION);
         robot.ExecutePlan("PLAN-Home");
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
         // Instantiate gripper control interface
-        flexiv::rdk::Gripper gripper(robot);
+        rdk::Gripper gripper(robot);
 
         // Manually initialize the gripper, not all grippers need this step
         spdlog::info("Initializing gripper, this process takes about 10 seconds ...");

@@ -16,6 +16,8 @@
 #include <thread>
 #include <atomic>
 
+using namespace flexiv;
+
 namespace {
 /** RT loop frequency [Hz] */
 constexpr size_t kLoopFreq = 1000;
@@ -39,8 +41,6 @@ constexpr double kExtTorqueThreshold = 5.0;
 std::atomic<bool> g_stop_sched = {false};
 }
 
-using namespace flexiv;
-
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -56,9 +56,8 @@ void PrintHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void PeriodicTask(flexiv::rdk::Robot& robot,
-    const std::array<double, flexiv::rdk::kPoseSize>& init_pose, const std::vector<double>& init_q,
-    bool enable_hold, bool enable_collision)
+void PeriodicTask(rdk::Robot& robot, const std::array<double, rdk::kPoseSize>& init_pose,
+    const std::vector<double>& init_q, bool enable_hold, bool enable_collision)
 {
     // Local periodic loop counter
     static uint64_t loop_counter = 0;
@@ -92,7 +91,7 @@ void PeriodicTask(flexiv::rdk::Robot& robot,
                     = {0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658};
                 robot.SetNullSpacePosture(preferred_jnt_pos);
                 spdlog::info("Reference joint positions set to: "
-                             + flexiv::rdk::utility::Vec2Str(preferred_jnt_pos));
+                             + rdk::utility::Vec2Str(preferred_jnt_pos));
             } break;
             // Online change stiffness to half of nominal at 6 seconds
             case (6 * kLoopFreq): {
@@ -101,8 +100,7 @@ void PeriodicTask(flexiv::rdk::Robot& robot,
                     v *= 0.5;
                 }
                 robot.SetCartesianImpedance(new_K);
-                spdlog::info(
-                    "Cartesian stiffness set to: {}", flexiv::rdk::utility::Arr2Str(new_K));
+                spdlog::info("Cartesian stiffness set to: {}", rdk::utility::Arr2Str(new_K));
             } break;
             // Online change to another reference joint positions at 9 seconds
             case (9 * kLoopFreq): {
@@ -110,7 +108,7 @@ void PeriodicTask(flexiv::rdk::Robot& robot,
                     = {-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658};
                 robot.SetNullSpacePosture(preferred_jnt_pos);
                 spdlog::info("Reference joint positions set to: "
-                             + flexiv::rdk::utility::Vec2Str(preferred_jnt_pos));
+                             + rdk::utility::Vec2Str(preferred_jnt_pos));
             } break;
             // Online reset impedance properties to nominal at 12 seconds
             case (12 * kLoopFreq): {
@@ -124,15 +122,13 @@ void PeriodicTask(flexiv::rdk::Robot& robot,
             } break;
             // Online enable max contact wrench regulation at 16 seconds
             case (16 * kLoopFreq): {
-                std::array<double, flexiv::rdk::kCartDoF> max_wrench
-                    = {10.0, 10.0, 10.0, 2.0, 2.0, 2.0};
+                std::array<double, rdk::kCartDoF> max_wrench = {10.0, 10.0, 10.0, 2.0, 2.0, 2.0};
                 robot.SetMaxContactWrench(max_wrench);
-                spdlog::info(
-                    "Max contact wrench set to: {}", flexiv::rdk::utility::Arr2Str(max_wrench));
+                spdlog::info("Max contact wrench set to: {}", rdk::utility::Arr2Str(max_wrench));
             } break;
             // Disable max contact wrench regulation at 19 seconds
             case (19 * kLoopFreq): {
-                std::array<double, flexiv::rdk::kCartDoF> inf;
+                std::array<double, rdk::kCartDoF> inf;
                 inf.fill(std::numeric_limits<double>::infinity());
                 robot.SetMaxContactWrench(inf);
                 spdlog::info("Max contact wrench regulation is disabled");
@@ -176,7 +172,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -191,7 +187,7 @@ int main(int argc, char* argv[])
 
     // Type of motion specified by user
     bool enable_hold = false;
-    if (flexiv::rdk::utility::ProgramArgsExist(argc, argv, "--hold")) {
+    if (rdk::utility::ProgramArgsExist(argc, argv, "--hold")) {
         spdlog::info("Robot holding current TCP pose");
         enable_hold = true;
     } else {
@@ -200,7 +196,7 @@ int main(int argc, char* argv[])
 
     // Whether to enable collision detection
     bool enable_collision = false;
-    if (flexiv::rdk::utility::ProgramArgsExist(argc, argv, "--collision")) {
+    if (rdk::utility::ProgramArgsExist(argc, argv, "--collision")) {
         spdlog::info("Collision detection enabled");
         enable_collision = true;
     } else {
@@ -211,7 +207,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::rdk::Robot robot(robot_sn);
+        rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -236,7 +232,7 @@ int main(int argc, char* argv[])
 
         // Move robot to home pose
         spdlog::info("Moving to home pose");
-        robot.SwitchMode(flexiv::rdk::Mode::NRT_PLAN_EXECUTION);
+        robot.SwitchMode(rdk::Mode::NRT_PLAN_EXECUTION);
         robot.ExecutePlan("PLAN-Home");
         // Wait for the plan to finish
         while (robot.busy()) {
@@ -245,7 +241,7 @@ int main(int argc, char* argv[])
 
         // Zero Force-torque Sensor
         // =========================================================================================
-        robot.SwitchMode(flexiv::rdk::Mode::NRT_PRIMITIVE_EXECUTION);
+        robot.SwitchMode(rdk::Mode::NRT_PRIMITIVE_EXECUTION);
         // IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
         robot.ExecutePrimitive("ZeroFTSensor", std::map<std::string, rdk::FlexivDataTypes> {});
 
@@ -271,7 +267,7 @@ int main(int argc, char* argv[])
         // Start Pure Motion Control
         // =========================================================================================
         // Switch to real-time mode for continuous motion control
-        robot.SwitchMode(flexiv::rdk::Mode::RT_CARTESIAN_MOTION_FORCE);
+        robot.SwitchMode(rdk::Mode::RT_CARTESIAN_MOTION_FORCE);
 
         // Save initial pose
         auto init_pose = robot.states().tcp_pose;
@@ -280,7 +276,7 @@ int main(int argc, char* argv[])
         auto init_q = robot.states().q;
 
         // Create real-time scheduler to run periodic tasks
-        flexiv::rdk::Scheduler scheduler;
+        rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(init_pose),
                               std::ref(init_q), enable_hold, enable_collision),

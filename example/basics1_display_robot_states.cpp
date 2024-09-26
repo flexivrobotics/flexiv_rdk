@@ -13,6 +13,8 @@
 #include <iostream>
 #include <thread>
 
+using namespace flexiv;
+
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -26,7 +28,7 @@ void PrintHelp()
 }
 
 /** @brief Print robot states data @ 1Hz */
-void printRobotStates(flexiv::rdk::Robot& robot)
+void printRobotStates(rdk::Robot& robot)
 {
     while (true) {
         // Print all robot states in JSON format using the built-in ostream operator overloading
@@ -41,7 +43,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -57,7 +59,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::rdk::Robot robot(robot_sn);
+        rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -83,7 +85,7 @@ int main(int argc, char* argv[])
         // Print States
         // =========================================================================================
         // Use std::thread to do scheduling so that this example can run on all OS, since not all OS
-        // support flexiv::rdk::Scheduler
+        // support rdk::Scheduler
         std::thread low_priority_thread(std::bind(printRobotStates, std::ref(robot)));
 
         // Properly exit thread

@@ -15,6 +15,8 @@
 #include <iostream>
 #include <string>
 
+using namespace flexiv;
+
 namespace {
 constexpr char kDefaultLogPattern[] = "[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v";
 }
@@ -36,7 +38,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -57,7 +59,7 @@ int main(int argc, char* argv[])
 
     // Instantiate RDK client, all info messages are suppressed
     try {
-        flexiv::rdk::Robot robot(robot_sn);
+        rdk::Robot robot(robot_sn);
     } catch (const std::exception& e) {
         spdlog::error(e.what());
     }
@@ -84,7 +86,7 @@ int main(int argc, char* argv[])
 
     // Instantiate RDK client again, all messages are printed to console and output to a log file
     try {
-        flexiv::rdk::Robot robot(robot_sn);
+        rdk::Robot robot(robot_sn);
     } catch (const std::exception& e) {
         spdlog::error(e.what());
     }

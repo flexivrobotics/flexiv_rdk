@@ -21,6 +21,8 @@
 #include <thread>
 #include <atomic>
 
+using namespace flexiv;
+
 namespace {
 /** RT loop period [sec] */
 constexpr double kLoopPeriod = 0.001;
@@ -52,7 +54,7 @@ void PrintHelp()
 
 /** @brief Callback function for realtime periodic task */
 void PeriodicTask(
-    flexiv::rdk::Robot& robot, const std::string& motion_type, const std::vector<double>& init_pos)
+    rdk::Robot& robot, const std::string& motion_type, const std::vector<double>& init_pos)
 {
     // Local periodic loop counter
     static unsigned int loop_counter = 0;
@@ -103,7 +105,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -119,7 +121,7 @@ int main(int argc, char* argv[])
 
     // Type of motion specified by user
     std::string motion_type = "";
-    if (flexiv::rdk::utility::ProgramArgsExist(argc, argv, "--hold")) {
+    if (rdk::utility::ProgramArgsExist(argc, argv, "--hold")) {
         spdlog::info("Robot holding current pose");
         motion_type = "hold";
     } else {
@@ -131,7 +133,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::rdk::Robot robot(robot_sn);
+        rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -156,7 +158,7 @@ int main(int argc, char* argv[])
 
         // Move robot to home pose
         spdlog::info("Moving to home pose");
-        robot.SwitchMode(flexiv::rdk::Mode::NRT_PLAN_EXECUTION);
+        robot.SwitchMode(rdk::Mode::NRT_PLAN_EXECUTION);
         robot.ExecutePlan("PLAN-Home");
         // Wait for the plan to finish
         while (robot.busy()) {
@@ -166,14 +168,14 @@ int main(int argc, char* argv[])
         // Real-time Joint Torque Control
         // =========================================================================================
         // Switch to real-time joint torque control mode
-        robot.SwitchMode(flexiv::rdk::Mode::RT_JOINT_TORQUE);
+        robot.SwitchMode(rdk::Mode::RT_JOINT_TORQUE);
 
         // Set initial joint positions
         auto init_pos = robot.states().q;
-        spdlog::info("Initial joint positions set to: {}", flexiv::rdk::utility::Vec2Str(init_pos));
+        spdlog::info("Initial joint positions set to: {}", rdk::utility::Vec2Str(init_pos));
 
         // Create real-time scheduler to run periodic tasks
-        flexiv::rdk::Scheduler scheduler;
+        rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.AddTask(
             std::bind(PeriodicTask, std::ref(robot), std::ref(motion_type), std::ref(init_pos)),
