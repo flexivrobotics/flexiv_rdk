@@ -136,16 +136,16 @@ def main():
                     )
             # Otherwise all joints will hold at initial positions
 
-            # Reduce joint stiffness to half of nominal values after 5 seconds
+            # Reduce stiffness to half of nominal values after 5 seconds
             if loop_counter == 5 / period:
                 new_Kq = np.multiply(robot.info().K_q_nom, 0.5)
                 robot.SetJointImpedance(new_Kq)
                 logger.info(f"Joint stiffness set to {new_Kq}")
 
-            # Reset joint stiffness to nominal values after another 5 seconds
+            # Reset impedance properties to nominal values after another 5 seconds
             if loop_counter == 10 / period:
-                robot.ResetJointImpedance()
-                logger.info(f"Joint stiffness reset to {robot.info().K_q_nom}")
+                robot.SetJointImpedance(robot.info().K_q_nom)
+                logger.info("Joint impedance properties are reset")
 
             # Send commands
             robot.SendJointPosition(

@@ -73,7 +73,7 @@ void PeriodicTask(
                 "PeriodicTask: unknown motion type. Accepted motion types: hold, sine-sweep");
         }
 
-        // Reduce joint stiffness to half of nominal values after 5 seconds
+        // Reduce stiffness to half of nominal values after 5 seconds
         if (loop_counter == 5000) {
             auto new_Kq = robot.info().K_q_nom;
             for (auto& v : new_Kq) {
@@ -84,11 +84,10 @@ void PeriodicTask(
                 "PeriodicTask: joint stiffness set to [{}]", flexiv::rdk::utility::Vec2Str(new_Kq));
         }
 
-        // Reset joint stiffness to nominal values after another 5 seconds
+        // Reset impedance properties to nominal values after another 5 seconds
         if (loop_counter == 10000) {
-            robot.ResetJointImpedance();
-            spdlog::info("PeriodicTask: joint stiffness reset to [{}]",
-                flexiv::rdk::utility::Vec2Str(robot.info().K_q_nom));
+            robot.SetJointImpedance(robot.info().K_q_nom);
+            spdlog::info("Joint impedance properties are reset");
         }
 
         // Send commands
