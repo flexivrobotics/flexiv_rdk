@@ -188,7 +188,8 @@ int main(int argc, char* argv[])
         // =========================================================================================
         robot.SwitchMode(flexiv::rdk::Mode::NRT_PRIMITIVE_EXECUTION);
         // IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
-        robot.ExecutePrimitive("ZeroFTSensor()");
+        robot.ExecutePrimitive(
+            "ZeroFTSensor", std::map<std::string, flexiv::rdk::FlexivDataTypes> {});
 
         // WARNING: during the process, the robot must not contact anything, otherwise the result
         // will be inaccurate and affect following operations

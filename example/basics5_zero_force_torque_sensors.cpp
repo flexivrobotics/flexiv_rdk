@@ -13,6 +13,8 @@
 #include <iostream>
 #include <thread>
 
+using namespace flexiv;
+
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -79,7 +81,7 @@ int main(int argc, char* argv[])
 
         // Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
         robot.SwitchMode(flexiv::rdk::Mode::NRT_PRIMITIVE_EXECUTION);
-        robot.ExecutePrimitive("ZeroFTSensor()");
+        robot.ExecutePrimitive("ZeroFTSensor", std::map<std::string, rdk::FlexivDataTypes> {});
 
         // WARNING: during the process, the robot must not contact anything, otherwise the result
         // will be inaccurate and affect following operations

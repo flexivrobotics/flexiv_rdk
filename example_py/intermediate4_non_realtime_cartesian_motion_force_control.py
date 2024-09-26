@@ -135,7 +135,7 @@ def main():
         # =========================================================================================
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
         # IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
-        robot.ExecutePrimitive("ZeroFTSensor()")
+        robot.ExecutePrimitive("ZeroFTSensor", dict())
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations
