@@ -128,12 +128,15 @@ int main(int argc, char* argv[])
 
         // Send command to robot
         robot.ExecutePrimitive("MoveL",
-            {{"target", rdk::Coord({0.65, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})},
+            {
+                {"target", rdk::Coord({0.65, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})},
                 {"waypoints",
                     std::vector<rdk::Coord> {
                         rdk::Coord({0.45, 0.1, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"}),
                         rdk::Coord({0.45, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})}},
-                {"vel", 0.6}, {"zoneRadius", "Z50"}});
+                {"vel", 0.6},
+                {"zoneRadius", "Z50"},
+            });
 
         // The [Move] series primitive won't terminate itself, so we determine if the robot has
         // reached target location by checking the primitive state "reachedTarget = 1" in the list
@@ -156,8 +159,10 @@ int main(int argc, char* argv[])
 
         // Send command to robot. This motion will hold current TCP position and only do rotation
         robot.ExecutePrimitive(
-            "MoveL", {{"target", rdk::Coord({0.0, 0.0, 0.0}, targetEulerDeg, {"TRAJ", "START"})},
-                         {"vel", 0.2}});
+            "MoveL", {
+                         {"target", rdk::Coord({0.0, 0.0, 0.0}, targetEulerDeg, {"TRAJ", "START"})},
+                         {"vel", 0.2},
+                     });
         // Wait for reached target
         while (!std::get<int>(robot.primitive_states()["reachedTarget"])) {
             std::this_thread::sleep_for(std::chrono::seconds(1));

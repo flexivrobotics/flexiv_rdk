@@ -86,8 +86,12 @@ int main(int argc, char* argv[])
         // =========================================================================================
         ///@warning These specified global variables need to be created first using Flexiv Elements
         spdlog::info("Setting new values to existing global variables");
-        robot.SetGlobalVariables({{"test_bool", 1}, {"test_int", 100}, {"test_double", 100.123},
-            {"test_string", "Flexiv"}, {"test_int_vec", std::vector<int> {1, 2, 3}},
+        robot.SetGlobalVariables({
+            {"test_bool", 1},
+            {"test_int", 100},
+            {"test_double", 100.123},
+            {"test_string", "Flexiv"},
+            {"test_int_vec", std::vector<int> {1, 2, 3}},
             {"test_double_vec", std::vector<double> {1.1, 2.2, 3.3}},
             {"test_string_vec", std::vector<std::string> {"Go", "Flexiv", "Go!"}},
             {"test_pose", std::vector<double> {0.1, -0.2, 0.3, -90, -45, 120}},
@@ -97,7 +101,8 @@ int main(int argc, char* argv[])
                 std::vector<rdk::Coord> {rdk::Coord({1, 2, 3}, {4, 5, 6}, {"WORK", "WorkCoord0"}),
                     rdk::Coord({10, 20, 30}, {40, 50, 60}, {"WORLD", "WORLD_ORIGIN"},
                         {1, 2, 3, 4, 5, 6, 7}, {10, 20, 0, 0, 0, 0}),
-                    rdk::Coord({3, 2, 1}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})}}});
+                    rdk::Coord({3, 2, 1}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})}},
+        });
 
         // Get updated global variables
         // =========================================================================================
