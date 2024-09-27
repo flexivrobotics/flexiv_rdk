@@ -92,11 +92,11 @@ int main(int argc, char* argv[])
             {"test_string_vec", std::vector<std::string> {"Go", "Flexiv", "Go!"}},
             {"test_pose", std::vector<double> {0.1, -0.2, 0.3, -90, -45, 120}},
             {"test_coord", rdk::Coord({0.1, -0.2, 0.3}, {-90, -45, 120}, {"WORLD", "WORLD_ORIGIN"},
-                               {1, 2, 3, 4, 5, 6, 7}, {10, 20})},
+                               {1, 2, 3, 4, 5, 6, 7}, {10, 20, 0, 0, 0, 0})},
             {"test_coord_array",
                 std::vector<rdk::Coord> {rdk::Coord({1, 2, 3}, {4, 5, 6}, {"WORK", "WorkCoord0"}),
                     rdk::Coord({10, 20, 30}, {40, 50, 60}, {"WORLD", "WORLD_ORIGIN"},
-                        {1, 2, 3, 4, 5, 6, 7}, {10, 20}),
+                        {1, 2, 3, 4, 5, 6, 7}, {10, 20, 0, 0, 0, 0}),
                     rdk::Coord({3, 2, 1}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})}}});
 
         // Get updated global variables

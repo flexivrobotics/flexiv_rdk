@@ -10,6 +10,7 @@ __author__ = "Flexiv"
 
 import argparse
 import spdlog  # pip install spdlog
+import pprint
 
 # Flexiv RDK Python library is installed to user site packages
 import flexivrdk
@@ -68,7 +69,7 @@ def main():
             return 1
         else:
             logger.info("Existing global variables and their original values:")
-            print(global_vars)
+            pprint.pprint(global_vars)
 
         # Set global variables
         # =========================================================================================
@@ -89,7 +90,7 @@ def main():
                     [-90, -45, 120],
                     ["WORLD", "WORLD_ORIGIN"],
                     [1, 2, 3, 4, 5, 6, 7],
-                    [10, 20],
+                    [10, 20, 0, 0, 0, 0],
                 ),
                 "test_coord_array": [
                     flexivrdk.Coord([1, 2, 3], [4, 5, 6], ["WORK", "WorkCoord0"]),
@@ -98,7 +99,7 @@ def main():
                         [40, 50, 60],
                         ["WORLD", "WORLD_ORIGIN"],
                         [1, 2, 3, 4, 5, 6, 7],
-                        [10, 20],
+                        [10, 20, 0, 0, 0, 0],
                     ),
                     flexivrdk.Coord(
                         [3, 2, 1], [180, 0, 180], ["WORLD", "WORLD_ORIGIN"]
@@ -115,7 +116,7 @@ def main():
             return 1
         else:
             logger.info("Updated global variables:")
-            print(global_vars)
+            pprint.pprint(global_vars)
 
         logger.info("Program finished")
 
