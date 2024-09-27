@@ -221,7 +221,7 @@ public:
     /**
      * @brief [Blocking] Set values to global variables that already exist in the robot.
      * @param[in] global_vars A map of {global_var_name, global_var_value(s)}. Use int 1 and 0 to
-     * represent booleans. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", {1}}}.
+     * represent booleans. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", 1}}.
      * @throw std::length_error if [global_vars] is empty or too long to transmit in one request.
      * @throw std::logic_error if any of the specified global variables does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
@@ -231,20 +231,21 @@ public:
      */
     void SetGlobalVariables(const std::map<std::string, FlexivDataTypes>& global_vars);
 
-    [[deprecated("Use the other SetGlobalVariables() instead")]] void SetGlobalVariables(
-        const std::string& global_vars);
+    [[deprecated("[Remove in v1.6] Use the other SetGlobalVariables() instead")]] void
+    SetGlobalVariables(const std::string& global_vars);
 
     /**
      * @brief [Blocking] Existing global variables and their current values.
      * @return A map of {global_var_name, global_var_value(s)}. Booleans are represented by int 1
-     * and 0. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", {1}}}.
+     * and 0. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", 1}}.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      * @see SetGlobalVariables().
      */
     std::map<std::string, FlexivDataTypes> global_variables() const;
 
-    [[deprecated("Use the other global_variables() instead")]] const std::vector<std::string>
+    [[deprecated("[Remove in v1.6] Use the other global_variables() instead")]] const std::vector<
+        std::string>
     global_variables(bool dummy); ///< Unused parameter [dummy] is needed for function overloading
 
     //======================================= PLAN EXECUTION =======================================
@@ -359,14 +360,14 @@ public:
     /**
      * @brief [Blocking] Execute a primitive by specifying its name and parameters, which can be
      * found in the [Flexiv Primitives documentation](https://www.flexiv.com/primitives/).
-     * @param[in] pt_cmd Primitive command with the following string format:
-     * "primitive_name(input_param1=xxx, input_param2=xxx, ...)". For an input parameter of type
-     * ARRAY_COORD (e.g. waypoints), use colon with space on both sides (" : ") to separate
-     * coordinate sets within this parameter.
+     * @param[in] primitive_name Primitive name. For example, "Home", "MoveL", "ZeroFTSensor", etc.
+     * @param[in] input_params A map of {input_parameter_name, input_parameter_value(s)}. Use int 1
+     * and 0 to represent booleans. For example, {{"target", rdk::Coord({0.65, -0.3, 0.2}, {180, 0,
+     * 180}, {"WORLD", "WORLD_ORIGIN"})}, {"vel", 0.6}, {"zoneRadius", "Z50"}}.
      * @param[in] block_until_started Whether to wait for the commanded primitive to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the primitive ready, the loading process typically takes no more than 200 ms.
-     * @throw std::length_error if size of pt_cmd exceeds the limit (10 Kb).
+     * @throw std::length_error if [input_params] is too long to transmit in one request.
      * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: NRT_PRIMITIVE_EXECUTION.
@@ -383,20 +384,21 @@ public:
         const std::map<std::string, FlexivDataTypes>& input_params,
         bool block_until_started = true);
 
-    [[deprecated("Use the other ExecutePrimitive() instead")]] void ExecutePrimitive(
-        const std::string& pt_cmd, bool block_until_started = true);
+    [[deprecated("[Remove in v1.6] Use the other ExecutePrimitive() instead")]] void
+    ExecutePrimitive(const std::string& pt_cmd, bool block_until_started = true);
 
     /**
      * @brief [Blocking] State parameters of the executing primitive and their current values.
      * @return A map of {pt_state_name, pt_state_value(s)}. Booleans are represented by int 1
      * and 0. For example,
-     * {{"reachedTarget", {1}}, {"timePeriod", {5.6}}, {"forceOffset", {0.1, 0.2, -1.3}}}.
+     * {{"reachedTarget", 1}, {"timePeriod", 5.6}, {"forceOffset", {0.1, 0.2, -1.3}}}.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
     std::map<std::string, FlexivDataTypes> primitive_states() const;
 
-    [[deprecated("Use the other primitive_states() instead")]] const std::vector<std::string>
+    [[deprecated("[Remove in v1.6] Use the other primitive_states() instead")]] const std::vector<
+        std::string>
     primitive_states(bool dummy); ///< Unused parameter [dummy] is needed for function overloading
 
     //==================================== DIRECT JOINT CONTROL ====================================
@@ -762,7 +764,7 @@ public:
     void SetDigitalOutputs(
         const std::vector<unsigned int>& port_idx, const std::vector<bool>& values);
 
-    [[deprecated("Use SetDigitalOutputs() instead")]] void WriteDigitalOutput(
+    [[deprecated("[Remove in v1.6] Use SetDigitalOutputs() instead")]] void WriteDigitalOutput(
         const std::vector<unsigned int>& port_idx, const std::vector<bool>& values);
 
     /**
@@ -772,7 +774,7 @@ public:
      */
     const std::array<bool, kIOPorts> digital_inputs();
 
-    [[deprecated("Use digital_inputs() instead")]] const std::array<bool, kIOPorts>
+    [[deprecated("[Remove in v1.6] Use digital_inputs() instead")]] const std::array<bool, kIOPorts>
     ReadDigitalInput();
 
 private:
