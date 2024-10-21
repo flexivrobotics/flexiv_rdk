@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
         "velocity damping, gravity compensation, and soft protection against position limits. This "
         "example is ideal for verifying the system's whole-loop real-timeliness, accuracy of the "
         "robot dynamics model, and joint torque control performance. If everything works well, all "
-        "joints should float smoothly.");
+        "joints should float smoothly.\n");
 
     try {
         // RDK Initialization

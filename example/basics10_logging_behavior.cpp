@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
     // Print description
     spdlog::info(
         ">>> Tutorial description <<<\nThis tutorial shows how to change the logging behaviors of "
-        "RDK client.");
+        "RDK client.\n");
 
     // Suppress log messages from RDK client
     // =========================================================================================

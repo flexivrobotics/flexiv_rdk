@@ -70,7 +70,7 @@ def main():
     # Print description
     logger.info(
         ">>> Tutorial description <<<\nThis tutorial does the very first thing: check connection "
-        "with the robot server and print received robot states."
+        "with the robot server and print received robot states.\n"
     )
 
     try:

@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
         ">>> Tutorial description <<<\nThis tutorial runs real-time joint torque control to hold "
         "or sine-sweep all robot joints. An outer position loop is used to generate joint torque "
         "commands. This outer position loop + inner torque loop together is also known as an "
-        "impedance controller.");
+        "impedance controller.\n");
 
     // Type of motion specified by user
     std::string motion_type = "";

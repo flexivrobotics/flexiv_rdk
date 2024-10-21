@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
 
     // Print description
     spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial shows how to get and set global variables.");
+        ">>> Tutorial description <<<\nThis tutorial shows how to get and set global variables.\n");
 
     try {
         // RDK Initialization

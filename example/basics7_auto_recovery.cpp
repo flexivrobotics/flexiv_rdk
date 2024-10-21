@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
     spdlog::info(
         ">>> Tutorial description <<<\nThis tutorial runs an automatic recovery process if the "
         "robot's safety system is in recovery state. See rdk::Robot::recovery() and RDK "
-        "manual for more details.");
+        "manual for more details.\n");
 
     try {
         // RDK Initialization

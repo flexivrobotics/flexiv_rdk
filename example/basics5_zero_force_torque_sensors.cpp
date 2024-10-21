@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
     spdlog::info(
         ">>> Tutorial description <<<\nThis tutorial zeros the robot's force and torque sensors, "
         "which is a recommended (but not mandatory) step before any operations that require "
-        "accurate force/torque measurement.");
+        "accurate force/torque measurement.\n");
 
     try {
         // RDK Initialization

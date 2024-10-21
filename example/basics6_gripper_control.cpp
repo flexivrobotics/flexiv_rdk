@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
     // Print description
     spdlog::info(
         ">>> Tutorial description <<<\nThis tutorial does position and force (if available) "
-        "control of grippers supported by Flexiv.");
+        "control of grippers supported by Flexiv.\n");
 
     try {
         // RDK Initialization

@@ -32,7 +32,7 @@ def main():
 
     # Print description
     logger.info(
-        ">>> Tutorial description <<<\nThis tutorial shows how to get and set global variables."
+        ">>> Tutorial description <<<\nThis tutorial shows how to get and set global variables.\n"
     )
 
     try:

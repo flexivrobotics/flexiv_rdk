@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
         ">>> Tutorial description <<<\nThis tutorial runs real-time Cartesian-space unified "
         "motion-force control. The Z axis of the chosen reference frame will be activated for "
         "explicit force control, while the rest axes in the same reference frame will stay motion "
-        "controlled.");
+        "controlled.\n");
 
     // The reference frame used for force control, see Robot::SetForceControlFrame()
     auto force_ctrl_frame = rdk::CoordType::WORLD;

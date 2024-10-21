@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
     // Print description
     spdlog::info(
         ">>> Tutorial description <<<\nThis tutorial runs real-time joint impedance control to "
-        "hold or sine-sweep all robot joints.");
+        "hold or sine-sweep all robot joints.\n");
 
     // Type of motion specified by user
     std::string motion_type = "";

@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
     // Print description
     spdlog::info(
         ">>> Tutorial description <<<\nThis tutorial clears minor or critical faults, if any, of "
-        "the connected robot.");
+        "the connected robot.\n");
 
     try {
         // RDK Initialization

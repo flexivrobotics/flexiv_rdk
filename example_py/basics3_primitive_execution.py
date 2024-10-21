@@ -40,7 +40,7 @@ def main():
     logger.info(
         ">>> Tutorial description <<<\nThis tutorial executes several basic robot primitives (unit "
         "skills). For detailed documentation on all available primitives, please see [Flexiv "
-        "Primitives](https://www.flexiv.com/primitives/)."
+        "Primitives](https://www.flexiv.com/primitives/).\n"
     )
 
     try:

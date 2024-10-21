@@ -38,7 +38,7 @@ def main():
         ">>> Tutorial description <<<\nThis tutorial shows how to online update and interact with "
         "the robot tools. All changes made to the robot tool system will take effect immediately "
         "without needing to reboot. However, the robot must be put into IDLE mode when making "
-        "these changes."
+        "these changes.\n"
     )
 
     try:

@@ -36,7 +36,7 @@ def main():
     logger.info(
         ">>> Tutorial description <<<\nThis tutorial runs the integrated dynamics engine to obtain "
         "robot Jacobian, mass matrix, and gravity torques. Also checks reachability of a Cartesian "
-        "pose."
+        "pose.\n"
     )
 
     try:

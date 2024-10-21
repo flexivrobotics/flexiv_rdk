@@ -35,7 +35,7 @@ def main():
     logger.info(
         ">>> Tutorial description <<<\nThis tutorial runs an automatic recovery process if the "
         "robot's safety system is in recovery state. See flexiv::rdk::Robot::recovery() and RDK "
-        "manual for more details."
+        "manual for more details.\n"
     )
 
     try:

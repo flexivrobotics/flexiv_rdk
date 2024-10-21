@@ -79,7 +79,7 @@ def main():
         ">>> Tutorial description <<<\nThis tutorial runs non-real-time Cartesian-space unified "
         "motion-force control. The Z axis of the chosen reference frame will be activated for "
         "explicit force control, while the rest axes in the same reference frame will stay motion "
-        "controlled."
+        "controlled.\n"
     )
 
     # The reference frame to use, see Robot::SendCartesianMotionForce() for more details

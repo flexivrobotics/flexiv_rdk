@@ -71,7 +71,7 @@ def main():
     logger.info(
         ">>> Tutorial description <<<\nThis tutorial runs non-real-time Cartesian-space pure "
         "motion control to hold or sine-sweep the robot TCP. A simple collision detection is also "
-        "included."
+        "included.\n"
     )
 
     # Print based on arguments

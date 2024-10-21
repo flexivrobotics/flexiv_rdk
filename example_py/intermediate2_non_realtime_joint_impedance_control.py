@@ -50,7 +50,7 @@ def main():
     # Print description
     logger.info(
         ">>> Tutorial description <<<\nThis tutorial runs non-real-time joint impedance control to "
-        "hold or sine-sweep all robot joints."
+        "hold or sine-sweep all robot joints.\n"
     )
 
     try:

@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
     spdlog::info(
         ">>> Tutorial description <<<\nThis tutorial runs real-time Cartesian-space pure motion "
         "control to hold or sine-sweep the robot TCP. A simple collision detection is also "
-        "included.");
+        "included.\n");
 
     // Type of motion specified by user
     bool enable_hold = false;
