@@ -34,6 +34,10 @@ void PrintRobotStates(rdk::Robot& robot)
         // Print all robot states in JSON format using the built-in ostream operator overloading
         spdlog::info("Current robot states:");
         std::cout << robot.states() << std::endl;
+
+        // Print digital inputs
+        spdlog::info("Current digital inputs:");
+        std::cout << rdk::utility::Arr2Str(robot.digital_inputs()) << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }

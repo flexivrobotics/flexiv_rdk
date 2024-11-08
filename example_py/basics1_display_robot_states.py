@@ -25,7 +25,7 @@ def print_robot_states(robot, logger, stop_event):
     """
 
     while not stop_event.is_set():
-        # Print all gripper states, round all float values to 2 decimals
+        # Print all robot states, round all float values to 2 decimals
         logger.info("Current robot states:")
         # fmt: off
         print("{")
@@ -46,6 +46,10 @@ def print_robot_states(robot, logger, stop_event):
         print(f"F_ext_world_frame: {['%.2f' % i for i in robot.states().ext_wrench_in_world]}")
         print("}", flush= True)
         # fmt: on
+
+        # Print digital inputs
+        logger.info("Current digital inputs:")
+        print(robot.digital_inputs())
         time.sleep(1)
 
 
