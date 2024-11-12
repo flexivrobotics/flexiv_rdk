@@ -36,7 +36,7 @@ foreach(test ${TEST_LIST})
   target_link_libraries(${test} flexiv::flexiv_rdk)
 
   # C++17 required
-  set_target_properties(${example} PROPERTIES
+  set_target_properties(${test} PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON)
 endforeach()
