@@ -18,6 +18,8 @@
 #include <thread>
 #include <atomic>
 
+using namespace flexiv;
+
 namespace {
 /** Joint velocity damping gains for floating */
 const std::vector<double> kFloatingDamping = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
@@ -39,7 +41,7 @@ void PrintHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void PeriodicTask(flexiv::rdk::Robot& robot)
+void PeriodicTask(rdk::Robot& robot)
 {
     try {
         // Monitor fault on the connected robot
@@ -71,7 +73,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -84,13 +86,13 @@ int main(int argc, char* argv[])
         "velocity damping, gravity compensation, and soft protection against position limits. This "
         "example is ideal for verifying the system's whole-loop real-timeliness, accuracy of the "
         "robot dynamics model, and joint torque control performance. If everything works well, all "
-        "joints should float smoothly.");
+        "joints should float smoothly.\n");
 
     try {
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::rdk::Robot robot(robot_sn);
+        rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -115,10 +117,9 @@ int main(int argc, char* argv[])
 
         // Move robot to home pose
         spdlog::info("Moving to home pose");
-        robot.SwitchMode(flexiv::rdk::Mode::NRT_PRIMITIVE_EXECUTION);
-        robot.ExecutePrimitive("Home()");
-
-        // Wait for the primitive to finish
+        robot.SwitchMode(rdk::Mode::NRT_PLAN_EXECUTION);
+        robot.ExecutePlan("PLAN-Home");
+        // Wait for the plan to finish
         while (robot.busy()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
@@ -126,10 +127,10 @@ int main(int argc, char* argv[])
         // Real-time Joint Floating
         // =========================================================================================
         // Switch to real-time joint torque control mode
-        robot.SwitchMode(flexiv::rdk::Mode::RT_JOINT_TORQUE);
+        robot.SwitchMode(rdk::Mode::RT_JOINT_TORQUE);
 
         // Create real-time scheduler to run periodic tasks
-        flexiv::rdk::Scheduler scheduler;
+        rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.AddTask(
             std::bind(PeriodicTask, std::ref(robot)), "HP periodic", 1, scheduler.max_priority());

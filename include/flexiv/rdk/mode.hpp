@@ -6,6 +6,9 @@
 #ifndef FLEXIV_RDK_MODE_HPP_
 #define FLEXIV_RDK_MODE_HPP_
 
+#include <array>
+#include <string>
+
 namespace flexiv {
 namespace rdk {
 
@@ -15,7 +18,7 @@ namespace rdk {
  * the corresponding commands can be sent. Refer to Flexiv RDK Manual for more details.
  * @see Robot::SwitchMode().
  */
-enum Mode
+enum class Mode
 {
     /** Mode not set */
     UNKNOWN = 0,
@@ -97,7 +100,7 @@ enum Mode
 };
 
 /** String names of the above control modes */
-static const std::array<std::string, MODES_CNT> kModeNames
+static const std::array<std::string, static_cast<size_t>(Mode::MODES_CNT)> kModeNames
     = {"UNKNOWN", "IDLE", "RT_JOINT_TORQUE", "RT_JOINT_IMPEDANCE", "NRT_JOINT_IMPEDANCE",
         "RT_JOINT_POSITION", "NRT_JOINT_POSITION", "NRT_PLAN_EXECUTION", "NRT_PRIMITIVE_EXECUTION",
         "RT_CARTESIAN_MOTION_FORCE", "NRT_CARTESIAN_MOTION_FORCE"};

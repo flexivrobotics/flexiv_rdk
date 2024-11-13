@@ -1,7 +1,7 @@
 /**
  * @example basics7_auto_recovery.cpp
  * This tutorial runs an automatic recovery process if the robot's safety system is in recovery
- * state. See flexiv::rdk::Robot::recovery() and RDK manual for more details.
+ * state. See rdk::Robot::recovery() and RDK manual for more details.
  * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -13,6 +13,8 @@
 #include <iostream>
 #include <string>
 #include <thread>
+
+using namespace flexiv;
 
 /** @brief Print program usage help */
 void PrintHelp()
@@ -31,7 +33,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -41,14 +43,14 @@ int main(int argc, char* argv[])
     // Print description
     spdlog::info(
         ">>> Tutorial description <<<\nThis tutorial runs an automatic recovery process if the "
-        "robot's safety system is in recovery state. See flexiv::rdk::Robot::recovery() and RDK "
-        "manual for more details.");
+        "robot's safety system is in recovery state. See rdk::Robot::recovery() and RDK "
+        "manual for more details.\n");
 
     try {
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::rdk::Robot robot(robot_sn);
+        rdk::Robot robot(robot_sn);
 
         // Enable the robot, make sure the E-stop is released before enabling
         spdlog::info("Enabling robot ...");

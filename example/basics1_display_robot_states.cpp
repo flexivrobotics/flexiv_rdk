@@ -13,6 +13,8 @@
 #include <iostream>
 #include <thread>
 
+using namespace flexiv;
+
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -26,12 +28,16 @@ void PrintHelp()
 }
 
 /** @brief Print robot states data @ 1Hz */
-void printRobotStates(flexiv::rdk::Robot& robot)
+void PrintRobotStates(rdk::Robot& robot)
 {
     while (true) {
         // Print all robot states in JSON format using the built-in ostream operator overloading
         spdlog::info("Current robot states:");
         std::cout << robot.states() << std::endl;
+
+        // Print digital inputs
+        spdlog::info("Current digital inputs:");
+        std::cout << rdk::utility::Arr2Str(robot.digital_inputs()) << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
@@ -41,7 +47,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -51,13 +57,13 @@ int main(int argc, char* argv[])
     // Print description
     spdlog::info(
         ">>> Tutorial description <<<\nThis tutorial does the very first thing: check connection "
-        "with the robot server and print received robot states.");
+        "with the robot server and print received robot states.\n");
 
     try {
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::rdk::Robot robot(robot_sn);
+        rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -83,8 +89,8 @@ int main(int argc, char* argv[])
         // Print States
         // =========================================================================================
         // Use std::thread to do scheduling so that this example can run on all OS, since not all OS
-        // support flexiv::rdk::Scheduler
-        std::thread low_priority_thread(std::bind(printRobotStates, std::ref(robot)));
+        // support rdk::Scheduler
+        std::thread low_priority_thread(std::bind(PrintRobotStates, std::ref(robot)));
 
         // Properly exit thread
         low_priority_thread.join();

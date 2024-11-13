@@ -44,6 +44,22 @@ public:
     void Reload();
 
     /**
+     * @brief [Blocking] Sync the actual kinematic parameters of the connected robot into the
+     * template URDF.
+     * @param[in] template_urdf_path Path to the template URDF in [flexiv_rdk/resources] directory.
+     * This template URDF will be updated when the sync is finished.
+     * @throw std::invalid_argument if failed to load the template URDF.
+     * @throw std::runtime_error if failed to sync the URDF.
+     * @note This function blocks until the URDF syncing is finished.
+     * @par Why is this function needed?
+     * The URDFs in [flexiv_rdk/resources] directory contain kinematic parameters of the latest
+     * robot hardware version, which might be different from older versions. This function is
+     * therefore provided to sync the actual kinematic parameters of the connected robot into the
+     * template URDF.
+     */
+    void SyncURDF(const std::string& template_urdf_path);
+
+    /**
      * @brief [Non-blocking] Update robot model using new joint states data.
      * @param[in] positions Current joint positions: \f$ q \in \mathbb{R}^{n \times 1} \f$. Unit:
      * \f$ [rad] \f$.
@@ -58,11 +74,11 @@ public:
      * \f$ i \f$, expressed in world frame.
      * @param[in] link_name Name of the link to get Jacobian for.
      * @return Jacobian matrix: \f$ ^{0}J_i \in \mathbb{R}^{m \times n} \f$.
+     * @throw std::out_of_range if the specified link_name does not exist.
      * @note Call Update() before this function.
      * @note Available links can be found in the provided URDF. They are {"base_link", "link1",
      * "link2", "link3", "link4", "link5", "link6", "link7", "flange"}, plus "tool" if any flange
      * tool is mounted.
-     * @throw std::out_of_range if the specified link_name does not exist.
      */
     const Eigen::MatrixXd J(const std::string& link_name);
 
@@ -70,13 +86,13 @@ public:
      * @brief [Non-blocking] Compute and get the time derivative of Jacobian matrix at the frame of
      * the specified link \f$ i \f$, expressed in world frame.
      * @param[in] link_name Name of the link to get Jacobian derivative for.
-     * @return Time derivative of Jacobian matrix: \f$ ^{0}\dot{J_i} \in \mathbb{R}^{m \times n}
+     * @return Time derivative of the Jacobian matrix: \f$ ^{0}\dot{J_i} \in \mathbb{R}^{m \times n}
      * \f$.
+     * @throw std::out_of_range if the specified link_name does not exist.
      * @note Call Update() before this function.
      * @note Available links can be found in the provided URDF. They are {"base_link", "link1",
      * "link2", "link3", "link4", "link5", "link6", "link7", "flange"}, plus "tool" if any flange
      * tool is mounted.
-     * @throw std::out_of_range if the specified link_name does not exist.
      */
     const Eigen::MatrixXd dJ(const std::string& link_name);
 

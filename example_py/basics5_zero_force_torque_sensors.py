@@ -37,7 +37,7 @@ def main():
     logger.info(
         ">>> Tutorial description <<<\nThis tutorial zeros the robot's force and torque sensors, "
         "which is a recommended (but not mandatory) step before any operations that require "
-        "accurate force/torque measurement."
+        "accurate force/torque measurement.\n"
     )
 
     try:
@@ -74,7 +74,7 @@ def main():
 
         # Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
-        robot.ExecutePrimitive("ZeroFTSensor()")
+        robot.ExecutePrimitive("ZeroFTSensor", dict())
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations

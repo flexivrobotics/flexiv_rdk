@@ -79,14 +79,14 @@ def main():
         ">>> Tutorial description <<<\nThis tutorial runs non-real-time Cartesian-space unified "
         "motion-force control. The Z axis of the chosen reference frame will be activated for "
         "explicit force control, while the rest axes in the same reference frame will stay motion "
-        "controlled."
+        "controlled.\n"
     )
 
     # The reference frame to use, see Robot::SendCartesianMotionForce() for more details
-    frame_str = "WORLD"
+    force_ctrl_frame = flexivrdk.CoordType.WORLD
     if args.TCP:
         logger.info("Reference frame used for force control: robot TCP frame")
-        frame_str = "TCP"
+        force_ctrl_frame = flexivrdk.CoordType.TCP
     else:
         logger.info("Reference frame used for force control: robot world frame")
 
@@ -125,17 +125,17 @@ def main():
 
         # Move robot to home pose
         logger.info("Moving to home pose")
-        robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
-        robot.ExecutePrimitive("Home()")
-
-        # Wait for the primitive to finish
+        robot.SwitchMode(mode.NRT_PLAN_EXECUTION)
+        robot.ExecutePlan("PLAN-Home")
+        # Wait for the plan to finish
         while robot.busy():
             time.sleep(1)
 
         # Zero Force-torque Sensor
         # =========================================================================================
+        robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
         # IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
-        robot.ExecutePrimitive("ZeroFTSensor()")
+        robot.ExecutePrimitive("ZeroFTSensor", dict())
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations
@@ -202,7 +202,7 @@ def main():
 
         # Set force control reference frame based on program argument. See function doc for more
         # details
-        robot.SetForceControlFrame(frame_str)
+        robot.SetForceControlFrame(force_ctrl_frame)
 
         # Set which Cartesian axis(s) to activate for force control. See function doc for more
         # details. Here we only active Z axis
@@ -257,10 +257,10 @@ def main():
 
             # Set Fz according to reference frame to achieve a "pressing down" behavior
             Fz = 0.0
-            if frame_str == "WORLD":
-                Fz = -PRESSING_FORCE
-            elif frame_str == "TCP":
+            if force_ctrl_frame == flexivrdk.CoordType.WORLD:
                 Fz = PRESSING_FORCE
+            elif force_ctrl_frame == flexivrdk.CoordType.TCP:
+                Fz = -PRESSING_FORCE
             target_wrench = [0.0, 0.0, Fz, 0.0, 0.0, 0.0]
 
             # Apply constant force along Z axis of chosen reference frame, and do a simple polish

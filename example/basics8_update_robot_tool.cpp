@@ -16,6 +16,8 @@
 #include <string>
 #include <thread>
 
+using namespace flexiv;
+
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -33,7 +35,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -45,13 +47,13 @@ int main(int argc, char* argv[])
         ">>> Tutorial description <<<\nThis tutorial shows how to online update and interact with "
         "the robot tools. All changes made to the robot tool system will take effect immediately "
         "without needing to reboot. However, the robot must be put into IDLE mode when making "
-        "these changes.");
+        "these changes.\n");
 
     try {
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::rdk::Robot robot(robot_sn);
+        rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -77,10 +79,10 @@ int main(int argc, char* argv[])
         // Update Robot Tool
         // =========================================================================================
         // Make sure the robot is in IDLE mode
-        robot.SwitchMode(flexiv::rdk::Mode::IDLE);
+        robot.SwitchMode(rdk::Mode::IDLE);
 
         // Instantiate tool interface
-        flexiv::rdk::Tool tool(robot);
+        rdk::Tool tool(robot);
 
         // Get and print a list of already configured tools currently in the robot's tools pool
         spdlog::info("All configured tools:");
@@ -95,7 +97,7 @@ int main(int argc, char* argv[])
 
         // Set name and parameters for a new tool
         std::string new_tool_name = "ExampleTool1";
-        flexiv::rdk::ToolParams new_tool_params;
+        rdk::ToolParams new_tool_params;
         new_tool_params.mass = 0.9;
         new_tool_params.CoM = {0.0, 0.0, 0.057};
         new_tool_params.inertia = {2.768e-03, 3.149e-03, 5.64e-04, 0.0, 0.0, 0.0};

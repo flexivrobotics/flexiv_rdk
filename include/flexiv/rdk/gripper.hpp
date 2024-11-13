@@ -28,9 +28,12 @@ public:
     virtual ~Gripper();
 
     /**
-     * @brief [Blocking] Initialize the gripper.
+     * @brief [Blocking] Manually trigger the initialization of the connected gripper. This step is
+     * not needed for grippers that automatically initialize upon power-on.
      * @note Applicable control modes: all modes except IDLE.
-     * @note This function blocks until the initialization is finished.
+     * @note This function blocks until the request is successfully delivered.
+     * @warning This function returns before the initialization is finished, thus additional wait is
+     * needed before the gripper can take any commands.
      */
     void Init();
 
@@ -38,8 +41,8 @@ public:
      * @brief [Non-blocking] Grasp with direct force control. Requires the mounted gripper to
      * support direct force control.
      * @param[in] force Target gripping force. Positive: closing force, negative: opening force [N].
-     * @note Applicable control modes: all modes except IDLE.
      * @throw std::logic_error if robot is not in the correct control mode.
+     * @note Applicable control modes: all modes except IDLE.
      * @warning Target inputs outside the valid range (specified in gripper's configuration file)
      * will be saturated.
      */
@@ -51,8 +54,8 @@ public:
      * @param[in] velocity Closing/opening velocity, cannot be 0 [m/s].
      * @param[in] force_limit Maximum output force during movement [N]. If not specified, default
      * force limit of the mounted gripper will be used.
-     * @note Applicable control modes: all modes except IDLE.
      * @throw std::logic_error if robot is not in the correct control mode.
+     * @note Applicable control modes: all modes except IDLE.
      * @warning Target inputs outside the valid range (specified in gripper's configuration file)
      * will be saturated.
      */
