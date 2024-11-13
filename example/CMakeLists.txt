@@ -22,7 +22,8 @@ set(EXAMPLE_LIST
   basics6_gripper_control
   basics7_auto_recovery
   basics8_update_robot_tool
-  basics9_logging_behavior
+  basics9_global_variables
+  basics10_logging_behavior
   intermediate7_robot_dynamics
 )
 

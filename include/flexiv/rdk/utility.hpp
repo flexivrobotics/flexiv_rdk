@@ -6,8 +6,9 @@
 #ifndef FLEXIV_RDK_UTILITY_HPP_
 #define FLEXIV_RDK_UTILITY_HPP_
 
+#include "data.hpp"
 #include <Eigen/Eigen>
-#include <array>
+#include <sstream>
 
 namespace flexiv {
 namespace rdk {
@@ -57,48 +58,79 @@ inline std::array<double, N> Rad2Deg(const std::array<double, N>& rad_arr)
 /**
  * @brief Convert an std::vector to a string.
  * @param[in] vec std::vector of any type and size.
- * @param[in] decimal Decimal places to keep for each number in the vector.
- * @param[in] trailing_space Whether to include a space after the last element.
+ * @param[in] decimal Decimal places to keep for each floating-point number in the vector.
  * @param[in] separator Character to separate between numbers.
- * @return A string with format "vec[0] vec[1] ... vec[n] ", i.e. each element followed by a space,
- * including the last one if trailing_space = true.
+ * @return The converted string.
  */
 template <typename T>
-inline std::string Vec2Str(const std::vector<T>& vec, size_t decimal = 3,
-    bool trailing_space = true, const std::string& separator = " ")
+inline std::string Vec2Str(
+    const std::vector<T>& vec, size_t decimal = 3, const std::string& separator = " ")
 {
     std::string padding = "";
-    std::stringstream ss;
-    ss.precision(decimal);
-    ss << std::fixed;
+    std::ostringstream oss;
+    oss.precision(decimal);
+    oss << std::fixed;
 
     for (const auto& v : vec) {
-        ss << padding << v;
+        oss << padding << v;
         padding = separator;
     }
-
-    if (trailing_space) {
-        ss << " ";
-    }
-    return ss.str();
+    return oss.str();
 }
 
 /**
  * @brief Convert an std::array to a string.
  * @param[in] arr std::array of any type and size.
- * @param[in] decimal Decimal places to keep for each number in the array.
- * @param[in] trailing_space Whether to include a space after the last element.
+ * @param[in] decimal Decimal places to keep for each floating-point number in the array.
  * @param[in] separator Character to separate between numbers.
- * @return A string with format "arr[0] arr[1] ... arr[n] ", i.e. each element followed by a space,
- * including the last one if trailing_space = true.
+ * @return The converted string.
  */
 template <typename T, size_t N>
-inline std::string Arr2Str(const std::array<T, N>& arr, size_t decimal = 3,
-    bool trailing_space = true, const std::string& separator = " ")
+inline std::string Arr2Str(
+    const std::array<T, N>& arr, size_t decimal = 3, const std::string& separator = " ")
 {
     std::vector<T> vec(N);
     std::copy(arr.begin(), arr.end(), vec.begin());
-    return Vec2Str(vec, decimal, trailing_space, separator);
+    return Vec2Str(vec, decimal, separator);
+}
+
+/**
+ * @brief Convert the commonly used std::variant to a string.
+ * @param[in] variant std::variant used by multiple rdk::Robot functions.
+ * @param[in] decimal Decimal places to keep for each floating-point number in the variant.
+ * @param[in] separator Character to separate between numbers in the vector.
+ * @return The converted string.
+ */
+inline std::string FlexivTypes2Str(
+    const rdk::FlexivDataTypes& variant, size_t decimal = 3, const std::string& separator = " ")
+{
+    if (auto* val = std::get_if<int>(&variant)) {
+        return Vec2Str(std::vector<int> {*val}, decimal);
+    } else if (auto* val = std::get_if<double>(&variant)) {
+        return Vec2Str(std::vector<double> {*val}, decimal);
+    } else if (auto* val = std::get_if<std::string>(&variant)) {
+        return *val;
+    } else if (auto* val = std::get_if<rdk::Coord>(&variant)) {
+        return (*val).str();
+    } else if (auto* vec = std::get_if<std::vector<int>>(&variant)) {
+        return Vec2Str(*vec, decimal, separator);
+    } else if (auto* vec = std::get_if<std::vector<double>>(&variant)) {
+        return Vec2Str(*vec, decimal, separator);
+    } else if (auto* vec = std::get_if<std::vector<std::string>>(&variant)) {
+        return Vec2Str(*vec, decimal, separator);
+    } else if (auto* vec = std::get_if<std::vector<rdk::Coord>>(&variant)) {
+        std::string ret;
+        // Separate two Coord by " : "
+        for (const auto& v : (*vec)) {
+            ret += v.str() + " : ";
+        }
+        // Remove the trailing " : "
+        if (!ret.empty()) {
+            ret.erase(ret.size() - 3);
+        }
+        return ret;
+    }
+    return "";
 }
 
 /**
@@ -132,35 +164,6 @@ inline bool ProgramArgsExistAny(int argc, char** argv, const std::vector<std::st
 inline bool ProgramArgsExist(int argc, char** argv, const std::string& ref_strings)
 {
     return ProgramArgsExistAny(argc, argv, {ref_strings});
-}
-
-/**
- * @brief Parse the value of a specified primitive state from the pt_states string list.
- * @param[in] pt_states Primitive states string list returned from Robot::primitive_states().
- * @param[in] parse_target Name of the primitive state to parse for.
- * @return Value of the specified primitive state in string format. Empty string is returned if
- * parse_target does not exist.
- */
-inline std::string ParsePtStates(
-    const std::vector<std::string>& pt_states, const std::string& parse_target)
-{
-    for (const auto& state : pt_states) {
-        // Skip if empty
-        if (state.empty()) {
-            continue;
-        }
-        std::stringstream ss(state);
-        std::string buffer;
-        std::vector<std::string> parsed_state;
-        while (ss >> buffer) {
-            parsed_state.push_back(buffer);
-        }
-        if (parsed_state.front() == parse_target) {
-            return parsed_state.back();
-        }
-    }
-
-    return "";
 }
 
 } /* namespace utility */

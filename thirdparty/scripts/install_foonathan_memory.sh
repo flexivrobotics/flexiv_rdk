@@ -24,7 +24,8 @@ mkdir -p build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release \
          -DBUILD_SHARED_LIBS=OFF \
          -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-         -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR
+         -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+         -DCMAKE_PREFIX_PATH=$INSTALL_DIR
 
 # Build and install
 cmake --build . --target install --config Release -j $NUM_JOBS

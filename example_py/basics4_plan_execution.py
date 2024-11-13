@@ -40,7 +40,7 @@ def main():
         "list of available plans. A plan is a pre-written script to execute a series of robot "
         "primitives with pre-defined transition conditions between 2 adjacent primitives. Users "
         "can use Flexiv Elements to compose their own plan and assign to the robot, which "
-        "will appear in the plan list."
+        "will appear in the plan list.\n"
     )
 
     try:

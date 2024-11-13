@@ -71,7 +71,7 @@ def main():
     logger.info(
         ">>> Tutorial description <<<\nThis tutorial runs non-real-time Cartesian-space pure "
         "motion control to hold or sine-sweep the robot TCP. A simple collision detection is also "
-        "included."
+        "included.\n"
     )
 
     # Print based on arguments
@@ -112,17 +112,17 @@ def main():
 
         # Move robot to home pose
         logger.info("Moving to home pose")
-        robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
-        robot.ExecutePrimitive("Home()")
-
-        # Wait for the primitive to finish
+        robot.SwitchMode(mode.NRT_PLAN_EXECUTION)
+        robot.ExecutePlan("PLAN-Home")
+        # Wait for the plan to finish
         while robot.busy():
             time.sleep(1)
 
         # Zero Force-torque Sensor
         # =========================================================================================
+        robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
         # IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
-        robot.ExecutePrimitive("ZeroFTSensor()")
+        robot.ExecutePrimitive("ZeroFTSensor", dict())
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations
@@ -150,9 +150,9 @@ def main():
 
         # Set initial pose to current TCP pose
         init_pose = robot.states().tcp_pose.copy()
-        logger.info(
-            f"Initial TCP pose set to {init_pose} (position 3x1, rotation (quaternion) 4x1)"
-        )
+
+        # Save initial joint positions
+        init_q = robot.states().q.copy()
 
         # Periodic Task
         # =========================================================================================
@@ -188,29 +188,29 @@ def main():
 
             #  Do the following operations in sequence for every 20 seconds
             time_elapsed = loop_counter * period
-            # Online change preferred joint positions at 3 seconds
+            # Online change reference joint positions at 3 seconds
             if time_elapsed % 20.0 == 3.0:
                 preferred_jnt_pos = [0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658]
                 robot.SetNullSpacePosture(preferred_jnt_pos)
-                logger.info(f"Preferred joint positions set to {preferred_jnt_pos}")
+                logger.info(f"Reference joint positions set to {preferred_jnt_pos}")
             # Online change stiffness to half of nominal at 6 seconds
             elif time_elapsed % 20.0 == 6.0:
                 new_K = np.multiply(robot.info().K_x_nom, 0.5)
                 robot.SetCartesianImpedance(new_K)
                 logger.info(f"Cartesian stiffness set to {new_K}")
-            # Online change to another preferred joint positions at 9 seconds
+            # Online change to another reference joint positions at 9 seconds
             elif time_elapsed % 20.0 == 9.0:
                 preferred_jnt_pos = [-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658]
                 robot.SetNullSpacePosture(preferred_jnt_pos)
-                logger.info(f"Preferred joint positions set to {preferred_jnt_pos}")
-            # Online reset stiffness to nominal at 12 seconds
+                logger.info(f"Reference joint positions set to {preferred_jnt_pos}")
+            # Online reset impedance properties to nominal at 12 seconds
             elif time_elapsed % 20.0 == 12.0:
-                robot.ResetCartesianImpedance()
-                logger.info("Cartesian stiffness is reset")
-            # Online reset preferred joint positions to nominal at 14 seconds
+                robot.SetCartesianImpedance(robot.info().K_x_nom)
+                logger.info("Cartesian impedance properties are reset")
+            # Online reset reference joint positions to nominal at 14 seconds
             elif time_elapsed % 20.0 == 14.0:
-                robot.ResetNullSpacePosture()
-                logger.info("Preferred joint positions are reset")
+                robot.SetNullSpacePosture(init_q)
+                logger.info("Reference joint positions are reset")
             # Online enable max contact wrench regulation at 16 seconds
             elif time_elapsed % 20.0 == 16.0:
                 max_wrench = [10.0, 10.0, 10.0, 2.0, 2.0, 2.0]
@@ -218,8 +218,8 @@ def main():
                 logger.info(f"Max contact wrench set to {max_wrench}")
             # Disable max contact wrench regulation at 19 seconds
             elif time_elapsed % 20.0 == 19.0:
-                robot.ResetMaxContactWrench()
-                logger.info("Max contact wrench is reset")
+                robot.SetMaxContactWrench([float("inf")] * 6)
+                logger.info("Max contact wrench regulation is disabled")
 
             # Simple collision detection: stop robot if collision is detected at
             # end-effector

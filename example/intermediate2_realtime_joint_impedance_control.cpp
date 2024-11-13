@@ -16,6 +16,8 @@
 #include <thread>
 #include <atomic>
 
+using namespace flexiv;
+
 namespace {
 /** RT loop period [sec] */
 constexpr double kLoopPeriod = 0.001;
@@ -43,7 +45,7 @@ void PrintHelp()
 
 /** @brief Callback function for realtime periodic task */
 void PeriodicTask(
-    flexiv::rdk::Robot& robot, const std::string& motion_type, const std::vector<double>& init_pos)
+    rdk::Robot& robot, const std::string& motion_type, const std::vector<double>& init_pos)
 {
     // Local periodic loop counter
     static unsigned int loop_counter = 0;
@@ -70,25 +72,23 @@ void PeriodicTask(
             }
         } else {
             throw std::invalid_argument(
-                "PeriodicTask: unknown motion type. Accepted motion types: hold, sine-sweep");
+                "PeriodicTask: Unknown motion type. Accepted motion types: hold, sine-sweep");
         }
 
-        // Reduce joint stiffness to half of nominal values after 5 seconds
+        // Reduce stiffness to half of nominal values after 5 seconds
         if (loop_counter == 5000) {
             auto new_Kq = robot.info().K_q_nom;
             for (auto& v : new_Kq) {
                 v *= 0.5;
             }
             robot.SetJointImpedance(new_Kq);
-            spdlog::info(
-                "PeriodicTask: joint stiffness set to [{}]", flexiv::rdk::utility::Vec2Str(new_Kq));
+            spdlog::info("Joint stiffness set to [{}]", rdk::utility::Vec2Str(new_Kq));
         }
 
-        // Reset joint stiffness to nominal values after another 5 seconds
+        // Reset impedance properties to nominal values after another 5 seconds
         if (loop_counter == 10000) {
-            robot.ResetJointImpedance();
-            spdlog::info("PeriodicTask: joint stiffness reset to [{}]",
-                flexiv::rdk::utility::Vec2Str(robot.info().K_q_nom));
+            robot.SetJointImpedance(robot.info().K_q_nom);
+            spdlog::info("Joint impedance properties are reset");
         }
 
         // Send commands
@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -118,11 +118,11 @@ int main(int argc, char* argv[])
     // Print description
     spdlog::info(
         ">>> Tutorial description <<<\nThis tutorial runs real-time joint impedance control to "
-        "hold or sine-sweep all robot joints.");
+        "hold or sine-sweep all robot joints.\n");
 
     // Type of motion specified by user
     std::string motion_type = "";
-    if (flexiv::rdk::utility::ProgramArgsExist(argc, argv, "--hold")) {
+    if (rdk::utility::ProgramArgsExist(argc, argv, "--hold")) {
         spdlog::info("Robot holding current pose");
         motion_type = "hold";
     } else {
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::rdk::Robot robot(robot_sn);
+        rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -159,10 +159,9 @@ int main(int argc, char* argv[])
 
         // Move robot to home pose
         spdlog::info("Moving to home pose");
-        robot.SwitchMode(flexiv::rdk::Mode::NRT_PRIMITIVE_EXECUTION);
-        robot.ExecutePrimitive("Home()");
-
-        // Wait for the primitive to finish
+        robot.SwitchMode(rdk::Mode::NRT_PLAN_EXECUTION);
+        robot.ExecutePlan("PLAN-Home");
+        // Wait for the plan to finish
         while (robot.busy()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
@@ -170,14 +169,14 @@ int main(int argc, char* argv[])
         // Real-time Joint Impedance Control
         // =========================================================================================
         // Switch to real-time joint impedance control mode
-        robot.SwitchMode(flexiv::rdk::Mode::RT_JOINT_IMPEDANCE);
+        robot.SwitchMode(rdk::Mode::RT_JOINT_IMPEDANCE);
 
         // Set initial joint positions
         auto init_pos = robot.states().q;
-        spdlog::info("Initial joint positions set to: {}", flexiv::rdk::utility::Vec2Str(init_pos));
+        spdlog::info("Initial joint positions set to: {}", rdk::utility::Vec2Str(init_pos));
 
         // Create real-time scheduler to run periodic tasks
-        flexiv::rdk::Scheduler scheduler;
+        rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.AddTask(
             std::bind(PeriodicTask, std::ref(robot), std::ref(motion_type), std::ref(init_pos)),

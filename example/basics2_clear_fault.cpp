@@ -13,6 +13,8 @@
 #include <string>
 #include <thread>
 
+using namespace flexiv;
+
 /** @brief Print program usage help */
 void PrintHelp()
 {
@@ -30,7 +32,7 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 2 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -40,13 +42,13 @@ int main(int argc, char* argv[])
     // Print description
     spdlog::info(
         ">>> Tutorial description <<<\nThis tutorial clears minor or critical faults, if any, of "
-        "the connected robot.");
+        "the connected robot.\n");
 
     try {
         // RDK Initialization
         // =========================================================================================
         // Instantiate robot interface
-        flexiv::rdk::Robot robot(robot_sn);
+        rdk::Robot robot(robot_sn);
 
         // Fault Clearing
         // =========================================================================================
