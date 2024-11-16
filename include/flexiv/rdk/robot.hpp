@@ -231,7 +231,7 @@ public:
      */
     void SetGlobalVariables(const std::map<std::string, FlexivDataTypes>& global_vars);
 
-    [[deprecated("[Remove in v1.6] Use the other SetGlobalVariables() instead")]] void
+    [[deprecated("[Removing in v1.6] Use the other SetGlobalVariables() instead")]] void
     SetGlobalVariables(const std::string& global_vars);
 
     /**
@@ -244,7 +244,7 @@ public:
      */
     std::map<std::string, FlexivDataTypes> global_variables() const;
 
-    [[deprecated("[Remove in v1.6] Use the other global_variables() instead")]] const std::vector<
+    [[deprecated("[Removing in v1.6] Use the other global_variables() instead")]] const std::vector<
         std::string>
     global_variables(bool dummy); ///< Unused parameter [dummy] is needed for function overloading
 
@@ -384,7 +384,7 @@ public:
         const std::map<std::string, FlexivDataTypes>& input_params,
         bool block_until_started = true);
 
-    [[deprecated("[Remove in v1.6] Use the other ExecutePrimitive() instead")]] void
+    [[deprecated("[Removing in v1.6] Use the other ExecutePrimitive() instead")]] void
     ExecutePrimitive(const std::string& pt_cmd, bool block_until_started = true);
 
     /**
@@ -397,7 +397,7 @@ public:
      */
     std::map<std::string, FlexivDataTypes> primitive_states() const;
 
-    [[deprecated("[Remove in v1.6] Use the other primitive_states() instead")]] const std::vector<
+    [[deprecated("[Removing in v1.6] Use the other primitive_states() instead")]] const std::vector<
         std::string>
     primitive_states(bool dummy); ///< Unused parameter [dummy] is needed for function overloading
 
@@ -751,9 +751,10 @@ public:
 
     //======================================== IO CONTROL ========================================
     /**
-     * @brief [Blocking] Set one or more digital output port(s) on the control box.
+     * @brief [Blocking] Set one or more digital output ports, including 16 on the control box plus
+     * 2 inside the wrist connector.
      * @param[in] port_idx Index of port(s) to set, can be a single port or multiple ports.
-     * E.g. {0, 5, 7, 15} or {1, 3, 10} or {8}. Valid range of the index number is [0–15].
+     * E.g. {0, 5, 7, 15} or {1, 3, 10} or {8}. Valid range of the index number is [0–17].
      * @param[in] values Corresponding values to set to the specified ports. True: set port high,
      * false: set port low. Vector size must match the size of port_idx.
      * @throw std::invalid_argument if [port_idx] contains any index number outside the valid range.
@@ -764,17 +765,19 @@ public:
     void SetDigitalOutputs(
         const std::vector<unsigned int>& port_idx, const std::vector<bool>& values);
 
-    [[deprecated("[Remove in v1.6] Use SetDigitalOutputs() instead")]] void WriteDigitalOutput(
+    [[deprecated("[Removing in v1.6] Use SetDigitalOutputs() instead")]] void WriteDigitalOutput(
         const std::vector<unsigned int>& port_idx, const std::vector<bool>& values);
 
     /**
-     * @brief [Non-blocking] Current reading of all digital input ports on the control box.
+     * @brief [Non-blocking] Current reading of all digital input ports, including 16 on the control
+     * box plus 2 inside the wrist connector.
      * @return A boolean array whose index corresponds to that of the digital input ports.
      * True: port high; false: port low.
      */
     const std::array<bool, kIOPorts> digital_inputs();
 
-    [[deprecated("[Remove in v1.6] Use digital_inputs() instead")]] const std::array<bool, kIOPorts>
+    [[deprecated(
+        "[Removing in v1.6] Use digital_inputs() instead")]] const std::array<bool, kIOPorts>
     ReadDigitalInput();
 
 private:
