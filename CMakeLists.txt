@@ -72,12 +72,6 @@ if(spdlog_FOUND)
   message(STATUS "Found spdlog: ${spdlog_DIR}")
 endif()
 
-# Fast-CDR
-find_package(fastcdr 1.0.24 REQUIRED)
-if(fastcdr_FOUND)
-  message(STATUS "Found fastcdr: ${fastcdr_DIR}")
-endif()
-
 # Fast-DDS (Fast-RTPS)
 find_package(fastrtps 2.6.7 REQUIRED)
 if(fastrtps_FOUND)
@@ -105,7 +99,6 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
   Eigen3::Eigen
   spdlog::spdlog
   fastrtps
-  fastcdr
 )
 
 # Use moderate compiler warning option
