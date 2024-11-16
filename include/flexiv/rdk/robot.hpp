@@ -29,6 +29,9 @@ public:
      * initialize and connection with the robot will be established.
      * @param[in] robot_sn Serial number of the robot to connect. The accepted formats are:
      * "Rizon 4s-123456" and "Rizon4s-123456".
+     * @param[in] discovery_timeout Timeout of the discovery process which searches for the
+     * specified robot in the connected network. Set to a larger value if the network environment is
+     * complex as it takes more time to finish the discovery. Unit: [sec].
      * @throw std::invalid_argument if the format of [robot_sn] is invalid.
      * @throw std::runtime_error if the initialization sequence failed.
      * @throw std::logic_error if the connected robot does not have a valid RDK license; or this RDK
@@ -37,7 +40,7 @@ public:
      * @warning This constructor blocks until the initialization sequence is successfully finished
      * and connection with the robot is established.
      */
-    Robot(const std::string& robot_sn);
+    Robot(const std::string& robot_sn, unsigned int discovery_timeout = 2);
     virtual ~Robot();
 
     //========================================= ACCESSORS ==========================================
