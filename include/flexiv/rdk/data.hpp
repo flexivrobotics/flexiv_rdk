@@ -433,8 +433,9 @@ struct Coord
 };
 
 /** Alias of the variant that holds all possible types of data exchanged with Flexiv robots */
-using FlexivDataTypes = std::variant<int, double, std::string, rdk::Coord, std::vector<int>,
-    std::vector<double>, std::vector<std::string>, std::vector<rdk::Coord>>;
+using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::Coord,
+    std::vector<int>, std::vector<double>, std::vector<std::string>, std::vector<rdk::JPos>,
+    std::vector<rdk::Coord>>;
 
 /**
  * @brief Operator overloading to out stream all robot info in JSON format:
