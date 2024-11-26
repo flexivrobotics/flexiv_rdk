@@ -10,8 +10,8 @@ runs:
     - name: Build and install dependencies
       shell: bash
       run: |
-        echo "flexiv_rdk path: ${{ inputs.repo_root_path }}"
-        cd ${{ inputs.repo_root_path }}
+        pwd
+        ls
         cd thirdparty
         bash build_and_install_dependencies.sh ~/rdk_install 4
 
