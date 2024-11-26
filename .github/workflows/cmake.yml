@@ -2,9 +2,9 @@ name: CMake
 
 on:
   push:
-    branches: [main, v1.x]
+    branches: [main, v0.x]
   pull_request:
-    branches: [main, v1.x]
+    branches: [main, v0.x]
   workflow_dispatch:
 
 env:
@@ -13,153 +13,59 @@ env:
 
 jobs:
   build-ubuntu-22:
-    # Use GitHub-hosted Ubuntu 22.04 runner
+    # GitHub-hosted Ubuntu 22.04 runner
     runs-on: ubuntu-22.04
-
-    steps:
+    # The steps are the same across all jobs
+    steps: &shared-steps
       - uses: actions/checkout@v2
-
+      # Build and install all dependencies to RDK installation directory.
       - name: Build and install dependencies
-        # Build and install all dependencies to RDK installation directory.
         run: |
           cd ${{github.workspace}}
           cd thirdparty
-          bash build_and_install_dependencies.sh ~/rdk_install $(nproc)
+          bash build_and_install_dependencies.sh ~/rdk_install 4
 
+      # Configure CMake, then build and install flexiv_rdk library to RDK installation directory.
       - name: Build and install library
-        # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
         run: |
           cd ${{github.workspace}}
           mkdir -p build && cd build
           cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
           make install
 
+      # Find and link to flexiv_rdk library, then build all example programs.
       - name: Build examples
-        # Find and link to the flexiv_rdk INTERFACE library, then build all examples.
         run: |
           cd ${{github.workspace}}/example
           mkdir -p build && cd build
           cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          make -j$(nproc)
+          make -j4
 
+      # Find and link to flexiv_rdk library, then build all test programs.
       - name: Build tests
-        # Find and link to the flexiv_rdk INTERFACE library, then build all tests.
         run: |
           cd ${{github.workspace}}/test
           mkdir -p build && cd build
           cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          make -j$(nproc)
+          make -j4
 
   build-ubuntu-20:
-    # Use GitHub-hosted Ubuntu 20.04 runner
+    # GitHub-hosted Ubuntu 20.04 runner
     runs-on: ubuntu-20.04
-
+    # Use shared steps
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Build and install dependencies
-        # Build and install all dependencies to RDK installation directory.
-        run: |
-          cd ${{github.workspace}}
-          cd thirdparty
-          bash build_and_install_dependencies.sh ~/rdk_install $(nproc)
-
-      - name: Build and install library
-        # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
-        run: |
-          cd ${{github.workspace}}
-          mkdir -p build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          make install
-
-      - name: Build examples
-        # Find and link to the flexiv_rdk INTERFACE library, then build all examples.
-        run: |
-          cd ${{github.workspace}}/example
-          mkdir -p build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          make -j$(nproc)
-
-      - name: Build tests
-        # Find and link to the flexiv_rdk INTERFACE library, then build all tests.
-        run: |
-          cd ${{github.workspace}}/test
-          mkdir -p build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          make -j$(nproc)
+      - *shared-steps
 
   build-macos-12:
-    # Use self-hosted macOS 12 runner with arm64 processor
-    runs-on: [self-hosted, macos-12, ARM64]
-
+    # GitHub-hosted macOS 14 runner with M1 chip
+    runs-on: macos-14
+    # Use shared steps
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Build and install dependencies
-        # Build and install all dependencies to RDK installation directory.
-        run: |
-          cd ${{github.workspace}}
-          cd thirdparty
-          bash build_and_install_dependencies.sh ~/rdk_install $(sysctl -n hw.ncpu)
-
-      - name: Build and install library
-        # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
-        run: |
-          cd ${{github.workspace}}
-          mkdir -p build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          make install
-
-      - name: Build examples
-        # Find and link to the flexiv_rdk INTERFACE library, then build all examples.
-        run: |
-          cd ${{github.workspace}}/example
-          mkdir -p build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          make -j$(sysctl -n hw.ncpu)
-
-      - name: Build tests
-        # Find and link to the flexiv_rdk INTERFACE library, then build all tests.
-        run: |
-          cd ${{github.workspace}}/test
-          mkdir -p build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          make -j$(sysctl -n hw.ncpu)
+      - *shared-steps
 
   build-windows-2022:
-    # Use GitHub-hosted Windows 2022 runner
+    # GitHub-hosted Windows 2022 runner
     runs-on: windows-2022
-
+    # Use shared steps
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Build and install dependencies
-        # Build and install all dependencies to RDK installation directory.
-        run: |
-          cd ${{github.workspace}}
-          cd thirdparty
-          bash build_and_install_dependencies.sh ~/rdk_install $(nproc)
-
-      - name: Build and install library
-        # Configure CMake, then build and install the flexiv_rdk INTERFACE library to RDK installation directory.
-        run: |
-          cd ${{github.workspace}}
-          mkdir build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          cmake --build . --target install --config Release
-
-      - name: Build examples
-        # Find and link to the flexiv_rdk INTERFACE library, then build all examples.
-        run: |
-          cd ${{github.workspace}}/example
-          mkdir build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          cmake --build . --config Release -j $(nproc)
-
-      - name: Build tests
-        # Find and link to the flexiv_rdk INTERFACE library, then build all tests.
-        run: |
-          cd ${{github.workspace}}/test
-          mkdir build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          cmake --build . --config Release -j $(nproc)
+      - *shared-steps
