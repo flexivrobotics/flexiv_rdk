@@ -15,57 +15,31 @@ jobs:
   build-ubuntu-22:
     # GitHub-hosted Ubuntu 22.04 runner
     runs-on: ubuntu-22.04
-    # The steps are the same across all jobs
-    steps: &shared-steps
-      - uses: actions/checkout@v2
-      # Build and install all dependencies to RDK installation directory.
-      - name: Build and install dependencies
-        run: |
-          cd ${{github.workspace}}
-          cd thirdparty
-          bash build_and_install_dependencies.sh ~/rdk_install 4
-
-      # Configure CMake, then build and install flexiv_rdk library to RDK installation directory.
-      - name: Build and install library
-        run: |
-          cd ${{github.workspace}}
-          mkdir -p build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          make install
-
-      # Find and link to flexiv_rdk library, then build all example programs.
-      - name: Build examples
-        run: |
-          cd ${{github.workspace}}/example
-          mkdir -p build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          make -j4
-
-      # Find and link to flexiv_rdk library, then build all test programs.
-      - name: Build tests
-        run: |
-          cd ${{github.workspace}}/test
-          mkdir -p build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-          make -j4
+    # Use shared steps
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/shared_steps
 
   build-ubuntu-20:
     # GitHub-hosted Ubuntu 20.04 runner
     runs-on: ubuntu-20.04
     # Use shared steps
     steps:
-      - *shared-steps
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/shared_steps
 
   build-macos-12:
     # GitHub-hosted macOS 14 runner with M1 chip
     runs-on: macos-14
     # Use shared steps
     steps:
-      - *shared-steps
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/shared_steps
 
   build-windows-2022:
     # GitHub-hosted Windows 2022 runner
     runs-on: windows-2022
     # Use shared steps
     steps:
-      - *shared-steps
+      - uses: actions/checkout@v3
+      - uses: ./.github/workflows/shared_steps

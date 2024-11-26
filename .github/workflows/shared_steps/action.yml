@@ -1,0 +1,34 @@
+name: "Shared Build Steps"
+runs:
+  using: "composite"
+  steps:
+    # Build and install all dependencies to RDK installation directory.
+    - name: Build and install dependencies
+      run: |
+        cd ${{github.workspace}}
+        cd thirdparty
+        bash build_and_install_dependencies.sh ~/rdk_install 4
+
+    # Configure CMake, then build and install flexiv_rdk library to RDK installation directory.
+    - name: Build and install library
+      run: |
+        cd ${{github.workspace}}
+        mkdir -p build && cd build
+        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+        make install
+
+    # Find and link to flexiv_rdk library, then build all example programs.
+    - name: Build examples
+      run: |
+        cd ${{github.workspace}}/example
+        mkdir -p build && cd build
+        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+        make -j4
+
+    # Find and link to flexiv_rdk library, then build all test programs.
+    - name: Build tests
+      run: |
+        cd ${{github.workspace}}/test
+        mkdir -p build && cd build
+        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+        make -j4
