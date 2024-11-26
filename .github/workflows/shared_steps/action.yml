@@ -4,6 +4,7 @@ runs:
   steps:
     # Build and install all dependencies to RDK installation directory.
     - name: Build and install dependencies
+      shell: bash
       run: |
         cd ${{github.workspace}}
         cd thirdparty
@@ -11,6 +12,7 @@ runs:
 
     # Configure CMake, then build and install flexiv_rdk library to RDK installation directory.
     - name: Build and install library
+      shell: bash
       run: |
         cd ${{github.workspace}}
         mkdir -p build && cd build
@@ -19,6 +21,7 @@ runs:
 
     # Find and link to flexiv_rdk library, then build all example programs.
     - name: Build examples
+      shell: bash
       run: |
         cd ${{github.workspace}}/example
         mkdir -p build && cd build
@@ -27,6 +30,7 @@ runs:
 
     # Find and link to flexiv_rdk library, then build all test programs.
     - name: Build tests
+      shell: bash
       run: |
         cd ${{github.workspace}}/test
         mkdir -p build && cd build
