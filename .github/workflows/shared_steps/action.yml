@@ -1,4 +1,8 @@
 name: "Shared Build Steps"
+inputs:
+  repo_root_path:
+    description: "Path to flexiv_rdk repo"
+    required: true
 runs:
   using: "composite"
   steps:
@@ -6,7 +10,8 @@ runs:
     - name: Build and install dependencies
       shell: bash
       run: |
-        cd ${{github.workspace}}
+        echo "flexiv_rdk path: ${{ inputs.repo_root_path }}"
+        cd ${{ inputs.repo_root_path }}
         cd thirdparty
         bash build_and_install_dependencies.sh ~/rdk_install 4
 
@@ -14,7 +19,7 @@ runs:
     - name: Build and install library
       shell: bash
       run: |
-        cd ${{github.workspace}}
+        cd ${{ inputs.repo_root_path }}
         mkdir -p build && cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
         make install
@@ -23,7 +28,7 @@ runs:
     - name: Build examples
       shell: bash
       run: |
-        cd ${{github.workspace}}/example
+        cd ${{ inputs.repo_root_path }}/example
         mkdir -p build && cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
         make -j4
@@ -32,7 +37,7 @@ runs:
     - name: Build tests
       shell: bash
       run: |
-        cd ${{github.workspace}}/test
+        cd ${{ inputs.repo_root_path }}/test
         mkdir -p build && cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
         make -j4

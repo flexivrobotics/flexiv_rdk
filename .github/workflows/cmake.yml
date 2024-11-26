@@ -19,6 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/workflows/shared_steps
+        with:
+          repo_root_path: ${{github.workspace}}
 
   build-ubuntu-20:
     # GitHub-hosted Ubuntu 20.04 runner
@@ -27,6 +29,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/workflows/shared_steps
+        with:
+          repo_root_path: ${{github.workspace}}
 
   build-macos-12:
     # GitHub-hosted macOS 14 runner with M1 chip
@@ -35,6 +39,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/workflows/shared_steps
+        with:
+          repo_root_path: ${{github.workspace}}
 
   build-windows-2022:
     # GitHub-hosted Windows 2022 runner
@@ -43,3 +49,5 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/workflows/shared_steps
+        with:
+          repo_root_path: ${{github.workspace}}
