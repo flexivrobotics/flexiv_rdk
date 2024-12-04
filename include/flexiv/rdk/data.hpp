@@ -374,24 +374,22 @@ struct Coord
 {
     /**
      * @brief Construct an instance of Coord.
-     * @param[in] _position Sets the [position] member.
-     * @param[in] _orientation Sets the [orientation] member.
-     * @param[in] _ref_frame Sets the [ref_frame] member.
-     * @param[in] _ref_joint_positions Sets the [ref_joint_positions] member. Leave empty to use
-     * default values.
-     * @param[in] _ext_axis_positions Sets the [ext_axis_positions] member. Leave empty if there's
-     * no external axis.
+     * @param[in] _position Sets struct member [position].
+     * @param[in] _orientation Sets struct member [orientation].
+     * @param[in] _ref_frame Sets struct member [ref_frame].
+     * @param[in] _ref_q Sets struct member [ref_q]. Leave empty to use default values.
+     * @param[in] _ref_q_e Sets struct member [ref_q_e]. Leave empty if there's no external axis.
      */
     Coord(const std::array<double, kCartDoF / 2>& _position,
         const std::array<double, kCartDoF / 2>& _orientation,
         const std::array<std::string, 2>& _ref_frame,
-        const std::array<double, kSerialJointDoF>& _ref_joint_positions = {},
-        const std::array<double, kMaxExtAxes>& _ext_axis_positions = {})
+        const std::array<double, kSerialJointDoF>& _ref_q = {},
+        const std::array<double, kMaxExtAxes>& _ref_q_e = {})
     : position(_position)
     , orientation(_orientation)
     , ref_frame(_ref_frame)
-    , ref_joint_positions(_ref_joint_positions)
-    , ext_axis_positions(_ext_axis_positions)
+    , ref_q(_ref_q)
+    , ref_q_e(_ref_q_e)
     {
     }
     Coord() = default;
@@ -428,8 +426,9 @@ struct Coord
 };
 
 /** Alias of the variant that holds all possible types of data exchanged with Flexiv robots */
-using FlexivDataTypes = std::variant<int, double, std::string, rdk::Coord, std::vector<int>,
-    std::vector<double>, std::vector<std::string>, std::vector<rdk::Coord>>;
+using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::Coord,
+    std::vector<int>, std::vector<double>, std::vector<std::string>, std::vector<rdk::JPos>,
+    std::vector<rdk::Coord>>;
 
 /**
  * @brief Operator overloading to out stream all robot info in JSON format:
