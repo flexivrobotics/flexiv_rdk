@@ -24,8 +24,8 @@ constexpr size_t kSerialJointDoF = 7;
 /** Size of pose array (3 position + 4 quaternion) */
 constexpr size_t kPoseSize = 7;
 
-/** Number of digital IO ports */
-constexpr size_t kIOPorts = 16;
+/** Number of digital IO ports (16 on control box + 2 inside the wrist connector) */
+constexpr size_t kIOPorts = 18;
 
 /** Maximum number of external axes */
 constexpr size_t kMaxExtAxes = 6;
@@ -206,13 +206,6 @@ struct RobotStates
      * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
      */
     std::array<double, kPoseSize> tcp_pose = {};
-
-    /**
-     * Desired TCP pose expressed in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7 \times 1}
-     * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
-     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
-     */
-    std::array<double, kPoseSize> tcp_pose_des = {};
 
     /**
      * Measured TCP velocity expressed in world frame: \f$ ^{O}\dot{X} \in \mathbb{R}^{6 \times 1}
