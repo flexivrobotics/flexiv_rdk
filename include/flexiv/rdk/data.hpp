@@ -411,14 +411,17 @@ struct Coord
      */
     std::array<std::string, 2> ref_frame = {};
 
-    /** Reference joint positions for robot with a redundant degree of freedom. Unit: [degree]
+    /** Reference joint positions of the arm. Only effective on robots with redundant degrees of
+     * freedom. Unit: [degree]
      * @note Leave empty to use default values. However, this array cannot be empty if
-     * [ext_axis_positions] has values */
-    std::array<double, kSerialJointDoF> ref_joint_positions = {};
+     * [ref_q_e] has values */
+    std::array<double, kSerialJointDoF> ref_q = {};
 
-    /** Linear or angular positions of the external axes. Unit: [m] or [degree]
-     * @note Leave empty if there's no external axis. */
-    std::array<double, kMaxExtAxes> ext_axis_positions = {};
+    /** Reference joint positions (linear or angular) of the external axes. Only effective on
+     * robots with redundant degrees of freedom and external axes. Unit: [m] or [degree]
+     * @note If the number of external axes \f$ n_e < kMaxExtAxes \f$, set the first \f$ n_e \f$
+     * elements and leave the rest 0. Leave the whole array empty if there's no external axis. */
+    std::array<double, kMaxExtAxes> ref_q_e = {};
 
     /** String representation of all data in the struct, separated by space */
     std::string str() const;
