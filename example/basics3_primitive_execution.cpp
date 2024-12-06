@@ -94,14 +94,33 @@ int main(int argc, char* argv[])
 
         // (2) Move robot joints to target positions
         // -----------------------------------------------------------------------------------------
-        // The required parameter <target> takes in 7 target joint positions. Unit: degrees
+        // Required parameters:
+        //     target: final joint positions, unit: degrees
+        //         {arm joint positions}, {external axis joint positions}
+        // Optional parameters:
+        //     waypoints: waypoints to pass before reaching the target
+        //         (same format as above, but can be more than one)
+        //     vel: TCP linear velocity, unit: m/s
+        // Optional properties:
+        //     lockExternalAxes: whether to allow the external axes to move or not
         spdlog::info("Executing primitive: MoveJ");
 
         // Send command to robot
-        robot.ExecutePrimitive(
-            "MoveJ", {{"target", std::vector<double> {30, -45, 0, 90, 0, 40, 30}}});
+        robot.ExecutePrimitive("MoveJ",
+            {
+                {"target", rdk::JPos({30, -45, 0, 90, 0, 40, 30}, {-50, 30})},
+                {"waypoints",
+                    std::vector<rdk::JPos> {rdk::JPos({10, -30, 10, 30, 10, 15, 10}, {-15, 10}),
+                        rdk::JPos({20, -60, -10, 60, -10, 30, 20}, {-30, 20})}},
+            },
+            {
+                {"lockExternalAxes", 0},
+            });
 
-        // Wait for reached target
+        // Most primitives won't exit by themselves and require users to explicitly trigger
+        // transitions based on specific primitive states. Here we check if the primitive state
+        // [reachedTarget] becomes true and trigger the transition manually by sending a new
+        // primitive command.
         while (!std::get<int>(robot.primitive_states()["reachedTarget"])) {
             // Print current primitive states
             spdlog::info("Current primitive states:");
@@ -112,17 +131,15 @@ int main(int argc, char* argv[])
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
-        // (3) Move robot TCP to a target position in world (base) frame
+        // (3) Move robot TCP to a target pose in world (base) frame
         // -----------------------------------------------------------------------------------------
-        // Required parameter:
-        //   target: final target position
-        //       [pos_x pos_y pos_z rot_x rot_y rot_z ref_frame ref_point]
-        //       Unit: m, deg
-        // Optional parameter:
-        //   waypoints: waypoints to pass before reaching final target
-        //       (same format as above, but can repeat for number of waypoints)
-        //   vel: TCP linear velocity
-        //       Unit: m/s
+        // Required parameters:
+        //     target: final TCP pose, unit: m and degrees
+        //         {pos_x, pos_y, pos_z}, {rot_x, rot_y, rot_z}, {ref_frame, ref_point}
+        // Optional parameters:
+        //     waypoints: waypoints to pass before reaching the target
+        //         (same format as above, but can be more than one)
+        //     vel: TCP linear velocity, unit: m/s
         // NOTE: The rotations use Euler ZYX convention, rot_x means Euler ZYX angle around X axis
         spdlog::info("Executing primitive: MoveL");
 
@@ -138,10 +155,7 @@ int main(int argc, char* argv[])
                 {"zoneRadius", "Z50"},
             });
 
-        // The [Move] series primitive won't terminate itself, so we determine if the robot has
-        // reached target location by checking the primitive state "reachedTarget = 1" in the list
-        // of current primitive states, and terminate the current primitive manually by sending a
-        // new primitive command.
+        // Wait for reached target
         while (!std::get<int>(robot.primitive_states()["reachedTarget"])) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }

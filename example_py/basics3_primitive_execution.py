@@ -89,28 +89,55 @@ def main():
 
         # (2) Move robot joints to target positions
         # ------------------------------------------------------------------------------------------
-        # The required parameter <target> takes in 7 target joint positions. Unit: degrees
+        # Required parameters:
+        #     target: final joint positions, unit: degrees
+        #         {arm joint positions}, {external axis joint positions, optional}
+        # Optional parameters:
+        #     waypoints: waypoints to pass before reaching the target
+        #         (same format as above, but can be more than one)
+        #     vel: TCP linear velocity, unit: m/s
+        # Optional properties:
+        #     lockExternalAxes: whether to allow the external axes to move or not
         logger.info("Executing primitive: MoveJ")
 
         # Send command to robot
-        robot.ExecutePrimitive("MoveJ", {"target": [30, -45, 0, 90, 0, 40, 30]})
-        # Wait for reached target
+        robot.ExecutePrimitive(
+            "MoveJ",
+            {
+                "target": flexivrdk.JPos(
+                    [30, -45, 0, 90, 0, 40, 30], [-50, 30, 0, 0, 0, 0]
+                ),
+                "waypoints": [
+                    flexivrdk.JPos(
+                        [10, -30, 10, 30, 10, 15, 10], [-15, 10, 0, 0, 0, 0]
+                    ),
+                    flexivrdk.JPos(
+                        [20, -60, -10, 60, -10, 30, 20], [-30, 20, 0, 0, 0, 0]
+                    ),
+                ],
+            },
+            {
+                "lockExternalAxes": 0,
+            },
+        )
+        # Most primitives won't exit by themselves and require users to explicitly trigger
+        # transitions based on specific primitive states. Here we check if the primitive state
+        # [reachedTarget] becomes true and trigger the transition manually by sending a new
+        # primitive command.
         while not robot.primitive_states()["reachedTarget"]:
             # Print current primitive states
             print(robot.primitive_states())
             time.sleep(1)
 
-        # (3) Move robot TCP to a target position in world (base) frame
+        # (3) Move robot TCP to a target pose in world (base) frame
         # ------------------------------------------------------------------------------------------
-        # Required parameter:
-        #   target: final target position
-        #       [pos_x pos_y pos_z rot_x rot_y rot_z ref_frame ref_point]
-        #       Unit: m, deg
-        # Optional parameter:
-        #   waypoints: waypoints to pass before reaching final target
-        #       (same format as above, but can repeat for number of waypoints)
-        #   vel: TCP linear velocity
-        #       Unit: m/s
+        # Required parameters:
+        #     target: final TCP pose, unit: m and degrees
+        #         {pos_x, pos_y, pos_z}, {rot_x, rot_y, rot_z}, {ref_frame, ref_point}
+        # Optional parameters:
+        #     waypoints: waypoints to pass before reaching the target
+        #         (same format as above, but can be more than one)
+        #     vel: TCP linear velocity, unit: m/s
         # NOTE: The rotations use Euler ZYX convention, rot_x means Euler ZYX angle around X axis
         logger.info("Executing primitive: MoveL")
 
@@ -133,10 +160,7 @@ def main():
                 "zoneRadius": "Z50",
             },
         )
-        # The [Move] series primitive won't terminate itself, so we determine if the robot has
-        # reached target location by checking the primitive state "reachedTarget = 1" in the list
-        # of current primitive states, and terminate the current primitive manually by sending a
-        # new primitive command.
+        # Wait for reached target
         while not robot.primitive_states()["reachedTarget"]:
             time.sleep(1)
 
