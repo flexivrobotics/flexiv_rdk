@@ -29,6 +29,10 @@ public:
      * initialize and connection with the robot will be established.
      * @param[in] robot_sn Serial number of the robot to connect. The accepted formats are:
      * "Rizon 4s-123456" and "Rizon4s-123456".
+     * @param[in] network_interface_whitelist Limit the network interface(s) that can be used to try
+     * to establish connection with the specified robot. The whitelisted network interface is
+     * defined by its associated IPv4 address. For example, {"10.42.0.1", "192.168.2.102"}. If left
+     * empty, all available network interfaces will be tried when searching for the specified robot.
      * @throw std::invalid_argument if the format of [robot_sn] is invalid.
      * @throw std::runtime_error if the initialization sequence failed.
      * @throw std::logic_error if the connected robot does not have a valid RDK license; or this RDK
@@ -37,7 +41,8 @@ public:
      * @warning This constructor blocks until the initialization sequence is successfully finished
      * and connection with the robot is established.
      */
-    Robot(const std::string& robot_sn);
+    Robot(const std::string& robot_sn,
+        const std::vector<std::string>& network_interface_whitelist = {});
     virtual ~Robot();
 
     //========================================= ACCESSORS ==========================================
@@ -231,7 +236,7 @@ public:
      */
     void SetGlobalVariables(const std::map<std::string, FlexivDataTypes>& global_vars);
 
-    [[deprecated("[Remove in v1.6] Use the other SetGlobalVariables() instead")]] void
+    [[deprecated("[Removing in v1.6] Use the other SetGlobalVariables() instead")]] void
     SetGlobalVariables(const std::string& global_vars);
 
     /**
@@ -244,7 +249,7 @@ public:
      */
     std::map<std::string, FlexivDataTypes> global_variables() const;
 
-    [[deprecated("[Remove in v1.6] Use the other global_variables() instead")]] const std::vector<
+    [[deprecated("[Removing in v1.6] Use the other global_variables() instead")]] const std::vector<
         std::string>
     global_variables(bool dummy); ///< Unused parameter [dummy] is needed for function overloading
 
@@ -361,9 +366,12 @@ public:
      * @brief [Blocking] Execute a primitive by specifying its name and parameters, which can be
      * found in the [Flexiv Primitives documentation](https://www.flexiv.com/primitives/).
      * @param[in] primitive_name Primitive name. For example, "Home", "MoveL", "ZeroFTSensor", etc.
-     * @param[in] input_params A map of {input_parameter_name, input_parameter_value(s)}. Use int 1
-     * and 0 to represent booleans. For example, {{"target", rdk::Coord({0.65, -0.3, 0.2}, {180, 0,
-     * 180}, {"WORLD", "WORLD_ORIGIN"})}, {"vel", 0.6}, {"zoneRadius", "Z50"}}.
+     * @param[in] input_params Specify basic and advanced parameters of the primitive via a map of
+     * {input_parameter_name, input_parameter_value(s)}. Use int 1 and 0 to represent booleans. E.g.
+     * {{"target", rdk::Coord({0.65, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})}, {"vel",
+     * 0.6}, {"zoneRadius", "Z50"}}.
+     * @param[in] properties Specify properties of the primitive via a map of {property_name,
+     * property_value(s)}. Use int 1 and 0 to represent booleans. E.g. {{"lockExternalAxes", 0}}.
      * @param[in] block_until_started Whether to wait for the commanded primitive to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the primitive ready, the loading process typically takes no more than 200 ms.
@@ -382,9 +390,10 @@ public:
      */
     void ExecutePrimitive(const std::string& primitive_name,
         const std::map<std::string, FlexivDataTypes>& input_params,
+        const std::map<std::string, FlexivDataTypes>& properties = {},
         bool block_until_started = true);
 
-    [[deprecated("[Remove in v1.6] Use the other ExecutePrimitive() instead")]] void
+    [[deprecated("[Removing in v1.6] Use the other ExecutePrimitive() instead")]] void
     ExecutePrimitive(const std::string& pt_cmd, bool block_until_started = true);
 
     /**
@@ -397,7 +406,7 @@ public:
      */
     std::map<std::string, FlexivDataTypes> primitive_states() const;
 
-    [[deprecated("[Remove in v1.6] Use the other primitive_states() instead")]] const std::vector<
+    [[deprecated("[Removing in v1.6] Use the other primitive_states() instead")]] const std::vector<
         std::string>
     primitive_states(bool dummy); ///< Unused parameter [dummy] is needed for function overloading
 
@@ -751,9 +760,10 @@ public:
 
     //======================================== IO CONTROL ========================================
     /**
-     * @brief [Blocking] Set one or more digital output port(s) on the control box.
+     * @brief [Blocking] Set one or more digital output ports, including 16 on the control box plus
+     * 2 inside the wrist connector.
      * @param[in] port_idx Index of port(s) to set, can be a single port or multiple ports.
-     * E.g. {0, 5, 7, 15} or {1, 3, 10} or {8}. Valid range of the index number is [0–15].
+     * E.g. {0, 5, 7, 15} or {1, 3, 10} or {8}. Valid range of the index number is [0–17].
      * @param[in] values Corresponding values to set to the specified ports. True: set port high,
      * false: set port low. Vector size must match the size of port_idx.
      * @throw std::invalid_argument if [port_idx] contains any index number outside the valid range.
@@ -764,17 +774,19 @@ public:
     void SetDigitalOutputs(
         const std::vector<unsigned int>& port_idx, const std::vector<bool>& values);
 
-    [[deprecated("[Remove in v1.6] Use SetDigitalOutputs() instead")]] void WriteDigitalOutput(
+    [[deprecated("[Removing in v1.6] Use SetDigitalOutputs() instead")]] void WriteDigitalOutput(
         const std::vector<unsigned int>& port_idx, const std::vector<bool>& values);
 
     /**
-     * @brief [Non-blocking] Current reading of all digital input ports on the control box.
+     * @brief [Non-blocking] Current reading of all digital input ports, including 16 on the control
+     * box plus 2 inside the wrist connector.
      * @return A boolean array whose index corresponds to that of the digital input ports.
      * True: port high; false: port low.
      */
     const std::array<bool, kIOPorts> digital_inputs();
 
-    [[deprecated("[Remove in v1.6] Use digital_inputs() instead")]] const std::array<bool, kIOPorts>
+    [[deprecated(
+        "[Removing in v1.6] Use digital_inputs() instead")]] const std::array<bool, kIOPorts>
     ReadDigitalInput();
 
 private:

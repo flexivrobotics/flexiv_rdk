@@ -11,15 +11,15 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 ## Compatibility Overview
 
-| **Supported OS**           | **Supported processor** | **Supported language** | **Required compiler kit** |
-| -------------------------- | ----------------------- | ---------------------- | ------------------------- |
-| Linux (Ubuntu 20.04/22.04) | x86_64, arm64           | C++, Python            | build-essential           |
-| macOS 12 and above         | arm64                   | C++, Python            | Xcode Command Line Tools  |
-| Windows 10/11              | x86_64                  | C++, Python            | MSVC v14.2+               |
+| **Supported OS**               | **Supported processor** | **Supported language** | **Required compiler kit** |
+| ------------------------------ | ----------------------- | ---------------------- | ------------------------- |
+| Linux (Ubuntu 20.04 and above) | x86_64, arm64           | C++, Python            | build-essential           |
+| macOS 12 and above             | arm64                   | C++, Python            | Xcode Command Line Tools  |
+| Windows 10 and above           | x86_64                  | C++, Python            | MSVC v14.2+               |
 
 ## Quick Start
 
-The **C++ and Python** RDK libraries are packed into a unified modern CMake project named ``flexiv_rdk``, which can be configured and installed via CMake on all supported OS.
+The **C++ and Python** RDK libraries are packed into a unified modern CMake project named ``flexiv_rdk``, which can be configured and installed using CMake on all supported OS.
 
 ### Note
 
@@ -38,20 +38,22 @@ The **C++ and Python** RDK libraries are packed into a unified modern CMake proj
        cd flexiv_rdk/thirdparty
        bash build_and_install_dependencies.sh ~/rdk_install
 
-4. In a new Terminal, use CMake to configure the ``flexiv_rdk`` project:
+   NOTE: Internet connection is required for this step.
+
+4. In a new Terminal, configure ``flexiv_rdk`` library as a CMake project:
 
        cd flexiv_rdk
        mkdir build && cd build
        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install -DINSTALL_PYTHON_RDK=ON
 
-   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` sets the CMake variable that specifies the path of the installation directory. ``-D`` followed by ``INSTALL_PYTHON_RDK=ON`` enables the installation of Python RDK besides C++ RDK. The configuration process can also be done using CMake GUI.
+   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` sets the CMake variable that specifies the path of the installation directory. ``-D`` followed by ``INSTALL_PYTHON_RDK=ON`` enables the installation of the Python library alongside the C++ library. Alternatively, this configuration step can be done using CMake GUI.
 
-5. Install C++ and Python RDK:
+5. Install ``flexiv_rdk`` libraries (C++ and Python):
 
        cd flexiv_rdk/build
        cmake --build . --target install --config Release
 
-   C++ RDK is installed to the path specified by ``CMAKE_INSTALL_PREFIX``, which may or may not be globally discoverable by CMake. Python RDK is installed to the user site packages path, which is globally discoverable by Python interpreter.
+   The C++ library will be installed to ``CMAKE_INSTALL_PREFIX`` path, which may or may not be globally discoverable by CMake. The Python library is installed to the user site packages path, which is globally discoverable by the Python interpreter.
 
 ### Install on macOS
 
@@ -73,9 +75,9 @@ The **C++ and Python** RDK libraries are packed into a unified modern CMake proj
 3. Install bash emulator: Download and install [Git for Windows](https://git-scm.com/download/win/), which comes with a bash emulator Git Bash.
 4. Within the bash emulator, the rest are identical to steps 2 and below in [Install on Linux](#install-on-linux).
 
-### Link to C++ RDK from a user program
+### Link to installed library from a user program
 
-After C++ RDK is installed, it can be found as a CMake library and linked to by other CMake projects. Use the provided examples project for instance::
+After the C++ RDK library is installed, it can be found as a CMake target and linked to from other CMake projects. Using the provided examples project for instance::
 
     cd flexiv_rdk/example
     mkdir build && cd build
