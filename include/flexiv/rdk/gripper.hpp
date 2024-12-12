@@ -64,33 +64,34 @@ public:
     void Init();
 
     /**
-     * @brief [Non-blocking] Grasp with direct force control. Requires the mounted gripper to
-     * support direct force control.
+     * @brief [Blocking] Grasp with direct force control. Requires the mounted gripper to support
+     * direct force control.
      * @param[in] force Target gripping force. Positive: closing force, negative: opening force [N].
-     * @throw std::logic_error if robot is not in the correct control mode.
-     * @note Applicable control modes: all modes except IDLE.
-     * @warning Target inputs outside the valid range (specified in gripper's configuration file)
-     * will be saturated.
+     * @throw std::logic_error if no gripper device is enabled.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note This function blocks until the request is successfully delivered.
+     * @warning Target inputs outside the valid range (see params()) will be saturated.
      */
     void Grasp(double force);
 
     /**
-     * @brief [Non-blocking] Move the gripper fingers with position control.
+     * @brief [Blocking] Move the gripper fingers with position control.
      * @param[in] width Target opening width [m].
      * @param[in] velocity Closing/opening velocity, cannot be 0 [m/s].
      * @param[in] force_limit Maximum output force during movement [N]. If not specified, default
      * force limit of the mounted gripper will be used.
-     * @throw std::logic_error if robot is not in the correct control mode.
-     * @note Applicable control modes: all modes except IDLE.
-     * @warning Target inputs outside the valid range (specified in gripper's configuration file)
-     * will be saturated.
+     * @throw std::logic_error if no gripper device is enabled.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note This function blocks until the request is successfully delivered.
+     * @warning Target inputs outside the valid range (see params()) will be saturated.
      */
     void Move(double width, double velocity, double force_limit = 0);
 
     /**
-     * @brief [Blocking] Stop the gripper.
-     * @note Applicable control modes: all modes.
-     * @note This function blocks until the gripper control is transferred back to plan/primitive.
+     * @brief [Blocking] Stop the gripper and hold its current finger width.
+     * @throw std::logic_error if no gripper device is enabled.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note This function blocks until the request is successfully delivered.
      */
     void Stop();
 
