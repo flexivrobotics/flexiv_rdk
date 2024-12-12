@@ -25,7 +25,7 @@ def main():
     # Required arguments
     argparser.add_argument(
         "robot_sn",
-        help="Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456",
+        help="Serial number of the robot to connect. Remove any space, e.g. Rizon4s-123456",
     )
     argparser.add_argument(
         "frequency", help="Command frequency, 1 to 100 [Hz]", type=int
