@@ -96,13 +96,13 @@ public:
     void Stop();
 
     /**
-     * @brief [Non-blocking] Whether the gripper fingers are moving.
-     * @return True: moving, false: stopped.
+     * @brief [Non-blocking] Parameters of the currently enabled gripper.
+     * @return GripperParams value copy.
      */
-    bool moving() const;
+    const GripperParams params() const;
 
     /**
-     * @brief [Non-blocking] Access the current gripper states.
+     * @brief [Non-blocking] Current states data of the enabled gripper.
      * @return GripperStates value copy.
      * @note Real-time (RT).
      */
