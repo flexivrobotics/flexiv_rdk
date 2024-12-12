@@ -137,7 +137,8 @@ int main(int argc, char* argv[])
             gripper.Init();
             // User determines if the manual initialization is finished
             spdlog::info(
-                "Triggered manual initialization, press Enter when the initialization is finished");
+                "Triggered manual initialization, press Enter when the initialization is finished "
+                "to continue");
             std::cin.get();
             std::cin.get();
         } else {

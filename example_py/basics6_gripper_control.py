@@ -127,11 +127,11 @@ def main():
         # Trigger manual initialization based on input
         if choice == 1:
             logger.info("Skipped manual initialization")
-        elif input == 2:
+        elif choice == 2:
             gripper.Init()
             # User determines if the manual initialization is finished
             logger.info(
-                "Triggered manual initialization, press Enter when the initialization is finished"
+                "Triggered manual initialization, press Enter when the initialization is finished to continue"
             )
             input()
         else:
