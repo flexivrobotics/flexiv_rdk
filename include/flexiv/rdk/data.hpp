@@ -303,8 +303,8 @@ struct GripperStates
      * Reads 0 if the mounted gripper has no force sensing capability [N] */
     double force = {};
 
-    /** Maximum finger opening width of the mounted gripper [m] */
-    double max_width = {};
+    /** Whether the gripper fingers are moving */
+    bool is_moving = {};
 };
 
 /**
