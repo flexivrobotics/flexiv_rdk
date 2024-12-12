@@ -14,7 +14,9 @@ namespace rdk {
 
 /**
  * @class Gripper
- * @brief Interface with the robot gripper.
+ * @brief Interface with the robot gripper. Because gripper is also a type of device, this API uses
+ * the same underlying infrastructure as rdk::Device, but with functions tailored specifically for
+ * gripper controls.
  */
 class Gripper
 {
@@ -28,12 +30,36 @@ public:
     virtual ~Gripper();
 
     /**
-     * @brief [Blocking] Manually trigger the initialization of the connected gripper. This step is
-     * not needed for grippers that automatically initialize upon power-on.
-     * @note Applicable control modes: all modes except IDLE.
+     * @brief [Blocking] Enable the specified gripper as a device, same as Device::Enable().
+     * @param[in] name Name of the gripper device to enable, must be an existing one.
+     * @throw std::logic_error if the specified gripper device does not exist or a gripper is
+     * already enabled.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot or failed
+     * to sync gripper parameters.
      * @note This function blocks until the request is successfully delivered.
-     * @warning This function returns before the initialization is finished, thus additional wait is
-     * needed before the gripper can take any commands.
+     * @note There can only be one enabled gripper at a time, call Disable() on the currently
+     * enabled gripper before enabling another gripper.
+     * @warning There's no enforced check on whether the enabled device is a gripper or not. Using
+     * this API on a non-gripper device will likely lead to undefined behaviors.
+     */
+    void Enable(const std::string& name);
+
+    /**
+     * @brief [Blocking] Disable the currently enabled gripper, similar to Device::Disable().
+     * @throw std::logic_error if no gripper device is enabled.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note This function blocks until the request is successfully delivered.
+     */
+    void Disable();
+
+    /**
+     * @brief [Blocking] Manually trigger the initialization of the enabled gripper. This step is
+     * not needed for grippers that automatically initialize upon power-on.
+     * @throw std::logic_error if no gripper device is enabled.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note This function blocks until the request is successfully delivered.
+     * @warning This function does not wait for the initialization sequence to finish, the user may
+     * need to implement wait after calling this function before commanding the gripper.
      */
     void Init();
 
