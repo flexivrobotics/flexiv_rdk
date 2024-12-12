@@ -7,11 +7,12 @@
 
 #include <flexiv/rdk/robot.hpp>
 #include <flexiv/rdk/gripper.hpp>
+#include <flexiv/rdk/tool.hpp>
 #include <flexiv/rdk/utility.hpp>
 #include <spdlog/spdlog.h>
 
 #include <iostream>
-#include <string>
+#include <iomanip>
 #include <thread>
 #include <atomic>
 
@@ -26,9 +27,9 @@ std::atomic<bool> g_finished = {false};
 void PrintHelp()
 {
     // clang-format off
-    std::cout << "Required arguments: [robot SN]" << std::endl;
-    std::cout << "    robot SN: Serial number of the robot to connect to. "
-                 "Remove any space, for example: Rizon4s-123456" << std::endl;
+    std::cout << "Required arguments: [robot_sn] [gripper_name]" << std::endl;
+    std::cout << "    robot_sn: Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456" << std::endl;
+    std::cout << "    gripper_name: Full name of the gripper to be controlled, can be found in Flexiv Elements -> Settings -> Device" << std::endl;
     std::cout << "Optional arguments: None" << std::endl;
     std::cout << std::endl;
     // clang-format on
@@ -41,7 +42,6 @@ void PrintGripperStates(rdk::Gripper& gripper)
         // Print all gripper states in JSON format using the built-in ostream operator overloading
         spdlog::info("Current gripper states:");
         std::cout << gripper.states() << std::endl;
-        std::cout << "moving: " << gripper.moving() << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
@@ -51,12 +51,13 @@ int main(int argc, char* argv[])
     // Program Setup
     // =============================================================================================
     // Parse parameters
-    if (argc < 2 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
     // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
     std::string robot_sn = argv[1];
+    std::string gripper_name = argv[2];
 
     // Print description
     spdlog::info(
@@ -92,21 +93,59 @@ int main(int argc, char* argv[])
 
         // Gripper Control
         // =========================================================================================
-        // Gripper control is not available if the robot is in IDLE mode, so switch to some mode
-        // other than IDLE
-        robot.SwitchMode(rdk::Mode::NRT_PLAN_EXECUTION);
-        robot.ExecutePlan("PLAN-Home");
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-
         // Instantiate gripper control interface
         rdk::Gripper gripper(robot);
 
-        // Manually initialize the gripper, not all grippers need this step
-        spdlog::info("Initializing gripper, this process takes about 10 seconds ...");
-        gripper.Init();
-        spdlog::info("Initialization complete");
+        // Instantiate tool interface. Gripper is categorized as both a device and a tool. The
+        // device attribute allows a gripper to be interactively controlled by the user; whereas the
+        // tool attribute tells the robot to account for its mass properties and TCP location.
+        rdk::Tool tool(robot);
 
-        // Thread for printing gripper states
+        // Enable the specified gripper as a device. This is equivalent to enabling the specified
+        // gripper in Flexiv Elements -> Settings -> Device
+        spdlog::info("Enabling gripper [{}]", gripper_name);
+        gripper.Enable(gripper_name);
+
+        // Print parameters of the enabled gripper
+        spdlog::info("Gripper params:");
+        std::cout << std::fixed << std::setprecision(3) << "{\n"
+                  << "name: " << gripper.params().name
+                  << "\nmin_width: " << gripper.params().min_width
+                  << "\nmax_width: " << gripper.params().max_width
+                  << "\nmin_force: " << gripper.params().min_force
+                  << "\nmax_force: " << gripper.params().max_force
+                  << "\nmin_vel: " << gripper.params().min_vel
+                  << "\nmax_vel: " << gripper.params().max_vel << "\n}" << std::endl;
+
+        // Switch robot tool to gripper so the gravity compensation and TCP location is updated
+        spdlog::info("Switching robot tool to [{}]", gripper_name);
+        tool.Switch(gripper_name);
+
+        // User needs to determine if this gripper requires manual initialization
+        int choice = 0;
+        spdlog::info(
+            "Manually trigger initialization for the gripper now? Choose Yes if it's a 48v Grav "
+            "gripper");
+        std::cout << "[1] No, it has already initialized automatically when power on" << std::endl;
+        std::cout << "[2] Yes, it does not initialize itself when power on" << std::endl;
+        std::cin >> choice;
+
+        // Trigger manual initialization based on choice
+        if (choice == 1) {
+            spdlog::info("Skipped manual initialization");
+        } else if (choice == 2) {
+            gripper.Init();
+            // User determines if the manual initialization is finished
+            spdlog::info(
+                "Triggered manual initialization, press Enter when the initialization is finished");
+            std::cin.get();
+            std::cin.get();
+        } else {
+            spdlog::error("Invalid choice");
+            return 1;
+        }
+
+        // Start a separate thread to print gripper states
         std::thread print_thread(PrintGripperStates, std::ref(gripper));
 
         // Position control
