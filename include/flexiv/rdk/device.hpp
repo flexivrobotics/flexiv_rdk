@@ -28,7 +28,7 @@ public:
     virtual ~Device();
 
     /**
-     * @brief [Blocking] Request a list of existing devices and their status (enabled/disabled).
+     * @brief [Blocking] Get a list of existing devices and their status (enabled/disabled).
      * @return A map of {device_name, is_enabled}. For example,
      * {{"Mirka-AIROS-550CV", true}, {"LinearRail", false}}.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
@@ -46,12 +46,24 @@ public:
     bool exist(const std::string& name) const;
 
     /**
+     * @brief [Blocking] Get configuration parameters of the specified device.
+     * @param[in] name Name of the device to get parameters for, must be an existing one.
+     * @return A map of {param_name, param_value}. Booleans are represented by int 1
+     * and 0. For example,
+     * {{"maxWidth", 0.5}, {"absolutePosition", {0.7, -0.4, 0.05}}, {"conveyorName", "conveyor0"}}.
+     * @throw std::logic_error if the specified device does not exist.
+     * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note This function blocks until a reply is received.
+     */
+    const std::map<std::string, std::variant<int, double, std::string, std::vector<double>>> params(
+        const std::string& name) const;
+
+    /**
      * @brief [Blocking] Enable the specified device.
      * @param[in] name Name of the device to enable, must be an existing device.
      * @throw std::logic_error if the specified device does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
-     * @warning Enabling a nonexistent device will trigger an error on the connected robot.
      */
     void Enable(const std::string& name);
 
@@ -61,7 +73,6 @@ public:
      * @throw std::logic_error if the specified device does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
-     * @warning Disabling a nonexistent device will trigger an error on the connected robot.
      */
     void Disable(const std::string& name);
 
@@ -73,7 +84,6 @@ public:
      * @throw std::logic_error if the specified device does not exist or not enabled yet.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
-     * @warning Commanding a disabled or nonexistent device will trigger an error on the robot.
      */
     void Command(
         const std::string& name, const std::map<std::string, std::variant<int, double>>& cmds);
