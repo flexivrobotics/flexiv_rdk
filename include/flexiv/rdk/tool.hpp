@@ -54,16 +54,16 @@ public:
 
     /**
      * @brief [Blocking] Get parameters of the tool that the robot is currently using.
-     * @return Parameters result.
+     * @return ToolParams value copy.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
     const ToolParams params() const;
 
     /**
-     * @brief [Blocking] Get parameters of an existing tool.
+     * @brief [Blocking] Get parameters of the specified tool.
      * @param[in] name Name of the tool to get parameters for, must be an existing one.
-     * @return Parameters result.
+     * @return ToolParams value copy.
      * @throw std::logic_error if the specified tool does not exist.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
