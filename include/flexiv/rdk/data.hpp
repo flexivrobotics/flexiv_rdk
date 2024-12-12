@@ -290,6 +290,35 @@ struct PlanInfo
 };
 
 /**
+ * @struct GripperParams
+ * @brief Data structure containing the gripper parameters.
+ * @see Gripper::params().
+ */
+struct GripperParams
+{
+    /** Gripper name */
+    std::string name = {};
+
+    /** Maximum finger opening width [m] */
+    double max_width = {};
+
+    /** Minimum finger opening width [m] */
+    double min_width = {};
+
+    /** Maximum grasping force [N] */
+    double max_force = {};
+
+    /** Minimum grasping force [N] */
+    double min_force = {};
+
+    /** Maximum finger moving velocity [m/s] */
+    double max_vel = {};
+
+    /** Minimum finger moving velocity [m/s] */
+    double min_vel = {};
+};
+
+/**
  * @struct GripperStates
  * @brief Data structure containing the gripper states.
  * @see Gripper::states().
