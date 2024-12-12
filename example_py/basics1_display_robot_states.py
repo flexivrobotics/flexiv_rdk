@@ -37,13 +37,17 @@ def print_robot_states(robot, logger, stop_event):
         print(f"tau_des: {['%.2f' % i for i in robot.states().tau_des]}")
         print(f"tau_dot: {['%.2f' % i for i in robot.states().tau_dot]}")
         print(f"tau_ext: {['%.2f' % i for i in robot.states().tau_ext]}")
+        print(f"q_e: {['%.2f' % i for i in robot.states().q_e]}")
+        print(f"dq_e: {['%.2f' % i for i in robot.states().dq_e]}")
+        print(f"tau_e: {['%.2f' % i for i in robot.states().tau_e]}")
         print(f"tcp_pose: {['%.2f' % i for i in robot.states().tcp_pose]}")
-        print(f"tcp_pose_d: {['%.2f' % i for i in robot.states().tcp_pose_des]}")
         print(f"tcp_velocity: {['%.2f' % i for i in robot.states().tcp_vel]}")
         print(f"flange_pose: {['%.2f' % i for i in robot.states().flange_pose]}")
-        print(f"FT_sensor_raw_reading: {['%.2f' % i for i in robot.states().ft_sensor_raw]}")
-        print(f"F_ext_tcp_frame: {['%.2f' % i for i in robot.states().ext_wrench_in_tcp]}")
-        print(f"F_ext_world_frame: {['%.2f' % i for i in robot.states().ext_wrench_in_world]}")
+        print(f"ft_sensor_raw: {['%.2f' % i for i in robot.states().ft_sensor_raw]}")
+        print(f"ext_wrench_in_tcp: {['%.2f' % i for i in robot.states().ext_wrench_in_tcp]}")
+        print(f"ext_wrench_in_world: {['%.2f' % i for i in robot.states().ext_wrench_in_world]}")
+        print(f"ext_wrench_in_tcp_raw: {['%.2f' % i for i in robot.states().ext_wrench_in_tcp_raw]}")
+        print(f"ext_wrench_in_world_raw: {['%.2f' % i for i in robot.states().ext_wrench_in_world_raw]}")
         print("}", flush= True)
         # fmt: on
 
@@ -63,7 +67,7 @@ def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument(
         "robot_sn",
-        help="Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456",
+        help="Serial number of the robot to connect. Remove any space, e.g. Rizon4s-123456",
     )
     args = argparser.parse_args()
 
