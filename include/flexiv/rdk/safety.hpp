@@ -1,0 +1,133 @@
+/**
+ * @file safety.hpp
+ * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ */
+
+#ifndef FLEXIV_RDK_SAFETY_HPP_
+#define FLEXIV_RDK_SAFETY_HPP_
+
+#include "robot.hpp"
+
+namespace flexiv {
+namespace rdk {
+
+/** Number of safety IO ports */
+constexpr size_t kSafetyIOPorts = 8;
+
+/**
+ * @class Safety
+ * @brief Interface to change robot safety settings. The robot must be in IDLE mode when applying
+ * any changes. A password is required to authenticate this interface.
+ */
+class Safety
+{
+public:
+    /**
+     * @brief [Non-blocking] Create an instance and initialize the interface.
+     * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
+     * @param[in] password Password to authorize making changes to the robot's safety settings.
+     * @throw std::invalid_argument if the provided password is incorrect.
+     * @throw std::runtime_error if the initialization sequence failed.
+     */
+    Safety(const Robot& robot, const std::string& password);
+    virtual ~Safety();
+
+    /** Configurable robot safety limits */
+    struct SafetyLimits
+    {
+        /** Lower safety limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
+         * Unit: \f$ [rad] \f$. */
+        std::vector<double> q_min = {};
+
+        /** Upper safety limits of joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1} \f$.
+         * Unit: \f$ [rad] \f$. */
+        std::vector<double> q_max = {};
+
+        /** Upper safety limits of joint velocities when the robot is in normal state: \f$
+         * \dot{q}^{normal}_{max} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$. */
+        std::vector<double> dq_max_normal = {};
+
+        /** Upper safety limits of joint velocities when the robot is in reduced state: \f$
+         * \dot{q}^{reduced}_{max} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
+         * @see Robot::reduced() */
+        std::vector<double> dq_max_reduced = {};
+    };
+
+    /**
+     * @brief [Non-blocking] Default values of the safety limits of the connected robot.
+     * @return SafetyLimits value copy.
+     */
+    const SafetyLimits default_limits() const;
+
+    /**
+     * @brief [Non-blocking] Current values of the safety limits of the connected robot.
+     * @return SafetyLimits value copy.
+     */
+    const SafetyLimits current_limits() const;
+
+    /**
+     * @brief [Non-blocking] Current reading from all safety input ports.
+     * @return A boolean array whose index corresponds to that of the safety input ports.
+     * True: port high; false: port low.
+     */
+    const std::array<bool, kSafetyIOPorts> safety_inputs() const;
+
+    /**
+     * @brief [Blocking] Set new joint position safety limits to the connected robot, which will
+     * honor this setting when making movements.
+     * @param[in] min_positions Minimum joint positions: \f$ q_min \in \mathbb{R}^{n \times 1} \f$.
+     * Valid range: [default_min_joint_positions, default_max_joint_positions]. Unit: \f$ [rad] \f$.
+     * @param[in] max_positions Maximum joint positions: \f$ q_max \in \mathbb{R}^{n \times 1} \f$.
+     * Valid range: [default_min_joint_positions, default_max_joint_positions]. Unit: \f$ [rad] \f$.
+     * @throw std::invalid_argument if [min_positions] or [max_positions] contains any value outside
+     * the valid range, or size of any input vector does not match robot DoF.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: IDLE.
+     * @note This function blocks until the request is successfully delivered.
+     * @warning A reboot is required for the updated safety settings to take effect.
+     */
+    void SetJointPositionLimits(
+        const std::vector<double>& min_positions, const std::vector<double>& max_positions);
+
+    /**
+     * @brief [Blocking] Set new joint velocity safety limits to the connected robot, which will
+     * honor this setting when making movements under the normal state.
+     * @param[in] max_velocities Maximum joint velocities for normal state: \f$ dq_max \in
+     * \mathbb{R}^{n \times 1} \f$. Valid range: [0.8727, joint_velocity_normal_limits]. Unit: \f$
+     * [rad/s] \f$.
+     * @throw std::invalid_argument if [max_velocities] contains any value outside the valid range,
+     * or its size does not match robot DoF.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: IDLE.
+     * @note This function blocks until the request is successfully delivered.
+     * @warning A reboot is required for the updated safety settings to take effect.
+     */
+    void SetJointVelocityNormalLimits(const std::vector<double>& max_velocities);
+
+    /**
+     * @brief [Blocking] Set new joint velocity safety limits to the connected robot, which will
+     * honor this setting when making movements under the reduced state.
+     * @param[in] max_velocities Maximum joint velocities for reduced state: \f$ dq_max \in
+     * \mathbb{R}^{n \times 1} \f$. Valid range: [0.8727, joint_velocity_normal_limits]. Unit: \f$
+     * [rad/s] \f$.
+     * @throw std::invalid_argument if [max_velocities] contains any value outside the valid range,
+     * or its size does not match robot DoF.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: IDLE.
+     * @note This function blocks until the request is successfully delivered.
+     * @warning A reboot is required for the updated safety settings to take effect.
+     */
+    void SetJointVelocityReducedLimits(const std::vector<double>& max_velocities);
+
+private:
+    class Impl;
+    std::unique_ptr<Impl> pimpl_;
+};
+
+} /* namespace rdk */
+} /* namespace flexiv */
+
+#endif /* FLEXIV_RDK_SAFETY_HPP_ */

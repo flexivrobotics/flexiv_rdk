@@ -775,7 +775,9 @@ private:
     friend class Device;
     friend class FileIO;
     friend class Gripper;
+    friend class Maintenance;
     friend class Model;
+    friend class Safety;
     friend class Tool;
     friend class WorkCoord;
 };
