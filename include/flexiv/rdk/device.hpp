@@ -78,15 +78,16 @@ public:
 
     /**
      * @brief [Blocking] Send command(s) for the specified device.
-     * @param[in] name Name of the device to send command(s) for, must be an existing device.
-     * @param[in] cmds A map of {command_name, command_value}. Use int 1 and 0 to represent
-     * booleans. For example, {{"setSpeed", 6000}, {"startMotor", 1}}.
+     * @param[in] name Name of the device to send command(s) to, must be an existing device.
+     * @param[in] commands A map of {command_name, command_value}. For example, {{"setSpeed", 6000},
+     * {"openLaser", true}}. All commands in the map will be sent to the device simultaneously. Make
+     * sure the command name(s) are valid and can be accepted by the specified device.
      * @throw std::logic_error if the specified device does not exist or not enabled yet.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      */
-    void Command(
-        const std::string& name, const std::map<std::string, std::variant<int, double>>& cmds);
+    void Command(const std::string& name,
+        const std::map<std::string, std::variant<bool, int, double>>& commands);
 
 private:
     class Impl;

@@ -97,25 +97,25 @@ struct RobotInfo
     std::vector<double> K_q_nom = {};
 
     /**
-     * Lower limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
+     * Lower software limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [rad] \f$.
      */
     std::vector<double> q_min = {};
 
     /**
-     * Upper limits of joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1} \f$.
+     * Upper software limits of joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [rad] \f$.
      */
     std::vector<double> q_max = {};
 
     /**
-     * Upper limits of joint velocities: \f$ \dot{q}_{max} \in \mathbb{R}^{n \times 1} \f$.
+     * Upper software limits of joint velocities: \f$ \dot{q}_{max} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [rad/s] \f$.
      */
     std::vector<double> dq_max = {};
 
     /**
-     * Upper limits of joint torques: \f$ \tau_{max} \in \mathbb{R}^{n \times 1} \f$.
+     * Upper software limits of joint torques: \f$ \tau_{max} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [Nm] \f$.
      */
     std::vector<double> tau_max = {};
