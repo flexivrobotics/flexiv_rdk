@@ -28,9 +28,11 @@ The RDK **C++ and Python** libraries are packed into a unified modern CMake proj
 
 ### Install on Linux
 
-1. In a new Terminal, install compiler kit, CMake (with GUI), Python interpreter, and Python package manager:
+#### C++
 
-       sudo apt install build-essential cmake cmake-qt-gui python3 python3-pip -y
+1. In a new Terminal, install compiler kit and CMake (with GUI):
+
+       sudo apt install build-essential cmake cmake-qt-gui -y
 
 2. Choose a directory for installing RDK C++ library and all its dependencies. This directory can be under system path or not, depending on whether you want RDK to be globally discoverable by CMake. For example, a new folder named ``rdk_install`` under the home directory.
 3. In a new Terminal, run the provided script to compile and install all C++ dependencies to the installation directory chosen in step 2:
@@ -44,16 +46,44 @@ The RDK **C++ and Python** libraries are packed into a unified modern CMake proj
 
        cd flexiv_rdk
        mkdir build && cd build
-       cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install -DINSTALL_PYTHON_RDK=ON
+       cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
 
-   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` sets the CMake variable that specifies the path of the installation directory. ``-D`` followed by ``INSTALL_PYTHON_RDK=ON`` enables the installation of the Python library alongside the C++ library. Alternatively, this configuration step can be done using CMake GUI.
+   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` sets the CMake variable that specifies the path of the installation directory. Alternatively, this configuration step can be done using CMake GUI.
 
-5. Install ``flexiv_rdk`` C++ library and ``flexivrdk`` Python library:
+5. Install ``flexiv_rdk`` C++ library to ``CMAKE_INSTALL_PREFIX`` path, which may or may not be globally discoverable by CMake:
 
        cd flexiv_rdk/build
        cmake --build . --target install --config Release
 
-   The C++ library will be installed to ``CMAKE_INSTALL_PREFIX`` path, which may or may not be globally discoverable by CMake. The Python library is installed to the user site packages path, which is globally discoverable by the Python interpreter.
+#### Python
+
+1. In a new Terminal, install Python interpreter, Python package manager, and CMake (with GUI):
+
+       sudo apt install python3 python3-pip cmake cmake-qt-gui -y
+
+2. Install dependencies of RDK Python library:
+
+       python3 -m pip install numpy spdlog
+
+3. In a new Terminal, configure ``flexiv_rdk`` CMake project:
+
+       cd flexiv_rdk
+       mkdir build && cd build
+       cmake .. -DINSTALL_PYTHON_RDK=ON -DINSTALL_CPP_RDK=OFF
+
+   NOTE: ``-D`` followed by ``INSTALL_PYTHON_RDK=ON`` enables the installation of RDK Python library, while ``INSTALL_CPP_RDK=OFF`` disables the installation of RDK C++ library. Alternatively, this configuration step can be done using CMake GUI.
+
+4. The above configuration will install RDK Python library for Python 3.10 by default, to install for a different version of Python, open CMake GUI for ``flexiv_rdk`` project:
+
+       cd flexiv_rdk/build
+       cmake-gui ..
+
+   Select another version from the drop-down menu of CMake variable ``RDK_PYTHON_VERSION``, then click *Generate* and close the GUI window.
+
+5. Install ``flexivrdk`` Python library to the user site packages path, which is globally discoverable by the Python interpreter with the specified version:
+
+       cd flexiv_rdk/build
+       cmake --build . --target install --config Release
 
 ### Install on macOS
 
