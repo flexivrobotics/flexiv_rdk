@@ -19,7 +19,7 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 ## Quick Start
 
-The **C++ and Python** RDK libraries are packed into a unified modern CMake project named ``flexiv_rdk``, which can be configured and installed using CMake on all supported OS.
+The RDK **C++ and Python** libraries are packed into a unified modern CMake project named ``flexiv_rdk``, which can be configured and installed using CMake on all supported OS.
 
 ### Note
 
@@ -32,7 +32,7 @@ The **C++ and Python** RDK libraries are packed into a unified modern CMake proj
 
        sudo apt install build-essential cmake cmake-qt-gui python3 python3-pip -y
 
-2. Choose a directory for installing C++ RDK library and all its dependencies. This directory can be under system path or not, depending on whether you want RDK to be globally discoverable by CMake. For example, a new folder named ``rdk_install`` under the home directory.
+2. Choose a directory for installing RDK C++ library and all its dependencies. This directory can be under system path or not, depending on whether you want RDK to be globally discoverable by CMake. For example, a new folder named ``rdk_install`` under the home directory.
 3. In a new Terminal, run the provided script to compile and install all C++ dependencies to the installation directory chosen in step 2:
 
        cd flexiv_rdk/thirdparty
@@ -40,7 +40,7 @@ The **C++ and Python** RDK libraries are packed into a unified modern CMake proj
 
    NOTE: Internet connection is required for this step.
 
-4. In a new Terminal, configure ``flexiv_rdk`` library as a CMake project:
+4. In a new Terminal, configure ``flexiv_rdk`` CMake project:
 
        cd flexiv_rdk
        mkdir build && cd build
@@ -48,7 +48,7 @@ The **C++ and Python** RDK libraries are packed into a unified modern CMake proj
 
    NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` sets the CMake variable that specifies the path of the installation directory. ``-D`` followed by ``INSTALL_PYTHON_RDK=ON`` enables the installation of the Python library alongside the C++ library. Alternatively, this configuration step can be done using CMake GUI.
 
-5. Install ``flexiv_rdk`` libraries (C++ and Python):
+5. Install ``flexiv_rdk`` C++ library and ``flexivrdk`` Python library:
 
        cd flexiv_rdk/build
        cmake --build . --target install --config Release
@@ -77,14 +77,26 @@ The **C++ and Python** RDK libraries are packed into a unified modern CMake proj
 
 ### Link to installed library from a user program
 
-After the C++ RDK library is installed, it can be found as a CMake target and linked to from other CMake projects. Using the provided examples project for instance::
+#### C++
+
+After the RDK C++ library ``flexiv_rdk`` is installed, it can be found as a CMake target and linked to from other CMake projects. Using the provided examples project for instance:
 
     cd flexiv_rdk/example
     mkdir build && cd build
     cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
     cmake --build . --config Release -j 4
 
-NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` tells the user project's CMake where to find the installed C++ RDK library. The instruction above applies to all supported OS.
+NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` tells the user project's CMake where to find the installed RDK C++ library. The instruction above applies to all supported OS.
+
+#### Python
+
+After the RDK Python library ``flexivrdk`` is installed, it can be imported from any Python script. Test with the following commands in a new Terminal, which should start Flexiv RDK:
+
+    python3
+    import flexivrdk
+    robot = flexivrdk.Robot("Rizon4-123456")
+
+If a robot is not connected, the program will just exit after a couple of seconds.
 
 ### Run example programs
 
