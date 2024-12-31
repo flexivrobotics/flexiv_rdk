@@ -245,8 +245,8 @@ int main(int argc, char* argv[])
 
         // Configure Force Control
         // =========================================================================================
-        // The force control configurations can only be updated when the robot is in IDLE mode
-        robot.Stop();
+        // Switch to real-time mode for continuous motion force control
+        robot.SwitchMode(rdk::Mode::RT_CARTESIAN_MOTION_FORCE);
 
         // Set force control reference frame based on program argument. See function doc for more
         // details
@@ -266,9 +266,6 @@ int main(int argc, char* argv[])
 
         // Start Unified Motion Force Control
         // =========================================================================================
-        // Switch to real-time mode for continuous motion force control
-        robot.SwitchMode(rdk::Mode::RT_CARTESIAN_MOTION_FORCE);
-
         // Disable max contact wrench regulation. Need to do this AFTER the force control in Z axis
         // is activated (i.e. motion control disabled in Z axis) and the motion force control mode
         // is entered, this way the contact force along Z axis is explicitly regulated and will not
