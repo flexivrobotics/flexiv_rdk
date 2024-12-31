@@ -197,8 +197,8 @@ def main():
 
         # Configure Force Control
         # =========================================================================================
-        # The force control configurations can only be updated when the robot is in IDLE mode
-        robot.Stop()
+        # Switch to non-real-time mode for discrete motion force control
+        robot.SwitchMode(mode.NRT_CARTESIAN_MOTION_FORCE)
 
         # Set force control reference frame based on program argument. See function doc for more
         # details
@@ -217,9 +217,6 @@ def main():
 
         # Start Unified Motion Force Control
         # =========================================================================================
-        # Switch to non-real-time mode for discrete motion force control
-        robot.SwitchMode(mode.NRT_CARTESIAN_MOTION_FORCE)
-
         # Disable max contact wrench regulation. Need to do this AFTER the force control in Z axis
         # is activated (i.e. motion control disabled in Z axis) and the motion force control mode
         # is entered, this way the contact force along Z axis is explicitly regulated and will not
