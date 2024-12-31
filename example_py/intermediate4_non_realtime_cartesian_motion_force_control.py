@@ -221,7 +221,7 @@ def main():
         # is activated (i.e. motion control disabled in Z axis) and the motion force control mode
         # is entered, this way the contact force along Z axis is explicitly regulated and will not
         # spike after the max contact wrench regulation for motion control is disabled
-        robot.ResetMaxContactWrench()
+        robot.SetMaxContactWrench([float("inf")] * 6)
 
         # Update initial pose to current TCP pose
         init_pose = robot.states().tcp_pose.copy()
