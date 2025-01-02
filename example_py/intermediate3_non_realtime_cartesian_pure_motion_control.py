@@ -148,6 +148,9 @@ def main():
         # Switch to non-real-time mode for discrete motion control
         robot.SwitchMode(mode.NRT_CARTESIAN_MOTION_FORCE)
 
+        # Set all Cartesian axis(s) to motion control
+        robot.SetForceControlAxis([False, False, False, False, False, False])
+
         # Set initial pose to current TCP pose
         init_pose = robot.states().tcp_pose.copy()
 

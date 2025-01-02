@@ -268,6 +268,10 @@ int main(int argc, char* argv[])
         // Switch to real-time mode for continuous motion control
         robot.SwitchMode(rdk::Mode::RT_CARTESIAN_MOTION_FORCE);
 
+        // Set all Cartesian axis(s) to motion control
+        robot.SetForceControlAxis(
+            std::array<bool, rdk::kCartDoF> {false, false, false, false, false, false});
+
         // Save initial pose
         auto init_pose = robot.states().tcp_pose;
 
