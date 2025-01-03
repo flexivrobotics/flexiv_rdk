@@ -14,6 +14,27 @@ namespace rdk {
 /** Number of safety IO ports */
 constexpr size_t kSafetyIOPorts = 8;
 
+/** Configurable robot safety limits */
+struct SafetyLimits
+{
+    /** Lower safety limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
+     * Unit: \f$ [rad] \f$. */
+    std::vector<double> q_min = {};
+
+    /** Upper safety limits of joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1} \f$.
+     * Unit: \f$ [rad] \f$. */
+    std::vector<double> q_max = {};
+
+    /** Upper safety limits of joint velocities when the robot is in normal state: \f$
+     * \dot{q}^{normal}_{max} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$. */
+    std::vector<double> dq_max_normal = {};
+
+    /** Upper safety limits of joint velocities when the robot is in reduced state: \f$
+     * \dot{q}^{reduced}_{max} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
+     * @see Robot::reduced() */
+    std::vector<double> dq_max_reduced = {};
+};
+
 /**
  * @class Safety
  * @brief Interface to change robot safety settings. The robot must be in IDLE mode when applying
@@ -31,27 +52,6 @@ public:
      */
     Safety(const Robot& robot, const std::string& password);
     virtual ~Safety();
-
-    /** Configurable robot safety limits */
-    struct SafetyLimits
-    {
-        /** Lower safety limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
-         * Unit: \f$ [rad] \f$. */
-        std::vector<double> q_min = {};
-
-        /** Upper safety limits of joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1} \f$.
-         * Unit: \f$ [rad] \f$. */
-        std::vector<double> q_max = {};
-
-        /** Upper safety limits of joint velocities when the robot is in normal state: \f$
-         * \dot{q}^{normal}_{max} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$. */
-        std::vector<double> dq_max_normal = {};
-
-        /** Upper safety limits of joint velocities when the robot is in reduced state: \f$
-         * \dot{q}^{reduced}_{max} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
-         * @see Robot::reduced() */
-        std::vector<double> dq_max_reduced = {};
-    };
 
     /**
      * @brief [Non-blocking] Default values of the safety limits of the connected robot.
