@@ -113,10 +113,10 @@ After the RDK C++ library ``flexiv_rdk`` is installed, it can be found as a CMak
 
     cd flexiv_rdk/example
     mkdir build && cd build
-    cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+    cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install
     cmake --build . --config Release -j 4
 
-NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` tells the user project's CMake where to find the installed RDK C++ library. The instruction above applies to all supported OS.
+NOTE: ``-D`` followed by ``CMAKE_PREFIX_PATH`` tells the user project's CMake where to find the installed RDK C++ library. The instruction above applies to all supported OS.
 
 #### Python
 
