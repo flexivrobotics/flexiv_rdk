@@ -13,6 +13,62 @@ namespace flexiv {
 namespace rdk {
 
 /**
+ * @struct GripperParams
+ * @brief Data structure containing the gripper parameters.
+ * @see Gripper::params().
+ */
+struct GripperParams
+{
+    /** Gripper name */
+    std::string name = {};
+
+    /** Maximum finger opening width [m] */
+    double max_width = {};
+
+    /** Minimum finger opening width [m] */
+    double min_width = {};
+
+    /** Maximum grasping force [N] */
+    double max_force = {};
+
+    /** Minimum grasping force [N] */
+    double min_force = {};
+
+    /** Maximum finger moving velocity [m/s] */
+    double max_vel = {};
+
+    /** Minimum finger moving velocity [m/s] */
+    double min_vel = {};
+};
+
+/**
+ * @struct GripperStates
+ * @brief Data structure containing the gripper states.
+ * @see Gripper::states().
+ */
+struct GripperStates
+{
+    /** Measured finger opening width [m] */
+    double width = {};
+
+    /** Measured finger force. Positive: opening force, negative: closing force.
+     * Reads 0 if the mounted gripper has no force sensing capability [N] */
+    double force = {};
+
+    /** Whether the gripper fingers are moving */
+    bool is_moving = {};
+};
+
+/**
+ * @brief Operator overloading to out stream all gripper states in JSON format:
+ * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}.
+ * @param[in] ostream Ostream instance.
+ * @param[in] gripper_states GripperStates data structure to out stream.
+ * @return Updated ostream instance.
+ */
+std::ostream& operator<<(std::ostream& ostream, const GripperStates& gripper_states);
+
+/**
  * @class Gripper
  * @brief Interface with the robot gripper. Because gripper is also a type of device, this API uses
  * the same underlying infrastructure as rdk::Device, but with functions tailored specifically for

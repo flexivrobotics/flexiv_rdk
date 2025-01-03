@@ -290,75 +290,6 @@ struct PlanInfo
 };
 
 /**
- * @struct GripperParams
- * @brief Data structure containing the gripper parameters.
- * @see Gripper::params().
- */
-struct GripperParams
-{
-    /** Gripper name */
-    std::string name = {};
-
-    /** Maximum finger opening width [m] */
-    double max_width = {};
-
-    /** Minimum finger opening width [m] */
-    double min_width = {};
-
-    /** Maximum grasping force [N] */
-    double max_force = {};
-
-    /** Minimum grasping force [N] */
-    double min_force = {};
-
-    /** Maximum finger moving velocity [m/s] */
-    double max_vel = {};
-
-    /** Minimum finger moving velocity [m/s] */
-    double min_vel = {};
-};
-
-/**
- * @struct GripperStates
- * @brief Data structure containing the gripper states.
- * @see Gripper::states().
- */
-struct GripperStates
-{
-    /** Measured finger opening width [m] */
-    double width = {};
-
-    /** Measured finger force. Positive: opening force, negative: closing force.
-     * Reads 0 if the mounted gripper has no force sensing capability [N] */
-    double force = {};
-
-    /** Whether the gripper fingers are moving */
-    bool is_moving = {};
-};
-
-/**
- * @struct ToolParams
- * @brief Data structure containing robot tool parameters.
- * @see Tool::params().
- */
-struct ToolParams
-{
-    /** Total mass. Unit: \f$ [kg] \f$ */
-    double mass = 0.0;
-
-    /** Center of mass in robot flange frame: \f$ [x, y, z] \f$. Unit: \f$ [m] \f$ */
-    std::array<double, 3> CoM = {};
-
-    /** Inertia at center of mass: \f$ [Ixx, Iyy, Izz, Ixy, Ixz, Iyz] \f$. Unit: \f$ [kg m^2] \f$ */
-    std::array<double, 6> inertia = {};
-
-    /** Position and orientation of the tool center point (TCP) in flange frame. Consists of \f$
-     * \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x,
-     * y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$ */
-    std::array<double, kPoseSize> tcp_location = {};
-};
-
-/**
  * @struct JPos
  * @brief Data structure representing the customized data type "JPOS" in Flexiv Elements.
  * @warning Here [m] is used as the unit of length, whereas [mm] is used in Flexiv Elements. The
@@ -485,15 +416,6 @@ std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states)
  * @return Updated ostream instance.
  */
 std::ostream& operator<<(std::ostream& ostream, const PlanInfo& plan_info);
-
-/**
- * @brief Operator overloading to out stream all gripper states in JSON format:
- * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}.
- * @param[in] ostream Ostream instance.
- * @param[in] gripper_states GripperStates data structure to out stream.
- * @return Updated ostream instance.
- */
-std::ostream& operator<<(std::ostream& ostream, const GripperStates& gripper_states);
 
 } /* namespace rdk */
 } /* namespace flexiv */
