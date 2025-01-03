@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
         // Zero Sensors
         // =========================================================================================
         // Get and print the current TCP force/moment readings
-        spdlog::info("TCP force and moment reading in base frame BEFORE sensor zeroing: "
+        spdlog::info("TCP force and moment reading in world frame BEFORE sensor zeroing: "
                      + rdk::utility::Arr2Str(robot.states().ext_wrench_in_world) + "[N][Nm]");
 
         // Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
         spdlog::info("Sensor zeroing complete");
 
         // Get and print the current TCP force/moment readings
-        spdlog::info("TCP force and moment reading in base frame AFTER sensor zeroing: "
+        spdlog::info("TCP force and moment reading in world frame AFTER sensor zeroing: "
                      + rdk::utility::Arr2Str(robot.states().ext_wrench_in_world) + "[N][Nm]");
 
     } catch (const std::exception& e) {

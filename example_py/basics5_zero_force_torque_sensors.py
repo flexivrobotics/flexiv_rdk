@@ -69,7 +69,7 @@ def main():
         # ==========================================================================================
         # Get and print the current TCP force/moment readings
         logger.info(
-            f"TCP force and moment reading in base frame BEFORE sensor zeroing: {robot.states().ext_wrench_in_world} N-Nm"
+            f"TCP force and moment reading in world frame BEFORE sensor zeroing: {robot.states().ext_wrench_in_world} N-Nm"
         )
 
         # Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
@@ -89,7 +89,7 @@ def main():
 
         # Get and print the current TCP force/moment readings
         logger.info(
-            f"TCP force and moment reading in base frame AFTER sensor zeroing: {robot.states().ext_wrench_in_world} N-Nm"
+            f"TCP force and moment reading in world frame AFTER sensor zeroing: {robot.states().ext_wrench_in_world} N-Nm"
         )
 
     except Exception as e:
