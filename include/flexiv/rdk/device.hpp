@@ -48,15 +48,16 @@ public:
     /**
      * @brief [Blocking] Get configuration parameters of the specified device.
      * @param[in] name Name of the device to get parameters for, must be an existing one.
-     * @return A map of {param_name, param_value}. Booleans are represented by int 1
-     * and 0. For example,
-     * {{"maxWidth", 0.5}, {"absolutePosition", {0.7, -0.4, 0.05}}, {"conveyorName", "conveyor0"}}.
+     * @return A map of {param_name, param_value}. Booleans are represented by int 1 and 0. For
+     * example, {{"maxVel", 0.5}, {"absolutePosition", {0.7, -0.4, 0.05}}, {"conveyorName",
+     * "conveyor0"}}.
      * @throw std::logic_error if the specified device does not exist.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const std::map<std::string, std::variant<int, double, std::string, std::vector<double>>> params(
-        const std::string& name) const;
+    const std::map<std::string,
+        std::variant<int, double, std::string, std::vector<double>, std::vector<std::string>>>
+    params(const std::string& name) const;
 
     /**
      * @brief [Blocking] Enable the specified device.
