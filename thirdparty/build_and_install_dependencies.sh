@@ -31,10 +31,20 @@ echo "Number of parallel build jobs: $NUM_JOBS"
 # Clone all dependencies in a subfolder
 mkdir -p cloned && cd cloned
 
-# Build and install all dependencies to INSTALL_DIR
-bash $SCRIPTPATH/scripts/install_eigen.sh $INSTALL_DIR $NUM_JOBS
-bash $SCRIPTPATH/scripts/install_spdlog.sh $INSTALL_DIR $NUM_JOBS
-bash $SCRIPTPATH/scripts/install_tinyxml2.sh $INSTALL_DIR $NUM_JOBS
+# Dependencies to install via package manager or build from source based on OS
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    SUDO="sudo"
+    if [ -w /usr/lib/ ]; then SUDO=""; fi
+    $SUDO apt-get install -y libeigen3-dev libspdlog-dev libtinyxml2-dev
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    brew install eigen spdlog tinyxml2
+else
+    bash $SCRIPTPATH/scripts/install_eigen.sh $INSTALL_DIR $NUM_JOBS
+    bash $SCRIPTPATH/scripts/install_spdlog.sh $INSTALL_DIR $NUM_JOBS
+    bash $SCRIPTPATH/scripts/install_tinyxml2.sh $INSTALL_DIR $NUM_JOBS
+fi
+
+# Dependencies to build from source regardless of OS
 bash $SCRIPTPATH/scripts/install_foonathan_memory.sh $INSTALL_DIR $NUM_JOBS
 bash $SCRIPTPATH/scripts/install_Fast-CDR.sh $INSTALL_DIR $NUM_JOBS
 bash $SCRIPTPATH/scripts/install_Fast-DDS.sh $INSTALL_DIR $NUM_JOBS
