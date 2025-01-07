@@ -14,7 +14,10 @@ namespace rdk {
 /** Number of safety IO ports */
 constexpr size_t kSafetyIOPorts = 8;
 
-/** Configurable robot safety limits */
+/**
+ * @struct SafetyLimits
+ * @brief Data structure containing configurable robot safety limits.
+ */
 struct SafetyLimits
 {
     /** Lower safety limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
