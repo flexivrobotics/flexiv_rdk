@@ -9,13 +9,13 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 [Flexiv RDK Home Page](https://www.flexiv.com/software/rdk) is the main reference. It contains important information including user manual and API documentation. The instructions below serve as a quick reference, and you can find the full documentation at [Flexiv RDK Manual](https://www.flexiv.com/software/rdk/manual).
 
-## Compatibility Overview
+## Environment Compatibility
 
-| **OS**                | **Platform**  | **C++ compiler kit** | **Python version** |
-| --------------------- | ------------- | -------------------- | ------------------ |
-| Linux (Ubuntu 20.04+) | x86_64, arm64 | GCC   v9.4+          | 3.8, 3.10, 3.12    |
-| macOS 12+             | arm64         | Clang v14.0+         | 3.10, 3.12         |
-| Windows 10+           | x86_64        | MSVC  v14.2+         | 3.8, 3.10, 3.12    |
+| **OS**                | **Platform**  | **C++ compiler kit** | **Python interpreter** |
+| --------------------- | ------------- | -------------------- | ---------------------- |
+| Linux (Ubuntu 20.04+) | x86_64, arm64 | GCC   v9.4+          | 3.8, 3.10, 3.12        |
+| macOS 12+             | arm64         | Clang v14.0+         | 3.10, 3.12             |
+| Windows 10+           | x86_64        | MSVC  v14.2+         | 3.8, 3.10, 3.12        |
 
 **IMPORTANT**: You might need to turn off your computer's firewall or whitelist the RDK programs to be able to establish connection with the robot.
 
