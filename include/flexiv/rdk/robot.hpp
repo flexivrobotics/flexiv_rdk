@@ -236,9 +236,6 @@ public:
      */
     void SetGlobalVariables(const std::map<std::string, FlexivDataTypes>& global_vars);
 
-    [[deprecated("[Removing in v1.6] Use the other SetGlobalVariables() instead")]] void
-    SetGlobalVariables(const std::string& global_vars);
-
     /**
      * @brief [Blocking] Existing global variables and their current values.
      * @return A map of {global_var_name, global_var_value(s)}. Booleans are represented by int 1
@@ -248,10 +245,6 @@ public:
      * @see SetGlobalVariables().
      */
     std::map<std::string, FlexivDataTypes> global_variables() const;
-
-    [[deprecated("[Removing in v1.6] Use the other global_variables() instead")]] const std::vector<
-        std::string>
-    global_variables(bool dummy); ///< Unused parameter [dummy] is needed for function overloading
 
     //======================================= PLAN EXECUTION =======================================
     /**
@@ -393,9 +386,6 @@ public:
         const std::map<std::string, FlexivDataTypes>& properties = {},
         bool block_until_started = true);
 
-    [[deprecated("[Removing in v1.6] Use the other ExecutePrimitive() instead")]] void
-    ExecutePrimitive(const std::string& pt_cmd, bool block_until_started = true);
-
     /**
      * @brief [Blocking] State parameters of the executing primitive and their current values.
      * @return A map of {pt_state_name, pt_state_value(s)}. Booleans are represented by int 1
@@ -405,10 +395,6 @@ public:
      * @note This function blocks until a reply is received.
      */
     std::map<std::string, FlexivDataTypes> primitive_states() const;
-
-    [[deprecated("[Removing in v1.6] Use the other primitive_states() instead")]] const std::vector<
-        std::string>
-    primitive_states(bool dummy); ///< Unused parameter [dummy] is needed for function overloading
 
     //==================================== DIRECT JOINT CONTROL ====================================
     /**
@@ -774,20 +760,13 @@ public:
     void SetDigitalOutputs(
         const std::vector<unsigned int>& port_idx, const std::vector<bool>& values);
 
-    [[deprecated("[Removing in v1.6] Use SetDigitalOutputs() instead")]] void WriteDigitalOutput(
-        const std::vector<unsigned int>& port_idx, const std::vector<bool>& values);
-
     /**
-     * @brief [Non-blocking] Current reading of all digital input ports, including 16 on the control
-     * box plus 2 inside the wrist connector.
+     * @brief [Non-blocking] Current reading from all digital input ports, including 16 on the
+     * control box plus 2 inside the wrist connector.
      * @return A boolean array whose index corresponds to that of the digital input ports.
      * True: port high; false: port low.
      */
-    const std::array<bool, kIOPorts> digital_inputs();
-
-    [[deprecated(
-        "[Removing in v1.6] Use digital_inputs() instead")]] const std::array<bool, kIOPorts>
-    ReadDigitalInput();
+    const std::array<bool, kIOPorts> digital_inputs() const;
 
 private:
     class Impl;
@@ -796,7 +775,9 @@ private:
     friend class Device;
     friend class FileIO;
     friend class Gripper;
+    friend class Maintenance;
     friend class Model;
+    friend class Safety;
     friend class Tool;
     friend class WorkCoord;
 };

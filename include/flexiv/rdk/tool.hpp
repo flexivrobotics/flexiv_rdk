@@ -12,6 +12,28 @@ namespace flexiv {
 namespace rdk {
 
 /**
+ * @struct ToolParams
+ * @brief Data structure containing robot tool parameters.
+ * @see Tool::params().
+ */
+struct ToolParams
+{
+    /** Total mass. Unit: \f$ [kg] \f$ */
+    double mass = 0.0;
+
+    /** Center of mass in robot flange frame: \f$ [x, y, z] \f$. Unit: \f$ [m] \f$ */
+    std::array<double, 3> CoM = {};
+
+    /** Inertia at center of mass: \f$ [Ixx, Iyy, Izz, Ixy, Ixz, Iyz] \f$. Unit: \f$ [kg m^2] \f$ */
+    std::array<double, 6> inertia = {};
+
+    /** Position and orientation of the tool center point (TCP) in flange frame. Consists of \f$
+     * \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x,
+     * y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$ */
+    std::array<double, kPoseSize> tcp_location = {};
+};
+
+/**
  * @class Tool
  * @brief Interface to online update and interact with the robot tools. All updates will take effect
  * immediately without a power cycle. However, the robot must be in IDLE mode when applying changes.
@@ -54,16 +76,16 @@ public:
 
     /**
      * @brief [Blocking] Get parameters of the tool that the robot is currently using.
-     * @return Parameters result.
+     * @return ToolParams value copy.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
     const ToolParams params() const;
 
     /**
-     * @brief [Blocking] Get parameters of an existing tool.
+     * @brief [Blocking] Get parameters of the specified tool.
      * @param[in] name Name of the tool to get parameters for, must be an existing one.
-     * @return Parameters result.
+     * @return ToolParams value copy.
      * @throw std::logic_error if the specified tool does not exist.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.

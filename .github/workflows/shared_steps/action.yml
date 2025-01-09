@@ -27,7 +27,7 @@ runs:
         pwd
         cd example
         mkdir -p build && cd build
-        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+        cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install
         cmake --build . --config Release -j 4
 
     # Find and link to flexiv_rdk library, then build all test programs.
@@ -37,5 +37,5 @@ runs:
         pwd
         cd test
         mkdir -p build && cd build
-        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+        cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install
         cmake --build . --config Release -j 4

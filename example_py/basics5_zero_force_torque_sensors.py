@@ -25,7 +25,7 @@ def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument(
         "robot_sn",
-        help="Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456",
+        help="Serial number of the robot to connect. Remove any space, e.g. Rizon4s-123456",
     )
     args = argparser.parse_args()
 
@@ -69,7 +69,7 @@ def main():
         # ==========================================================================================
         # Get and print the current TCP force/moment readings
         logger.info(
-            f"TCP force and moment reading in base frame BEFORE sensor zeroing: {robot.states().ext_wrench_in_world} N-Nm"
+            f"TCP force and moment reading in world frame BEFORE sensor zeroing: {robot.states().ext_wrench_in_world} N-Nm"
         )
 
         # Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
@@ -89,7 +89,7 @@ def main():
 
         # Get and print the current TCP force/moment readings
         logger.info(
-            f"TCP force and moment reading in base frame AFTER sensor zeroing: {robot.states().ext_wrench_in_world} N-Nm"
+            f"TCP force and moment reading in world frame AFTER sensor zeroing: {robot.states().ext_wrench_in_world} N-Nm"
         )
 
     except Exception as e:
