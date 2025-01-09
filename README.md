@@ -124,11 +124,11 @@ NOTE: ``-D`` followed by ``CMAKE_PREFIX_PATH`` tells the user project's CMake wh
 To run an example C++ program compiled during the previous step:
 
     cd flexiv_rdk/example/build
-    ./<program_name> [robot_serial_number]
+    ./<example_name> [robot_serial_number]
 
 For example:
 
-    ./basics1_display_robot_states Rizon4s-123456
+    ./basics1_display_robot_states Rizon4-123456
 
 NOTE: ``sudo`` is only required if the real-time scheduler API ``flexiv::rdk::Scheduler`` is used in the program.
 
