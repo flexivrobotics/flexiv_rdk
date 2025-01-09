@@ -41,7 +41,7 @@ def main():
     # Required arguments
     argparser.add_argument(
         "robot_sn",
-        help="Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456",
+        help="Serial number of the robot to connect. Remove any space, e.g. Rizon4s-123456",
     )
     argparser.add_argument(
         "frequency", help="Command frequency, 1 to 100 [Hz]", type=int
@@ -147,6 +147,9 @@ def main():
         # =========================================================================================
         # Switch to non-real-time mode for discrete motion control
         robot.SwitchMode(mode.NRT_CARTESIAN_MOTION_FORCE)
+
+        # Set all Cartesian axis(s) to motion control
+        robot.SetForceControlAxis([False, False, False, False, False, False])
 
         # Set initial pose to current TCP pose
         init_pose = robot.states().tcp_pose.copy()

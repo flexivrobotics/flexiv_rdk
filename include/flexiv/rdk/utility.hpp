@@ -56,6 +56,18 @@ inline std::array<double, N> Rad2Deg(const std::array<double, N>& rad_arr)
 }
 
 /**
+ * @brief Convert radians to degrees for a vector.
+ */
+inline std::vector<double> Rad2Deg(const std::vector<double>& rad_vec)
+{
+    std::vector<double> deg_vec;
+    for (const auto& v : rad_vec) {
+        deg_vec.push_back(Rad2Deg(v));
+    }
+    return deg_vec;
+}
+
+/**
  * @brief Convert an std::vector to a string.
  * @param[in] vec std::vector of any type and size.
  * @param[in] decimal Decimal places to keep for each floating-point number in the vector.

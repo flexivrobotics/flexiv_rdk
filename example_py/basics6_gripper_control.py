@@ -27,8 +27,7 @@ def print_gripper_states(gripper, logger, stop_event):
         logger.info("Current gripper states:")
         print(f"width: {round(gripper.states().width, 2)}")
         print(f"force: {round(gripper.states().force, 2)}")
-        print(f"max_width: {round(gripper.states().max_width, 2)}")
-        print(f"moving: {gripper.moving()}")
+        print(f"is_moving: {gripper.states().is_moving}")
         print("", flush=True)
         time.sleep(1)
 
@@ -43,7 +42,11 @@ def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument(
         "robot_sn",
-        help="Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456",
+        help="Serial number of the robot to connect. Remove any space, e.g. Rizon4s-123456",
+    )
+    argparser.add_argument(
+        "gripper_name",
+        help="Full name of the gripper to be controlled, can be found in Flexiv Elements -> Settings -> Device",
     )
     args = argparser.parse_args()
 
@@ -84,21 +87,58 @@ def main():
 
         # Gripper Control
         # ==========================================================================================
-        # Gripper control is not available if the robot is in IDLE mode, so switch to some mode
-        # other than IDLE
-        robot.SwitchMode(mode.NRT_PLAN_EXECUTION)
-        robot.ExecutePlan("PLAN-Home")
-        time.sleep(1)
-
         # Instantiate gripper control interface
         gripper = flexivrdk.Gripper(robot)
 
-        # Manually initialize the gripper, not all grippers need this step
-        logger.info("Initializing gripper, this process takes about 10 seconds ...")
-        gripper.Init()
-        logger.info("Initialization complete")
+        # Instantiate tool interface. Gripper is categorized as both a device and a tool. The
+        # device attribute allows a gripper to be interactively controlled by the user; whereas the
+        # tool attribute tells the robot to account for its mass properties and TCP location.
+        tool = flexivrdk.Tool(robot)
 
-        # Thread for printing gripper states
+        # Enable the specified gripper as a device. This is equivalent to enabling the specified
+        # gripper in Flexiv Elements -> Settings -> Device
+        logger.info(f"Enabling gripper [{args.gripper_name}]")
+        gripper.Enable(args.gripper_name)
+
+        # Print parameters of the enabled gripper
+        logger.info("Gripper params:")
+        print(f"name: {gripper.params().name}")
+        print(f"min_width: {round(gripper.params().min_width, 3)}")
+        print(f"max_width: {round(gripper.params().max_width, 3)}")
+        print(f"min_force: {round(gripper.params().min_force, 3)}")
+        print(f"max_force: {round(gripper.params().max_force, 3)}")
+        print(f"min_vel: {round(gripper.params().min_vel, 3)}")
+        print(f"max_vel: {round(gripper.params().max_vel, 3)}")
+        print("", flush=True)
+
+        # Switch robot tool to gripper so the gravity compensation and TCP location is updated
+        logger.info(f"Switching robot tool to [{args.gripper_name}]")
+        tool.Switch(args.gripper_name)
+
+        # User needs to determine if this gripper requires manual initialization
+        logger.info(
+            "Manually trigger initialization for the gripper now? Choose Yes if it's a 48v Grav "
+            "gripper"
+        )
+        print("[1] No, it has already initialized automatically when power on")
+        print("[2] Yes, it does not initialize itself when power on")
+        choice = int(input(""))
+
+        # Trigger manual initialization based on input
+        if choice == 1:
+            logger.info("Skipped manual initialization")
+        elif choice == 2:
+            gripper.Init()
+            # User determines if the manual initialization is finished
+            logger.info(
+                "Triggered manual initialization, press Enter when the initialization is finished to continue"
+            )
+            input()
+        else:
+            logger.error("Invalid choice")
+            return 1
+
+        # Start a separate thread to print gripper states
         print_thread = threading.Thread(
             target=print_gripper_states, args=[gripper, logger, stop_event]
         )

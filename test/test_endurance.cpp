@@ -158,10 +158,9 @@ void lowPriorityTask()
 void PrintHelp()
 {
     // clang-format off
-    std::cout << "Required arguments: [robot SN] [test hours]" << std::endl;
-    std::cout << "    robot SN: Serial number of the robot to connect to. "
-                 "Remove any space, for example: Rizon4s-123456" << std::endl;
-    std::cout << "    test hours: duration of the test, can have decimals" << std::endl;
+    std::cout << "Required arguments: [robot_sn] [test_hours]" << std::endl;
+    std::cout << "    robot_sn: Serial number of the robot to connect. Remove any space, e.g. Rizon4s-123456" << std::endl;
+    std::cout << "    test_hours: Duration of the test, can have decimals" << std::endl;
     std::cout << "Optional arguments: None" << std::endl;
     std::cout << std::endl;
     // clang-format on

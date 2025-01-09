@@ -97,25 +97,25 @@ struct RobotInfo
     std::vector<double> K_q_nom = {};
 
     /**
-     * Lower limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
+     * Lower software limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [rad] \f$.
      */
     std::vector<double> q_min = {};
 
     /**
-     * Upper limits of joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1} \f$.
+     * Upper software limits of joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [rad] \f$.
      */
     std::vector<double> q_max = {};
 
     /**
-     * Upper limits of joint velocities: \f$ \dot{q}_{max} \in \mathbb{R}^{n \times 1} \f$.
+     * Upper software limits of joint velocities: \f$ \dot{q}_{max} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [rad/s] \f$.
      */
     std::vector<double> dq_max = {};
 
     /**
-     * Upper limits of joint torques: \f$ \tau_{max} \in \mathbb{R}^{n \times 1} \f$.
+     * Upper software limits of joint torques: \f$ \tau_{max} \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [Nm] \f$.
      */
     std::vector<double> tau_max = {};
@@ -208,13 +208,6 @@ struct RobotStates
     std::array<double, kPoseSize> tcp_pose = {};
 
     /**
-     * Desired TCP pose expressed in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7 \times 1}
-     * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
-     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
-     */
-    std::array<double, kPoseSize> tcp_pose_des = {};
-
-    /**
      * Measured TCP velocity expressed in world frame: \f$ ^{O}\dot{X} \in \mathbb{R}^{6 \times 1}
      * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear velocity and \f$ \mathbb{R}^{3 \times
      * 1} \f$ angular velocity: \f$ [v_x, v_y, v_z, \omega_x, \omega_y, \omega_z]^T \f$.
@@ -294,46 +287,6 @@ struct PlanInfo
 
     /** Waiting for user signal to step the breakpoint */
     bool waiting_for_step = {};
-};
-
-/**
- * @struct GripperStates
- * @brief Data structure containing the gripper states.
- * @see Gripper::states().
- */
-struct GripperStates
-{
-    /** Measured finger opening width [m] */
-    double width = {};
-
-    /** Measured finger force. Positive: opening force, negative: closing force.
-     * Reads 0 if the mounted gripper has no force sensing capability [N] */
-    double force = {};
-
-    /** Maximum finger opening width of the mounted gripper [m] */
-    double max_width = {};
-};
-
-/**
- * @struct ToolParams
- * @brief Data structure containing robot tool parameters.
- * @see Tool::params().
- */
-struct ToolParams
-{
-    /** Total mass. Unit: \f$ [kg] \f$ */
-    double mass = 0.0;
-
-    /** Center of mass in robot flange frame: \f$ [x, y, z] \f$. Unit: \f$ [m] \f$ */
-    std::array<double, 3> CoM = {};
-
-    /** Inertia at center of mass: \f$ [Ixx, Iyy, Izz, Ixy, Ixz, Iyz] \f$. Unit: \f$ [kg m^2] \f$ */
-    std::array<double, 6> inertia = {};
-
-    /** Position and orientation of the tool center point (TCP) in flange frame. Consists of \f$
-     * \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x,
-     * y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$ */
-    std::array<double, kPoseSize> tcp_location = {};
 };
 
 /**
@@ -463,15 +416,6 @@ std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states)
  * @return Updated ostream instance.
  */
 std::ostream& operator<<(std::ostream& ostream, const PlanInfo& plan_info);
-
-/**
- * @brief Operator overloading to out stream all gripper states in JSON format:
- * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}.
- * @param[in] ostream Ostream instance.
- * @param[in] gripper_states GripperStates data structure to out stream.
- * @return Updated ostream instance.
- */
-std::ostream& operator<<(std::ostream& ostream, const GripperStates& gripper_states);
 
 } /* namespace rdk */
 } /* namespace flexiv */
