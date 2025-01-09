@@ -7,132 +7,121 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 ## References
 
-[Flexiv RDK Home Page](https://www.flexiv.com/software/rdk) is the main reference. It contains important information including user manual and API documentation.
+[Flexiv RDK Home Page](https://www.flexiv.com/software/rdk) is the main reference. It contains important information including user manual and API documentation. The instructions below serve as a quick reference, and you can find the full documentation at [Flexiv RDK Manual](https://www.flexiv.com/software/rdk/manual).
 
 ## Compatibility Overview
 
-| **Supported OS**               | **Supported processor** | **Supported language** | **Required compiler kit** |
-| ------------------------------ | ----------------------- | ---------------------- | ------------------------- |
-| Linux (Ubuntu 20.04 and above) | x86_64, arm64           | C++, Python            | build-essential           |
-| macOS 12 and above             | arm64                   | C++, Python            | Xcode Command Line Tools  |
-| Windows 10 and above           | x86_64                  | C++, Python            | MSVC v14.2+               |
+| **Supported OS**               | **Supported processor** | **Supported language** | **C++ compiler kit**     | **Python version** |
+| ------------------------------ | ----------------------- | ---------------------- | ------------------------ | ------------------ |
+| Linux (Ubuntu 20.04 and above) | x86_64, arm64           | C++, Python            | build-essential          | 3.8, 3.10, 3.12    |
+| macOS 12 and above             | arm64                   | C++, Python            | Xcode Command Line Tools | 3.10, 3.12         |
+| Windows 10 and above           | x86_64                  | C++, Python            | MSVC v14.2+              | 3.8, 3.10, 3.12    |
 
-## Quick Start
+**IMPORTANT**: You might need to turn off your computer's firewall or whitelist the RDK programs to be able to establish connection with the robot.
 
-The RDK **C++ and Python** libraries are packed into a unified modern CMake project named ``flexiv_rdk``, which can be configured and installed using CMake on all supported OS.
+## Quick Start - Python
 
-### Note
+### Install RDK Python library
 
-* The instructions below serve as a quick reference. You can find the full documentation at [Flexiv RDK Manual](https://www.flexiv.com/software/rdk/manual).
-* You might need to turn off your computer's firewall or whitelist the RDK programs to be able to establish connection with the robot.
+For all supported platforms, the RDK Python library and its dependencies for a specific version of Python can be installed using its `pip` module:
 
-### Install on Linux
+    python3.x -m pip install numpy spdlog flexivrdk
 
-#### C++
+Replace `3.x` with a specific Python version.
 
-1. In a new Terminal, install compiler kit and CMake (with GUI):
+### Use the installed Python library
 
-       sudo apt install build-essential cmake cmake-qt-gui -y
+After the library is installed as ``flexivrdk`` Python package, it can be imported from any Python script. Test with the following commands in a new Terminal, which should start Flexiv RDK:
 
-2. Choose a directory for installing RDK C++ library and all its dependencies. This directory can be under system path or not, depending on whether you want RDK to be globally discoverable by CMake. For example, a new folder named ``rdk_install`` under the home directory.
-3. In a new Terminal, run the provided script to compile and install all C++ dependencies to the installation directory chosen in step 2:
+    python3.x
+    import flexivrdk
+    robot = flexivrdk.Robot("Rizon4-123456")
 
-       cd flexiv_rdk/thirdparty
-       bash build_and_install_dependencies.sh ~/rdk_install
+The program will start searching for a robot with serial number `Rizon4-123456`, and will exit after a couple of seconds if the specified robot is not found in the local network.
 
-   NOTE: Internet connection is required for this step.
+### Run example Python scripts
 
-4. In a new Terminal, configure ``flexiv_rdk`` CMake project:
+To run an example Python script in this repo:
 
-       cd flexiv_rdk
-       mkdir build && cd build
-       cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+    cd flexiv_rdk/example_py
+    python3.x <example_name>.py [robot_serial_number]
 
-   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` sets the CMake variable that specifies the path of the installation directory. Alternatively, this configuration step can be done using CMake GUI.
+For example:
 
-5. Install ``flexiv_rdk`` C++ library to ``CMAKE_INSTALL_PREFIX`` path, which may or may not be globally discoverable by CMake:
+    python3.10 ./basics1_display_robot_states.py Rizon4-123456
 
-       cd flexiv_rdk/build
-       cmake --build . --target install --config Release
+## Quick Start - C++
 
-#### Python
+### Prepare build tools
 
-1. In a new Terminal, install Python interpreter, Python package manager, and CMake (with GUI):
+#### Linux
 
-       sudo apt install python3 python3-pip cmake cmake-qt-gui -y
+1. Install compiler kit using package manager:
 
-2. Install dependencies of RDK Python library:
+       sudo apt install build-essential
 
-       python3 -m pip install numpy spdlog
+2. Install CMake using package manager:
 
-3. In a new Terminal, configure ``flexiv_rdk`` CMake project:
+       sudo apt install cmake
 
-       cd flexiv_rdk
-       mkdir build && cd build
-       cmake .. -DINSTALL_PYTHON_RDK=ON -DINSTALL_CPP_RDK=OFF
+#### macOS
 
-   NOTE: ``-D`` followed by ``INSTALL_PYTHON_RDK=ON`` enables the installation of RDK Python library, while ``INSTALL_CPP_RDK=OFF`` disables the installation of RDK C++ library. Alternatively, this configuration step can be done using CMake GUI.
+1. Install compiler kit using `xcode` tool:
 
-4. The above configuration will install RDK Python library for Python 3.10 by default, to install for a different version of Python, open CMake GUI for ``flexiv_rdk`` project:
+       xcode-select 
 
-       cd flexiv_rdk/build
-       cmake-gui ..
+   This will invoke the installation of Xcode Command Line Tools, then follow the prompted window to finish the installation.
 
-   Select another version from the drop-down menu of CMake variable ``RDK_PYTHON_VERSION``, then click *Generate* and close the GUI window.
+2. Install CMake using package manager:
 
-5. Install ``flexivrdk`` Python library to the user site packages path, which is globally discoverable by the Python interpreter with the specified version:
+       brew install cmake
 
-       cd flexiv_rdk/build
-       cmake --build . --target install --config Release
-
-### Install on macOS
-
-1. Install compiler kit: In a new Terminal, enter command ``xcode-select`` to invoke the installation of Xcode Command Line Tools, then follow the prompted window to finish the installation.
-2. Install CMake (with GUI): Download ``cmake-3.x.x-macos-universal.dmg`` from [CMake download page](https://cmake.org/download/) and install the dmg file. The minimum required version is 3.16.3. When done, start CMake from Launchpad and navigate to Tools -> How to Install For Command Line Use. Then follow the instruction "Or, to install symlinks to '/usr/local/bin', run:" to install ``cmake`` and ``cmake-gui`` commands for use in Terminal.
-3. Install Python interpreter and package manager (replace "3.x" with the actual Python3 version you wish to use):
-
-       brew install python@3.x
-
-4. The rest are identical to steps 2 and below in [Install on Linux](#install-on-linux).
-
-### Install on Windows
+#### Windows
 
 1. Install compiler kit: Download and install Microsoft Visual Studio 2019 (MSVC v14.2) or above. Choose "Desktop development with C++" under the *Workloads* tab during installation. You only need to keep the following components for the selected workload:
    * MSVC ... C++ x64/x86 build tools (Latest)
    * C++ CMake tools for Windows
    * Windows 10 SDK or Windows 11 SDK, depending on your actual Windows version
-2. Install CMake (with GUI): Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or a bash emulator.
-3. Install bash emulator: Download and install [Git for Windows](https://git-scm.com/download/win/), which comes with a bash emulator Git Bash.
-4. Within the bash emulator, the rest are identical to steps 2 and below in [Install on Linux](#install-on-linux).
+2. Install CMake: Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or a bash emulator.
+3. Install bash emulator: Download and install [Git for Windows](https://git-scm.com/download/win/), which comes with a bash emulator Git Bash. The following steps are to be carried out in this bash emulator.
 
-### Link to installed library from a user program
+### Install RDK C++ library
 
-#### C++
+The following steps are identical on all supported platforms.
 
-After the RDK C++ library ``flexiv_rdk`` is installed, it can be found as a CMake target and linked to from other CMake projects. Using the provided examples project for instance:
+1. Choose a directory for installing RDK C++ library and all its dependencies. This directory can be under system path or not, depending on whether you want RDK to be globally discoverable by CMake. For example, a new folder named ``rdk_install`` under the home directory.
+2. In a new Terminal, run the provided script to compile and install all C++ dependencies to the installation directory chosen in step 1:
+
+       cd flexiv_rdk/thirdparty
+       bash build_and_install_dependencies.sh ~/rdk_install
+
+3. In a new Terminal, configure the ``flexiv_rdk`` CMake project:
+
+       cd flexiv_rdk
+       mkdir build && cd build
+       cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+
+   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` sets the absolute path of the installation directory, which should be the one chosen in step 1.
+
+4. Install ``flexiv_rdk`` C++ library to ``CMAKE_INSTALL_PREFIX`` path, which may or may not be globally discoverable by CMake:
+
+       cd flexiv_rdk/build
+       cmake --build . --target install --config Release
+
+### Use the installed C++ library
+
+After the library is installed as ``flexiv_rdk`` CMake target, it can be linked from any other CMake projects. Using the provided `flexiv_rdk-examples` project for instance:
 
     cd flexiv_rdk/example
     mkdir build && cd build
     cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install
     cmake --build . --config Release -j 4
 
-NOTE: ``-D`` followed by ``CMAKE_PREFIX_PATH`` tells the user project's CMake where to find the installed RDK C++ library. The instruction above applies to all supported OS.
+NOTE: ``-D`` followed by ``CMAKE_PREFIX_PATH`` tells the user project's CMake where to find the installed C++ library. This argument can be skipped if the RDK library and its dependencies are installed to a globally discoverable location.
 
-#### Python
+### Run example C++ programs
 
-After the RDK Python library ``flexivrdk`` is installed, it can be imported from any Python script. Test with the following commands in a new Terminal, which should start Flexiv RDK:
-
-    python3
-    import flexivrdk
-    robot = flexivrdk.Robot("Rizon4-123456")
-
-If a robot is not connected, the program will just exit after a couple of seconds.
-
-### Run example programs
-
-#### C++
-
-To run a compiled example C++ program:
+To run an example C++ program compiled during the previous step:
 
     cd flexiv_rdk/example/build
     ./<program_name> [robot_serial_number]
@@ -141,18 +130,7 @@ For example:
 
     ./basics1_display_robot_states Rizon4s-123456
 
-NOTE: ``sudo`` is only required if the real-time scheduler API ``flexiv::rdk::Scheduler`` is used.
-
-#### Python
-
-To run a example Python program:
-
-    cd flexiv_rdk/example_py
-    python3 <program_name>.py [robot_serial_number]
-
-For example:
-
-    python3 ./basics1_display_robot_states.py Rizon4s-123456
+NOTE: ``sudo`` is only required if the real-time scheduler API ``flexiv::rdk::Scheduler`` is used in the program.
 
 ## API Documentation
 
