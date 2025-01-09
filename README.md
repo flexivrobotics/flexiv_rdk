@@ -11,11 +11,11 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 ## Compatibility Overview
 
-| **Supported OS**               | **Supported processor** | **Supported language** | **C++ compiler kit**     | **Python version** |
-| ------------------------------ | ----------------------- | ---------------------- | ------------------------ | ------------------ |
-| Linux (Ubuntu 20.04 and above) | x86_64, arm64           | C++, Python            | build-essential          | 3.8, 3.10, 3.12    |
-| macOS 12 and above             | arm64                   | C++, Python            | Xcode Command Line Tools | 3.10, 3.12         |
-| Windows 10 and above           | x86_64                  | C++, Python            | MSVC v14.2+              | 3.8, 3.10, 3.12    |
+| **OS**                | **Platform**  | **C++ compiler kit** | **Python version** |
+| --------------------- | ------------- | -------------------- | ------------------ |
+| Linux (Ubuntu 20.04+) | x86_64, arm64 | GCC   v9.4+          | 3.8, 3.10, 3.12    |
+| macOS 12+             | arm64         | Clang v14.0+         | 3.10, 3.12         |
+| Windows 10+           | x86_64        | MSVC  v14.2+         | 3.8, 3.10, 3.12    |
 
 **IMPORTANT**: You might need to turn off your computer's firewall or whitelist the RDK programs to be able to establish connection with the robot.
 
