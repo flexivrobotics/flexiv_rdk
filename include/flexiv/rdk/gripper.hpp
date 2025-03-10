@@ -60,8 +60,7 @@ struct GripperStates
 };
 
 /**
- * @brief Operator overloading to out stream all gripper states in JSON format:
- * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}.
+ * @brief Operator overloading to out stream all members of GripperStates in JSON format.
  * @param[in] ostream Ostream instance.
  * @param[in] gripper_states GripperStates data structure to out stream.
  * @return Updated ostream instance.
@@ -88,8 +87,8 @@ public:
     /**
      * @brief [Blocking] Enable the specified gripper as a device, same as Device::Enable().
      * @param[in] name Name of the gripper device to enable, must be an existing one.
-     * @throw std::logic_error if the specified gripper device does not exist or a gripper is
-     * already enabled.
+     * @throw std::invalid_argument if the specified gripper device does not exist.
+     * @throw std::logic_error if a gripper is already enabled.
      * @throw std::runtime_error if failed to deliver the request to the connected robot or failed
      * to sync gripper parameters.
      * @note This function blocks until the request is successfully delivered.
