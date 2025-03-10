@@ -140,6 +140,32 @@ public:
      */
     void Remove(const std::string& name);
 
+    /**
+     * @brief [Blocking] Calibrate the payload parameters (mass, CoM, and inertia) of a tool.
+     * @param[in] tool_mounted Whether the tool to be calibrated is mounted on the robot flange when
+     * triggering this calibration process. See details below.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if fault occurred during the calibration or failed to get the
+     * calibration result.
+     * @note Applicable control modes: IDLE.
+     * @note This function blocks until the calibration is finished.
+     * @warning [tcp_location] in the returned struct will be zeros and should be ignored.
+     * @par How to properly calibrate the payload parameters of a tool?
+     * 1. Call Switch("Flange") to disable any active tool from the robot software.
+     * 2. Physically mount the tool to be calibrated to robot flange.
+     * 3. Call this function with [tool_mounted] set to TRUE, then wait for completion. If the robot
+     * has a force-torque (FT) sensor (e.g. Rizon4s, Rizon10s), then the returned result will be
+     * accurate enough and the optional steps can be skipped. If the robot does not have an FT
+     * sensor (e.g. Rizon4, Rizon10), then the optional steps are recommended to improve accuracy.
+     * 4. (Optional) Physically unmount the tool from robot flange.
+     * 5. (Optional) Call this function again but with [tool_mounted] set to FALSE, then wait for
+     * completion.
+     * 6. Review the returned result and call Add() or Update() to apply the calibrated payload
+     * parameters to a new or existing tool. Note that [tcp_location] in the returned struct is
+     * invalid and cannot be used directly.
+     */
+    const ToolParams CalibratePayloadParams(bool tool_mounted);
+
 private:
     class Impl;
     std::unique_ptr<Impl> pimpl_;
