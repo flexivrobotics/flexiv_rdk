@@ -51,7 +51,7 @@ public:
      * @return A map of {param_name, param_value}. Booleans are represented by int 1 and 0. For
      * example, {{"maxVel", 0.5}, {"absolutePosition", {0.7, -0.4, 0.05}}, {"conveyorName",
      * "conveyor0"}}.
-     * @throw std::logic_error if the specified device does not exist.
+     * @throw std::invalid_argument if the specified device does not exist.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
@@ -62,7 +62,7 @@ public:
     /**
      * @brief [Blocking] Enable the specified device.
      * @param[in] name Name of the device to enable, must be an existing device.
-     * @throw std::logic_error if the specified device does not exist.
+     * @throw std::invalid_argument if the specified device does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      */
@@ -71,7 +71,7 @@ public:
     /**
      * @brief [Blocking] Disable the specified device.
      * @param[in] name Name of the device to disable, must be an existing device.
-     * @throw std::logic_error if the specified device does not exist.
+     * @throw std::invalid_argument if the specified device does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      */
@@ -83,7 +83,8 @@ public:
      * @param[in] commands A map of {command_name, command_value}. For example, {{"setSpeed", 6000},
      * {"openLaser", true}}. All commands in the map will be sent to the device simultaneously. Make
      * sure the command name(s) are valid and can be accepted by the specified device.
-     * @throw std::logic_error if the specified device does not exist or not enabled yet.
+     * @throw std::invalid_argument if the specified device does not exist.
+     * @throw std::logic_error if the specified device is not enabled yet.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      */
