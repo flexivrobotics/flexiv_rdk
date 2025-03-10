@@ -227,7 +227,7 @@ public:
      * @param[in] global_vars A map of {global_var_name, global_var_value(s)}. Use int 1 and 0 to
      * represent booleans. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", 1}}.
      * @throw std::length_error if [global_vars] is empty or too long to transmit in one request.
-     * @throw std::logic_error if any of the specified global variables does not exist.
+     * @throw std::invalid_argument if any of the specified global variables does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the global variables are successfully set.
      * @warning The specified global variables need to be created first using Flexiv Elements.
