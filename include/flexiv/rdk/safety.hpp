@@ -88,7 +88,8 @@ public:
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
-     * @warning A reboot is required for the updated safety settings to take effect.
+     * @warning A reboot is required for the updated safety settings to take effect. After reboot,
+     * make sure to use current_limits() to double check the updated safety limits are correct.
      */
     void SetJointPositionLimits(
         const std::vector<double>& min_positions, const std::vector<double>& max_positions);
@@ -105,7 +106,8 @@ public:
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
-     * @warning A reboot is required for the updated safety settings to take effect.
+     * @warning A reboot is required for the updated safety settings to take effect. After reboot,
+     * make sure to use current_limits() to double check the updated safety limits are correct.
      */
     void SetJointVelocityNormalLimits(const std::vector<double>& max_velocities);
 
@@ -121,7 +123,8 @@ public:
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
-     * @warning A reboot is required for the updated safety settings to take effect.
+     * @warning A reboot is required for the updated safety settings to take effect. After reboot,
+     * make sure to use current_limits() to double check the updated safety limits are correct.
      */
     void SetJointVelocityReducedLimits(const std::vector<double>& max_velocities);
 
