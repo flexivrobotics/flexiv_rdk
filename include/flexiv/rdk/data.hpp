@@ -434,8 +434,16 @@ using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::C
     std::vector<rdk::Coord>>;
 
 /**
- * @brief Operator overloading to out stream all robot info in JSON format:
- * {"info_1": [val1,val2,val3,...], "info_2": [val1,val2,val3,...], ...}.
+ * @brief Operator overloading to out stream all members of RobotEvent in JSON format.
+ * @param[in] ostream Ostream instance.
+ * @param[in] robot_event RobotEvent data structure to out stream.
+ * @return Updated ostream instance.
+ * @note The event timestamp is converted to local timezone when printed.
+ */
+std::ostream& operator<<(std::ostream& ostream, const RobotEvent& robot_event);
+
+/**
+ * @brief Operator overloading to out stream all members of RobotInfo in JSON format.
  * @param[in] ostream Ostream instance.
  * @param[in] robot_info RobotInfo data structure to out stream.
  * @return Updated ostream instance.
@@ -443,8 +451,7 @@ using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::C
 std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
 
 /**
- * @brief Operator overloading to out stream all robot states in JSON format:
- * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}.
+ * @brief Operator overloading to out stream all members of RobotStates in JSON format.
  * @param[in] ostream Ostream instance.
  * @param[in] robot_states RobotStates data structure to out stream.
  * @return Updated ostream instance.
@@ -452,8 +459,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
 std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states);
 
 /**
- * @brief Operator overloading to out stream all plan info in JSON format:
- * {"info_1": [val1,val2,val3,...], "info_2": [val1,val2,val3,...], ...}.
+ * @brief Operator overloading to out stream all members of PlanInfo in JSON format.
  * @param[in] ostream Ostream instance.
  * @param[in] plan_info PlanInfo data structure to out stream.
  * @return Updated ostream instance.
