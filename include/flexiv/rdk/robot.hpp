@@ -147,14 +147,13 @@ public:
     bool enabling_button_pressed() const;
 
     /**
-     * @brief [Non-blocking] Get multilingual log messages of the connected robot.
-     * @return Robot log messages stored since the last successful instantiation of this class. Each
-     * element in the string list corresponds to one message with timestamp and log level added. New
-     * message is pushed to the back of the vector.
-     * @note Possible log level tags are: [info], [warning], [error], and [critical].
-     * @warning Messages before the last successful instantiation of this class are not available.
+     * @brief [Non-blocking] Robot events stored since the last successful instantiation of this
+     * rdk::Robot class.
+     * @return Event log as a vector of RobotEvent, with the first element being the
+     * oldest event and the last element being the latest event.
+     * @warning Events before the last successful instantiation of this class are not stored.
      */
-    const std::vector<std::string> mu_log() const;
+    const std::vector<RobotEvent> event_log() const;
 
     //======================================= SYSTEM CONTROL =======================================
     /**
