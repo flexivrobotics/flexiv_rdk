@@ -566,7 +566,7 @@ public:
      * pose. A safe value is provided as default. Unit: \f$ [rad/s^2] \f$.
      * @throw std::invalid_argument if any of the last 4 input parameters is negative.
      * @throw std::logic_error if robot is not in an applicable control mode.
-     * @note Applicable control modes: NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control modes: NRT_CARTESIAN_MOTION_FORCE, NRT_SUPER_PRIMITIVE.
      * @warning Same as Flexiv Elements, the target wrench is expressed as wrench sensed at TCP
      * instead of wrench exerted by TCP. E.g. commanding f_z = +5 N will make the end-effector move
      * towards -Z direction, so that upon contact, the sensed force will be +5 N.
@@ -601,7 +601,8 @@ public:
      * \zeta_{Rz}]^T \f$. Valid range: [0.3, 0.8]. The nominal (safe) value is provided as default.
      * @throw std::invalid_argument if [K_x] or [Z_x] contains any value outside the valid range.
      * @throw std::logic_error if robot is not in an applicable control mode.
-     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,
+     * NRT_SUPER_PRIMITIVE.
      * @note This function blocks until the request is successfully delivered.
      * @warning Changing damping ratio [Z_x] to a non-nominal value may lead to performance and
      * stability issues, please use with caution.
@@ -620,7 +621,8 @@ public:
      * @throw std::invalid_argument if [max_wrench] contains any negative value.
      * @throw std::logic_error if robot is not in an applicable control mode.
      * @note The maximum contact wrench regulation only applies to the motion control part.
-     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,
+     * NRT_SUPER_PRIMITIVE.
      * @note This function blocks until the request is successfully delivered.
      * @warning The maximum contact wrench regulation cannot be enabled if any of the rotational
      * Cartesian axes is enabled for moment control.
@@ -636,7 +638,8 @@ public:
      * @throw std::invalid_argument if [ref_positions] contains any value outside the valid
      * range or size of any input vector does not match robot DoF.
      * @throw std::logic_error if robot is not in an applicable control mode.
-     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,
+     * NRT_SUPER_PRIMITIVE.
      * @note This function blocks until the request is successfully delivered.
      * @warning The reference joint positions will be automatically reset to the robot's current
      * joint positions upon re-entering the applicable control modes.
@@ -666,7 +669,8 @@ public:
      * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note The default value is provided for each parameter.
-     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,
+     * NRT_SUPER_PRIMITIVE.
      * @note This function blocks until the request is successfully delivered.
      * @warning The optimization weights will be automatically reset to the provided default values
      * upon re-entering the applicable control modes.
@@ -686,7 +690,8 @@ public:
      * @throw std::invalid_argument if [max_linear_vel] contains any value outside the valid range.
      * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,
+     * NRT_SUPER_PRIMITIVE.
      * @note This function blocks until the request is successfully delivered.
      * @note If not set, force control is disabled for all Cartesian axes by default.
      * @warning The maximum linear velocity protection for force control axes is only effective
@@ -710,7 +715,8 @@ public:
      * transformation is provided as default.
      * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,
+     * NRT_SUPER_PRIMITIVE.
      * @note This function blocks until the request is successfully delivered.
      * @note If not set, the robot will use WORLD origin as the force control frame by default.
      * @par Force control frame
