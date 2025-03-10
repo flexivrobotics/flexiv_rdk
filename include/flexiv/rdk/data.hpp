@@ -302,7 +302,7 @@ struct RobotStates
 
 /**
  * @struct PlanInfo
- * @brief Data structure containing information of the on-going primitive/plan.
+ * @brief Information of the on-going primitive/plan.
  * @see Robot::plan_info().
  */
 struct PlanInfo
@@ -343,19 +343,19 @@ struct JPos
 {
     /**
      * @brief Construct an instance of JPos.
-     * @param[in] _q Sets struct member [q].
+     * @param[in] _q_m Sets struct member [q_m].
      * @param[in] _q_e Sets struct member [q_e]. Leave empty if there's no external axis.
      */
-    JPos(const std::array<double, kSerialJointDoF>& _q,
+    JPos(const std::array<double, kSerialJointDoF>& _q_m,
         const std::array<double, kMaxExtAxes>& _q_e = {})
-    : q(_q)
+    : q_m(_q_m)
     , q_e(_q_e)
     {
     }
     JPos() = default;
 
-    /** Joint positions of the arm. Unit: [degree] */
-    std::array<double, kSerialJointDoF> q = {};
+    /** Joint positions of the robot manipulator. Unit: [degree] */
+    std::array<double, kSerialJointDoF> q_m = {};
 
     /** Joint positions (linear or angular) of the external axes. Unit: [m] or [degree]
      * @note If the number of external axes \f$ n_e < kMaxExtAxes \f$, set the first \f$ n_e \f$
