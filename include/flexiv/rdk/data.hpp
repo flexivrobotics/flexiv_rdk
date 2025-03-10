@@ -12,6 +12,7 @@
 #include <string>
 #include <ostream>
 #include <variant>
+#include <chrono>
 
 namespace flexiv {
 namespace rdk {
@@ -58,6 +59,43 @@ enum class CoordType
 {
     WORLD, ///< World frame (fixed).
     TCP,   ///< TCP frame (move with the robot's end effector).
+};
+
+/**
+ * @struct PlanInfo
+ * @brief Information about a robot event.
+ */
+struct RobotEvent
+{
+    enum Level
+    {
+        UNKNOWN = 0,
+        INFO,
+        WARNING,
+        ERROR,
+        CRITICAL,
+    };
+
+    /** Level of the event */
+    Level level = UNKNOWN;
+
+    /** Unique ID of the event */
+    int id = 0;
+
+    /** Brief description of the event */
+    std::string description = "";
+
+    /** Consequences caused by the event */
+    std::string consequences = "";
+
+    /** Probable causes of the event */
+    std::string probable_causes = "";
+
+    /** Recommended actions after the event */
+    std::string recommended_actions = "";
+
+    /** Timestamp (since epoch) of the event */
+    std::chrono::time_point<std::chrono::system_clock> timestamp;
 };
 
 /**
