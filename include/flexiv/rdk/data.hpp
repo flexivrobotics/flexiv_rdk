@@ -380,18 +380,18 @@ struct Coord
      * @param[in] _position Sets struct member [position].
      * @param[in] _orientation Sets struct member [orientation].
      * @param[in] _ref_frame Sets struct member [ref_frame].
-     * @param[in] _ref_q Sets struct member [ref_q]. Leave empty to use default values.
+     * @param[in] _ref_q_m Sets struct member [ref_q_m]. Leave empty to use default values.
      * @param[in] _ref_q_e Sets struct member [ref_q_e]. Leave empty if there's no external axis.
      */
     Coord(const std::array<double, kCartDoF / 2>& _position,
         const std::array<double, kCartDoF / 2>& _orientation,
         const std::array<std::string, 2>& _ref_frame,
-        const std::array<double, kSerialJointDoF>& _ref_q = {},
+        const std::array<double, kSerialJointDoF>& _ref_q_m = {},
         const std::array<double, kMaxExtAxes>& _ref_q_e = {})
     : position(_position)
     , orientation(_orientation)
     , ref_frame(_ref_frame)
-    , ref_q(_ref_q)
+    , ref_q_m(_ref_q_m)
     , ref_q_e(_ref_q_e)
     {
     }
@@ -412,11 +412,11 @@ struct Coord
      */
     std::array<std::string, 2> ref_frame = {};
 
-    /** Reference joint positions of the arm. Only effective on robots with redundant degrees of
-     * freedom. Unit: [degree]
-     * @note Leave empty to use default values. However, this array cannot be empty if
-     * [ref_q_e] has values */
-    std::array<double, kSerialJointDoF> ref_q = {};
+    /** Reference joint positions of the robot manipulator. Only effective on robots with redundant
+     * degrees of freedom. Unit: [degree]
+     * @note Leave empty to use default values. However, this array cannot be empty if [ref_q_e] has
+     * values */
+    std::array<double, kSerialJointDoF> ref_q_m = {};
 
     /** Reference joint positions (linear or angular) of the external axes. Only effective on
      * robots with redundant degrees of freedom and external axes. Unit: [m] or [degree]
