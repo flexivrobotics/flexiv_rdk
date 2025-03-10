@@ -372,8 +372,6 @@ public:
      * {input_parameter_name, input_parameter_value(s)}. Use int 1 and 0 to represent booleans. E.g.
      * {{"target", rdk::Coord({0.65, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})}, {"vel",
      * 0.6}, {"zoneRadius", "Z50"}}.
-     * @param[in] properties Specify properties of the primitive via a map of {property_name,
-     * property_value(s)}. Use int 1 and 0 to represent booleans. E.g. {{"lockExternalAxes", 0}}.
      * @param[in] block_until_started Whether to wait for the commanded primitive to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the primitive ready, the loading process typically takes no more than 200 ms.
@@ -392,7 +390,6 @@ public:
      */
     void ExecutePrimitive(const std::string& primitive_name,
         const std::map<std::string, FlexivDataTypes>& input_params,
-        const std::map<std::string, FlexivDataTypes>& properties = {},
         bool block_until_started = true);
 
     /**
