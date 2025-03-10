@@ -168,82 +168,80 @@ struct RobotInfo
 
 /**
  * @struct RobotStates
- * @brief Data structure containing the joint- and Cartesian-space robot states.
+ * @brief Robot states data in joint- and Cartesian-space.
  * @see Robot::states().
  */
 struct RobotStates
 {
     /**
-     * Measured joint positions of the arm using link-side encoder: \f$ q \in \mathbb{R}^{n \times
-     * 1} \f$. This is the direct measurement of joint positions, preferred for most cases. Unit:
-     * \f$ [rad] \f$.
+     * Measured joint positions of the full system using link-side encoder: \f$ q \in \mathbb{R}^{n
+     * \times 1} \f$. This is the direct measurement of joint positions. Unit: \f$ [rad] or [m] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has only one encoder, then \f$ \theta = q \f$.
      */
     std::vector<double> q = {};
 
     /**
-     * Measured joint positions of the arm using motor-side encoder: \f$ \theta \in \mathbb{R}^{n
-     * \times 1} \f$. This is the indirect measurement of joint positions. \f$ \theta = q + \Delta
-     * \f$, where \f$ \Delta \f$ is the joint's internal deflection between motor and link. Unit:
-     * \f$ [rad] \f$.
+     * Measured joint positions of the full system using motor-side encoder: \f$ \theta \in
+     * \mathbb{R}^{n \times 1} \f$. This is the indirect measurement of joint positions. \f$ \theta
+     * = q + \Delta \f$, where \f$ \Delta \f$ is the joint's internal deflection between motor and
+     * link. Unit: \f$ [rad] or [m] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has only one encoder, then \f$ \theta = q \f$.
      */
     std::vector<double> theta = {};
 
     /**
-     * Measured joint velocities of the arm using link-side encoder: \f$ \dot{q} \in \mathbb{R}^{n
-     * \times 1} \f$. This is the direct but more noisy measurement of joint velocities. Unit: \f$
-     * [rad/s] \f$.
+     * Measured joint velocities of the full system using link-side encoder: \f$ \dot{q} \in
+     * \mathbb{R}^{n \times 1} \f$. This is the direct but more noisy measurement of joint
+     * velocities. Unit: \f$ [rad/s] or [m/s] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has only one encoder, then \f$ \dot{\theta} = \dot{q} \f$.
      */
     std::vector<double> dq = {};
 
     /**
-     * Measured joint velocities of the arm using motor-side encoder: \f$ \dot{\theta} \in
+     * Measured joint velocities of the full system using motor-side encoder: \f$ \dot{\theta} \in
      * \mathbb{R}^{n \times 1} \f$. This is the indirect but less noisy measurement of joint
-     * velocities, preferred for most cases. Unit: \f$ [rad/s] \f$.
+     * velocities. Unit: \f$ [rad/s] or [m/s] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has only one encoder, then \f$ \dot{\theta} = \dot{q} \f$.
      */
     std::vector<double> dtheta = {};
 
     /**
-     * Measured joint torques of the arm: \f$ \tau \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm]
-     * \f$.
+     * Measured joint torques of the full system: \f$ \tau \in \mathbb{R}^{n \times 1} \f$. Unit:
+     * \f$ [Nm] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has no torque measurement, then the corresponding value will be 0.
      */
     std::vector<double> tau = {};
 
     /**
-     * Desired joint torques of the arm: \f$ \tau_{d} \in \mathbb{R}^{n \times 1} \f$. Compensation
-     * of nonlinear dynamics (gravity, centrifugal, and Coriolis) is excluded. Unit: \f$ [Nm] \f$.
+     * Desired joint torques of the full system: \f$ \tau_{d} \in \mathbb{R}^{n \times 1} \f$.
+     * Compensation of nonlinear dynamics (gravity, centrifugal, and Coriolis) is excluded. Unit:
+     * \f$ [Nm] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has no torque control capability, then the corresponding value will be 0.
      */
     std::vector<double> tau_des = {};
 
     /**
-     * Numerical derivative of measured joint torques of the arm: \f$ \dot{\tau} \in \mathbb{R}^{n
-     * \times 1} \f$. Unit: \f$ [Nm/s] \f$.
+     * Numerical derivative of measured joint torques of the full system: \f$ \dot{\tau} \in
+     * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm/s] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has no torque measurement, then the corresponding value will be 0.
      */
     std::vector<double> tau_dot = {};
 
     /**
-     * Estimated external joint torques of the arm: \f$ \hat \tau_{ext} \in \mathbb{R}^{n \times 1}
-     * \f$. Produced by any external contact (with robot body or end-effector) that does not belong
-     * to the known robot model. Unit: \f$ [Nm] \f$.
+     * Estimated external joint torques of the full system: \f$ \hat \tau_{ext} \in \mathbb{R}^{n
+     * \times 1} \f$. Produced by any external contact (with robot body or end-effector) that does
+     * not belong to the known robot model. Unit: \f$ [Nm] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has no torque measurement, then the corresponding value will be 0.
      */
     std::vector<double> tau_ext = {};
-
-    /**
-     * Measured joint positions of the external axes (if any): \f$ q_e \in \mathbb{R}^{n_e \times 1}
-     * \f$. Unit: \f$ [rad] \f$.
-     */
-    std::vector<double> q_e = {};
-
-    /**
-     * Measured joint velocities of the external axes (if any): \f$ \dot{q}_e \in \mathbb{R}^{n_e
-     * \times 1} \f$. Unit: \f$ [rad/s] \f$.
-     */
-    std::vector<double> dq_e = {};
-
-    /**
-     * Measured joint torques of the external axes (if any): \f$ \tau_e \in \mathbb{R}^{n_e \times
-     * 1} \f$. Unit: \f$ [Nm] \f$.
-     */
-    std::vector<double> tau_e = {};
 
     /**
      * Measured TCP pose expressed in world frame: \f$ ^{O}T_{TCP} \in \mathbb{R}^{7 \times 1} \f$.
