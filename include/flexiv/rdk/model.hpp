@@ -139,11 +139,23 @@ public:
      * @return A pair of {is_reachable, ik_solution}.
      * @throw std::invalid_argument if size of [seed_positions] does not match robot DoF.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
-     * @note Applicable control modes: All.
      * @note This function blocks until a reply is received.
      */
     const std::pair<bool, std::vector<double>> reachable(const std::array<double, kPoseSize>& pose,
         const std::vector<double>& seed_positions, bool free_orientation);
+
+    /**
+     * @brief [Blocking] Score of the robot's current configuration (posture), calculated from the
+     * manipulability measurements.
+     * @return A pair of {translation_score, orientation_score}. The quality of configuration based
+     * on score is mapped as: poor = [0, 20), medium = [20, 40), good = [40, 100].
+     * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note This function blocks until a reply is received.
+     * @warning A poor configuration score means the robot is near or at singularity, which can lead
+     * to degraded Cartesian performance. Use configuration with high scores for better
+     * manipulability and task results.
+     */
+    const std::pair<double, double> configuration_score();
 
 private:
     class Impl;
