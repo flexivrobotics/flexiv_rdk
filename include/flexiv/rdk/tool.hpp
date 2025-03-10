@@ -50,7 +50,7 @@ public:
     virtual ~Tool();
 
     /**
-     * @brief [Blocking] Get a name list of all configured tools.
+     * @brief [Blocking] Get a list of all configured tools.
      * @return Tool names as a string list.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
@@ -86,7 +86,7 @@ public:
      * @brief [Blocking] Get parameters of the specified tool.
      * @param[in] name Name of the tool to get parameters for, must be an existing one.
      * @return ToolParams value copy.
-     * @throw std::logic_error if the specified tool does not exist.
+     * @throw std::invalid_argument if the specified tool does not exist.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
@@ -96,8 +96,8 @@ public:
      * @brief [Blocking] Add a new tool with user-specified parameters.
      * @param[in] name Name of the new tool, must be unique.
      * @param[in] params Parameters of the new tool.
-     * @throw std::logic_error if robot is not in the correct control mode or the specified tool
-     * already exists.
+     * @throw std::invalid_argument if the specified tool already exists.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
@@ -108,8 +108,8 @@ public:
      * @brief [Blocking] Switch to an existing tool. All following robot operations will default to
      * use this tool.
      * @param[in] name Name of the tool to switch to, must be an existing one.
-     * @throw std::logic_error if robot is not in the correct control mode or the specified tool
-     * does not exist.
+     * @throw std::invalid_argument if the specified tool does not exist.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
@@ -120,8 +120,8 @@ public:
      * @brief [Blocking] Update the parameters of an existing tool.
      * @param[in] name Name of the tool to update, must be an existing one.
      * @param[in] params New parameters for the specified tool.
-     * @throw std::logic_error if robot is not in the correct control mode or the specified tool
-     * does not exist.
+     * @throw std::invalid_argument if the specified tool does not exist.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
@@ -131,8 +131,9 @@ public:
     /**
      * @brief [Blocking] Remove an existing tool.
      * @param[in] name Name of the tool to remove, must be an existing one but cannot be "Flange".
-     * @throw std::logic_error if robot is not in the correct control mode or the specified tool
-     * does not exist or trying to remove "Flange".
+     * @throw std::invalid_argument if the specified tool does not exist.
+     * @throw std::logic_error if robot is not in the correct control mode or trying to remove
+     * "Flange".
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
