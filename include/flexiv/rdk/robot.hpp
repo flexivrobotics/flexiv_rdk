@@ -307,17 +307,17 @@ public:
     void PausePlan(bool pause);
 
     /**
-     * @brief [Blocking] Get a list of all available plans.
-     * @return Available plans in the format of a string list.
+     * @brief [Blocking] A list of all available plans.
+     * @return Available plans as a string list.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
     const std::vector<std::string> plan_list() const;
 
     /**
-     * @brief [Blocking] Get detailed information about the currently executing plan. Contains
-     * information like plan name, primitive name, node name, node path, node path time period, etc.
-     * @return PlanInfo data struct.
+     * @brief [Blocking] Detailed information about the currently executing plan. Contains plan
+     * name, primitive name, node name, node path, node path time period, etc.
+     * @return PlanInfo value copy.
      * @throw std::logic_error if robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note Applicable control modes: NRT_PLAN_EXECUTION.
@@ -481,7 +481,7 @@ public:
      * Setting motion stiffness of a joint axis to 0 will make this axis free-floating. Valid range:
      * [0, RobotInfo::K_q_nom]. Unit: \f$ [Nm/rad] \f$.
      * @param[in] Z_q Joint motion damping ratio: \f$ Z_q \in \mathbb{R}^{n \times 1} \f$.
-     * Valid range: [0.3, 0.8]. The nominal (safe) value is provided as default.
+     * Valid range: [0.3, 0.8]. The default value 0.7 will be used if left empty.
      * @throw std::invalid_argument if [K_q] or [Z_q] contains any value outside the valid range or
      * size of any input vector does not match robot DoF.
      * @throw std::logic_error if robot is not in an applicable control mode.
@@ -490,8 +490,7 @@ public:
      * @warning Changing damping ratio [Z_q] to a non-nominal value may lead to performance and
      * stability issues, please use with caution.
      */
-    void SetJointImpedance(const std::vector<double>& K_q,
-        const std::vector<double>& Z_q = {0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7});
+    void SetJointImpedance(const std::vector<double>& K_q, const std::vector<double>& Z_q = {});
 
     //================================== DIRECT CARTESIAN CONTROL ==================================
     /**
