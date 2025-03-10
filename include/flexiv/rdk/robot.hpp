@@ -762,16 +762,16 @@ public:
     /**
      * @brief [Blocking] Set one or more digital output ports, including 16 on the control box plus
      * 2 inside the wrist connector.
-     * @param[in] port_idx Index of port(s) to set, can be a single port or multiple ports.
-     * E.g. {0, 5, 7, 15} or {1, 3, 10} or {8}. Valid range of the index number is [0–17].
-     * @param[in] values Corresponding values to set to the specified ports. True: set port high,
-     * false: set port low. Vector size must match the size of port_idx.
-     * @throw std::invalid_argument if [port_idx] contains any index number outside the valid range.
-     * @throw std::length_error if the two input vectors have different sizes.
+     * @param[in] digital_outputs A map of {port_index, port_value}. For [port_index], the valid
+     * range is [0, 17]. For [port_value], true: set port high, false: set port low. For example,
+     * {{1, true}, {3, false}, {10, true}}.
+     * @throw std::invalid_argument if any provided port index is outside the valid range.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      */
-    void SetDigitalOutputs(
+    void SetDigitalOutputs(const std::map<unsigned int, bool>& digital_outputs);
+
+    [[deprecated("Use the other SetDigitalOutputs() instead")]] void SetDigitalOutputs(
         const std::vector<unsigned int>& port_idx, const std::vector<bool>& values);
 
     /**
