@@ -1,6 +1,6 @@
 /**
  * @file data.hpp
- * @brief Header file containing various constant expressions, data structs, and enums.
+ * @brief Header file containing various constant expressions, data structures, and enums.
  * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
  */
 
@@ -117,7 +117,14 @@ struct RobotInfo
     /** Type of license */
     std::string license_type = {};
 
-    /** Joint-space degrees of freedom: \f$ n \f$. */
+    /** Joint-space degrees of freedom of the external axes: \f$ n_e \f$. */
+    size_t DoF_e = {};
+
+    /** Joint-space degrees of freedom of the robot manipulator: \f$ n_m \f$. */
+    size_t DoF_m = {};
+
+    /** Joint-space degrees of freedom of the full system including the robot manipulator and any
+     * external axes: \f$ n \f$. */
     size_t DoF = {};
 
     /**
