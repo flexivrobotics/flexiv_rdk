@@ -245,6 +245,16 @@ public:
      */
     std::map<std::string, FlexivDataTypes> global_variables() const;
 
+    /**
+     * @brief [Blocking] Lock/unlock external axes (if any) during primitive execution, direct
+     * joint control, and direct Cartesian control modes.
+     * @param[in] toggle True: the external axes are locked and will not move; false: the external
+     * axes are not locked and will move. By default, the external axes are locked.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note This function blocks until the request is successfully delivered.
+     */
+    void LockExternalAxes(bool toggle);
+
     //======================================= PLAN EXECUTION =======================================
     /**
      * @brief [Blocking] Execute a plan by specifying its index.
