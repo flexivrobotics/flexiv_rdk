@@ -39,7 +39,8 @@ public:
      * @throw std::invalid_argument if [cali_posture] contains any value outside the valid range, or
      * its size does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @throw std::runtime_error if fault occurred during the calibration or failed to save the
+     * calibration result.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the calibration is finished.
      * @warning The robot needs to be rebooted for the calibration result to take effect.
