@@ -33,16 +33,16 @@ public:
      * to establish connection with the specified robot. The whitelisted network interface is
      * defined by its associated IPv4 address. For example, {"10.42.0.1", "192.168.2.102"}. If left
      * empty, all available network interfaces will be tried when searching for the specified robot.
+     * @param[in] verbose Enable/disable info and warning prints.
      * @throw std::invalid_argument if the format of [robot_sn] is invalid.
      * @throw std::runtime_error if the initialization sequence failed.
-     * @throw std::logic_error if the connected robot does not have a valid RDK license; or this RDK
-     * library version is incompatible with the connected robot; or model of the connected robot is
-     * not supported.
+     * @throw std::logic_error if the connected robot lacks a valid RDK license, or is incompatible
+     * with this RDK library version, or is an unsupported robot model.
      * @warning This constructor blocks until the initialization sequence is successfully finished
      * and connection with the robot is established.
      */
     Robot(const std::string& robot_sn,
-        const std::vector<std::string>& network_interface_whitelist = {});
+        const std::vector<std::string>& network_interface_whitelist = {}, bool verbose = true);
     virtual ~Robot();
 
     //========================================= ACCESSORS ==========================================
