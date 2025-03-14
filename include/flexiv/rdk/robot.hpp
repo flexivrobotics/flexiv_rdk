@@ -81,12 +81,10 @@ public:
      * @brief [Non-blocking] Whether the robot is ready to be operated, which requires the
      * following conditions to be met: enabled, brakes fully released, in auto mode, no fault, and
      * not in reduced state.
-     * @param[in] verbose Whether to print warning message indicating why the robot is not
-     * operational when this function returns false.
      * @return True: operational (operational_status() == READY); false: not operational.
      * @warning The robot won't execute any user command until it's ready to be operated.
      */
-    bool operational(bool verbose = true) const;
+    bool operational() const;
 
     /**
      * @brief [Non-blocking] Current operational status of the robot.
@@ -135,7 +133,7 @@ public:
     bool recovery() const;
 
     /**
-     * @brief [Non-blocking] Whether the emergency stop is released.
+     * @brief [Non-blocking] Whether the emergency stop (E-stop) is released.
      * @return True: released; false: pressed.
      */
     bool estop_released() const;
