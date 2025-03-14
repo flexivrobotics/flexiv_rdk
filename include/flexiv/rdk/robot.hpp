@@ -217,6 +217,7 @@ public:
      * @throw std::runtime_error if failed to enter automatic recovery mode.
      * @note Refer to user manual for more details.
      * @note This function blocks until the automatic recovery process is finished.
+     * @warning A reboot is required after the automatic recovery process is finished.
      * @see recovery().
      */
     void RunAutoRecovery();
