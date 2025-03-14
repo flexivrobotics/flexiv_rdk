@@ -60,20 +60,20 @@ public:
      * @brief [Non-blocking] Default values of the safety limits of the connected robot.
      * @return SafetyLimits value copy.
      */
-    const SafetyLimits default_limits() const;
+    SafetyLimits default_limits() const;
 
     /**
      * @brief [Non-blocking] Current values of the safety limits of the connected robot.
      * @return SafetyLimits value copy.
      */
-    const SafetyLimits current_limits() const;
+    SafetyLimits current_limits() const;
 
     /**
      * @brief [Non-blocking] Current reading from all safety input ports.
      * @return A boolean array whose index corresponds to that of the safety input ports.
      * True: port high; false: port low.
      */
-    const std::array<bool, kSafetyIOPorts> safety_inputs() const;
+    std::array<bool, kSafetyIOPorts> safety_inputs() const;
 
     /**
      * @brief [Blocking] Set new joint position safety limits to the connected robot, which will

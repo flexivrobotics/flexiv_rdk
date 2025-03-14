@@ -34,7 +34,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const std::vector<std::string> list() const;
+    std::vector<std::string> list() const;
 
     /**
      * @brief [Blocking] Whether the specified work coordinate already exists.
@@ -54,7 +54,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const std::array<double, kPoseSize> pose(const std::string& name) const;
+    std::array<double, kPoseSize> pose(const std::string& name) const;
 
     /**
      * @brief [Blocking] Add a new work coordinate with user-specified parameters.

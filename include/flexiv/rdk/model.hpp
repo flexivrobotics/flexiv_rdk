@@ -80,7 +80,7 @@ public:
      * "link2", "link3", "link4", "link5", "link6", "link7", "flange"}, plus "tool" if any flange
      * tool is mounted.
      */
-    const Eigen::MatrixXd J(const std::string& link_name);
+    Eigen::MatrixXd J(const std::string& link_name);
 
     /**
      * @brief [Non-blocking] Compute and get the time derivative of Jacobian matrix at the frame of
@@ -94,7 +94,7 @@ public:
      * "link2", "link3", "link4", "link5", "link6", "link7", "flange"}, plus "tool" if any flange
      * tool is mounted.
      */
-    const Eigen::MatrixXd dJ(const std::string& link_name);
+    Eigen::MatrixXd dJ(const std::string& link_name);
 
     /**
      * @brief [Non-blocking] Compute and get the mass matrix for the generalized coordinates, i.e.
@@ -103,7 +103,7 @@ public:
      * \f$. Unit: \f$ [kgm^2] \f$.
      * @note Call Update() before this function.
      */
-    const Eigen::MatrixXd M();
+    Eigen::MatrixXd M();
 
     /**
      * @brief [Non-blocking] Compute and get the Coriolis/centripetal matrix for the generalized
@@ -111,7 +111,7 @@ public:
      * @return Coriolis/centripetal matrix: \f$ C(q,\dot{q}) \in \mathbb{R}^{n \times n} \f$.
      * @note Call Update() before this function.
      */
-    const Eigen::MatrixXd C();
+    Eigen::MatrixXd C();
 
     /**
      * @brief [Non-blocking] Compute and get the gravity force vector for the generalized
@@ -119,7 +119,7 @@ public:
      * @return Gravity force vector: \f$ g(q) \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm] \f$.
      * @note Call Update() before this function.
      */
-    const Eigen::VectorXd g();
+    Eigen::VectorXd g();
 
     /**
      * @brief [Non-blocking] Compute and get the Coriolis force vector for the generalized
@@ -128,7 +128,7 @@ public:
      * [Nm] \f$.
      * @note Call Update() before this function.
      */
-    const Eigen::VectorXd c();
+    Eigen::VectorXd c();
 
     /**
      * @brief [Blocking] Check if a Cartesian pose is reachable. If yes, also return an IK solution
@@ -141,8 +141,8 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const std::pair<bool, std::vector<double>> reachable(const std::array<double, kPoseSize>& pose,
-        const std::vector<double>& seed_positions, bool free_orientation);
+    std::pair<bool, std::vector<double>> reachable(const std::array<double, kPoseSize>& pose,
+        const std::vector<double>& seed_positions, bool free_orientation) const;
 
     /**
      * @brief [Blocking] Score of the robot's current configuration (posture), calculated from the
@@ -155,7 +155,7 @@ public:
      * to degraded Cartesian performance. Use configuration with high scores for better
      * manipulability and task results.
      */
-    const std::pair<double, double> configuration_score();
+    std::pair<double, double> configuration_score() const;
 
 private:
     class Impl;

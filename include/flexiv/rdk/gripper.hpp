@@ -154,14 +154,14 @@ public:
      * @brief [Non-blocking] Parameters of the currently enabled gripper.
      * @return GripperParams value copy.
      */
-    const GripperParams params() const;
+    GripperParams params() const;
 
     /**
      * @brief [Non-blocking] Current states data of the enabled gripper.
      * @return GripperStates value copy.
      * @note Real-time (RT).
      */
-    const GripperStates states() const;
+    GripperStates states() const;
 
 private:
     class Impl;

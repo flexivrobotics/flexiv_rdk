@@ -34,7 +34,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const std::map<std::string, bool> list() const;
+    std::map<std::string, bool> list() const;
 
     /**
      * @brief [Blocking] Whether the specified device already exists.
@@ -55,7 +55,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const std::map<std::string,
+    std::map<std::string,
         std::variant<int, double, std::string, std::vector<double>, std::vector<std::string>>>
     params(const std::string& name) const;
 

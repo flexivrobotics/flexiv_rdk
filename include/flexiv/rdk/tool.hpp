@@ -55,7 +55,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const std::vector<std::string> list() const;
+    std::vector<std::string> list() const;
 
     /**
      * @brief [Blocking] Get name of the tool that the robot is currently using.
@@ -63,7 +63,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const std::string name() const;
+    std::string name() const;
 
     /**
      * @brief [Blocking] Whether the specified tool already exists.
@@ -80,7 +80,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const ToolParams params() const;
+    ToolParams params() const;
 
     /**
      * @brief [Blocking] Get parameters of the specified tool.
@@ -90,7 +90,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const ToolParams params(const std::string& name) const;
+    ToolParams params(const std::string& name) const;
 
     /**
      * @brief [Blocking] Add a new tool with user-specified parameters.
@@ -164,7 +164,7 @@ public:
      * parameters to a new or existing tool. Note that [tcp_location] in the returned struct is
      * invalid and cannot be used directly.
      */
-    const ToolParams CalibratePayloadParams(bool tool_mounted);
+    ToolParams CalibratePayloadParams(bool tool_mounted);
 
 private:
     class Impl;

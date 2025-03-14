@@ -32,7 +32,7 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const std::vector<std::string> traj_files_list() const;
+    std::vector<std::string> traj_files_list() const;
 
     /**
      * @brief [Blocking] Upload a trajectory file (.traj) to the robot.
@@ -56,7 +56,7 @@ public:
      * @throw std::runtime_error if failed to download the file.
      * @note This function blocks until the file is successfully downloaded.
      */
-    const std::string DownloadTrajFile(const std::string& file_name);
+    std::string DownloadTrajFile(const std::string& file_name);
 
     /**
      * @brief [Blocking] Download a trajectory file (.traj) from the robot and save to the specified
