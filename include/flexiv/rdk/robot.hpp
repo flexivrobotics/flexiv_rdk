@@ -67,7 +67,6 @@ public:
     /**
      * @brief [Non-blocking] Current states data of the robot.
      * @return Value copy of RobotStates struct.
-     * @note Real-time (RT).
      */
     RobotStates states() const;
 

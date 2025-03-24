@@ -164,7 +164,6 @@ public:
     /**
      * @brief [Non-blocking] Current states data of the enabled gripper.
      * @return GripperStates value copy.
-     * @note Real-time (RT).
      */
     GripperStates states() const;
 
