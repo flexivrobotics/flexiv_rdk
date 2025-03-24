@@ -145,11 +145,11 @@ public:
      * @note This function blocks until the request is successfully delivered.
      * @warning Target inputs outside the valid range (see params()) will be saturated.
      */
-    void Move(double width, double velocity, double force_limit = 0);
+    void Move(double width, double velocity, double force_limit);
 
     /**
      * @brief [Blocking] Stop the gripper and hold its current finger width.
-     * @throw std::logic_error if no gripper device is enabled.
+     * @throw std::logic_error if no gripper is enabled.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      */
