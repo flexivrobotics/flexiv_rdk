@@ -22,23 +22,23 @@ struct GripperParams
     /** Gripper name */
     std::string name = {};
 
-    /** Maximum finger opening width [m] */
-    double max_width = {};
-
     /** Minimum finger opening width [m] */
     double min_width = {};
 
-    /** Maximum grasping force [N] */
-    double max_force = {};
+    /** Maximum finger opening width [m] */
+    double max_width = {};
 
-    /** Minimum grasping force [N] */
-    double min_force = {};
+    /** Minimum finger moving velocity [m/s] */
+    double min_vel = {};
 
     /** Maximum finger moving velocity [m/s] */
     double max_vel = {};
 
-    /** Minimum finger moving velocity [m/s] */
-    double min_vel = {};
+    /** Minimum grasping force [N] */
+    double min_force = {};
+
+    /** Maximum grasping force [N] */
+    double max_force = {};
 };
 
 /**
