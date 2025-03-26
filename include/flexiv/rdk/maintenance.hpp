@@ -13,14 +13,13 @@ namespace rdk {
 
 /**
  * @class Maintenance
- * @brief Interface to carry out robot maintenance operations. The robot must be in IDLE mode when
- * triggering any operations.
+ * @brief Interface to run maintenance operations on the robot.
  */
 class Maintenance
 {
 public:
     /**
-     * @brief [Non-blocking] Create an instance and initialize the interface.
+     * @brief [Non-blocking] Instantiate the robot maintenance interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */

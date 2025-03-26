@@ -40,14 +40,14 @@ struct SafetyLimits
 
 /**
  * @class Safety
- * @brief Interface to change robot safety settings. The robot must be in IDLE mode when applying
- * any changes. A password is required to authenticate this interface.
+ * @brief Interface to manage safety settings of the robot. A password is required to authenticate
+ * this interface.
  */
 class Safety
 {
 public:
     /**
-     * @brief [Non-blocking] Create an instance and initialize the interface.
+     * @brief [Non-blocking] Instantiate the safety settings interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @param[in] password Password to authorize making changes to the robot's safety settings.
      * @throw std::invalid_argument if the provided password is incorrect.

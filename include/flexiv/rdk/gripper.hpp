@@ -69,15 +69,15 @@ std::ostream& operator<<(std::ostream& ostream, const GripperStates& gripper_sta
 
 /**
  * @class Gripper
- * @brief Interface with the robot gripper. Because gripper is also a type of robot device, this API
- * uses the same underlying infrastructure as rdk::Device, but with functions tailored specifically
- * for gripper controls.
+ * @brief Interface to control the gripper installed on the robot. Because gripper is also a type of
+ * robot device, this API uses the same underlying infrastructure as rdk::Device, but with functions
+ * tailored specifically for gripper controls.
  */
 class Gripper
 {
 public:
     /**
-     * @brief [Non-blocking] Create an instance and initialize gripper control interface.
+     * @brief [Non-blocking] Instantiate the gripper control interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */
@@ -86,7 +86,7 @@ public:
 
     /**
      * @brief [Blocking] Enable the specified gripper as a robot device.
-     * @param[in] name Name of the gripper to enable, must be an existing one.
+     * @param[in] name Name of the gripper to enable.
      * @throw std::invalid_argument if the specified gripper does not exist.
      * @throw std::logic_error if a gripper is already enabled.
      * @throw std::runtime_error if failed to deliver the request to the connected robot or failed

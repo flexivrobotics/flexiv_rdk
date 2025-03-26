@@ -15,14 +15,14 @@ namespace rdk {
 
 /**
  * @class Scheduler
- * @brief Real-time scheduler that can simultaneously run multiple periodic
- * tasks. Parameters for each task are configured independently.
+ * @brief Real-time scheduler that can simultaneously run multiple periodic tasks. Parameters for
+ * each task are configured independently.
  */
 class Scheduler
 {
 public:
     /**
-     * @brief [Blocking] Create an instance and initialize the real-time scheduler.
+     * @brief [Blocking] Instantiate a real-time scheduler.
      * @throw std::runtime_error if the initialization sequence failed.
      * @warning This constructor blocks until the initialization sequence is successfully finished.
      */
@@ -85,21 +85,21 @@ public:
     void Stop();
 
     /**
-     * @brief [Non-blocking] Get maximum available priority for user tasks.
+     * @brief [Non-blocking] Maximum available priority for user tasks.
      * @return The maximum priority that can be set for a user task with real-time scheduling policy
      * when calling AddTask().
      */
     int max_priority() const;
 
     /**
-     * @brief [Non-blocking] Get minimum available priority for user tasks.
+     * @brief [Non-blocking] Minimum available priority for user tasks.
      * @return The minimum priority that can be set for a user task with real-time scheduling policy
      * when calling AddTask().
      */
     int min_priority() const;
 
     /**
-     * @brief [Non-blocking] Get number of tasks added to the scheduler.
+     * @brief [Non-blocking] Number of tasks added to the scheduler.
      * @return Number of added tasks.
      */
     size_t num_tasks() const;

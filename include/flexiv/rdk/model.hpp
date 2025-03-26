@@ -15,13 +15,13 @@ namespace rdk {
 
 /**
  * @class Model
- * @brief Interface to access certain robot kinematics and dynamics data.
+ * @brief Interface to obtain certain model data of the robot, including kinematics and dynamics.
  */
 class Model
 {
 public:
     /**
-     * @brief [Non-blocking] Create an instance and initialize the integrated dynamics engine.
+     * @brief [Non-blocking] Instantiate the robot model interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @param[in] gravity_vector Earth's gravity vector in world frame. Default to \f$ [0.0, 0.0,
      * -9.81]^T \f$. Unit: \f$ [m/s^2] \f$.

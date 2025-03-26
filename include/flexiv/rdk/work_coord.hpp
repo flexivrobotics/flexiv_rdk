@@ -13,15 +13,14 @@ namespace rdk {
 
 /**
  * @class WorkCoord
- * @brief Interface to online update and interact with the robot's work coordinates. All updates
- * will take effect immediately without a power cycle. However, the robot must be in IDLE mode when
- * applying changes.
+ * @brief Interface to manage work coordinates of the robot. All updates take effect immediately
+ * without a power cycle. However, the robot must be in IDLE mode when applying changes.
  */
 class WorkCoord
 {
 public:
     /**
-     * @brief [Non-blocking] Create an instance and initialize the interface.
+     * @brief [Non-blocking] Instantiate the work coordinate interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */
@@ -29,7 +28,7 @@ public:
     virtual ~WorkCoord();
 
     /**
-     * @brief [Blocking] Get a name list of all configured work coordinates.
+     * @brief [Blocking] A list of all configured work coordinates.
      * @return Work coordinate names as a string list.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
@@ -46,7 +45,7 @@ public:
     bool exist(const std::string& name) const;
 
     /**
-     * @brief [Blocking] Get pose of an existing work coordinate.
+     * @brief [Blocking] Pose of an existing work coordinate.
      * @param[in] name Name of the work coordinate to get pose for, must be an existing one.
      * @return Pose of the work coordinate in world frame: \f$ ^{O}T_{work} \in \mathbb{R}^{7 \times
      * 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1}

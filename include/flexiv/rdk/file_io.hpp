@@ -13,13 +13,13 @@ namespace rdk {
 
 /**
  * @class FileIO
- * @brief Interface for file transfer with the robot. Only certain types of file can be transferred.
+ * @brief Interface to exchange files with the robot. Only certain types of file can be transferred.
  */
 class FileIO
 {
 public:
     /**
-     * @brief [Non-blocking] Create an instance and initialize file transfer interface.
+     * @brief [Non-blocking] Instantiate the file exchange interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */
@@ -27,7 +27,7 @@ public:
     virtual ~FileIO();
 
     /**
-     * @brief [Blocking] Get a list of all trajectory files currently stored in the connected robot.
+     * @brief [Blocking] A list of all trajectory files currently stored in the connected robot.
      * @return Trajectory filenames as a string list.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.

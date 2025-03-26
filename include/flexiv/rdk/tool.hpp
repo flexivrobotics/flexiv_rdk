@@ -35,14 +35,14 @@ struct ToolParams
 
 /**
  * @class Tool
- * @brief Interface to online update and interact with the robot tools. All updates will take effect
- * immediately without a power cycle. However, the robot must be in IDLE mode when applying changes.
+ * @brief Interface to manage tools of the robot. All updates take effect immediately without a
+ * power cycle. However, the robot must be in IDLE mode when applying changes.
  */
 class Tool
 {
 public:
     /**
-     * @brief [Non-blocking] Create an instance and initialize the interface.
+     * @brief [Non-blocking] Instantiate the robot tool interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */
@@ -50,7 +50,7 @@ public:
     virtual ~Tool();
 
     /**
-     * @brief [Blocking] Get a list of all configured tools.
+     * @brief [Blocking] A list of all configured tools.
      * @return Tool names as a string list.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
@@ -58,7 +58,7 @@ public:
     std::vector<std::string> list() const;
 
     /**
-     * @brief [Blocking] Get name of the tool that the robot is currently using.
+     * @brief [Blocking] Name of the tool that the robot is currently using.
      * @return Name of the current tool. Return "Flange" if there's no active tool.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
@@ -75,7 +75,7 @@ public:
     bool exist(const std::string& name) const;
 
     /**
-     * @brief [Blocking] Get parameters of the tool that the robot is currently using.
+     * @brief [Blocking] Parameters of the tool that the robot is currently using.
      * @return ToolParams value copy.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
@@ -83,7 +83,7 @@ public:
     ToolParams params() const;
 
     /**
-     * @brief [Blocking] Get parameters of the specified tool.
+     * @brief [Blocking] Parameters of the specified tool.
      * @param[in] name Name of the tool to get parameters for, must be an existing one.
      * @return ToolParams value copy.
      * @throw std::invalid_argument if the specified tool does not exist.

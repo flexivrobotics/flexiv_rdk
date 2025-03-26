@@ -18,15 +18,15 @@ namespace rdk {
 
 /**
  * @class Robot
- * @brief Main interface with the robot, containing several function categories and background
+ * @brief Main interface to control the robot, containing several function categories and background
  * services.
  */
 class Robot
 {
 public:
     /**
-     * @brief [Blocking] Create an instance as the main robot control interface. RDK services will
-     * initialize and connection with the robot will be established.
+     * @brief [Blocking] Instantiate the robot control interface. RDK services will be started and
+     * establish connection with the target robot.
      * @param[in] robot_sn Serial number of the robot to connect. The accepted formats are:
      * "Rizon 4s-123456" and "Rizon4s-123456".
      * @param[in] network_interface_whitelist Limit the network interface(s) that can be used to try
