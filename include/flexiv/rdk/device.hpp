@@ -12,15 +12,18 @@
 namespace flexiv {
 namespace rdk {
 
+using DeviceParamDataTypes
+    = std::variant<int, double, std::string, std::vector<double>, std::vector<std::string>>;
+
 /**
  * @class Device
- * @brief Interface with the robot device(s).
+ * @brief Interface to control the peripheral device(s) connected to the robot.
  */
 class Device
 {
 public:
     /**
-     * @brief [Non-blocking] Create an instance and initialize device control interface.
+     * @brief [Non-blocking] Instantiate the device control interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */
@@ -28,9 +31,9 @@ public:
     virtual ~Device();
 
     /**
-     * @brief [Blocking] Get a list of existing devices and their status (enabled/disabled).
-     * @return A map of {device_name, is_enabled}. For example,
-     * {{"Mirka-AIROS-550CV", true}, {"LinearRail", false}}.
+     * @brief [Blocking] A list of existing devices and their status (enabled/disabled).
+     * @return A map of {device_name, is_enabled}. For example, {{"Mirka-AIROS-550CV", true},
+     * {"LinearRail", false}}.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
@@ -46,8 +49,8 @@ public:
     bool exist(const std::string& name) const;
 
     /**
-     * @brief [Blocking] Get configuration parameters of the specified device.
-     * @param[in] name Name of the device to get parameters for, must be an existing one.
+     * @brief [Blocking] Configuration parameters of the specified device.
+     * @param[in] name Name of the device to get parameters for.
      * @return A map of {param_name, param_value}. Booleans are represented by int 1 and 0. For
      * example, {{"maxVel", 0.5}, {"absolutePosition", {0.7, -0.4, 0.05}}, {"conveyorName",
      * "conveyor0"}}.
@@ -55,13 +58,11 @@ public:
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    std::map<std::string,
-        std::variant<int, double, std::string, std::vector<double>, std::vector<std::string>>>
-    params(const std::string& name) const;
+    std::map<std::string, DeviceParamDataTypes> params(const std::string& name) const;
 
     /**
      * @brief [Blocking] Enable the specified device.
-     * @param[in] name Name of the device to enable, must be an existing device.
+     * @param[in] name Name of the device to enable.
      * @throw std::invalid_argument if the specified device does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
@@ -70,7 +71,7 @@ public:
 
     /**
      * @brief [Blocking] Disable the specified device.
-     * @param[in] name Name of the device to disable, must be an existing device.
+     * @param[in] name Name of the device to disable.
      * @throw std::invalid_argument if the specified device does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
@@ -78,8 +79,8 @@ public:
     void Disable(const std::string& name);
 
     /**
-     * @brief [Blocking] Send command(s) for the specified device.
-     * @param[in] name Name of the device to send command(s) to, must be an existing device.
+     * @brief [Blocking] Send command(s) to the specified device.
+     * @param[in] name Name of the device to send command(s) to.
      * @param[in] commands A map of {command_name, command_value}. For example, {{"setSpeed", 6000},
      * {"openLaser", true}}. All commands in the map will be sent to the device simultaneously. Make
      * sure the command name(s) are valid and can be accepted by the specified device.
