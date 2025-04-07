@@ -82,8 +82,8 @@ def main():
             "Zeroing force/torque sensors, make sure nothing is in contact with the robot"
         )
 
-        # Wait for the primitive completion
-        while robot.busy():
+        # Wait for primitive to finish
+        while not robot.primitive_states()["terminated"]:
             time.sleep(1)
         logger.info("Sensor zeroing complete")
 
