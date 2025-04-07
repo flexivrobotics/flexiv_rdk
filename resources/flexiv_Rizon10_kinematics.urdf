@@ -83,7 +83,6 @@
             <geometry>
                 <mesh filename="package://meshes/Rizon10/visual/link0.obj" />
             </geometry>
-            <material name="rizon_light_grey" />
         </visual>
         <collision name="convex_mesh">
             <origin rpy="0 0 0" xyz="0 0 0" />
@@ -109,14 +108,12 @@
             <geometry>
                 <mesh filename="package://meshes/Rizon10/visual/link1.obj" />
             </geometry>
-            <material name="rizon_light_grey" />
         </visual>
         <visual name="ring">
             <origin rpy="0 0 0" xyz="0 0 -0.0025" />
             <geometry>
                 <mesh filename="package://meshes/Rizon10/visual/ring.obj" scale="0.079 0.079 0.002" />
             </geometry>
-            <material name="rizon_white" />
         </visual>
         <collision name="convex_mesh">
             <origin rpy="0 0 0" xyz="0 0 0" />
@@ -136,14 +133,12 @@
             <geometry>
                 <mesh filename="package://meshes/Rizon10/visual/link2.obj" />
             </geometry>
-            <material name="rizon_light_grey" />
         </visual>
         <visual name="ring">
             <origin rpy="1.5707963 0 0" xyz="0 -0.0025 0" />
             <geometry>
                 <mesh filename="package://meshes/Rizon10/visual/ring.obj" scale="0.079 0.079 0.002" />
             </geometry>
-            <material name="rizon_white" />
         </visual>
         <collision name="convex_mesh">
             <origin rpy="0 0 0" xyz="0 0 0" />
@@ -163,14 +158,12 @@
             <geometry>
                 <mesh filename="package://meshes/Rizon10/visual/link3.obj" />
             </geometry>
-            <material name="rizon_light_grey" />
         </visual>
         <visual name="ring">
             <origin rpy="0 0 0" xyz="0 0 -0.0025" />
             <geometry>
                 <mesh filename="package://meshes/Rizon10/visual/ring.obj" scale="0.062 0.062 0.002" />
             </geometry>
-            <material name="rizon_white" />
         </visual>
         <collision name="convex_mesh">
             <origin rpy="0 0 0" xyz="0 0 0" />
@@ -190,14 +183,12 @@
             <geometry>
                 <mesh filename="package://meshes/Rizon10/visual/link4.obj" />
             </geometry>
-            <material name="rizon_light_grey" />
         </visual>
         <visual name="ring">
             <origin rpy="1.5707963 0 0" xyz="0 -0.0025 0" />
             <geometry>
                 <mesh filename="package://meshes/Rizon10/visual/ring.obj" scale="0.062 0.062 0.002" />
             </geometry>
-            <material name="rizon_white" />
         </visual>
         <collision name="convex_mesh">
             <origin rpy="0 0 0" xyz="0 0 0" />
@@ -217,14 +208,12 @@
             <geometry>
                 <mesh filename="package://meshes/Rizon10/visual/link5.obj" />
             </geometry>
-            <material name="rizon_light_grey" />
         </visual>
         <visual name="ring">
             <origin rpy="0 0 0" xyz="0 0 -0.0025" />
             <geometry>
                 <mesh filename="package://meshes/Rizon10/visual/ring.obj" scale="0.051 0.051 0.002" />
             </geometry>
-            <material name="rizon_white" />
         </visual>
         <collision name="convex_mesh">
             <origin rpy="0 0 0" xyz="0 0 0" />
@@ -244,14 +233,12 @@
             <geometry>
                 <mesh filename="package://meshes/Rizon10/visual/link6.obj" />
             </geometry>
-            <material name="rizon_light_grey" />
         </visual>
         <visual name="ring">
             <origin rpy="1.5707963 0 0" xyz="0 -0.0025 0" />
             <geometry>
                 <mesh filename="package://meshes/Rizon10/visual/ring.obj" scale="0.051 0.051 0.002" />
             </geometry>
-            <material name="rizon_white" />
         </visual>
         <collision name="convex_mesh">
             <origin rpy="0 0 0" xyz="0 0 0" />
@@ -271,14 +258,12 @@
             <geometry>
                 <mesh filename="package://meshes/Rizon10/visual/link7.obj" />
             </geometry>
-            <material name="rizon_light_grey" />
         </visual>
         <visual name="ring">
             <origin rpy="0 0 0" xyz="0 0 -0.0025" />
             <geometry>
                 <mesh filename="package://meshes/Rizon10/visual/ring.obj" scale="0.051 0.051 0.002" />
             </geometry>
-            <material name="rizon_white" />
         </visual>
         <collision name="convex_mesh">
             <origin rpy="0 0 0" xyz="0 0 0" />
@@ -294,16 +279,4 @@
             <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
         </inertial>
     </link>
-    <material name="rizon_blue">
-        <color rgba="0. 0. 1. 0.5" />
-    </material>
-    <material name="rizon_light_grey">
-        <color rgba="0.9 0.9 0.9 1" />
-    </material>
-    <material name="rizon_dark_grey">
-        <color rgba="0.2 0.2 0.2 1" />
-    </material>
-    <material name="rizon_white">
-        <color rgba="1 1 1 1" />
-    </material>
 </robot>
