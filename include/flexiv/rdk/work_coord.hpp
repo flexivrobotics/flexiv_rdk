@@ -37,8 +37,8 @@ public:
 
     /**
      * @brief [Blocking] Whether the specified work coordinate already exists.
-     * @param[in] name Name of the tool to check.
-     * @return True if the specified tool exists.
+     * @param[in] name Name of the work coordinate to check.
+     * @return True if the specified work coordinate exists.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */

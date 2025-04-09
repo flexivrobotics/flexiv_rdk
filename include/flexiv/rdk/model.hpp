@@ -33,39 +33,29 @@ public:
         const Eigen::Vector3d& gravity_vector = Eigen::Vector3d(0.0, 0.0, -9.81));
     virtual ~Model();
 
+    //========================================== DYNAMICS ==========================================
     /**
-     * @brief [Blocking] Reload robot model using the latest data synced from the connected robot.
-     * Tool model is also synced.
+     * @brief [Blocking] Reload (refresh) parameters of the robot model stored locally in this class
+     * using the latest data synced from the connected robot. Tool model is also synced.
      * @throw std::runtime_error if failed to sync model data.
      * @throw std::logic_error if the synced robot model contains invalid data.
-     * @note This function blocks until the model data is synced and the reloading is finished.
-     * @note Call this function if the robot tool has changed.
+     * @note This function blocks until the model parameters are synced and reloaded.
+     * @note This function does not affect the kinematics functions.
+     * @warning Parameters of the locally-stored robot model must be manually refreshed using this
+     * function whenever a physical change is made to the connected robot (e.g. a tool is added or
+     * changed). Otherwise all dynamics functions will return incorrect results.
      */
     void Reload();
 
     /**
-     * @brief [Blocking] Sync the actual kinematic parameters of the connected robot into the
-     * template URDF.
-     * @param[in] template_urdf_path Path to the template URDF in [flexiv_rdk/resources] directory.
-     * This template URDF will be updated when the sync is finished.
-     * @throw std::invalid_argument if failed to load the template URDF.
-     * @throw std::runtime_error if failed to sync the URDF.
-     * @note This function blocks until the URDF syncing is finished.
-     * @par Why is this function needed?
-     * The URDFs in [flexiv_rdk/resources] directory contain kinematic parameters of the latest
-     * robot hardware version, which might be different from older versions. This function is
-     * therefore provided to sync the actual kinematic parameters of the connected robot into the
-     * template URDF.
-     */
-    void SyncURDF(const std::string& template_urdf_path);
-
-    /**
-     * @brief [Non-blocking] Update robot model using new joint states data.
+     * @brief [Non-blocking] Update the configuration (posture) of the locally-stored robot model
+     * so that the dynamics functions return results based on the updated configuration.
      * @param[in] positions Current joint positions: \f$ q \in \mathbb{R}^{n \times 1} \f$. Unit:
      * \f$ [rad] \f$.
      * @param[in] velocities Current joint velocities: \f$ \dot{q} \in \mathbb{R}^{n \times 1}
      * \f$. Unit: \f$ [rad/s] \f$.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
+     * @note This function does not affect the kinematics functions.
      */
     void Update(const std::vector<double>& positions, const std::vector<double>& velocities);
 
@@ -129,6 +119,23 @@ public:
      * @note Call Update() before this function.
      */
     Eigen::VectorXd c();
+
+    //========================================= KINEMATICS =========================================
+    /**
+     * @brief [Blocking] Sync the actual kinematic parameters of the connected robot into the
+     * template URDF.
+     * @param[in] template_urdf_path Path to the template URDF in [flexiv_rdk/resources] directory.
+     * This template URDF will be updated when the sync is finished.
+     * @throw std::invalid_argument if failed to load the template URDF.
+     * @throw std::runtime_error if failed to sync the URDF.
+     * @note This function blocks until the URDF syncing is finished.
+     * @par Why is this function needed?
+     * The URDFs in [flexiv_rdk/resources] directory contain kinematic parameters of the latest
+     * robot hardware version, which might be different from older versions. This function is
+     * therefore provided to sync the actual kinematic parameters of the connected robot into the
+     * template URDF.
+     */
+    void SyncURDF(const std::string& template_urdf_path);
 
     /**
      * @brief [Blocking] Check if a Cartesian pose is reachable. If yes, also return an IK solution
