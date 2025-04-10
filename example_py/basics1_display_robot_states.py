@@ -2,7 +2,7 @@
 
 """basics1_display_robot_states.py
 
-This tutorial does the very first thing: check connection with the robot server and print 
+This tutorial does the very first thing: check connection with the robot server and print
 received robot states.
 """
 
@@ -37,9 +37,6 @@ def print_robot_states(robot, logger, stop_event):
         print(f"tau_des: {['%.2f' % i for i in robot.states().tau_des]}")
         print(f"tau_dot: {['%.2f' % i for i in robot.states().tau_dot]}")
         print(f"tau_ext: {['%.2f' % i for i in robot.states().tau_ext]}")
-        print(f"q_e: {['%.2f' % i for i in robot.states().q_e]}")
-        print(f"dq_e: {['%.2f' % i for i in robot.states().dq_e]}")
-        print(f"tau_e: {['%.2f' % i for i in robot.states().tau_e]}")
         print(f"tcp_pose: {['%.2f' % i for i in robot.states().tcp_pose]}")
         print(f"tcp_velocity: {['%.2f' % i for i in robot.states().tcp_vel]}")
         print(f"flange_pose: {['%.2f' % i for i in robot.states().flange_pose]}")
