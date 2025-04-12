@@ -1,7 +1,8 @@
 ---
-name: Bug report
-about: Create a report to help us improve
+name: Bug Report
+about: Report a bug to help us improve
 title: "[BUG]"
+type: Bug
 labels: bug
 assignees: pzhu-flexiv
 
