@@ -1,7 +1,8 @@
 ---
-name: Feature request
+name: Feature Request
 about: Suggest a new feature
 title: "[FEATURE]"
+type: Feature
 labels: enhancement
 assignees: pzhu-flexiv
 
