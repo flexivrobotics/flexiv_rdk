@@ -62,7 +62,7 @@ enum class CoordType
 };
 
 /**
- * @struct PlanInfo
+ * @struct RobotEvent
  * @brief Information about a robot event.
  */
 struct RobotEvent
