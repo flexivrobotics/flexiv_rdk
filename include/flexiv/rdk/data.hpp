@@ -64,6 +64,7 @@ enum class CoordType
 /**
  * @struct RobotEvent
  * @brief Information about a robot event.
+ * @see Robot::event_log().
  */
 struct RobotEvent
 {
