@@ -127,7 +127,6 @@ public:
      * @throw std::logic_error if no gripper is enabled.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
-     * @warning Target inputs outside the valid range (see params()) will be saturated.
      */
     void Grasp(double force);
 
@@ -143,7 +142,6 @@ public:
      * @throw std::logic_error if no gripper is enabled.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
-     * @warning Target inputs outside the valid range (see params()) will be saturated.
      */
     void Move(double width, double velocity, double force_limit);
 
