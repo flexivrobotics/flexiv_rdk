@@ -100,8 +100,6 @@ int main(int argc, char* argv[])
         //     waypoints: waypoints to pass before reaching the target
         //         (same format as above, but can be more than one)
         //     vel: TCP linear velocity, unit: m/s
-        // Optional properties:
-        //     lockExternalAxes: whether to allow the external axes to move or not
         spdlog::info("Executing primitive: MoveJ");
 
         // Send command to robot
@@ -111,9 +109,6 @@ int main(int argc, char* argv[])
                 {"waypoints",
                     std::vector<rdk::JPos> {rdk::JPos({10, -30, 10, 30, 10, 15, 10}, {-15, 10}),
                         rdk::JPos({20, -60, -10, 60, -10, 30, 20}, {-30, 20})}},
-            },
-            {
-                {"lockExternalAxes", 0},
             });
 
         // Most primitives won't exit by themselves and require users to explicitly trigger

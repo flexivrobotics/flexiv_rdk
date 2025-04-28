@@ -1,7 +1,7 @@
 ---
 name: Question
 about: Ask a question related to RDK
-title: "[QUESTION]"
+title: "[QUESTION] "
 type: Question
 labels: help wanted
 assignees: pzhu-flexiv
@@ -12,7 +12,7 @@ assignees: pzhu-flexiv
 
 Did you know you can find answers to most questions related to RDK in the [manual](https://www.flexiv.com/software/rdk/manual/index.html)? Just search for keywords using the "Search docs" function.
 
-Also, someone else might have asked similar questions before, you can search in the [Issues](https://github.com/flexivrobotics/flexiv_rdk/issues?q=is%3Aissue) tab.
+Also, someone might have asked similar questions before, you can search in the [Issues](https://github.com/flexivrobotics/flexiv_rdk/issues?q=is%3Aissue) tab.
 
 ## Looking for more information about certain APIs?
 

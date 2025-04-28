@@ -195,8 +195,8 @@ int main(int argc, char* argv[])
         spdlog::warn(
             "Zeroing force/torque sensors, make sure nothing is in contact with the robot");
 
-        // Wait for primitive completion
-        while (robot.busy()) {
+        // Wait for primitive to finish
+        while (!std::get<int>(robot.primitive_states()["terminated"])) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         spdlog::info("Sensor zeroing complete");

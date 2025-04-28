@@ -59,7 +59,7 @@ void PeriodicTask(flexiv::rdk::Robot& robot)
             }
             case 1: {
                 // signal robot server's digital out port
-                robot.SetDigitalOutputs(std::vector<unsigned int> {0}, std::vector<bool> {true});
+                robot.SetDigitalOutputs({{0, true}});
 
                 // signal workstation PC's serial port
                 auto n = write(g_fd, "0", 1);
@@ -71,7 +71,7 @@ void PeriodicTask(flexiv::rdk::Robot& robot)
             }
             case 900: {
                 // reset digital out after a few seconds
-                robot.SetDigitalOutputs(std::vector<unsigned int> {0}, std::vector<bool> {false});
+                robot.SetDigitalOutputs({{0, false}});
                 break;
             }
             default:
