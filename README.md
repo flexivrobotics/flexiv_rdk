@@ -21,17 +21,17 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 ## Quick Start - Python
 
-### Install RDK Python library
+### Install the Python package
 
-For all supported platforms, the RDK Python library and its dependencies for a specific version of Python can be installed using its `pip` module:
+On all supported platforms, the Python package of RDK and its dependencies for a specific Python version can be installed using the `pip` module:
 
     python3.x -m pip install numpy spdlog flexivrdk
 
-Replace `3.x` with a specific Python version.
+NOTE: replace `3.x` with a specific Python version.
 
-### Use the installed Python library
+### Use the installed Python package
 
-After the library is installed as ``flexivrdk`` Python package, it can be imported from any Python script. Test with the following commands in a new Terminal, which should start Flexiv RDK:
+After the ``flexivrdk`` Python package is installed, it can be imported from any Python script. Test with the following commands in a new Terminal, which should start Flexiv RDK:
 
     python3.x
     import flexivrdk
@@ -85,12 +85,12 @@ For example:
 2. Install CMake: Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or a bash emulator.
 3. Install bash emulator: Download and install [Git for Windows](https://git-scm.com/download/win/), which comes with a bash emulator Git Bash. The following steps are to be carried out in this bash emulator.
 
-### Install RDK C++ library
+### Install the C++ library
 
 The following steps are identical on all supported platforms.
 
-1. Choose a directory for installing RDK C++ library and all its dependencies. This directory can be under system path or not, depending on whether you want RDK to be globally discoverable by CMake. For example, a new folder named ``rdk_install`` under the home directory.
-2. In a new Terminal, run the provided script to compile and install all C++ dependencies to the installation directory chosen in step 1:
+1. Choose a directory for installing the C++ library of RDK and its dependencies. This directory can be under system path or not, depending on whether you want RDK to be globally discoverable by CMake. For example, a new folder named ``rdk_install`` under the home directory.
+2. In a new Terminal, run the provided script to compile and install all dependencies to the installation directory chosen in step 1:
 
        cd flexiv_rdk/thirdparty
        bash build_and_install_dependencies.sh ~/rdk_install
@@ -141,4 +141,4 @@ The complete and detailed API documentation of the **latest release** can be fou
     git checkout <previous_release_tag>
     doxygen doc/Doxyfile.in
 
-The generated API documentation is under ``flexiv_rdk/doc/html/`` directory. Open any html file with your browser to view it.
+Open any html file under ``flexiv_rdk/doc/html/`` with your browser to view the doc.

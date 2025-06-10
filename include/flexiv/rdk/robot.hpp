@@ -28,7 +28,7 @@ public:
      * @brief [Blocking] Instantiate the robot control interface. RDK services will be started and
      * establish connection with the target robot.
      * @param[in] robot_sn Serial number of the robot to connect. The accepted formats are:
-     * "Rizon 4s-123456" and "Rizon4s-123456".
+     * "Rizon 4-123456" and "Rizon4-123456".
      * @param[in] network_interface_whitelist Limit the network interface(s) that can be used to try
      * to establish connection with the specified robot. The whitelisted network interface is
      * defined by its associated IPv4 address. For example, {"10.42.0.1", "192.168.2.102"}. If left
