@@ -1,7 +1,7 @@
 /**
  * @file data.hpp
  * @brief Header file containing various constant expressions, data structures, and enums.
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  */
 
 #ifndef FLEXIV_RDK_DATA_HPP_

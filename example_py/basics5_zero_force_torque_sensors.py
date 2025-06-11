@@ -6,7 +6,7 @@ This tutorial zeros the robot's force and torque sensors, which is a recommended
 mandatory) step before any operations that require accurate force/torque measurement.
 """
 
-__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time

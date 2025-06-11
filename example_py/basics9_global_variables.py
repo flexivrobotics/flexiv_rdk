@@ -5,7 +5,7 @@
 This tutorial shows how to get and set global variables.
 """
 
-__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import argparse

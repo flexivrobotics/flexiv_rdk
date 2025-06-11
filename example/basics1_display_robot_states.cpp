@@ -2,7 +2,7 @@
  * @example basics1_display_robot_states.cpp
  * This tutorial does the very first thing: check connection with the robot server and print
  * received robot states.
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

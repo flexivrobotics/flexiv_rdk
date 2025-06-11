@@ -1,7 +1,7 @@
 /**
  * @example basics10_logging_behavior.cpp
  * This tutorial shows how to change the logging behaviors of RDK client.
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

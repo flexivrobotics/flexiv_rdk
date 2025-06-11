@@ -6,7 +6,7 @@ This tutorial runs non-real-time Cartesian-space pure motion control to hold or 
 TCP. A simple collision detection is also included.
 """
 
-__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time

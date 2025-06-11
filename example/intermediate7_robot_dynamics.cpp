@@ -2,7 +2,7 @@
  * @example intermediate7_robot_dynamics.cpp
  * This tutorial runs the integrated dynamics engine to obtain robot Jacobian, mass matrix, and
  * gravity torques. Also checks reachability of a Cartesian pose.
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

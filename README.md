@@ -103,7 +103,7 @@ The following steps are identical on all supported platforms.
 
    NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` sets the absolute path of the installation directory, which should be the one chosen in step 1.
 
-4. Install ``flexiv_rdk`` C++ library to ``CMAKE_INSTALL_PREFIX`` path, which may or may not be globally discoverable by CMake:
+4. Install ``flexiv_rdk`` C++ library to ``CMAKE_INSTALL_PREFIX`` path, which may or may not be globally discoverable by CMake depending on the location:
 
        cd flexiv_rdk/build
        cmake --build . --target install --config Release

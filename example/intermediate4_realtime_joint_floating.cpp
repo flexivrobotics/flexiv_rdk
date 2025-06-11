@@ -4,7 +4,7 @@
  * and soft protection against position limits. This example is ideal for verifying the system's
  * whole-loop real-timeliness, accuracy of the robot dynamics model, and joint torque control
  * performance. If everything works well, all joints should float smoothly.
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

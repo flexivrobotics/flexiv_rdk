@@ -1,6 +1,6 @@
 /**
  * @file file_io.hpp
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  */
 
 #ifndef FLEXIV_RDK_FILE_IO_HPP_
