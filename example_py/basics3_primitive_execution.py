@@ -12,13 +12,8 @@ __author__ = "Flexiv"
 import time
 import argparse
 import spdlog  # pip install spdlog
-
-# Utility methods
+import flexivrdk  # pip install flexivrdk
 from utility import quat2eulerZYX
-from utility import list2str
-
-# Flexiv RDK Python library is installed to user site packages
-import flexivrdk
 
 
 def main():

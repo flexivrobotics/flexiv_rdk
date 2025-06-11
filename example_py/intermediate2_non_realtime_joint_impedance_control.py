@@ -13,9 +13,7 @@ import math
 import argparse
 import spdlog  # pip install spdlog
 import numpy as np  # pip install numpy
-
-# Flexiv RDK Python library is installed to user site packages
-import flexivrdk
+import flexivrdk  # pip install flexivrdk
 
 
 def main():

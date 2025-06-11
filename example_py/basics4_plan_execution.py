@@ -14,9 +14,7 @@ __author__ = "Flexiv"
 import time
 import argparse
 import spdlog  # pip install spdlog
-
-# Flexiv RDK Python library is installed to user site packages
-import flexivrdk
+import flexivrdk  # pip install flexivrdk
 
 
 def main():

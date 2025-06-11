@@ -13,9 +13,7 @@ import time
 import argparse
 import threading
 import spdlog  # pip install spdlog
-
-# Flexiv RDK Python library is installed to user site packages
-import flexivrdk
+import flexivrdk  # pip install flexivrdk
 
 
 def print_robot_states(robot, logger, stop_event):
