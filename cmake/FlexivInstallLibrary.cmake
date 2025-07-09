@@ -85,7 +85,7 @@ macro(FlexivInstallLibrary)
     # Use the CPack Package Generator
     set(CPACK_PACKAGE_VENDOR "Flexiv")
     set(CPACK_PACKAGE_CONTACT "support@flexiv.com")
-    set(CPACK_PACKAGE_DESCRIPTION "Flexiv Robotic Development Kit (RDK)")
+    set(CPACK_PACKAGE_DESCRIPTION "Flexiv RDK (Robotic Development Kit)")
     set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
     set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
     set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})

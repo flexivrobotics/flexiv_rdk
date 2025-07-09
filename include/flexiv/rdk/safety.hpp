@@ -1,6 +1,6 @@
 /**
  * @file safety.hpp
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  */
 
 #ifndef FLEXIV_RDK_SAFETY_HPP_
@@ -40,14 +40,14 @@ struct SafetyLimits
 
 /**
  * @class Safety
- * @brief Interface to change robot safety settings. The robot must be in IDLE mode when applying
- * any changes. A password is required to authenticate this interface.
+ * @brief Interface to manage safety settings of the robot. A password is required to authenticate
+ * this interface.
  */
 class Safety
 {
 public:
     /**
-     * @brief [Non-blocking] Create an instance and initialize the interface.
+     * @brief [Non-blocking] Instantiate the safety settings interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @param[in] password Password to authorize making changes to the robot's safety settings.
      * @throw std::invalid_argument if the provided password is incorrect.
@@ -60,20 +60,20 @@ public:
      * @brief [Non-blocking] Default values of the safety limits of the connected robot.
      * @return SafetyLimits value copy.
      */
-    const SafetyLimits default_limits() const;
+    SafetyLimits default_limits() const;
 
     /**
      * @brief [Non-blocking] Current values of the safety limits of the connected robot.
      * @return SafetyLimits value copy.
      */
-    const SafetyLimits current_limits() const;
+    SafetyLimits current_limits() const;
 
     /**
      * @brief [Non-blocking] Current reading from all safety input ports.
      * @return A boolean array whose index corresponds to that of the safety input ports.
      * True: port high; false: port low.
      */
-    const std::array<bool, kSafetyIOPorts> safety_inputs() const;
+    std::array<bool, kSafetyIOPorts> safety_inputs() const;
 
     /**
      * @brief [Blocking] Set new joint position safety limits to the connected robot, which will
@@ -88,7 +88,8 @@ public:
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
-     * @warning A reboot is required for the updated safety settings to take effect.
+     * @warning A reboot is required for the updated safety settings to take effect. After reboot,
+     * make sure to use current_limits() to double check the updated safety limits are correct.
      */
     void SetJointPositionLimits(
         const std::vector<double>& min_positions, const std::vector<double>& max_positions);
@@ -105,7 +106,8 @@ public:
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
-     * @warning A reboot is required for the updated safety settings to take effect.
+     * @warning A reboot is required for the updated safety settings to take effect. After reboot,
+     * make sure to use current_limits() to double check the updated safety limits are correct.
      */
     void SetJointVelocityNormalLimits(const std::vector<double>& max_velocities);
 
@@ -121,7 +123,8 @@ public:
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
-     * @warning A reboot is required for the updated safety settings to take effect.
+     * @warning A reboot is required for the updated safety settings to take effect. After reboot,
+     * make sure to use current_limits() to double check the updated safety limits are correct.
      */
     void SetJointVelocityReducedLimits(const std::vector<double>& max_velocities);
 

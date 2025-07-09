@@ -4,7 +4,7 @@
  * pre-written script to execute a series of robot primitives with pre-defined transition conditions
  * between 2 adjacent primitives. Users can use Flexiv Elements to compose their own plan and assign
  * to the robot, which will appear in the plan list.
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

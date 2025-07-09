@@ -1,6 +1,6 @@
 /**
  * @file robot.hpp
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  */
 
 #ifndef FLEXIV_RDK_ROBOT_HPP_
@@ -18,31 +18,31 @@ namespace rdk {
 
 /**
  * @class Robot
- * @brief Main interface with the robot, containing several function categories and background
+ * @brief Main interface to control the robot, containing several function categories and background
  * services.
  */
 class Robot
 {
 public:
     /**
-     * @brief [Blocking] Create an instance as the main robot control interface. RDK services will
-     * initialize and connection with the robot will be established.
+     * @brief [Blocking] Instantiate the robot control interface. RDK services will be started and
+     * establish connection with the target robot.
      * @param[in] robot_sn Serial number of the robot to connect. The accepted formats are:
-     * "Rizon 4s-123456" and "Rizon4s-123456".
+     * "Rizon 4-123456" and "Rizon4-123456".
      * @param[in] network_interface_whitelist Limit the network interface(s) that can be used to try
      * to establish connection with the specified robot. The whitelisted network interface is
      * defined by its associated IPv4 address. For example, {"10.42.0.1", "192.168.2.102"}. If left
      * empty, all available network interfaces will be tried when searching for the specified robot.
+     * @param[in] verbose Enable/disable info and warning prints.
      * @throw std::invalid_argument if the format of [robot_sn] is invalid.
      * @throw std::runtime_error if the initialization sequence failed.
-     * @throw std::logic_error if the connected robot does not have a valid RDK license; or this RDK
-     * library version is incompatible with the connected robot; or model of the connected robot is
-     * not supported.
+     * @throw std::logic_error if the connected robot lacks a valid RDK license, or is incompatible
+     * with this RDK library version, or is an unsupported robot model.
      * @warning This constructor blocks until the initialization sequence is successfully finished
      * and connection with the robot is established.
      */
     Robot(const std::string& robot_sn,
-        const std::vector<std::string>& network_interface_whitelist = {});
+        const std::vector<std::string>& network_interface_whitelist = {}, bool verbose = true);
     virtual ~Robot();
 
     //========================================= ACCESSORS ==========================================
@@ -53,23 +53,22 @@ public:
     bool connected() const;
 
     /**
-     * @brief [Non-blocking] General information about the connected robot.
-     * @return RobotInfo value copy.
+     * @brief [Non-blocking] General information about the robot.
+     * @return Value copy of RobotInfo struct.
      */
-    const RobotInfo info() const;
+    RobotInfo info() const;
 
     /**
      * @brief [Non-blocking] Current control mode of the robot.
-     * @return flexiv::rdk::Mode enum.
+     * @return Mode enum.
      */
     Mode mode() const;
 
     /**
      * @brief [Non-blocking] Current states data of the robot.
-     * @return RobotStates value copy.
-     * @note Real-time (RT).
+     * @return Value copy of RobotStates struct.
      */
-    const RobotStates states() const;
+    RobotStates states() const;
 
     /**
      * @brief [Non-blocking] Whether the robot has come to a complete stop.
@@ -81,12 +80,10 @@ public:
      * @brief [Non-blocking] Whether the robot is ready to be operated, which requires the
      * following conditions to be met: enabled, brakes fully released, in auto mode, no fault, and
      * not in reduced state.
-     * @param[in] verbose Whether to print warning message indicating why the robot is not
-     * operational when this function returns false.
      * @return True: operational (operational_status() == READY); false: not operational.
      * @warning The robot won't execute any user command until it's ready to be operated.
      */
-    bool operational(bool verbose = true) const;
+    bool operational() const;
 
     /**
      * @brief [Non-blocking] Current operational status of the robot.
@@ -95,9 +92,9 @@ public:
     OperationalStatus operational_status() const;
 
     /**
-     * @brief [Non-blocking] Whether the robot is currently executing a task. This includes any
-     * user commanded operations that requires the robot to execute. For example, plans, primitives,
-     * Cartesian and joint motions, etc.
+     * @brief [Non-blocking] Whether the robot is busy. This includes any user commanded operations
+     * that requires the robot to execute. For example, plans, primitives, Cartesian and joint
+     * motions, etc.
      * @return True: busy; false: idle.
      * @warning Some exceptions exist for primitives, see ExecutePrimitive() for more details.
      */
@@ -135,7 +132,7 @@ public:
     bool recovery() const;
 
     /**
-     * @brief [Non-blocking] Whether the emergency stop is released.
+     * @brief [Non-blocking] Whether the emergency stop (E-stop) is released.
      * @return True: released; false: pressed.
      */
     bool estop_released() const;
@@ -147,20 +144,19 @@ public:
     bool enabling_button_pressed() const;
 
     /**
-     * @brief [Non-blocking] Get multilingual log messages of the connected robot.
-     * @return Robot log messages stored since the last successful instantiation of this class. Each
-     * element in the string list corresponds to one message with timestamp and log level added. New
-     * message is pushed to the back of the vector.
-     * @note Possible log level tags are: [info], [warning], [error], and [critical].
-     * @warning Messages before the last successful instantiation of this class are not available.
+     * @brief [Non-blocking] Robot events stored since the last successful instantiation of this
+     * class.
+     * @return Event log as a vector of RobotEvent, with the first element being the
+     * oldest event and the last element being the latest event.
+     * @warning Events before the last successful instantiation of this class are not stored.
      */
-    const std::vector<std::string> mu_log() const;
+    std::vector<RobotEvent> event_log() const;
 
     //======================================= SYSTEM CONTROL =======================================
     /**
-     * @brief [Blocking] Enable the robot, if E-stop is released and there's no fault, the robot
+     * @brief [Blocking] Enable the robot. If E-stop is released and there's no fault, the robot
      * will release brakes, and becomes operational a few seconds later.
-     * @throw std::logic_error if the robot is not connected.
+     * @throw std::logic_error if the robot is not connected or E-stop is not released.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      */
@@ -170,17 +166,18 @@ public:
      * @brief [Blocking] Force robot brakes to engage or release during normal operation.
      * Restrictions apply, see warning.
      * @param[in] engage True: engage brakes; false: release brakes.
-     * @throw std::logic_error if the connected robot is not a medical one or the robot is moving.
+     * @throw std::logic_error if the connected robot is not a medical model or is moving.
      * @throw std::runtime_error if failed to engage/release the brakes.
      * @note This function blocks until the brakes are successfully engaged/released.
-     * @warning This function is accessible only if a) the connected robot is a medical one AND
+     * @warning This function is accessible only if a) the connected robot is a medical model AND
      * b) the robot is not moving.
      */
     void Brake(bool engage);
 
     /**
-     * @brief [Blocking] Switch to a new control mode and wait until mode transition is finished.
-     * @param[in] mode flexiv::rdk::Mode enum.
+     * @brief [Blocking] Switch the robot to a new control mode and wait for the mode transition
+     * to finish.
+     * @param[in] mode Mode enum.
      * @throw std::invalid_argument if the requested mode is invalid or unlicensed.
      * @throw std::logic_error if robot is in an unknown control mode or is not operational.
      * @throw std::runtime_error if failed to transit the robot into the specified control mode
@@ -188,19 +185,19 @@ public:
      * @note This function blocks until the robot has successfully transited into the specified
      * control mode.
      * @warning If the robot is still moving when this function is called, it will automatically
-     * stop then make the mode transition.
+     * stop before making the mode transition.
      */
     void SwitchMode(Mode mode);
 
     /**
-     * @brief [Blocking] Stop the robot and transit robot mode to IDLE.
+     * @brief [Blocking] Stop the robot and transit its control mode to IDLE.
      * @throw std::runtime_error if failed to stop the robot.
      * @note This function blocks until the robot comes to a complete stop.
      */
     void Stop();
 
     /**
-     * @brief [Blocking] Try to clear minor or critical fault of the robot without a power cycle.
+     * @brief [Blocking] Try to clear minor or critical fault for the robot without a power cycle.
      * @param[in] timeout_sec Maximum time in seconds to wait for the fault to be successfully
      * cleared. Normally, a minor fault should take no more than 3 seconds to clear, and a critical
      * fault should take no more than 30 seconds to clear.
@@ -219,6 +216,7 @@ public:
      * @throw std::runtime_error if failed to enter automatic recovery mode.
      * @note Refer to user manual for more details.
      * @note This function blocks until the automatic recovery process is finished.
+     * @warning A reboot is required after the automatic recovery process is finished.
      * @see recovery().
      */
     void RunAutoRecovery();
@@ -228,7 +226,7 @@ public:
      * @param[in] global_vars A map of {global_var_name, global_var_value(s)}. Use int 1 and 0 to
      * represent booleans. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", 1}}.
      * @throw std::length_error if [global_vars] is empty or too long to transmit in one request.
-     * @throw std::logic_error if any of the specified global variables does not exist.
+     * @throw std::invalid_argument if any of the specified global variables does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the global variables are successfully set.
      * @warning The specified global variables need to be created first using Flexiv Elements.
@@ -246,6 +244,16 @@ public:
      */
     std::map<std::string, FlexivDataTypes> global_variables() const;
 
+    /**
+     * @brief [Blocking] Lock/unlock external axes (if any) during primitive execution, direct
+     * joint control, and direct Cartesian control modes.
+     * @param[in] toggle True: the external axes are locked and will not move; false: the external
+     * axes are not locked and will move. By default, the external axes are locked.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note This function blocks until the request is successfully delivered.
+     */
+    void LockExternalAxes(bool toggle);
+
     //======================================= PLAN EXECUTION =======================================
     /**
      * @brief [Blocking] Execute a plan by specifying its index.
@@ -256,7 +264,7 @@ public:
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the plan ready, the loading process typically takes no more than 200 ms.
      * @throw std::invalid_argument if [index] is outside the valid range.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered if
@@ -275,7 +283,7 @@ public:
      * @param[in] block_until_started Whether to wait for the commanded plan to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the plan ready, the loading process typically takes no more than 200 ms.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered if
@@ -288,40 +296,40 @@ public:
 
     /**
      * @brief [Blocking] Pause or resume the execution of the current plan.
-     * @param[in] pause True: pause plan; false: resume plan.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @param[in] toggle True: pause plan; false: resume plan.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered.
      * @warning Internal plans (not created by user) cannot be resumed due to safety concerns.
      */
-    void PausePlan(bool pause);
+    void PausePlan(bool toggle);
 
     /**
-     * @brief [Blocking] Get a list of all available plans.
-     * @return Available plans in the format of a string list.
+     * @brief [Blocking] A list of all available plans.
+     * @return Available plans as a string list.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const std::vector<std::string> plan_list() const;
+    std::vector<std::string> plan_list() const;
 
     /**
-     * @brief [Blocking] Get detailed information about the currently executing plan. Contains
-     * information like plan name, primitive name, node name, node path, node path time period, etc.
-     * @return PlanInfo data struct.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @brief [Blocking] Detailed information about the executing plan. Contains plan name,
+     * primitive name, node name, node path, node path time period, etc.
+     * @return PlanInfo value copy.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until a reply is received.
      */
-    const PlanInfo plan_info() const;
+    PlanInfo plan_info() const;
 
     /**
      * @brief [Blocking] Enable or disable the breakpoint mode during plan execution. When enabled,
-     * the currently executing plan will pause at the pre-defined breakpoints. Use StepBreakpoint()
-     * to continue the execution and pause at the next breakpoint.
+     * the executing plan will pause at the pre-defined breakpoints. Use StepBreakpoint() to
+     * continue the execution and pause at the next breakpoint.
      * @param[in] is_enabled True: enable; false: disable. By default, breakpoint mode is disabled.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered.
@@ -331,23 +339,23 @@ public:
     /**
      * @brief [Blocking] If breakpoint mode is enabled, step to the next breakpoint. The plan
      * execution will continue and pause at the next breakpoint.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered.
-     * @note Use PlanInfo::waiting_for_step to check if the plan is currently waiting for user
-     * signal to step the breakpoint.
+     * @note Use PlanInfo::waiting_for_step to check if the plan is waiting for user signal to step
+     * the breakpoint.
      */
     void StepBreakpoint();
 
     /**
-     * @brief [Blocking] Set overall velocity scale for robot motions during plan and primitive
+     * @brief [Blocking] Set overall velocity scale of robot motions during plan and primitive
      * execution.
      * @param[in] velocity_scale Percentage scale to adjust the overall velocity of robot motions.
      * Valid range: [0, 100]. Setting to 100 means to move with 100% of specified motion velocity,
      * and 0 means not moving at all.
      * @throw std::invalid_argument if [velocity_scale] is outside the valid range.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: NRT_PLAN_EXECUTION, NRT_PRIMITIVE_EXECUTION.
      * @note This function blocks until the request is successfully delivered.
@@ -359,17 +367,15 @@ public:
      * @brief [Blocking] Execute a primitive by specifying its name and parameters, which can be
      * found in the [Flexiv Primitives documentation](https://www.flexiv.com/primitives/).
      * @param[in] primitive_name Primitive name. For example, "Home", "MoveL", "ZeroFTSensor", etc.
-     * @param[in] input_params Specify basic and advanced parameters of the primitive via a map of
-     * {input_parameter_name, input_parameter_value(s)}. Use int 1 and 0 to represent booleans. E.g.
+     * @param[in] input_params A map of {input_parameter_name, input_parameter_value(s)} specifying
+     * basic and advanced parameters of the primitive. Use int 1 and 0 to represent booleans. E.g.
      * {{"target", rdk::Coord({0.65, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})}, {"vel",
      * 0.6}, {"zoneRadius", "Z50"}}.
-     * @param[in] properties Specify properties of the primitive via a map of {property_name,
-     * property_value(s)}. Use int 1 and 0 to represent booleans. E.g. {{"lockExternalAxes", 0}}.
      * @param[in] block_until_started Whether to wait for the commanded primitive to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the primitive ready, the loading process typically takes no more than 200 ms.
      * @throw std::length_error if [input_params] is too long to transmit in one request.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: NRT_PRIMITIVE_EXECUTION.
      * @note This function blocks until the request is successfully delivered if
@@ -383,14 +389,12 @@ public:
      */
     void ExecutePrimitive(const std::string& primitive_name,
         const std::map<std::string, FlexivDataTypes>& input_params,
-        const std::map<std::string, FlexivDataTypes>& properties = {},
         bool block_until_started = true);
 
     /**
-     * @brief [Blocking] State parameters of the executing primitive and their current values.
+     * @brief [Blocking] Names and values of the executing primitive's state parameters.
      * @return A map of {pt_state_name, pt_state_value(s)}. Booleans are represented by int 1
-     * and 0. For example,
-     * {{"reachedTarget", 1}, {"timePeriod", 5.6}, {"forceOffset", {0.1, 0.2, -1.3}}}.
+     * and 0. E.g. {{"reachedTarget", 1}, {"timePeriod", 5.6}, {"forceOffset", {0.1, 0.2, -1.3}}}.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
@@ -406,7 +410,7 @@ public:
      * outside allowed position range, which will trigger a safety fault that requires recovery
      * operation.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
      * @note Applicable control modes: RT_JOINT_TORQUE.
      * @note Real-time (RT).
@@ -426,7 +430,7 @@ public:
      * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{n \times
      * 1} \f$. Unit: \f$ [rad/s^2] \f$.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, RT_JOINT_POSITION.
      * @note Real-time (RT).
@@ -454,7 +458,7 @@ public:
      * @param[in] max_acc Maximum joint accelerations for the planned trajectory: \f$ \ddot{q}_{max}
      * \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @note Applicable control modes: NRT_JOINT_IMPEDANCE, NRT_JOINT_POSITION.
      * @warning Calling this function a second time while the motion from the previous call is still
      * ongoing will trigger an online re-planning of the joint trajectory, such that the previous
@@ -472,17 +476,17 @@ public:
      * Setting motion stiffness of a joint axis to 0 will make this axis free-floating. Valid range:
      * [0, RobotInfo::K_q_nom]. Unit: \f$ [Nm/rad] \f$.
      * @param[in] Z_q Joint motion damping ratio: \f$ Z_q \in \mathbb{R}^{n \times 1} \f$.
-     * Valid range: [0.3, 0.8]. The nominal (safe) value is provided as default.
+     * Valid range: [0.3, 0.8]. The default value 0.7 will be used if left empty.
      * @throw std::invalid_argument if [K_q] or [Z_q] contains any value outside the valid range or
      * size of any input vector does not match robot DoF.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
      * @note This function blocks until the request is successfully delivered.
      * @warning Changing damping ratio [Z_q] to a non-nominal value may lead to performance and
      * stability issues, please use with caution.
      */
-    void SetJointImpedance(const std::vector<double>& K_q,
-        const std::vector<double>& Z_q = {0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.7});
+    void SetJointImpedance(const std::vector<double>& K_q, const std::vector<double>& Z_q = {});
 
     //================================== DIRECT CARTESIAN CONTROL ==================================
     /**
@@ -508,7 +512,7 @@ public:
      * improve the robot's tracking performance for highly dynamic motions, but it's also okay to
      * leave this input 0. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear and \f$
      * \mathbb{R}^{3 \times 1} \f$ angular acceleration. Unit: \f$ [m/s^2]:[rad/s^2] \f$.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
      * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE.
      * @note Real-time (RT).
@@ -548,17 +552,17 @@ public:
      * robot will track the target wrench using an explicit force controller. Consists of \f$
      * \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y,
      * f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]:[Nm] \f$.
-     * @param[in] max_linear_vel  Maximum Cartesian linear velocity when moving to the target pose.
+     * @param[in] max_linear_vel Maximum Cartesian linear velocity when moving to the target pose.
      * A safe value is provided as default. Unit: \f$ [m/s] \f$.
-     * @param[in] max_angular_vel  Maximum Cartesian angular velocity when moving to the target
+     * @param[in] max_angular_vel Maximum Cartesian angular velocity when moving to the target
      * pose. A safe value is provided as default. Unit: \f$ [rad/s] \f$.
-     * @param[in] max_linear_acc  Maximum Cartesian linear acceleration when moving to the target
+     * @param[in] max_linear_acc Maximum Cartesian linear acceleration when moving to the target
      * pose. A safe value is provided as default. Unit: \f$ [m/s^2] \f$.
-     * @param[in] max_angular_acc  Maximum Cartesian angular acceleration when moving to the target
+     * @param[in] max_angular_acc Maximum Cartesian angular acceleration when moving to the target
      * pose. A safe value is provided as default. Unit: \f$ [rad/s^2] \f$.
      * @throw std::invalid_argument if any of the last 4 input parameters is negative.
-     * @throw std::logic_error if robot is not in an applicable control mode.
-     * @note Applicable control modes: NRT_CARTESIAN_MOTION_FORCE.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @note Applicable control modes: NRT_CARTESIAN_MOTION_FORCE, NRT_SUPER_PRIMITIVE.
      * @warning Same as Flexiv Elements, the target wrench is expressed as wrench sensed at TCP
      * instead of wrench exerted by TCP. E.g. commanding f_z = +5 N will make the end-effector move
      * towards -Z direction, so that upon contact, the sensed force will be +5 N.
@@ -592,8 +596,10 @@ public:
      * 1} \f$ angular damping ratio: \f$ [\zeta_x, \zeta_y, \zeta_z, \zeta_{Rx}, \zeta_{Ry},
      * \zeta_{Rz}]^T \f$. Valid range: [0.3, 0.8]. The nominal (safe) value is provided as default.
      * @throw std::invalid_argument if [K_x] or [Z_x] contains any value outside the valid range.
-     * @throw std::logic_error if robot is not in an applicable control mode.
-     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,
+     * NRT_SUPER_PRIMITIVE.
      * @note This function blocks until the request is successfully delivered.
      * @warning Changing damping ratio [Z_x] to a non-nominal value may lead to performance and
      * stability issues, please use with caution.
@@ -605,14 +611,16 @@ public:
      * @brief [Blocking] Set maximum contact wrench for the motion control part of the Cartesian
      * motion-force control modes. The controller will regulate its output to maintain contact
      * wrench (force and moment) with the environment under the set values.
-     * @param[in] max_wrench Maximum contact wrench (force and moment): \f$ F_max \in \mathbb{R}^{6
-     * \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ maximum force and \f$
-     * \mathbb{R}^{3 \times 1} \f$ maximum moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$. Unit:
-     * \f$ [N]:[Nm] \f$.
+     * @param[in] max_wrench Maximum contact wrench (force and moment): \f$ F_{max} \in
+     * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ maximum force and
+     * \f$ \mathbb{R}^{3 \times 1} \f$ maximum moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
+     * Unit: \f$ [N]:[Nm] \f$.
      * @throw std::invalid_argument if [max_wrench] contains any negative value.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note The maximum contact wrench regulation only applies to the motion control part.
-     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,
+     * NRT_SUPER_PRIMITIVE.
      * @note This function blocks until the request is successfully delivered.
      * @warning The maximum contact wrench regulation cannot be enabled if any of the rotational
      * Cartesian axes is enabled for moment control.
@@ -627,8 +635,10 @@ public:
      * RobotInfo::q_max]. Unit: \f$ [rad] \f$.
      * @throw std::invalid_argument if [ref_positions] contains any value outside the valid
      * range or size of any input vector does not match robot DoF.
-     * @throw std::logic_error if robot is not in an applicable control mode.
-     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,
+     * NRT_SUPER_PRIMITIVE.
      * @note This function blocks until the request is successfully delivered.
      * @warning The reference joint positions will be automatically reset to the robot's current
      * joint positions upon re-entering the applicable control modes.
@@ -655,10 +665,11 @@ public:
      * @param[in] ref_positions_tracking Increase this weight to make the robot track closer to the
      * reference joint positions specified using SetNullSpacePosture(). Valid range: [0.1, 1.0].
      * @throw std::invalid_argument if any of the input parameters is outside its valid range.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note The default value is provided for each parameter.
-     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,
+     * NRT_SUPER_PRIMITIVE.
      * @note This function blocks until the request is successfully delivered.
      * @warning The optimization weights will be automatically reset to the provided default values
      * upon re-entering the applicable control modes.
@@ -676,9 +687,10 @@ public:
      * the moving velocity to these values as a protection mechanism in case of contact loss. The
      * axis order is \f$ [X, Y, Z] \f$. Valid range: [0.005, 2.0]. Unit: \f$ [m/s] \f$.
      * @throw std::invalid_argument if [max_linear_vel] contains any value outside the valid range.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,
+     * NRT_SUPER_PRIMITIVE.
      * @note This function blocks until the request is successfully delivered.
      * @note If not set, force control is disabled for all Cartesian axes by default.
      * @warning The maximum linear velocity protection for force control axes is only effective
@@ -700,9 +712,10 @@ public:
      * then the force control frame will also be fixed; if root coordinate is a moving one (e.g.
      * TCP), then the force control frame will also be moving with the root coordinate. An identity
      * transformation is provided as default.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
-     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE.
+     * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,
+     * NRT_SUPER_PRIMITIVE.
      * @note This function blocks until the request is successfully delivered.
      * @note If not set, the robot will use WORLD origin as the force control frame by default.
      * @par Force control frame
@@ -728,7 +741,7 @@ public:
      * be used to track the target wrench, i.e. active force control.
      * @param[in] is_enabled True: enable; false: disable. By default, passive force control is
      * disabled and active force control is used.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
@@ -748,16 +761,16 @@ public:
     /**
      * @brief [Blocking] Set one or more digital output ports, including 16 on the control box plus
      * 2 inside the wrist connector.
-     * @param[in] port_idx Index of port(s) to set, can be a single port or multiple ports.
-     * E.g. {0, 5, 7, 15} or {1, 3, 10} or {8}. Valid range of the index number is [0–17].
-     * @param[in] values Corresponding values to set to the specified ports. True: set port high,
-     * false: set port low. Vector size must match the size of port_idx.
-     * @throw std::invalid_argument if [port_idx] contains any index number outside the valid range.
-     * @throw std::length_error if the two input vectors have different sizes.
+     * @param[in] digital_outputs A map of {port_index, port_value}. For [port_index], the valid
+     * range is [0, 17]. For [port_value], true: set port high, false: set port low. For example,
+     * {{1, true}, {3, false}, {10, true}}.
+     * @throw std::invalid_argument if any provided port index is outside the valid range.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      */
-    void SetDigitalOutputs(
+    void SetDigitalOutputs(const std::map<unsigned int, bool>& digital_outputs);
+
+    [[deprecated("Use the other SetDigitalOutputs() instead")]] void SetDigitalOutputs(
         const std::vector<unsigned int>& port_idx, const std::vector<bool>& values);
 
     /**
@@ -766,7 +779,7 @@ public:
      * @return A boolean array whose index corresponds to that of the digital input ports.
      * True: port high; false: port low.
      */
-    const std::array<bool, kIOPorts> digital_inputs() const;
+    std::array<bool, kIOPorts> digital_inputs() const;
 
 private:
     class Impl;

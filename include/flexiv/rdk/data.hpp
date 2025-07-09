@@ -1,7 +1,7 @@
 /**
  * @file data.hpp
- * @brief Header file containing various constant expressions, data structs, and enums.
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @brief Header file containing various constant expressions, data structures, and enums.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  */
 
 #ifndef FLEXIV_RDK_DATA_HPP_
@@ -12,6 +12,7 @@
 #include <string>
 #include <ostream>
 #include <variant>
+#include <chrono>
 
 namespace flexiv {
 namespace rdk {
@@ -61,6 +62,44 @@ enum class CoordType
 };
 
 /**
+ * @struct RobotEvent
+ * @brief Information about a robot event.
+ * @see Robot::event_log().
+ */
+struct RobotEvent
+{
+    enum Level
+    {
+        UNKNOWN = 0,
+        INFO,
+        WARNING,
+        ERROR,
+        CRITICAL,
+    };
+
+    /** Level of the event */
+    Level level = UNKNOWN;
+
+    /** Unique ID of the event */
+    int id = 0;
+
+    /** Brief description of the event */
+    std::string description = "";
+
+    /** Consequences caused by the event */
+    std::string consequences = "";
+
+    /** Probable causes of the event */
+    std::string probable_causes = "";
+
+    /** Recommended actions after the event */
+    std::string recommended_actions = "";
+
+    /** Timestamp (since epoch) of the event */
+    std::chrono::time_point<std::chrono::system_clock> timestamp;
+};
+
+/**
  * @struct RobotInfo
  * @brief General information about the connected robot.
  * @see Robot::info().
@@ -79,7 +118,14 @@ struct RobotInfo
     /** Type of license */
     std::string license_type = {};
 
-    /** Joint-space degrees of freedom: \f$ n \f$. */
+    /** Joint-space degrees of freedom of the external axes: \f$ n_e \f$. */
+    size_t DoF_e = {};
+
+    /** Joint-space degrees of freedom of the robot manipulator: \f$ n_m \f$. */
+    size_t DoF_m = {};
+
+    /** Joint-space degrees of freedom of the full system including the robot manipulator and any
+     * external axes: \f$ n \f$. */
     size_t DoF = {};
 
     /**
@@ -123,82 +169,80 @@ struct RobotInfo
 
 /**
  * @struct RobotStates
- * @brief Data structure containing the joint- and Cartesian-space robot states.
+ * @brief Robot states data in joint- and Cartesian-space.
  * @see Robot::states().
  */
 struct RobotStates
 {
     /**
-     * Measured joint positions of the arm using link-side encoder: \f$ q \in \mathbb{R}^{n \times
-     * 1} \f$. This is the direct measurement of joint positions, preferred for most cases. Unit:
-     * \f$ [rad] \f$.
+     * Measured joint positions of the full system using link-side encoder: \f$ q \in \mathbb{R}^{n
+     * \times 1} \f$. This is the direct measurement of joint positions. Unit: \f$ [rad] or [m] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has only one encoder, then \f$ \theta = q \f$.
      */
     std::vector<double> q = {};
 
     /**
-     * Measured joint positions of the arm using motor-side encoder: \f$ \theta \in \mathbb{R}^{n
-     * \times 1} \f$. This is the indirect measurement of joint positions. \f$ \theta = q + \Delta
-     * \f$, where \f$ \Delta \f$ is the joint's internal deflection between motor and link. Unit:
-     * \f$ [rad] \f$.
+     * Measured joint positions of the full system using motor-side encoder: \f$ \theta \in
+     * \mathbb{R}^{n \times 1} \f$. This is the indirect measurement of joint positions. \f$ \theta
+     * = q + \Delta \f$, where \f$ \Delta \f$ is the joint's internal deflection between motor and
+     * link. Unit: \f$ [rad] or [m] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has only one encoder, then \f$ \theta = q \f$.
      */
     std::vector<double> theta = {};
 
     /**
-     * Measured joint velocities of the arm using link-side encoder: \f$ \dot{q} \in \mathbb{R}^{n
-     * \times 1} \f$. This is the direct but more noisy measurement of joint velocities. Unit: \f$
-     * [rad/s] \f$.
+     * Measured joint velocities of the full system using link-side encoder: \f$ \dot{q} \in
+     * \mathbb{R}^{n \times 1} \f$. This is the direct but more noisy measurement of joint
+     * velocities. Unit: \f$ [rad/s] or [m/s] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has only one encoder, then \f$ \dot{\theta} = \dot{q} \f$.
      */
     std::vector<double> dq = {};
 
     /**
-     * Measured joint velocities of the arm using motor-side encoder: \f$ \dot{\theta} \in
+     * Measured joint velocities of the full system using motor-side encoder: \f$ \dot{\theta} \in
      * \mathbb{R}^{n \times 1} \f$. This is the indirect but less noisy measurement of joint
-     * velocities, preferred for most cases. Unit: \f$ [rad/s] \f$.
+     * velocities. Unit: \f$ [rad/s] or [m/s] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has only one encoder, then \f$ \dot{\theta} = \dot{q} \f$.
      */
     std::vector<double> dtheta = {};
 
     /**
-     * Measured joint torques of the arm: \f$ \tau \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm]
-     * \f$.
+     * Measured joint torques of the full system: \f$ \tau \in \mathbb{R}^{n \times 1} \f$. Unit:
+     * \f$ [Nm] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has no torque measurement, then the corresponding value will be 0.
      */
     std::vector<double> tau = {};
 
     /**
-     * Desired joint torques of the arm: \f$ \tau_{d} \in \mathbb{R}^{n \times 1} \f$. Compensation
-     * of nonlinear dynamics (gravity, centrifugal, and Coriolis) is excluded. Unit: \f$ [Nm] \f$.
+     * Desired joint torques of the full system: \f$ \tau_{d} \in \mathbb{R}^{n \times 1} \f$.
+     * Compensation of nonlinear dynamics (gravity, centrifugal, and Coriolis) is excluded. Unit:
+     * \f$ [Nm] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has no torque control capability, then the corresponding value will be 0.
      */
     std::vector<double> tau_des = {};
 
     /**
-     * Numerical derivative of measured joint torques of the arm: \f$ \dot{\tau} \in \mathbb{R}^{n
-     * \times 1} \f$. Unit: \f$ [Nm/s] \f$.
+     * Numerical derivative of measured joint torques of the full system: \f$ \dot{\tau} \in
+     * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm/s] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has no torque measurement, then the corresponding value will be 0.
      */
     std::vector<double> tau_dot = {};
 
     /**
-     * Estimated external joint torques of the arm: \f$ \hat \tau_{ext} \in \mathbb{R}^{n \times 1}
-     * \f$. Produced by any external contact (with robot body or end-effector) that does not belong
-     * to the known robot model. Unit: \f$ [Nm] \f$.
+     * Estimated external joint torques of the full system: \f$ \hat \tau_{ext} \in \mathbb{R}^{n
+     * \times 1} \f$. Produced by any external contact (with robot body or end-effector) that does
+     * not belong to the known robot model. Unit: \f$ [Nm] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has no torque measurement, then the corresponding value will be 0.
      */
     std::vector<double> tau_ext = {};
-
-    /**
-     * Measured joint positions of the external axes (if any): \f$ q_e \in \mathbb{R}^{n_e \times 1}
-     * \f$. Unit: \f$ [rad] \f$.
-     */
-    std::vector<double> q_e = {};
-
-    /**
-     * Measured joint velocities of the external axes (if any): \f$ \dot{q}_e \in \mathbb{R}^{n_e
-     * \times 1} \f$. Unit: \f$ [rad/s] \f$.
-     */
-    std::vector<double> dq_e = {};
-
-    /**
-     * Measured joint torques of the external axes (if any): \f$ \tau_e \in \mathbb{R}^{n_e \times
-     * 1} \f$. Unit: \f$ [Nm] \f$.
-     */
-    std::vector<double> tau_e = {};
 
     /**
      * Measured TCP pose expressed in world frame: \f$ ^{O}T_{TCP} \in \mathbb{R}^{7 \times 1} \f$.
@@ -259,7 +303,7 @@ struct RobotStates
 
 /**
  * @struct PlanInfo
- * @brief Data structure containing information of the on-going primitive/plan.
+ * @brief Information of the on-going primitive/plan.
  * @see Robot::plan_info().
  */
 struct PlanInfo
@@ -300,19 +344,19 @@ struct JPos
 {
     /**
      * @brief Construct an instance of JPos.
-     * @param[in] _q Sets struct member [q].
+     * @param[in] _q_m Sets struct member [q_m].
      * @param[in] _q_e Sets struct member [q_e]. Leave empty if there's no external axis.
      */
-    JPos(const std::array<double, kSerialJointDoF>& _q,
+    JPos(const std::array<double, kSerialJointDoF>& _q_m,
         const std::array<double, kMaxExtAxes>& _q_e = {})
-    : q(_q)
+    : q_m(_q_m)
     , q_e(_q_e)
     {
     }
     JPos() = default;
 
-    /** Joint positions of the arm. Unit: [degree] */
-    std::array<double, kSerialJointDoF> q = {};
+    /** Joint positions of the robot manipulator. Unit: [degree] */
+    std::array<double, kSerialJointDoF> q_m = {};
 
     /** Joint positions (linear or angular) of the external axes. Unit: [m] or [degree]
      * @note If the number of external axes \f$ n_e < kMaxExtAxes \f$, set the first \f$ n_e \f$
@@ -337,18 +381,18 @@ struct Coord
      * @param[in] _position Sets struct member [position].
      * @param[in] _orientation Sets struct member [orientation].
      * @param[in] _ref_frame Sets struct member [ref_frame].
-     * @param[in] _ref_q Sets struct member [ref_q]. Leave empty to use default values.
+     * @param[in] _ref_q_m Sets struct member [ref_q_m]. Leave empty to use default values.
      * @param[in] _ref_q_e Sets struct member [ref_q_e]. Leave empty if there's no external axis.
      */
     Coord(const std::array<double, kCartDoF / 2>& _position,
         const std::array<double, kCartDoF / 2>& _orientation,
         const std::array<std::string, 2>& _ref_frame,
-        const std::array<double, kSerialJointDoF>& _ref_q = {},
+        const std::array<double, kSerialJointDoF>& _ref_q_m = {},
         const std::array<double, kMaxExtAxes>& _ref_q_e = {})
     : position(_position)
     , orientation(_orientation)
     , ref_frame(_ref_frame)
-    , ref_q(_ref_q)
+    , ref_q_m(_ref_q_m)
     , ref_q_e(_ref_q_e)
     {
     }
@@ -369,11 +413,11 @@ struct Coord
      */
     std::array<std::string, 2> ref_frame = {};
 
-    /** Reference joint positions of the arm. Only effective on robots with redundant degrees of
-     * freedom. Unit: [degree]
-     * @note Leave empty to use default values. However, this array cannot be empty if
-     * [ref_q_e] has values */
-    std::array<double, kSerialJointDoF> ref_q = {};
+    /** Reference joint positions of the robot manipulator. Only effective on robots with redundant
+     * degrees of freedom. Unit: [degree]
+     * @note Leave empty to use default values. However, this array cannot be empty if [ref_q_e] has
+     * values */
+    std::array<double, kSerialJointDoF> ref_q_m = {};
 
     /** Reference joint positions (linear or angular) of the external axes. Only effective on
      * robots with redundant degrees of freedom and external axes. Unit: [m] or [degree]
@@ -391,8 +435,16 @@ using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::C
     std::vector<rdk::Coord>>;
 
 /**
- * @brief Operator overloading to out stream all robot info in JSON format:
- * {"info_1": [val1,val2,val3,...], "info_2": [val1,val2,val3,...], ...}.
+ * @brief Operator overloading to out stream all members of RobotEvent in JSON format.
+ * @param[in] ostream Ostream instance.
+ * @param[in] robot_event RobotEvent data structure to out stream.
+ * @return Updated ostream instance.
+ * @note The event timestamp is converted to local timezone when printed.
+ */
+std::ostream& operator<<(std::ostream& ostream, const RobotEvent& robot_event);
+
+/**
+ * @brief Operator overloading to out stream all members of RobotInfo in JSON format.
  * @param[in] ostream Ostream instance.
  * @param[in] robot_info RobotInfo data structure to out stream.
  * @return Updated ostream instance.
@@ -400,8 +452,7 @@ using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::C
 std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
 
 /**
- * @brief Operator overloading to out stream all robot states in JSON format:
- * {"state_1": [val1,val2,val3,...], "state_2": [val1,val2,val3,...], ...}.
+ * @brief Operator overloading to out stream all members of RobotStates in JSON format.
  * @param[in] ostream Ostream instance.
  * @param[in] robot_states RobotStates data structure to out stream.
  * @return Updated ostream instance.
@@ -409,8 +460,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
 std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states);
 
 /**
- * @brief Operator overloading to out stream all plan info in JSON format:
- * {"info_1": [val1,val2,val3,...], "info_2": [val1,val2,val3,...], ...}.
+ * @brief Operator overloading to out stream all members of PlanInfo in JSON format.
  * @param[in] ostream Ostream instance.
  * @param[in] plan_info PlanInfo data structure to out stream.
  * @return Updated ostream instance.

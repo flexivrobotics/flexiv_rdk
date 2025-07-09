@@ -3,7 +3,7 @@
  * A test to benchmark RDK's loop latency, including communication, computation, etc. The
  * workstation PC's serial port is used as reference, and the robot server's digital out port is
  * used as test target.
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
@@ -59,7 +59,7 @@ void PeriodicTask(flexiv::rdk::Robot& robot)
             }
             case 1: {
                 // signal robot server's digital out port
-                robot.SetDigitalOutputs(std::vector<unsigned int> {0}, std::vector<bool> {true});
+                robot.SetDigitalOutputs({{0, true}});
 
                 // signal workstation PC's serial port
                 auto n = write(g_fd, "0", 1);
@@ -71,7 +71,7 @@ void PeriodicTask(flexiv::rdk::Robot& robot)
             }
             case 900: {
                 // reset digital out after a few seconds
-                robot.SetDigitalOutputs(std::vector<unsigned int> {0}, std::vector<bool> {false});
+                robot.SetDigitalOutputs({{0, false}});
                 break;
             }
             default:

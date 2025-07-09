@@ -6,16 +6,13 @@ This tutorial zeros the robot's force and torque sensors, which is a recommended
 mandatory) step before any operations that require accurate force/torque measurement.
 """
 
-__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
 import argparse
 import spdlog  # pip install spdlog
-from utility import list2str
-
-# Flexiv RDK Python library is installed to user site packages
-import flexivrdk
+import flexivrdk  # pip install flexivrdk
 
 
 def main():
@@ -82,8 +79,8 @@ def main():
             "Zeroing force/torque sensors, make sure nothing is in contact with the robot"
         )
 
-        # Wait for the primitive completion
-        while robot.busy():
+        # Wait for primitive to finish
+        while not robot.primitive_states()["terminated"]:
             time.sleep(1)
         logger.info("Sensor zeroing complete")
 

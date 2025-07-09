@@ -1,7 +1,7 @@
 /**
  * @example intermediate2_realtime_joint_impedance_control.cpp
  * This tutorial runs real-time joint impedance control to hold or sine-sweep all robot joints.
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

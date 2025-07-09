@@ -1,7 +1,7 @@
 /**
  * @example basics9_global_variables.cpp
  * This tutorial shows how to get and set global variables.
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
