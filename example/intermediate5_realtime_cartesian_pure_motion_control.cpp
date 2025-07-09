@@ -2,7 +2,7 @@
  * @example intermediate5_realtime_cartesian_pure_motion_control.cpp
  * This tutorial runs real-time Cartesian-space pure motion control to hold or sine-sweep the robot
  * TCP. A simple collision detection is also included.
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
@@ -249,8 +249,8 @@ int main(int argc, char* argv[])
         spdlog::warn(
             "Zeroing force/torque sensors, make sure nothing is in contact with the robot");
 
-        // Wait for primitive completion
-        while (robot.busy()) {
+        // Wait for primitive to finish
+        while (!std::get<int>(robot.primitive_states()["terminated"])) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         spdlog::info("Sensor zeroing complete");

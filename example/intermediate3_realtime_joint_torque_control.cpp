@@ -6,7 +6,7 @@
  * @warning The impedance controller in this example is for demo purpose only and has no performance
  * guarantee. To use the robot's built-in high-performance joint impedance controller, please refer
  * to intermediate2_realtime_joint_impedance_control.cpp.
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

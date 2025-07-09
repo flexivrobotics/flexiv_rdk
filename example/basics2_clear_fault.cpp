@@ -1,7 +1,7 @@
 /**
  * @example basics2_clear_fault.cpp
  * This tutorial clears minor or critical faults, if any, of the connected robot.
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

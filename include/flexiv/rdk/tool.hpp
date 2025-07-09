@@ -1,6 +1,6 @@
 /**
  * @file tool.hpp
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  */
 
 #ifndef FLEXIV_RDK_TOOL_HPP_
@@ -35,14 +35,14 @@ struct ToolParams
 
 /**
  * @class Tool
- * @brief Interface to online update and interact with the robot tools. All updates will take effect
- * immediately without a power cycle. However, the robot must be in IDLE mode when applying changes.
+ * @brief Interface to manage tools of the robot. All updates take effect immediately without a
+ * power cycle. However, the robot must be in IDLE mode when applying changes.
  */
 class Tool
 {
 public:
     /**
-     * @brief [Non-blocking] Create an instance and initialize the interface.
+     * @brief [Non-blocking] Instantiate the robot tool interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */
@@ -50,20 +50,20 @@ public:
     virtual ~Tool();
 
     /**
-     * @brief [Blocking] Get a name list of all configured tools.
+     * @brief [Blocking] A list of all configured tools.
      * @return Tool names as a string list.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const std::vector<std::string> list() const;
+    std::vector<std::string> list() const;
 
     /**
-     * @brief [Blocking] Get name of the tool that the robot is currently using.
+     * @brief [Blocking] Name of the tool that the robot is currently using.
      * @return Name of the current tool. Return "Flange" if there's no active tool.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const std::string name() const;
+    std::string name() const;
 
     /**
      * @brief [Blocking] Whether the specified tool already exists.
@@ -75,29 +75,29 @@ public:
     bool exist(const std::string& name) const;
 
     /**
-     * @brief [Blocking] Get parameters of the tool that the robot is currently using.
+     * @brief [Blocking] Parameters of the tool that the robot is currently using.
      * @return ToolParams value copy.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const ToolParams params() const;
+    ToolParams params() const;
 
     /**
-     * @brief [Blocking] Get parameters of the specified tool.
+     * @brief [Blocking] Parameters of the specified tool.
      * @param[in] name Name of the tool to get parameters for, must be an existing one.
      * @return ToolParams value copy.
-     * @throw std::logic_error if the specified tool does not exist.
+     * @throw std::invalid_argument if the specified tool does not exist.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    const ToolParams params(const std::string& name) const;
+    ToolParams params(const std::string& name) const;
 
     /**
      * @brief [Blocking] Add a new tool with user-specified parameters.
      * @param[in] name Name of the new tool, must be unique.
      * @param[in] params Parameters of the new tool.
-     * @throw std::logic_error if robot is not in the correct control mode or the specified tool
-     * already exists.
+     * @throw std::invalid_argument if the specified tool already exists.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
@@ -108,8 +108,8 @@ public:
      * @brief [Blocking] Switch to an existing tool. All following robot operations will default to
      * use this tool.
      * @param[in] name Name of the tool to switch to, must be an existing one.
-     * @throw std::logic_error if robot is not in the correct control mode or the specified tool
-     * does not exist.
+     * @throw std::invalid_argument if the specified tool does not exist.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
@@ -120,8 +120,8 @@ public:
      * @brief [Blocking] Update the parameters of an existing tool.
      * @param[in] name Name of the tool to update, must be an existing one.
      * @param[in] params New parameters for the specified tool.
-     * @throw std::logic_error if robot is not in the correct control mode or the specified tool
-     * does not exist.
+     * @throw std::invalid_argument if the specified tool does not exist.
+     * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
@@ -131,13 +131,40 @@ public:
     /**
      * @brief [Blocking] Remove an existing tool.
      * @param[in] name Name of the tool to remove, must be an existing one but cannot be "Flange".
-     * @throw std::logic_error if robot is not in the correct control mode or the specified tool
-     * does not exist or trying to remove "Flange".
+     * @throw std::invalid_argument if the specified tool does not exist.
+     * @throw std::logic_error if robot is not in the correct control mode or trying to remove
+     * "Flange".
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
      */
     void Remove(const std::string& name);
+
+    /**
+     * @brief [Blocking] Calibrate the payload parameters (mass, CoM, and inertia) of a tool.
+     * @param[in] tool_mounted Whether the tool to be calibrated is mounted on the robot flange when
+     * triggering this calibration process. See details below.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if fault occurred during the calibration or failed to get the
+     * calibration result.
+     * @note Applicable control modes: IDLE.
+     * @note This function blocks until the calibration is finished.
+     * @warning [tcp_location] in the returned struct will be zeros and should be ignored.
+     * @par How to properly calibrate the payload parameters of a tool?
+     * 1. Call Switch("Flange") to disable any active tool from the robot software.
+     * 2. Physically mount the tool to be calibrated to robot flange.
+     * 3. Call this function with [tool_mounted] set to TRUE, then wait for completion. If the robot
+     * has a force-torque (FT) sensor (e.g. Rizon4s, Rizon10s), then the returned result will be
+     * accurate enough and the optional steps can be skipped. If the robot does not have an FT
+     * sensor (e.g. Rizon4, Rizon10), then the optional steps are recommended to improve accuracy.
+     * 4. (Optional) Physically unmount the tool from robot flange.
+     * 5. (Optional) Call this function again but with [tool_mounted] set to FALSE, then wait for
+     * completion.
+     * 6. Review the returned result and call Add() or Update() to apply the calibrated payload
+     * parameters to a new or existing tool. Note that [tcp_location] in the returned struct is
+     * invalid and cannot be used directly.
+     */
+    ToolParams CalibratePayloadParams(bool tool_mounted);
 
 private:
     class Impl;

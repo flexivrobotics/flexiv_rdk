@@ -6,15 +6,13 @@ This tutorial runs the integrated dynamics engine to obtain robot Jacobian, mass
 gravity torques. Also checks reachability of a Cartesian pose.
 """
 
-__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
 import argparse
 import spdlog  # pip install spdlog
-
-# Flexiv RDK Python library is installed to user site packages
-import flexivrdk
+import flexivrdk  # pip install flexivrdk
 
 
 def main():

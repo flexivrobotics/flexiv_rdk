@@ -6,19 +6,14 @@ This tutorial executes several basic robot primitives (unit skills). For detaile
 on all available primitives, please see [Flexiv Primitives](https://www.flexiv.com/primitives/).
 """
 
-__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
 import argparse
 import spdlog  # pip install spdlog
-
-# Utility methods
+import flexivrdk  # pip install flexivrdk
 from utility import quat2eulerZYX
-from utility import list2str
-
-# Flexiv RDK Python library is installed to user site packages
-import flexivrdk
 
 
 def main():
@@ -96,8 +91,6 @@ def main():
         #     waypoints: waypoints to pass before reaching the target
         #         (same format as above, but can be more than one)
         #     vel: TCP linear velocity, unit: m/s
-        # Optional properties:
-        #     lockExternalAxes: whether to allow the external axes to move or not
         logger.info("Executing primitive: MoveJ")
 
         # Send command to robot
@@ -115,9 +108,6 @@ def main():
                         [20, -60, -10, 60, -10, 30, 20], [-30, 20, 0, 0, 0, 0]
                     ),
                 ],
-            },
-            {
-                "lockExternalAxes": 0,
             },
         )
         # Most primitives won't exit by themselves and require users to explicitly trigger

@@ -12,7 +12,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "CMake build type" FORCE)
 endif()
 
-# Minumum example list for all OS
+# Minimum example list for all OS
 set(EXAMPLE_LIST
   basics1_display_robot_states
   basics2_clear_fault

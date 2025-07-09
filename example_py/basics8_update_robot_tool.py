@@ -2,20 +2,18 @@
 
 """basics8_update_robot_tool.py
 
-This tutorial shows how to online update and interact with the robot tools. All changes made to 
-the robot tool system will take effect immediately without needing to reboot. However, the robot 
+This tutorial shows how to online update and interact with the robot tools. All changes made to
+the robot tool system will take effect immediately without needing to reboot. However, the robot
 must be put into IDLE mode when making these changes.
 """
 
-__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
 import argparse
 import spdlog  # pip install spdlog
-
-# Flexiv RDK Python library is installed to user site packages
-import flexivrdk
+import flexivrdk  # pip install flexivrdk
 
 
 def main():

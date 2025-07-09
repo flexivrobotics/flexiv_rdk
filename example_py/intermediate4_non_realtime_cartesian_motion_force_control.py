@@ -7,7 +7,7 @@ chosen reference frame will be activated for explicit force control, while the r
 same reference frame will stay motion controlled.
 """
 
-__copyright__ = "Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
@@ -15,9 +15,8 @@ import math
 import argparse
 import spdlog  # pip install spdlog
 import numpy as np  # pip install numpy
+import flexivrdk  # pip install flexivrdk
 
-# Flexiv RDK Python library is installed to user site packages
-import flexivrdk
 
 # Global constants
 # ==================================================================================================
@@ -143,8 +142,8 @@ def main():
             "Zeroing force/torque sensors, make sure nothing is in contact with the robot"
         )
 
-        # Wait for primitive completion
-        while robot.busy():
+        # Wait for primitive to finish
+        while not robot.primitive_states()["terminated"]:
             time.sleep(1)
         logger.info("Sensor zeroing complete")
 

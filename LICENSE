@@ -199,3 +199,14 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+   APPENDIX: This software depends on the following third-party libraries, and users must comply to their licenses.
+      - Eigen: https://gitlab.com/libeigen/eigen/-/blob/master/LICENSE
+      - spdlog: https://github.com/gabime/spdlog/blob/v1.x/LICENSE
+      - tinyxml2: https://github.com/leethomason/tinyxml2/blob/master/LICENSE.txt
+      - foonathan_memory_vendor: https://github.com/eProsima/foonathan_memory_vendor/blob/master/LICENSE
+      - Fast-CDR: https://github.com/eProsima/Fast-CDR/blob/master/LICENSE
+      - Fast-DDS: https://github.com/eProsima/Fast-DDS/blob/master/LICENSE
+      - yaml-cpp: https://github.com/jbeder/yaml-cpp/blob/master/LICENSE
+      - SpaceVecAlg: https://github.com/jrl-umi3218/SpaceVecAlg/blob/master/LICENSE
+      - RBDyn: https://github.com/jrl-umi3218/RBDyn/blob/master/LICENSE

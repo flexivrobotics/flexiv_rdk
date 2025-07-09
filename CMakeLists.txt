@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16.3)
 # ===================================================================
 #      PROJECT SETUP
 # ===================================================================
-project(flexiv_rdk VERSION 1.6.0)
+project(flexiv_rdk VERSION 1.7.0)
 
 # Configure build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -26,7 +26,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64")
     set(RDK_STATIC_LIB "libflexiv_rdk.arm64-darwin.a")
   else()
-    message(FATAL_ERROR "Mac with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
+    message(FATAL_ERROR "macOS with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
   endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "AMD64")

@@ -1,6 +1,6 @@
 /**
  * @file maintenance.hpp
- * @copyright Copyright (C) 2016-2024 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  */
 
 #ifndef FLEXIV_RDK_MAINTENANCE_HPP_
@@ -13,14 +13,13 @@ namespace rdk {
 
 /**
  * @class Maintenance
- * @brief Interface to carry out robot maintenance operations. The robot must be in IDLE mode when
- * triggering any operations.
+ * @brief Interface to run maintenance operations on the robot.
  */
 class Maintenance
 {
 public:
     /**
-     * @brief [Non-blocking] Create an instance and initialize the interface.
+     * @brief [Non-blocking] Instantiate the robot maintenance interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
      */
@@ -39,7 +38,8 @@ public:
      * @throw std::invalid_argument if [cali_posture] contains any value outside the valid range, or
      * its size does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @throw std::runtime_error if fault occurred during the calibration or failed to save the
+     * calibration result.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the calibration is finished.
      * @warning The robot needs to be rebooted for the calibration result to take effect.
