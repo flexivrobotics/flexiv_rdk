@@ -33,7 +33,12 @@ public:
         const Eigen::Vector3d& gravity_vector = Eigen::Vector3d(0.0, 0.0, -9.81));
     virtual ~Model();
 
-    //========================================== DYNAMICS ==========================================
+    /**
+     * @brief [Non-blocking] Names of all links in the robot model.
+     * @return Names vector in the same order as the robot's kinematic chain.
+     */
+    std::vector<std::string> link_names() const;
+
     /**
      * @brief [Blocking] Reload (refresh) parameters of the robot model stored locally in this class
      * using the latest data synced from the connected robot. Tool model is also synced.
@@ -43,42 +48,29 @@ public:
      * @note This function does not affect the kinematics functions.
      * @warning Parameters of the locally-stored robot model must be manually refreshed using this
      * function whenever a physical change is made to the connected robot (e.g. a tool is added or
-     * changed). Otherwise all dynamics functions will return incorrect results.
+     * changed). Otherwise the locally computed functions will return incorrect results.
      */
     void Reload();
 
     /**
-     * @brief [Non-blocking] Update the configuration (posture) of the locally-stored robot model
-     * so that the dynamics functions return results based on the updated configuration.
+     * @brief [Non-blocking] Update the configuration (posture) of the locally-stored robot model so
+     * that the locally computed functions return results based on the updated configuration.
      * @param[in] positions Current joint positions: \f$ q \in \mathbb{R}^{n \times 1} \f$. Unit:
      * \f$ [rad] \f$.
      * @param[in] velocities Current joint velocities: \f$ \dot{q} \in \mathbb{R}^{n \times 1}
      * \f$. Unit: \f$ [rad/s] \f$.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
-     * @note This function does not affect the kinematics functions.
      */
     void Update(const std::vector<double>& positions, const std::vector<double>& velocities);
 
+    //========================================== DYNAMICS ==========================================
     /**
-     * @brief [Non-blocking] Compute and get the Jacobian matrix at the frame of the specified link
-     * \f$ i \f$, expressed in world frame.
-     * @param[in] link_name Name of the link to get Jacobian for.
-     * @return Jacobian matrix: \f$ ^{0}J_i \in \mathbb{R}^{m \times n} \f$.
-     * @throw std::out_of_range if the specified link_name does not exist.
-     * @note Call Update() before this function.
-     * @note Available links can be found in the provided URDF. They are {"base_link", "link1",
-     * "link2", "link3", "link4", "link5", "link6", "link7", "flange"}, plus "tool" if any flange
-     * tool is mounted.
-     */
-    Eigen::MatrixXd J(const std::string& link_name);
-
-    /**
-     * @brief [Non-blocking] Compute and get the time derivative of Jacobian matrix at the frame of
-     * the specified link \f$ i \f$, expressed in world frame.
-     * @param[in] link_name Name of the link to get Jacobian derivative for.
+     * @brief [Non-blocking] Compute the time derivative of Jacobian matrix at the specified frame
+     * w.r.t. world frame.
+     * @param[in] link_name Name of the link whose frame is the specified one.
      * @return Time derivative of the Jacobian matrix: \f$ ^{0}\dot{J_i} \in \mathbb{R}^{m \times n}
      * \f$.
-     * @throw std::out_of_range if the specified link_name does not exist.
+     * @throw std::invalid_argument if [link_name] does not exist.
      * @note Call Update() before this function.
      * @note Available links can be found in the provided URDF. They are {"base_link", "link1",
      * "link2", "link3", "link4", "link5", "link6", "link7", "flange"}, plus "tool" if any flange
@@ -87,8 +79,8 @@ public:
     Eigen::MatrixXd dJ(const std::string& link_name);
 
     /**
-     * @brief [Non-blocking] Compute and get the mass matrix for the generalized coordinates, i.e.
-     * joint space.
+     * @brief [Non-blocking] Compute the mass matrix for the generalized coordinates, i.e. joint
+     * space.
      * @return Symmetric positive definite mass matrix: \f$ M(q) \in \mathbb{S}^{n \times n}_{++}
      * \f$. Unit: \f$ [kgm^2] \f$.
      * @note Call Update() before this function.
@@ -96,7 +88,7 @@ public:
     Eigen::MatrixXd M();
 
     /**
-     * @brief [Non-blocking] Compute and get the Coriolis/centripetal matrix for the generalized
+     * @brief [Non-blocking] Compute the Coriolis/centripetal matrix for the generalized
      * coordinates, i.e. joint space.
      * @return Coriolis/centripetal matrix: \f$ C(q,\dot{q}) \in \mathbb{R}^{n \times n} \f$.
      * @note Call Update() before this function.
@@ -104,16 +96,16 @@ public:
     Eigen::MatrixXd C();
 
     /**
-     * @brief [Non-blocking] Compute and get the gravity force vector for the generalized
-     * coordinates, i.e. joint space.
+     * @brief [Non-blocking] Compute the gravity force vector for the generalized coordinates, i.e.
+     * joint space.
      * @return Gravity force vector: \f$ g(q) \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm] \f$.
      * @note Call Update() before this function.
      */
     Eigen::VectorXd g();
 
     /**
-     * @brief [Non-blocking] Compute and get the Coriolis force vector for the generalized
-     * coordinates, i.e. joint space.
+     * @brief [Non-blocking] Compute the Coriolis force vector for the generalized coordinates, i.e.
+     * joint space.
      * @return Coriolis force vector: \f$ c(q,\dot{q}) \in \mathbb{R}^{n \times 1} \f$. Unit: \f$
      * [Nm] \f$.
      * @note Call Update() before this function.
@@ -121,6 +113,17 @@ public:
     Eigen::VectorXd c();
 
     //========================================= KINEMATICS =========================================
+    /**
+     * @brief [Non-blocking] Compute the Jacobian matrix at the specified frame w.r.t. world frame.
+     * @param[in] link_name Name of the link whose frame is the specified one.
+     * @return Jacobian matrix: \f$ ^{0}J_i \in \mathbb{R}^{m \times n} \f$.
+     * @throw std::invalid_argument if [link_name] does not exist.
+     * @note Call Update() before this function.
+     * @note Available links can be found in the provided URDF. They are {"base_link", "link1",
+     * "link2", "link3", "link4", "link5", "link6", "link7", "flange"}, plus "tool" if any flange
+     * tool is mounted.
+     */
+    Eigen::MatrixXd J(const std::string& link_name);
     /**
      * @brief [Blocking] Sync the actual kinematic parameters of the connected robot into the
      * template URDF.
