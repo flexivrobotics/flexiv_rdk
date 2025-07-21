@@ -446,6 +446,8 @@ public:
      * \f$. Unit: \f$ [rad/s] \f$.
      * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{n \times
      * 1} \f$. Unit: \f$ [rad/s^2] \f$.
+     * @param[in] torques Feed forward joint torques: \f$ \tau_{fd} \in \mathbb{R}^{n \times 1} \f$.
+     * Unit: \f$ [Nm] \f$.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
@@ -455,7 +457,8 @@ public:
      * @see SetJointImpedance().
      */
     void StreamJointPosition(const std::vector<double>& positions,
-        const std::vector<double>& velocities, const std::vector<double>& accelerations);
+        const std::vector<double>& velocities, const std::vector<double>& accelerations,
+        const std::vector<double>& torques = {});
 
     /**
      * @brief [Non-blocking] Discretely send joint position, velocity, and acceleration command to
