@@ -40,9 +40,17 @@ public:
      * with this RDK library version, or is an unsupported robot model.
      * @warning This constructor blocks until the initialization sequence is successfully finished
      * and connection with the robot is established.
+     * @par Lite Instance
+     * Creating multiple instances of rdk::Robot that connect to the same robot is allowed. However,
+     * every additional instance brings extra overhead that can restrict the total number of
+     * instances due to limited computation power and network bandwidth. To mitigate the performance
+     * impact, it is recommended to create a lite instance of rdk::Robot if it only needs to send
+     * one-shot requests, which are functions marked with the [Blocking] tag. A lite instance does
+     * not receive robot states or system status, nor send motion commands.
      */
     Robot(const std::string& robot_sn,
-        const std::vector<std::string>& network_interface_whitelist = {}, bool verbose = true);
+        const std::vector<std::string>& network_interface_whitelist = {}, bool verbose = true,
+        bool lite = false);
     virtual ~Robot();
 
     //========================================= ACCESSORS ==========================================
