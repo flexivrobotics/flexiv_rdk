@@ -128,43 +128,34 @@ struct RobotInfo
      * external axes: \f$ n \f$. */
     size_t DoF = {};
 
-    /**
-     * Nominal motion stiffness of the Cartesian motion-force control modes: \f$ K_x^{nom} \in
+    /** Nominal motion stiffness of the Cartesian motion-force control modes: \f$ K_x^{nom} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and
      * \f$ \mathbb{R}^{3 \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry},
-     * k_{Rz}]^T \f$. Unit: \f$ [N/m]:[Nm/rad] \f$.
-     */
+     * k_{Rz}]^T \f$. Unit: \f$ [N/m]:[Nm/rad] \f$. */
     std::array<double, kCartDoF> K_x_nom = {};
 
-    /**
-     * Nominal motion stiffness of the joint impedance control modes: \f$ K_q^{nom} \in
-     * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm/rad] \f$.
-     */
+    /** Nominal motion stiffness of the joint impedance control modes: \f$ K_q^{nom} \in
+     * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm/rad] \f$. */
     std::vector<double> K_q_nom = {};
 
-    /**
-     * Lower software limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
-     * Unit: \f$ [rad] \f$.
-     */
+    /** Lower software limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
+     * Unit: \f$ [rad] \f$. */
     std::vector<double> q_min = {};
 
-    /**
-     * Upper software limits of joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1} \f$.
-     * Unit: \f$ [rad] \f$.
-     */
+    /** Upper software limits of joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1} \f$.
+     * Unit: \f$ [rad] \f$. */
     std::vector<double> q_max = {};
 
-    /**
-     * Upper software limits of joint velocities: \f$ \dot{q}_{max} \in \mathbb{R}^{n \times 1} \f$.
-     * Unit: \f$ [rad/s] \f$.
-     */
+    /** Upper software limits of joint velocities: \f$ \dot{q}_{max} \in \mathbb{R}^{n \times 1}
+     * \f$. Unit: \f$ [rad/s] \f$. */
     std::vector<double> dq_max = {};
 
-    /**
-     * Upper software limits of joint torques: \f$ \tau_{max} \in \mathbb{R}^{n \times 1} \f$.
-     * Unit: \f$ [Nm] \f$.
-     */
+    /** Upper software limits of joint torques: \f$ \tau_{max} \in \mathbb{R}^{n \times 1} \f$.
+     * Unit: \f$ [Nm] \f$. */
     std::vector<double> tau_max = {};
+
+    /** Whether the robot has a force-torque (FT) sensor installed */
+    bool has_FT_sensor = false;
 };
 
 /**
