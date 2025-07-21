@@ -508,6 +508,20 @@ public:
      */
     void SetJointImpedance(const std::vector<double>& K_q, const std::vector<double>& Z_q = {});
 
+    /**
+     * @brief [Blocking] Set maximum contact torque for the robot's joint motion controller used in
+     * the joint impedance control modes. The controller will regulate its output to maintain
+     * contact torque with the environment under the set values.
+     * @param[in] max_torque Maximum contact torque: \f$ T_q \in \mathbb{R}^{n \times 1} \f$.
+     * Setting maximum contact torque of a joint axis to 0 will make this axis free-floating.
+     * Valid range: [0, RobotInfo::tau_max]. Unit: \f$ [Nm] \f$.
+     * @throw std::invalid_argument if [max_torque] contains any negative value.
+     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
+     * @note This function blocks until the request is successfully delivered.
+     */
+    void SetMaxContactTorque(const std::vector<double>& max_torque);
+
     //================================== DIRECT CARTESIAN CONTROL ==================================
     /**
      * @brief [Non-blocking] Continuously stream Cartesian motion and/or force command for the robot
