@@ -522,6 +522,23 @@ public:
      */
     void SetMaxContactTorque(const std::vector<double>& max_torque);
 
+    /**
+     * @brief [Blocking] Set inertia shaping scale for the robot's joint motion controller used in
+     * the joint impedance control modes.
+     * @param[in] inertia_scale Inertia shaping scale: \f$ \sigma_q \in \mathbb{R}^{n \times 1} \f$.
+     * Valid range: [0.75, 1.0]. The nominal (safe) value 1.0 is provided as default.
+     * @throw std::invalid_argument if [inertia_scale] contains any negative value.
+     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
+     * @note This function blocks until the request is successfully delivered.
+     * @par Joint inertia scale
+     * In joint impedance control modes, it is possible to shape down the natural inertia of the arm
+     * to make the robot lighter during floating. The joint inertia scale controls the scale between
+     * the shaped inertia and natural inertia of each joint axis. The lower one scale is, the
+     * lighter the corresponding joint axis becomes.
+     */
+    void SetJointInertiaScale(const std::vector<double>& inertia_scale);
+
     //================================== DIRECT CARTESIAN CONTROL ==================================
     /**
      * @brief [Non-blocking] Continuously stream Cartesian motion and/or force command for the robot
