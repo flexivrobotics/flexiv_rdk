@@ -55,6 +55,12 @@ public:
 
     //========================================= ACCESSORS ==========================================
     /**
+     * @brief [Non-blocking] Whether this rdk::Robot instance is a lite one.
+     * @return True: is a lite instance; false: not a lite instance.
+     */
+    bool lite() const;
+
+    /**
      * @brief [Non-blocking] Whether the connection with the robot is established.
      * @return True: connected; false: disconnected.
      */
