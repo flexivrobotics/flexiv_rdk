@@ -28,12 +28,13 @@ public:
      * @brief [Blocking] Instantiate the robot control interface. RDK services will be started and
      * establish connection with the target robot.
      * @param[in] robot_sn Serial number of the robot to connect. The accepted formats are:
-     * "Rizon 4-123456" and "Rizon4-123456".
+     * "Rizon 4s-123456" and "Rizon4s-123456".
      * @param[in] network_interface_whitelist Limit the network interface(s) that can be used to try
      * to establish connection with the specified robot. The whitelisted network interface is
      * defined by its associated IPv4 address. For example, {"10.42.0.1", "192.168.2.102"}. If left
      * empty, all available network interfaces will be tried when searching for the specified robot.
      * @param[in] verbose Enable/disable info and warning prints.
+     * @param[in] lite Whether to create a lite instance. See details below.
      * @throw std::invalid_argument if the format of [robot_sn] is invalid.
      * @throw std::runtime_error if the initialization sequence failed.
      * @throw std::logic_error if the connected robot lacks a valid RDK license, or is incompatible
@@ -394,7 +395,9 @@ public:
      * @note Applicable control modes: NRT_PRIMITIVE_EXECUTION.
      * @note This function blocks until the request is successfully delivered if
      * [block_until_started] is disabled, or until the primitive has started execution if
-     * [block_until_started] is enabled.
+     * [block_until_started] is enabled. After this function returns, the primitive will still be
+     * running, thus the users need to implement their own blocking after calling this function. See
+     * examples for reference.
      * @warning The primitive input parameters may not use SI units, please refer to the Flexiv
      * Primitives documentation for exact unit definition.
      * @warning Most primitives won't exit by themselves and require users to explicitly trigger
