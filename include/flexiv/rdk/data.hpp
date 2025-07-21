@@ -236,23 +236,31 @@ struct RobotStates
     std::vector<double> tau_ext = {};
 
     /**
-     * Measured TCP pose expressed in world frame: \f$ ^{O}T_{TCP} \in \mathbb{R}^{7 \times 1} \f$.
+     * Interaction joint torques of the full system: \f$ \hat \tau_{tau_interact} \in \mathbb{R}^{n
+     * \times 1} \f$. Produced by any interaction forces at the TCP. Unit: \f$ [Nm] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has no torque measurement, then the corresponding value will be 0.
+     */
+    std::vector<double> tau_interact = {};
+
+    /**
+     * Measured TCP pose w.r.t. world frame: \f$ ^{O}T_{TCP} \in \mathbb{R}^{7 \times 1} \f$.
      * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
      * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
      */
     std::array<double, kPoseSize> tcp_pose = {};
 
     /**
-     * Measured TCP velocity expressed in world frame: \f$ ^{O}\dot{X} \in \mathbb{R}^{6 \times 1}
-     * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear velocity and \f$ \mathbb{R}^{3 \times
-     * 1} \f$ angular velocity: \f$ [v_x, v_y, v_z, \omega_x, \omega_y, \omega_z]^T \f$.
-     * Unit: \f$ [m/s]:[rad/s] \f$.
+     * Measured TCP velocity w.r.t. world frame: \f$ ^{O}\dot{X} \in \mathbb{R}^{6 \times 1} \f$.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear velocity and \f$ \mathbb{R}^{3 \times 1}
+     * \f$ angular velocity: \f$ [v_x, v_y, v_z, \omega_x, \omega_y, \omega_z]^T \f$. Unit: \f$
+     * [m/s]:[rad/s] \f$.
      */
     std::array<double, kCartDoF> tcp_vel = {};
 
     /**
-     * Measured flange pose expressed in world frame: \f$ ^{O}T_{flange} \in \mathbb{R}^{7 \times 1}
-     * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
+     * Measured flange pose w.r.t. world frame: \f$ ^{O}T_{flange} \in \mathbb{R}^{7 \times 1} \f$.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
      * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
      */
     std::array<double, kPoseSize> flange_pose = {};
@@ -266,7 +274,7 @@ struct RobotStates
     std::array<double, kCartDoF> ft_sensor_raw = {};
 
     /**
-     * Estimated external wrench applied on TCP and expressed in TCP frame: \f$ ^{TCP}F_{ext} \in
+     * Estimated external wrench w.r.t. TCP frame, applied on TCP: \f$ ^{TCP}F_{ext} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
      * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
      * Unit: \f$ [N]:[Nm] \f$.
@@ -274,7 +282,7 @@ struct RobotStates
     std::array<double, kCartDoF> ext_wrench_in_tcp = {};
 
     /**
-     * Estimated external wrench applied on TCP and expressed in world frame: \f$ ^{0}F_{ext} \in
+     * Estimated external wrench w.r.t. world frame, applied on TCP: \f$ ^{0}F_{ext} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
      * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
      * Unit: \f$ [N]:[Nm] \f$.
