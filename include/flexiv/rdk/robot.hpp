@@ -446,8 +446,6 @@ public:
      * \f$. Unit: \f$ [rad/s] \f$.
      * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{n \times
      * 1} \f$. Unit: \f$ [rad/s^2] \f$.
-     * @param[in] torques Feed forward joint torques: \f$ \tau_{fd} \in \mathbb{R}^{n \times 1} \f$.
-     * Unit: \f$ [Nm] \f$.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if number of timeliness failures has reached limit.
@@ -457,8 +455,7 @@ public:
      * @see SetJointImpedance().
      */
     void StreamJointPosition(const std::vector<double>& positions,
-        const std::vector<double>& velocities, const std::vector<double>& accelerations,
-        const std::vector<double>& torques = {});
+        const std::vector<double>& velocities, const std::vector<double>& accelerations);
 
     /**
      * @brief [Non-blocking] Discretely send joint position, velocity, and acceleration command to
@@ -509,35 +506,35 @@ public:
     void SetJointImpedance(const std::vector<double>& K_q, const std::vector<double>& Z_q = {});
 
     /**
-     * @brief [Blocking] Set maximum contact torque for the robot's joint motion controller used in
+     * @brief [Blocking] Set maximum contact torques for the robot's joint motion controller used in
      * the joint impedance control modes. The controller will regulate its output to maintain
-     * contact torque with the environment under the set values.
-     * @param[in] max_torque Maximum contact torque: \f$ T_q \in \mathbb{R}^{n \times 1} \f$.
-     * Setting maximum contact torque of a joint axis to 0 will make this axis free-floating.
+     * contact torques with the environment under the set values.
+     * @param[in] max_torques Maximum contact torques: \f$ tau_q \in \mathbb{R}^{n \times 1} \f$.
      * Valid range: [0, RobotInfo::tau_max]. Unit: \f$ [Nm] \f$.
-     * @throw std::invalid_argument if [max_torque] contains any negative value.
+     * @throw std::invalid_argument if [max_torques] contains any value outside the valid range or
+     * its size does not match robot DoF.
      * @throw std::logic_error if robot is not in an applicable control mode.
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
      * @note This function blocks until the request is successfully delivered.
      */
-    void SetMaxContactTorque(const std::vector<double>& max_torque);
+    void SetMaxContactTorque(const std::vector<double>& max_torques);
 
     /**
-     * @brief [Blocking] Set inertia shaping scale for the robot's joint motion controller used in
+     * @brief [Blocking] Set inertia shaping scales for the robot's joint motion controller used in
      * the joint impedance control modes.
-     * @param[in] inertia_scale Inertia shaping scale: \f$ \sigma_q \in \mathbb{R}^{n \times 1} \f$.
-     * Valid range: [0.75, 1.0]. The nominal (safe) value 1.0 is provided as default.
-     * @throw std::invalid_argument if [inertia_scale] contains any negative value.
+     * @param[in] inertia_scales Inertia shaping scales: \f$ \sigma_q \in \mathbb{R}^{n \times 1}
+     * \f$. Valid range: [0.75, 1.0]. The nominal (safe) value is 1.0, which means no shaping.
+     * @throw std::invalid_argument if [inertia_scales] contains any value outside the valid range
+     * or its size does not match robot DoF.
      * @throw std::logic_error if robot is not in an applicable control mode.
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
      * @note This function blocks until the request is successfully delivered.
-     * @par Joint inertia scale
-     * In joint impedance control modes, it is possible to shape down the natural inertia of the arm
-     * to make the robot lighter during floating. The joint inertia scale controls the scale between
-     * the shaped inertia and natural inertia of each joint axis. The lower one scale is, the
-     * lighter the corresponding joint axis becomes.
+     * @par Joint inertia shaping
+     * In joint impedance control modes, it is possible to shape down the natural inertia of the
+     * joints to make them behave as if they are lighter. The parameter [inertia_scales] sets the
+     * scale of shaped/natural inertia for each joint. Smaller scale corresponds to lighter inertia.
      */
-    void SetJointInertiaScale(const std::vector<double>& inertia_scale);
+    void SetJointInertiaScale(const std::vector<double>& inertia_scales);
 
     //================================== DIRECT CARTESIAN CONTROL ==================================
     /**
@@ -685,7 +682,7 @@ public:
      * \f$ q_{ns} \in \mathbb{R}^{n \times 1} \f$. Valid range: [RobotInfo::q_min,
      * RobotInfo::q_max]. Unit: \f$ [rad] \f$.
      * @throw std::invalid_argument if [ref_positions] contains any value outside the valid
-     * range or size of any input vector does not match robot DoF.
+     * range or its size does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,
