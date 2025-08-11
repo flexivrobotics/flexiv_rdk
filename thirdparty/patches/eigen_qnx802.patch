@@ -1,0 +1,23 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 2bfb6d560..e2a1310f2 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -82,18 +82,6 @@ endmacro(ei_add_cxx_compiler_flag)
+ 
+ check_cxx_compiler_flag("-std=c++11" EIGEN_COMPILER_SUPPORT_CPP11)
+ 
+-if(EIGEN_TEST_CXX11)
+-  set(CMAKE_CXX_STANDARD 11)
+-  set(CMAKE_CXX_EXTENSIONS OFF)
+-  if(EIGEN_COMPILER_SUPPORT_CPP11)
+-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+-  endif()
+-else()
+-  #set(CMAKE_CXX_STANDARD 03)
+-  #set(CMAKE_CXX_EXTENSIONS OFF)
+-  ei_add_cxx_compiler_flag("-std=c++03")
+-endif()
+-
+ #############################################################################
+ # find how to link to the standard libraries                                #
+ #############################################################################

@@ -11,11 +11,12 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 ## Environment Compatibility
 
-| **OS**                | **Platform**  | **C++ compiler kit** | **Python interpreter** |
-| --------------------- | ------------- | -------------------- | ---------------------- |
-| Linux (Ubuntu 20.04+) | x86_64, arm64 | GCC   v9.4+          | 3.8, 3.10, 3.12        |
-| macOS 12+             | arm64         | Clang v14.0+         | 3.10, 3.12             |
-| Windows 10+           | x86_64        | MSVC  v14.2+         | 3.8, 3.10, 3.12        |
+| **OS**                | **Platform**    | **C++ compiler kit** | **Python interpreter** |
+| --------------------- | --------------- | -------------------- | ---------------------- |
+| Linux (Ubuntu 20.04+) | x86_64, aarch64 | GCC   v9.4+          | 3.8, 3.10, 3.12        |
+| macOS 12+             | arm64           | Clang v14.0+         | 3.10, 3.12             |
+| Windows 10+           | x86_64          | MSVC  v14.2+         | 3.8, 3.10, 3.12        |
+| QNX 8.0.2+            | x86_64, aarch64 | QCC   v12.2+         | Not supported          |
 
 **IMPORTANT**: You might need to turn off your computer's firewall or whitelist the RDK programs to be able to establish connection with the robot.
 
@@ -85,21 +86,46 @@ For example:
 2. Install CMake: Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or a bash emulator.
 3. Install bash emulator: Download and install [Git for Windows](https://git-scm.com/download/win/), which comes with a bash emulator Git Bash. The following steps are to be carried out in this bash emulator.
 
+#### QNX
+
+1. Prepare a host computer with Ubuntu 22.04 or higher.
+2. Download and install [QNX SDP 8.0.2](https://blackberry.qnx.com/en/products/foundation-software/qnx-software-development-platform) to the host computer. You'll need a trial or commercial license.
+3. Install CMake on the host computer using package manager:
+
+       sudo apt install cmake
+
 ### Install the C++ library
 
-The following steps are identical on all supported platforms.
+The following steps are mostly the same on all supported platforms, with some variations.
 
 1. Choose a directory for installing the C++ library of RDK and its dependencies. This directory can be under system path or not, depending on whether you want RDK to be globally discoverable by CMake. For example, a new folder named ``rdk_install`` under the home directory.
 2. In a new Terminal, run the provided script to compile and install all dependencies to the installation directory chosen in step 1:
 
        cd flexiv_rdk/thirdparty
+
+   For non-QNX:
+
        bash build_and_install_dependencies.sh ~/rdk_install
 
-3. In a new Terminal, configure the ``flexiv_rdk`` CMake project:
+   For QNX:
+
+       source <qnx-sdp-dir>/qnxsdp-env.sh
+       bash build_and_install_dependencies.sh ~/rdk_install $(nproc) <path-to-qnx-toolchain-file>
+
+   NOTE: the QNX toolchain files are located under ``flexiv_rdk/cmake`` directory, with one for x86_64 target and one for aarch64 target.
+
+3. In the same Terminal, configure the ``flexiv_rdk`` CMake project:
 
        cd flexiv_rdk
        mkdir build && cd build
+
+   For non-QNX:
+
        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
+
+   For QNX:
+
+       cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install -DCMAKE_TOOLCHAIN_FILE=<path-to-qnx-toolchain-file>
 
    NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` sets the absolute path of the installation directory, which should be the one chosen in step 1.
 
@@ -114,7 +140,15 @@ After the library is installed as ``flexiv_rdk`` CMake target, it can be linked 
 
     cd flexiv_rdk/example
     mkdir build && cd build
+
+For non-QNX:
+
     cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install
+    cmake --build . --config Release -j 4
+
+For QNX:
+
+    cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install -DCMAKE_TOOLCHAIN_FILE=<path-to-qnx-toolchain-file>
     cmake --build . --config Release -j 4
 
 NOTE: ``-D`` followed by ``CMAKE_PREFIX_PATH`` tells the user project's CMake where to find the installed C++ library. This argument can be skipped if the RDK library and its dependencies are installed to a globally discoverable location.
