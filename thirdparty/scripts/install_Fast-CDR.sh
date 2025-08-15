@@ -12,7 +12,7 @@ fi
 
 # Use specific version
 git fetch -p
-git checkout v1.0.24
+git checkout v1.0.28
 
 # Configure CMake
 mkdir -p build && cd build

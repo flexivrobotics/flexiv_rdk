@@ -13,7 +13,7 @@ fi
 
 # Use specific version
 git fetch -p
-git checkout v2.6.7
+git checkout v2.6.10
 git submodule update --init --recursive
 
 # Apply patch if building for QNX
