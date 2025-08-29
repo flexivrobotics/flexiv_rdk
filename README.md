@@ -20,7 +20,7 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 ## Important Notice
 
-Before trying to run any RDK program, please make sure to carefully go through the [First Time Setup](https://flexiv.com/software/rdk/manual/index.html#first-time-setup) chapter in RDK Manual. Otherwise, you might run into blocking issues.
+Before trying to run any RDK program, please make sure to carefully go through the [First Time Setup](https://www.flexiv.com/software/rdk/manual/index.html#first-time-setup) chapter in RDK Manual. Otherwise, you might run into blocking issues.
 
 ## Quick Start - Python
 
