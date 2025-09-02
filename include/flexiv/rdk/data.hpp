@@ -205,7 +205,7 @@ struct RobotStates
      * Measured joint torques of the full system: \f$ \tau \in \mathbb{R}^{n \times 1} \f$. Unit:
      * \f$ [Nm] \f$.
      * @note This contains values for both the external axes (if any) and the robot manipulator.
-     * @note If a joint has no torque measurement, then the corresponding value will be 0.
+     * @note If a joint has no torque measurement, the corresponding value will be 0.
      */
     std::vector<double> tau = {};
 
@@ -214,7 +214,7 @@ struct RobotStates
      * Compensation of nonlinear dynamics (gravity, centrifugal, and Coriolis) is excluded. Unit:
      * \f$ [Nm] \f$.
      * @note This contains values for both the external axes (if any) and the robot manipulator.
-     * @note If a joint has no torque control capability, then the corresponding value will be 0.
+     * @note If a joint has no torque control capability, the corresponding value will be 0.
      */
     std::vector<double> tau_des = {};
 
@@ -222,7 +222,7 @@ struct RobotStates
      * Numerical derivative of measured joint torques of the full system: \f$ \dot{\tau} \in
      * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm/s] \f$.
      * @note This contains values for both the external axes (if any) and the robot manipulator.
-     * @note If a joint has no torque measurement, then the corresponding value will be 0.
+     * @note If a joint has no torque measurement, the corresponding value will be 0.
      */
     std::vector<double> tau_dot = {};
 
@@ -231,17 +231,25 @@ struct RobotStates
      * \times 1} \f$. Produced by any external contact (with robot body or end-effector) that does
      * not belong to the known robot model. Unit: \f$ [Nm] \f$.
      * @note This contains values for both the external axes (if any) and the robot manipulator.
-     * @note If a joint has no torque measurement, then the corresponding value will be 0.
+     * @note If a joint has no torque measurement, the corresponding value will be 0.
      */
     std::vector<double> tau_ext = {};
 
     /**
-     * Interaction joint torques of the full system: \f$ \hat \tau_{tau_interact} \in \mathbb{R}^{n
+     * Estimated interaction joint torques of the full system: \f$ \hat \tau_{int} \in \mathbb{R}^{n
      * \times 1} \f$. Produced by any interaction forces at the TCP. Unit: \f$ [Nm] \f$.
      * @note This contains values for both the external axes (if any) and the robot manipulator.
-     * @note If a joint has no torque measurement, then the corresponding value will be 0.
+     * @note If a joint has no torque measurement, the corresponding value will be 0.
      */
     std::vector<double> tau_interact = {};
+
+    /**
+     * Measured joint temperatures of the full system: \f$ T_i \in \mathbb{R}^{n \times 1} \f$.
+     * Unit: \f$ [°C] \f$.
+     * @note This contains values for both the external axes (if any) and the robot manipulator.
+     * @note If a joint has no temperature measurement, the corresponding value will be 0.
+     */
+    std::vector<double> Ti = {};
 
     /**
      * Measured TCP pose w.r.t. world frame: \f$ ^{O}T_{TCP} \in \mathbb{R}^{7 \times 1} \f$.
