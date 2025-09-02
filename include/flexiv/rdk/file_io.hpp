@@ -35,7 +35,15 @@ public:
     std::vector<std::string> traj_files_list() const;
 
     /**
-     * @brief [Blocking] Upload a trajectory file (.traj) to the robot.
+     * @brief [Blocking] A list of all user projects currently stored in the connected robot.
+     * @return Project names as a string list.
+     * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note This function blocks until a reply is received.
+     */
+    std::vector<std::string> projects_list() const;
+
+    /**
+     * @brief [Blocking] Upload a local trajectory file (.traj) to the robot.
      * @param[in] file_dir Relative or absolute path of the directory that contains the file to
      * upload, e.g. /home/user/Documents/. Do not include the file name here.
      * @param[in] file_name Full name of the trajectory file to upload, including the extension.
