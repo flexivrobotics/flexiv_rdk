@@ -830,9 +830,6 @@ public:
      */
     void SetDigitalOutputs(const std::map<unsigned int, bool>& digital_outputs);
 
-    [[deprecated("Use the other SetDigitalOutputs() instead")]] void SetDigitalOutputs(
-        const std::vector<unsigned int>& port_idx, const std::vector<bool>& values);
-
     /**
      * @brief [Non-blocking] Current reading from all digital input ports, including 16 on the
      * control box plus 2 inside the wrist connector.
