@@ -265,9 +265,21 @@ public:
      * @param[in] toggle True: the external axes are locked and will not move; false: the external
      * axes are not locked and will move. By default, the external axes are locked.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
      */
     void LockExternalAxes(bool toggle);
+
+    /**
+     * @brief [Blocking] Sync/unsync the robot TCP's motion with the movement of the positioner (if
+     * any) during primitive execution.
+     * @param[in] toggle True: the motion sync is on; false: motion sync is off. By default, the
+     * motion sync is off.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Only applicable to certain primitives that support motion sync with the positioner.
+     * @note This function blocks until the request is successfully delivered.
+     */
+    void SyncWithPositioner(bool toggle);
 
     //======================================= PLAN EXECUTION =======================================
     /**
