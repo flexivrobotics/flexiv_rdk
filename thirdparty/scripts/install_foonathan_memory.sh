@@ -13,7 +13,6 @@ fi
 # Use specific version
 git fetch -p
 git checkout v1.3.1
-git submodule update --init --recursive
 
 # Configure CMake
 mkdir -p build && cd build
