@@ -333,6 +333,15 @@ public:
     void PausePlan(bool toggle);
 
     /**
+     * @brief [Blocking] Stop the execution of the current plan.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: NRT_PLAN_EXECUTION.
+     * @note This function blocks until the request is successfully delivered.
+     */
+    void StopPlan();
+
+    /**
      * @brief [Blocking] A list of all available plans.
      * @return Available plans as a string list.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
