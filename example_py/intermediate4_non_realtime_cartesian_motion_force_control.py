@@ -172,7 +172,7 @@ def main():
 
         # Send target point to robot to start searching for contact and limit the velocity. Keep
         # target wrench 0 at this stage since we are not doing force control yet
-        robot.SendCartesianMotionForce(target_pose, [0] * 6, SEARCH_VELOCITY)
+        robot.SendCartesianMotionForce(target_pose, [0] * 6, [0] * 6, SEARCH_VELOCITY)
 
         # Use a while loop to poll robot states and check if a contact is made
         is_contacted = False
