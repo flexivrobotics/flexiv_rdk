@@ -621,6 +621,12 @@ public:
      * robot will track the target wrench using an explicit force controller. Consists of \f$
      * \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y,
      * f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]:[Nm] \f$.
+     * @param[in] velocity Target TCP velocity (linear and angular) in world frame when reaching the
+     * target pose specified above: \f$ ^{0}\dot{x}_d \in \mathbb{R}^{6 \times 1} \f$. Providing
+     * properly calculated target velocity can improve the robot's overall tracking performance at
+     * the cost of reduced robustness. Leaving this input 0 can maximize robustness at the cost of
+     * reduced tracking performance. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear and \f$
+     * \mathbb{R}^{3 \times 1} \f$ angular velocity. Unit: \f$ [m/s]:[rad/s] \f$.
      * @param[in] max_linear_vel Maximum Cartesian linear velocity when moving to the target pose.
      * A safe value is provided as default. Unit: \f$ [m/s] \f$.
      * @param[in] max_angular_vel Maximum Cartesian angular velocity when moving to the target
@@ -649,7 +655,8 @@ public:
      * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
      */
     void SendCartesianMotionForce(const std::array<double, kPoseSize>& pose,
-        const std::array<double, kCartDoF>& wrench = {}, double max_linear_vel = 0.5,
+        const std::array<double, kCartDoF>& wrench = {},
+        const std::array<double, kCartDoF>& velocity = {}, double max_linear_vel = 0.5,
         double max_angular_vel = 1.0, double max_linear_acc = 2.0, double max_angular_acc = 5.0);
 
     /**
