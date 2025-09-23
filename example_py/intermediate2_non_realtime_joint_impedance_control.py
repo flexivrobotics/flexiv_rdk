@@ -146,9 +146,7 @@ def main():
                 logger.info("Joint impedance properties are reset")
 
             # Send commands
-            robot.SendJointPosition(
-                target_pos, target_vel, target_acc, MAX_VEL, MAX_ACC
-            )
+            robot.SendJointPosition(target_pos, target_vel, MAX_VEL, MAX_ACC)
 
             # Increment loop counter
             loop_counter += 1
