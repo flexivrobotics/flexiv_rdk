@@ -440,7 +440,7 @@ public:
 
     //==================================== DIRECT JOINT CONTROL ====================================
     /**
-     * @brief [Non-blocking] Continuously stream joint torque command to the robot.
+     * @brief [Non-blocking] Continuously stream joint torque commands to the robot.
      * @param[in] torques Target joint torques: \f$ {\tau_J}_d \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [Nm] \f$.
      * @param[in] enable_gravity_comp Enable/disable robot gravity compensation.
@@ -458,7 +458,7 @@ public:
         bool enable_soft_limits = true);
 
     /**
-     * @brief [Non-blocking] Continuously stream joint position, velocity, and acceleration command
+     * @brief [Non-blocking] Continuously stream joint position, velocity, and acceleration commands
      * to the robot. The commands are tracked by either the joint impedance controller or the joint
      * position controller, depending on the control mode.
      * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{n \times 1} \f$. Unit:
@@ -479,18 +479,15 @@ public:
         const std::vector<double>& velocities, const std::vector<double>& accelerations);
 
     /**
-     * @brief [Non-blocking] Discretely send joint position, velocity, and acceleration command to
-     * the robot. The robot's internal motion generator will smoothen the discrete commands, which
-     * are tracked by either the joint impedance controller or the joint position controller,
-     * depending on the control mode.
+     * @brief [Non-blocking] Discretely send joint position and velocity commands to the robot. The
+     * robot's internal motion generator will smoothen the discrete commands, which are tracked by
+     * either the joint impedance controller or the joint position controller, depending on the
+     * control mode.
      * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{n \times 1} \f$. Unit:
      * \f$ [rad] \f$.
      * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{n \times 1}
      * \f$. Each joint will maintain this amount of velocity when it reaches the target position.
      * Unit: \f$ [rad/s] \f$.
-     * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{n \times
-     * 1} \f$. Each joint will maintain this amount of acceleration when it reaches the target
-     * position. Unit: \f$ [rad/s^2] \f$.
      * @param[in] max_vel Maximum joint velocities for the planned trajectory: \f$ \dot{q}_{max} \in
      * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
      * @param[in] max_acc Maximum joint accelerations for the planned trajectory: \f$ \ddot{q}_{max}
@@ -504,8 +501,8 @@ public:
      * @see SetJointImpedance().
      */
     void SendJointPosition(const std::vector<double>& positions,
-        const std::vector<double>& velocities, const std::vector<double>& accelerations,
-        const std::vector<double>& max_vel, const std::vector<double>& max_acc);
+        const std::vector<double>& velocities, const std::vector<double>& max_vel,
+        const std::vector<double>& max_acc);
 
     /**
      * @brief [Blocking] Set impedance properties of the robot's joint motion controller used in
@@ -535,6 +532,7 @@ public:
      * @throw std::invalid_argument if [max_torques] contains any value outside the valid range or
      * its size does not match robot DoF.
      * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
      * @note This function blocks until the request is successfully delivered.
      */
@@ -548,6 +546,7 @@ public:
      * @throw std::invalid_argument if [inertia_scales] contains any value outside the valid range
      * or its size does not match robot DoF.
      * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
      * @note This function blocks until the request is successfully delivered.
      * @par Joint inertia shaping
@@ -559,9 +558,9 @@ public:
 
     //================================== DIRECT CARTESIAN CONTROL ==================================
     /**
-     * @brief [Non-blocking] Continuously stream Cartesian motion and/or force command for the robot
-     * to track using its unified motion-force controller, which allows doing force control in zero
-     * or more Cartesian axes and motion control in the rest axes.
+     * @brief [Non-blocking] Continuously stream Cartesian motion and/or force commands for the
+     * robot to track using its unified motion-force controller, which allows doing force control in
+     * zero or more Cartesian axes and motion control in the rest axes.
      * @param[in] pose Target TCP pose in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7
      * \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
      * \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
@@ -609,7 +608,7 @@ public:
         const std::array<double, kCartDoF>& acceleration = {});
 
     /**
-     * @brief [Non-blocking] Discretely send Cartesian motion and/or force command for the robot to
+     * @brief [Non-blocking] Discretely send Cartesian motion and/or force commands for the robot to
      * track using its unified motion-force controller, which allows doing force control in zero or
      * more Cartesian axes and motion control in the rest axes. The robot's internal motion
      * generator will smoothen the discrete commands.
