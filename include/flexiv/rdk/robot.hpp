@@ -492,7 +492,8 @@ public:
      * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
      * @param[in] max_acc Maximum joint accelerations for the planned trajectory: \f$ \ddot{q}_{max}
      * \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
-     * @throw std::invalid_argument if size of any input vector does not match robot DoF.
+     * @throw std::invalid_argument if size of any input vector does not match robot DoF, or
+     * [max_vel] or [max_acc] contains any non-positive value.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @note Applicable control modes: NRT_JOINT_IMPEDANCE, NRT_JOINT_POSITION.
      * @warning Calling this function a second time while the motion from the previous call is still
@@ -634,7 +635,7 @@ public:
      * pose. A safe value is provided as default. Unit: \f$ [m/s^2] \f$.
      * @param[in] max_angular_acc Maximum Cartesian angular acceleration when moving to the target
      * pose. A safe value is provided as default. Unit: \f$ [rad/s^2] \f$.
-     * @throw std::invalid_argument if any of the last 4 input parameters is negative.
+     * @throw std::invalid_argument if any of the last 4 input parameters is not positive.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @note Applicable control modes: NRT_CARTESIAN_MOTION_FORCE, NRT_SUPER_PRIMITIVE.
      * @warning Same as Flexiv Elements, the target wrench is expressed as wrench sensed at TCP
