@@ -3,17 +3,19 @@
 set -e
 echo "Installing Fast-DDS"
 
+# Use a specific version
+VER_TAG=v2.6.10
+
 # Clone source code
 if [ ! -d Fast-DDS ] ; then
-  git clone https://github.com/eProsima/Fast-DDS.git
+  git clone https://github.com/eProsima/Fast-DDS.git --branch $VER_TAG
   cd Fast-DDS
 else
   cd Fast-DDS
+  git checkout $VER_TAG
 fi
 
-# Use specific version
-git fetch -p
-git checkout v2.6.10
+# Initialize submodules
 git submodule update --init --recursive
 
 # Apply patch if building for QNX

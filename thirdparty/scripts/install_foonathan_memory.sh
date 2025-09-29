@@ -2,17 +2,17 @@
 set -e
 echo "Installing foonathan_memory"
 
+# Use a specific version
+VER_TAG=v1.3.1
+
 # Clone source code
 if [ ! -d foonathan_memory_vendor ] ; then
-  git clone https://github.com/eProsima/foonathan_memory_vendor.git
+  git clone https://github.com/eProsima/foonathan_memory_vendor.git --branch $VER_TAG
   cd foonathan_memory_vendor
 else
   cd foonathan_memory_vendor
+  git checkout $VER_TAG
 fi
-
-# Use specific version
-git fetch -p
-git checkout v1.3.1
 
 # Configure CMake
 mkdir -p build && cd build
