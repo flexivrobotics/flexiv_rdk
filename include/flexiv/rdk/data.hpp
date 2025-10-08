@@ -160,15 +160,15 @@ struct RobotInfo
 
 /**
  * @struct RobotStates
- * @brief Robot states data in joint- and Cartesian-space.
- * @see Robot::states().
+ * @brief Robot states data in joint and Cartesian space.
+ * @note If external axes exist, the joint-space states will contain external axes data at the front
+ * of the vectors.
  */
 struct RobotStates
 {
     /**
      * Measured joint positions of the full system using link-side encoder: \f$ q \in \mathbb{R}^{n
      * \times 1} \f$. This is the direct measurement of joint positions. Unit: \f$ [rad] or [m] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
      * @note If a joint has only one encoder, then \f$ \theta = q \f$.
      */
     std::vector<double> q = {};
@@ -178,7 +178,6 @@ struct RobotStates
      * \mathbb{R}^{n \times 1} \f$. This is the indirect measurement of joint positions. \f$ \theta
      * = q + \Delta \f$, where \f$ \Delta \f$ is the joint's internal deflection between motor and
      * link. Unit: \f$ [rad] or [m] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
      * @note If a joint has only one encoder, then \f$ \theta = q \f$.
      */
     std::vector<double> theta = {};
@@ -187,7 +186,6 @@ struct RobotStates
      * Measured joint velocities of the full system using link-side encoder: \f$ \dot{q} \in
      * \mathbb{R}^{n \times 1} \f$. This is the direct but more noisy measurement of joint
      * velocities. Unit: \f$ [rad/s] or [m/s] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
      * @note If a joint has only one encoder, then \f$ \dot{\theta} = \dot{q} \f$.
      */
     std::vector<double> dq = {};
@@ -196,7 +194,6 @@ struct RobotStates
      * Measured joint velocities of the full system using motor-side encoder: \f$ \dot{\theta} \in
      * \mathbb{R}^{n \times 1} \f$. This is the indirect but less noisy measurement of joint
      * velocities. Unit: \f$ [rad/s] or [m/s] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
      * @note If a joint has only one encoder, then \f$ \dot{\theta} = \dot{q} \f$.
      */
     std::vector<double> dtheta = {};
@@ -204,7 +201,6 @@ struct RobotStates
     /**
      * Measured joint torques of the full system: \f$ \tau \in \mathbb{R}^{n \times 1} \f$. Unit:
      * \f$ [Nm] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
      * @note If a joint has no torque measurement, the corresponding value will be 0.
      */
     std::vector<double> tau = {};
@@ -213,7 +209,6 @@ struct RobotStates
      * Desired joint torques of the full system: \f$ \tau_{d} \in \mathbb{R}^{n \times 1} \f$.
      * Compensation of nonlinear dynamics (gravity, centrifugal, and Coriolis) is excluded. Unit:
      * \f$ [Nm] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
      * @note If a joint has no torque control capability, the corresponding value will be 0.
      */
     std::vector<double> tau_des = {};
@@ -221,7 +216,6 @@ struct RobotStates
     /**
      * Numerical derivative of measured joint torques of the full system: \f$ \dot{\tau} \in
      * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm/s] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
      * @note If a joint has no torque measurement, the corresponding value will be 0.
      */
     std::vector<double> tau_dot = {};
@@ -230,7 +224,6 @@ struct RobotStates
      * Estimated external joint torques of the full system: \f$ \hat \tau_{ext} \in \mathbb{R}^{n
      * \times 1} \f$. Produced by any external contact (with robot body or end-effector) that does
      * not belong to the known robot model. Unit: \f$ [Nm] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
      * @note If a joint has no torque measurement, the corresponding value will be 0.
      */
     std::vector<double> tau_ext = {};
@@ -238,18 +231,16 @@ struct RobotStates
     /**
      * Estimated interaction joint torques of the full system: \f$ \hat \tau_{int} \in \mathbb{R}^{n
      * \times 1} \f$. Produced by any interaction forces at the TCP. Unit: \f$ [Nm] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
      * @note If a joint has no torque measurement, the corresponding value will be 0.
      */
     std::vector<double> tau_interact = {};
 
     /**
-     * Measured joint temperatures of the full system: \f$ T_i \in \mathbb{R}^{n \times 1} \f$.
+     * Measured joint temperatures of the full system: \f$ temp \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [°C] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
      * @note If a joint has no temperature measurement, the corresponding value will be 0.
      */
-    std::vector<double> Ti = {};
+    std::vector<double> temperature = {};
 
     /**
      * Measured TCP pose w.r.t. world frame: \f$ ^{O}T_{TCP} \in \mathbb{R}^{7 \times 1} \f$.

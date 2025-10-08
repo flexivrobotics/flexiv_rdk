@@ -79,8 +79,7 @@ public:
     Eigen::MatrixXd dJ(const std::string& link_name);
 
     /**
-     * @brief [Non-blocking] Compute the mass matrix for the generalized coordinates, i.e. joint
-     * space.
+     * @brief [Non-blocking] Compute the mass matrix in generalized coordinates, i.e. joint space.
      * @return Symmetric positive definite mass matrix: \f$ M(q) \in \mathbb{S}^{n \times n}_{++}
      * \f$. Unit: \f$ [kgm^2] \f$.
      * @note Call Update() before this function.
@@ -88,15 +87,15 @@ public:
     Eigen::MatrixXd M();
 
     /**
-     * @brief [Non-blocking] Compute the Coriolis/centripetal matrix for the generalized
-     * coordinates, i.e. joint space.
+     * @brief [Non-blocking] Compute the Coriolis/centripetal matrix in generalized coordinates,
+     * i.e. joint space.
      * @return Coriolis/centripetal matrix: \f$ C(q,\dot{q}) \in \mathbb{R}^{n \times n} \f$.
      * @note Call Update() before this function.
      */
     Eigen::MatrixXd C();
 
     /**
-     * @brief [Non-blocking] Compute the gravity force vector for the generalized coordinates, i.e.
+     * @brief [Non-blocking] Compute the gravity force vector in generalized coordinates, i.e.
      * joint space.
      * @return Gravity force vector: \f$ g(q) \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm] \f$.
      * @note Call Update() before this function.
@@ -104,7 +103,7 @@ public:
     Eigen::VectorXd g();
 
     /**
-     * @brief [Non-blocking] Compute the Coriolis force vector for the generalized coordinates, i.e.
+     * @brief [Non-blocking] Compute the Coriolis force vector in generalized coordinates, i.e.
      * joint space.
      * @return Coriolis force vector: \f$ c(q,\dot{q}) \in \mathbb{R}^{n \times 1} \f$. Unit: \f$
      * [Nm] \f$.
