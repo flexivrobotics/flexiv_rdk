@@ -1,8 +1,8 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 2bfb6d560..e2a1310f2 100644
+index f3e69b845..fafcdc3a4 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -82,18 +82,6 @@ endmacro(ei_add_cxx_compiler_flag)
+@@ -76,18 +76,6 @@ endmacro()
  
  check_cxx_compiler_flag("-std=c++11" EIGEN_COMPILER_SUPPORT_CPP11)
  
@@ -18,6 +18,6 @@ index 2bfb6d560..e2a1310f2 100644
 -  ei_add_cxx_compiler_flag("-std=c++03")
 -endif()
 -
- #############################################################################
- # find how to link to the standard libraries                                #
- #############################################################################
+ # Determine if we should build shared libraries on this platform.
+ get_cmake_property(EIGEN_BUILD_SHARED_LIBS TARGET_SUPPORTS_SHARED_LIBS)
+ 
