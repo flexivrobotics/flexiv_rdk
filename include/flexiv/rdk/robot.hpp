@@ -281,6 +281,15 @@ public:
      */
     void SyncWithPositioner(bool toggle);
 
+    /**
+     * @brief [Non-blocking] Set the maximum tolerable number of failed timeliness checks within 60
+     * seconds when running real-time control modes. The functions marked as "Real-time (RT)" will
+     * throw an exception when this limit is violated.
+     * @param[in] limit Limit on number of failures, default to 3 times.
+     * @note The failure counter will be reset if no failure has occurred for the past 10 seconds.
+     */
+    void SetTimelinessFailureLimit(unsigned int limit = 3);
+
     //======================================= PLAN EXECUTION =======================================
     /**
      * @brief [Blocking] Execute a plan by specifying its index.
