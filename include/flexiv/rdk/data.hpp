@@ -166,6 +166,10 @@ struct RobotInfo
  */
 struct RobotStates
 {
+    /** Current time since epoch of the robot system. The pair consists of {seconds since epoch,
+     * nanoseconds since last full second} */
+    std::pair<int, int> timestamp = {};
+
     /**
      * Measured joint positions of the full system using link-side encoder: \f$ q \in \mathbb{R}^{n
      * \times 1} \f$. This is the direct measurement of joint positions. Unit: \f$ [rad] or [m] \f$.
