@@ -16,33 +16,44 @@ message(STATUS "OS: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "Processor: ${CMAKE_SYSTEM_PROCESSOR}")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
-    set(RDK_STATIC_LIB "libflexiv_rdk.x86_64-linux-gnu.a")
+    set(RDK_LIB "libflexiv_rdk.x86_64-linux-gnu.a")
   elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
-    set(RDK_STATIC_LIB "libflexiv_rdk.aarch64-linux-gnu.a")
+    set(RDK_LIB "libflexiv_rdk.aarch64-linux-gnu.a")
   else()
     message(FATAL_ERROR "Linux with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
   endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64")
-    set(RDK_STATIC_LIB "libflexiv_rdk.arm64-darwin.a")
+    set(RDK_LIB "libflexiv_rdk.arm64-darwin.a")
   else()
     message(FATAL_ERROR "macOS with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
   endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "AMD64")
-    set(RDK_STATIC_LIB "flexiv_rdk.win_amd64.lib")
+    set(RDK_LIB "flexiv_rdk.win_amd64.lib")
   else()
     message(FATAL_ERROR "Windows with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
   endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
-    set(RDK_STATIC_LIB "libflexiv_rdk.x86_64-qnx.a")
+    set(RDK_LIB "libflexiv_rdk.x86_64-qnx.a")
   elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64le")
-    set(RDK_STATIC_LIB "libflexiv_rdk.aarch64-qnx.a")
+    set(RDK_LIB "libflexiv_rdk.aarch64-qnx.a")
   else()
     message(FATAL_ERROR "Linux with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
   endif()
 endif()
+
+# Parse expected hash of the library file
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_LIB}.sha256 EXPECTED_HASH)
+
+# Download the library file from GitHub 
+set(RDK_LIB_URL https://github.com/flexivrobotics/flexiv_rdk/releases/download/test_release/${RDK_LIB})
+message(STATUS "Downloading ${RDK_LIB_URL} ...")
+file(DOWNLOAD ${RDK_LIB_URL} ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_LIB}
+     SHOW_PROGRESS
+     TLS_VERIFY ON
+     EXPECTED_HASH SHA256=${EXPECTED_HASH})
 
 # ===================================================================
 #      PROJECT DEPENDENCIES
@@ -88,7 +99,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 
 target_link_libraries(${PROJECT_NAME} INTERFACE
-  ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_STATIC_LIB}
+  ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_LIB}
   Threads::Threads
   Eigen3::Eigen
   spdlog::spdlog
