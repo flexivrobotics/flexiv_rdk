@@ -45,7 +45,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
 endif()
 
 # Parse expected hash of the library file
-file(READ ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_LIB}.sha256 EXPECTED_HASH)
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/lib/ref_hash/${RDK_LIB}.sha256 EXPECTED_HASH)
 
 # Download the library file from GitHub 
 set(RDK_LIB_URL https://github.com/flexivrobotics/flexiv_rdk/releases/download/test_release/${RDK_LIB})
