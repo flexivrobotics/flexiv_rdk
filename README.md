@@ -91,7 +91,7 @@ For example:
 #### QNX
 
 1. Prepare a host computer with Ubuntu 22.04 or higher.
-2. Download and install [QNX SDP 8.0.2](https://blackberry.qnx.com/en/products/foundation-software/qnx-software-development-platform) to the host computer. You'll need a trial or commercial license.
+2. Download and install [QNX SDP 8.0.3](https://blackberry.qnx.com/en/products/foundation-software/qnx-software-development-platform) to the host computer. You'll need a trial or commercial license.
 3. Install CMake on the host computer using package manager:
 
        sudo apt install cmake
