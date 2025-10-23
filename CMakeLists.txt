@@ -44,6 +44,16 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
   endif()
 endif()
 
+# Option to support ROS2 Jazzy
+option(RDK_SUPPORT_ROS2_JAZZY "Use RDK library compatible with ROS2 Jazzy" OFF)
+if(RDK_SUPPORT_ROS2_JAZZY)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+    set(RDK_LIB "libflexiv_rdk.x86_64-linux-gnu.ros2-jazzy.a")
+  else()
+    message(FATAL_ERROR "ROS2 Jazzy compatibility is currently only supported on x86_64 Linux")
+  endif()
+endif()
+
 # Parse expected hash of the library file
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/lib/ref_hash/${RDK_LIB}.sha256 EXPECTED_HASH)
 
