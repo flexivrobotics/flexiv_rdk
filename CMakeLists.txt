@@ -85,19 +85,19 @@ endif()
 # Eigen3
 find_package(Eigen3 REQUIRED)
 if(Eigen3_FOUND)
-  message(STATUS "Found Eigen3: ${Eigen3_DIR}")
+  message(STATUS "Found Eigen3 v${Eigen3_VERSION}: ${Eigen3_DIR}")
 endif()
 
 # spdlog
 find_package(spdlog REQUIRED)
 if(spdlog_FOUND)
-  message(STATUS "Found spdlog: ${spdlog_DIR}")
+  message(STATUS "Found spdlog v${spdlog_VERSION}: ${spdlog_DIR}")
 endif()
 
 # Fast-DDS (Fast-RTPS)
-find_package(fastrtps 2.6.7 REQUIRED)
+find_package(fastrtps REQUIRED)
 if(fastrtps_FOUND)
-  message(STATUS "Found fastrtps: ${fastrtps_DIR}")
+  message(STATUS "Found fastrtps v${fastrtps_VERSION}: ${fastrtps_DIR}")
 endif()
 
 # ===================================================================
