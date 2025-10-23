@@ -63,7 +63,14 @@ message(STATUS "Downloading ${RDK_LIB_URL} ...")
 file(DOWNLOAD ${RDK_LIB_URL} ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_LIB}
      SHOW_PROGRESS
      TLS_VERIFY ON
-     EXPECTED_HASH SHA256=${EXPECTED_HASH})
+     EXPECTED_HASH SHA256=${EXPECTED_HASH}
+     STATUS status)
+list(GET status 0 code)
+if(code EQUAL 0)
+  message(STATUS "Download finished")
+else()
+  message(FATAL_ERROR "Download failed: ${status}")
+endif()
 
 # ===================================================================
 #      PROJECT DEPENDENCIES
@@ -72,7 +79,7 @@ file(DOWNLOAD ${RDK_LIB_URL} ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_LIB}
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 if(Threads_FOUND)
-  message(STATUS "Found Threads: HAVE_PTHREAD = ${THREADS_HAVE_PTHREAD_ARG}")
+  message(STATUS "Found Threads")
 endif()
 
 # Eigen3
