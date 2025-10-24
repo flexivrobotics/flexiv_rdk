@@ -100,7 +100,7 @@ message(STATUS "Found fastcdr v${fastcdr_VERSION}: ${fastcdr_DIR}")
 #      CREATE LIBRARY
 # ===================================================================
 # Create static library target with dummy source
-add_library(${PROJECT_NAME} STATIC ${CMAKE_CURRENT_SOURCE_DIR}/src/dummy.cpp)
+add_library(${PROJECT_NAME} STATIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/dummy.cpp)
 
 # Create an alias of the target with flexiv namespace
 add_library(flexiv::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
