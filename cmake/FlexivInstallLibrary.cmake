@@ -82,9 +82,10 @@ macro(FlexivInstallLibrary)
             DESTINATION "lib/cmake/${PROJECT_NAME}"
             )
 
-    # Copy the static library to the CMAKE_INSTALL_LIBDIR directory
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}"
+    # Override the dummy static lib with the actual static lib
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RENAME ${CMAKE_STATIC_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX}
             )
 
     # Use the CPack Package Generator

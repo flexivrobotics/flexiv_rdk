@@ -99,26 +99,20 @@ message(STATUS "Found fastcdr v${fastcdr_VERSION}: ${fastcdr_DIR}")
 # ===================================================================
 #      CREATE LIBRARY
 # ===================================================================
-# Create an INTERFACE library
-add_library(${PROJECT_NAME} INTERFACE)
+# Create static library target with dummy source
+add_library(${PROJECT_NAME} STATIC ${CMAKE_CURRENT_SOURCE_DIR}/src/dummy.cpp)
 
-# Create an alias of the library using flexiv namespace
+# Create an alias of the target with flexiv namespace
 add_library(flexiv::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 # Set include directories
-target_include_directories(${PROJECT_NAME} INTERFACE
+target_include_directories(${PROJECT_NAME} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
 
-# Set static library path
-target_link_libraries(${PROJECT_NAME} INTERFACE
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${RDK_LIB}>
-)
-
 # Link to dependencies
-target_link_libraries(${PROJECT_NAME} INTERFACE
+target_link_libraries(${PROJECT_NAME} PUBLIC
   Threads::Threads
   Eigen3::Eigen
   spdlog::spdlog
@@ -128,11 +122,11 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
 
 # Use moderate compiler warning option
 if(CMAKE_HOST_UNIX)
-  target_compile_options(${PROJECT_NAME} INTERFACE -Wall -Wextra)
+  target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra)
 else()
-  target_compile_options(${PROJECT_NAME} INTERFACE /W1)
+  target_compile_options(${PROJECT_NAME} PUBLIC /W1)
 endif()
 
-# Install the INTERFACE library
+# Install the library
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FlexivInstallLibrary.cmake)
 FlexivInstallLibrary()
