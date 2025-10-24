@@ -78,27 +78,23 @@ endif()
 # Threads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-if(Threads_FOUND)
-  message(STATUS "Found Threads")
-endif()
+message(STATUS "Found Threads")
 
 # Eigen3
 find_package(Eigen3 REQUIRED)
-if(Eigen3_FOUND)
-  message(STATUS "Found Eigen3 v${Eigen3_VERSION}: ${Eigen3_DIR}")
-endif()
+message(STATUS "Found Eigen3 v${Eigen3_VERSION}: ${Eigen3_DIR}")
 
 # spdlog
 find_package(spdlog REQUIRED)
-if(spdlog_FOUND)
-  message(STATUS "Found spdlog v${spdlog_VERSION}: ${spdlog_DIR}")
-endif()
+message(STATUS "Found spdlog v${spdlog_VERSION}: ${spdlog_DIR}")
 
 # Fast-DDS (Fast-RTPS)
 find_package(fastrtps REQUIRED)
-if(fastrtps_FOUND)
-  message(STATUS "Found fastrtps v${fastrtps_VERSION}: ${fastrtps_DIR}")
-endif()
+message(STATUS "Found fastrtps v${fastrtps_VERSION}: ${fastrtps_DIR}")
+
+# Fast-CDR
+find_package(fastcdr REQUIRED)
+message(STATUS "Found fastcdr v${fastcdr_VERSION}: ${fastcdr_DIR}")
 
 # ===================================================================
 #      CREATE LIBRARY
@@ -127,6 +123,7 @@ target_link_libraries(${PROJECT_NAME} INTERFACE
   Eigen3::Eigen
   spdlog::spdlog
   fastrtps
+  fastcdr
 )
 
 # Use moderate compiler warning option
