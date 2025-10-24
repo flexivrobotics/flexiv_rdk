@@ -68,18 +68,23 @@ macro(FlexivInstallLibrary)
         COMPATIBILITY AnyNewerVersion
         )
 
-    # copy the *-targets.cmake file to the CMAKE_INSTALL_PREFIX directory
+    # Copy the *-targets.cmake file to the CMAKE_INSTALL_PREFIX directory
     install(EXPORT "${PROJECT_NAME}-targets"
             FILE "${PROJECT_NAME}-targets.cmake"
             NAMESPACE "flexiv::"
             DESTINATION "lib/cmake/${PROJECT_NAME}"
             )
 
-    # copy the *.-config file to the CMAKE_INSTALL_PREFIX directory. This will specify the dependencies.
+    # Copy the *.-config file to the CMAKE_INSTALL_PREFIX directory. This will specify the dependencies.
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/${PROJECT_NAME}-config.cmake.in" "${PROJECT_NAME}-config.cmake" @ONLY)
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
                   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
             DESTINATION "lib/cmake/${PROJECT_NAME}"
+            )
+
+    # Copy the static library to the CMAKE_INSTALL_LIBDIR directory
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}"
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
             )
 
     # Use the CPack Package Generator

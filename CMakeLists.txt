@@ -55,12 +55,12 @@ if(RDK_SUPPORT_ROS2_JAZZY)
 endif()
 
 # Parse expected hash of the library file
-file(READ ${CMAKE_CURRENT_SOURCE_DIR}/lib/ref_hash/${RDK_LIB}.sha256 EXPECTED_HASH)
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_LIB}.sha256 EXPECTED_HASH)
 
 # Download the library file from GitHub 
 set(RDK_LIB_URL https://github.com/flexivrobotics/flexiv_rdk/releases/download/test_release/${RDK_LIB})
 message(STATUS "Downloading ${RDK_LIB_URL} ...")
-file(DOWNLOAD ${RDK_LIB_URL} ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_LIB}
+file(DOWNLOAD ${RDK_LIB_URL} ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
      SHOW_PROGRESS
      TLS_VERIFY ON
      EXPECTED_HASH SHA256=${EXPECTED_HASH}
@@ -103,20 +103,26 @@ endif()
 # ===================================================================
 #      CREATE LIBRARY
 # ===================================================================
-# Create an INTERFACE library with no source file to compile
+# Create an INTERFACE library
 add_library(${PROJECT_NAME} INTERFACE)
 
-# Create an alias of the library using flexiv namespace,
-# to imitate the install target which uses flexiv namespace.
+# Create an alias of the library using flexiv namespace
 add_library(flexiv::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
+# Set include directories
 target_include_directories(${PROJECT_NAME} INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
 
+# Set static library path
 target_link_libraries(${PROJECT_NAME} INTERFACE
-  ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_LIB}
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${RDK_LIB}>
+)
+
+# Link to dependencies
+target_link_libraries(${PROJECT_NAME} INTERFACE
   Threads::Threads
   Eigen3::Eigen
   spdlog::spdlog
