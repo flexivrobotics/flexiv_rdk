@@ -58,7 +58,7 @@ endif()
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_LIB}.sha256 EXPECTED_HASH)
 
 # Download the library file from GitHub 
-set(RDK_LIB_URL https://github.com/flexivrobotics/flexiv_rdk/releases/download/test_release/${RDK_LIB})
+set(RDK_LIB_URL https://github.com/flexivrobotics/flexiv_rdk/releases/download/v1.8/${RDK_LIB})
 message(STATUS "Downloading ${RDK_LIB_URL} ...")
 file(DOWNLOAD ${RDK_LIB_URL} ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
      SHOW_PROGRESS
