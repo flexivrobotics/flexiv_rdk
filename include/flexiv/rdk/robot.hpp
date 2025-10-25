@@ -28,24 +28,39 @@ public:
      * @brief [Blocking] Instantiate the robot control interface. RDK services will be started and
      * establish connection with the target robot.
      * @param[in] robot_sn Serial number of the robot to connect. The accepted formats are:
-     * "Rizon 4-123456" and "Rizon4-123456".
+     * "Rizon 4s-123456" and "Rizon4s-123456".
      * @param[in] network_interface_whitelist Limit the network interface(s) that can be used to try
      * to establish connection with the specified robot. The whitelisted network interface is
      * defined by its associated IPv4 address. For example, {"10.42.0.1", "192.168.2.102"}. If left
      * empty, all available network interfaces will be tried when searching for the specified robot.
      * @param[in] verbose Enable/disable info and warning prints.
+     * @param[in] lite Whether to create a lite instance. See details below.
      * @throw std::invalid_argument if the format of [robot_sn] is invalid.
      * @throw std::runtime_error if the initialization sequence failed.
      * @throw std::logic_error if the connected robot lacks a valid RDK license, or is incompatible
      * with this RDK library version, or is an unsupported robot model.
      * @warning This constructor blocks until the initialization sequence is successfully finished
      * and connection with the robot is established.
+     * @par Lite Instance
+     * Creating multiple instances of rdk::Robot that connect to the same robot is allowed. However,
+     * every additional instance brings extra overhead that can restrict the total number of
+     * instances due to limited computation power and network bandwidth. To mitigate the performance
+     * impact, it is recommended to create a lite instance of rdk::Robot if it only needs to send
+     * one-shot requests, which are functions marked with the [Blocking] tag. A lite instance does
+     * not receive robot states or system status, nor send motion commands.
      */
     Robot(const std::string& robot_sn,
-        const std::vector<std::string>& network_interface_whitelist = {}, bool verbose = true);
+        const std::vector<std::string>& network_interface_whitelist = {}, bool verbose = true,
+        bool lite = false);
     virtual ~Robot();
 
     //========================================= ACCESSORS ==========================================
+    /**
+     * @brief [Non-blocking] Whether this rdk::Robot instance is a lite one.
+     * @return True: is a lite instance; false: not a lite instance.
+     */
+    bool lite() const;
+
     /**
      * @brief [Non-blocking] Whether the connection with the robot is established.
      * @return True: connected; false: disconnected.
@@ -250,9 +265,30 @@ public:
      * @param[in] toggle True: the external axes are locked and will not move; false: the external
      * axes are not locked and will move. By default, the external axes are locked.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
      */
     void LockExternalAxes(bool toggle);
+
+    /**
+     * @brief [Blocking] Sync/unsync the robot TCP's motion with the movement of the positioner (if
+     * any) during primitive execution.
+     * @param[in] toggle True: the motion sync is on; false: motion sync is off. By default, the
+     * motion sync is off.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Only applicable to certain primitives that support motion sync with the positioner.
+     * @note This function blocks until the request is successfully delivered.
+     */
+    void SyncWithPositioner(bool toggle);
+
+    /**
+     * @brief [Non-blocking] Set the maximum tolerable number of failed timeliness checks within 60
+     * seconds when running real-time control modes. The functions marked as "Real-time (RT)" will
+     * throw an exception when this limit is violated.
+     * @param[in] limit Limit on number of failures, default to 3 times.
+     * @note The failure counter will be reset if no failure has occurred for the past 10 seconds.
+     */
+    void SetTimelinessFailureLimit(unsigned int limit = 3);
 
     //======================================= PLAN EXECUTION =======================================
     /**
@@ -304,6 +340,15 @@ public:
      * @warning Internal plans (not created by user) cannot be resumed due to safety concerns.
      */
     void PausePlan(bool toggle);
+
+    /**
+     * @brief [Blocking] Stop the execution of the current plan.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: NRT_PLAN_EXECUTION.
+     * @note This function blocks until the request is successfully delivered.
+     */
+    void StopPlan();
 
     /**
      * @brief [Blocking] A list of all available plans.
@@ -380,7 +425,9 @@ public:
      * @note Applicable control modes: NRT_PRIMITIVE_EXECUTION.
      * @note This function blocks until the request is successfully delivered if
      * [block_until_started] is disabled, or until the primitive has started execution if
-     * [block_until_started] is enabled.
+     * [block_until_started] is enabled. After this function returns, the primitive will still be
+     * running, thus the users need to implement their own blocking after calling this function. See
+     * examples for reference.
      * @warning The primitive input parameters may not use SI units, please refer to the Flexiv
      * Primitives documentation for exact unit definition.
      * @warning Most primitives won't exit by themselves and require users to explicitly trigger
@@ -402,7 +449,7 @@ public:
 
     //==================================== DIRECT JOINT CONTROL ====================================
     /**
-     * @brief [Non-blocking] Continuously stream joint torque command to the robot.
+     * @brief [Non-blocking] Continuously stream joint torque commands to the robot.
      * @param[in] torques Target joint torques: \f$ {\tau_J}_d \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [Nm] \f$.
      * @param[in] enable_gravity_comp Enable/disable robot gravity compensation.
@@ -420,7 +467,7 @@ public:
         bool enable_soft_limits = true);
 
     /**
-     * @brief [Non-blocking] Continuously stream joint position, velocity, and acceleration command
+     * @brief [Non-blocking] Continuously stream joint position, velocity, and acceleration commands
      * to the robot. The commands are tracked by either the joint impedance controller or the joint
      * position controller, depending on the control mode.
      * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{n \times 1} \f$. Unit:
@@ -441,23 +488,21 @@ public:
         const std::vector<double>& velocities, const std::vector<double>& accelerations);
 
     /**
-     * @brief [Non-blocking] Discretely send joint position, velocity, and acceleration command to
-     * the robot. The robot's internal motion generator will smoothen the discrete commands, which
-     * are tracked by either the joint impedance controller or the joint position controller,
-     * depending on the control mode.
+     * @brief [Non-blocking] Discretely send joint position and velocity commands to the robot. The
+     * robot's internal motion generator will smoothen the discrete commands, which are tracked by
+     * either the joint impedance controller or the joint position controller, depending on the
+     * control mode.
      * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{n \times 1} \f$. Unit:
      * \f$ [rad] \f$.
      * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{n \times 1}
      * \f$. Each joint will maintain this amount of velocity when it reaches the target position.
      * Unit: \f$ [rad/s] \f$.
-     * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{n \times
-     * 1} \f$. Each joint will maintain this amount of acceleration when it reaches the target
-     * position. Unit: \f$ [rad/s^2] \f$.
      * @param[in] max_vel Maximum joint velocities for the planned trajectory: \f$ \dot{q}_{max} \in
      * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
      * @param[in] max_acc Maximum joint accelerations for the planned trajectory: \f$ \ddot{q}_{max}
      * \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
-     * @throw std::invalid_argument if size of any input vector does not match robot DoF.
+     * @throw std::invalid_argument if size of any input vector does not match robot DoF, or
+     * [max_vel] or [max_acc] contains any non-positive value.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @note Applicable control modes: NRT_JOINT_IMPEDANCE, NRT_JOINT_POSITION.
      * @warning Calling this function a second time while the motion from the previous call is still
@@ -466,8 +511,8 @@ public:
      * @see SetJointImpedance().
      */
     void SendJointPosition(const std::vector<double>& positions,
-        const std::vector<double>& velocities, const std::vector<double>& accelerations,
-        const std::vector<double>& max_vel, const std::vector<double>& max_acc);
+        const std::vector<double>& velocities, const std::vector<double>& max_vel,
+        const std::vector<double>& max_acc);
 
     /**
      * @brief [Blocking] Set impedance properties of the robot's joint motion controller used in
@@ -488,11 +533,44 @@ public:
      */
     void SetJointImpedance(const std::vector<double>& K_q, const std::vector<double>& Z_q = {});
 
+    /**
+     * @brief [Blocking] Set maximum contact torques for the robot's joint motion controller used in
+     * the joint impedance control modes. The controller will regulate its output to maintain
+     * contact torques with the environment under the set values.
+     * @param[in] max_torques Maximum contact torques: \f$ tau_q \in \mathbb{R}^{n \times 1} \f$.
+     * Valid range: [0, RobotInfo::tau_max]. Unit: \f$ [Nm] \f$.
+     * @throw std::invalid_argument if [max_torques] contains any value outside the valid range or
+     * its size does not match robot DoF.
+     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
+     * @note This function blocks until the request is successfully delivered.
+     */
+    void SetMaxContactTorque(const std::vector<double>& max_torques);
+
+    /**
+     * @brief [Blocking] Set inertia shaping scales for the robot's joint motion controller used in
+     * the joint impedance control modes.
+     * @param[in] inertia_scales Inertia shaping scales: \f$ \sigma_q \in \mathbb{R}^{n \times 1}
+     * \f$. Valid range: [0.75, 1.0]. The nominal (safe) value is 1.0, which means no shaping.
+     * @throw std::invalid_argument if [inertia_scales] contains any value outside the valid range
+     * or its size does not match robot DoF.
+     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
+     * @note This function blocks until the request is successfully delivered.
+     * @par Joint inertia shaping
+     * In joint impedance control modes, it is possible to shape down the natural inertia of the
+     * joints to make them behave as if they are lighter. The parameter [inertia_scales] sets the
+     * scale of shaped/natural inertia for each joint. Smaller scale corresponds to lighter inertia.
+     */
+    void SetJointInertiaScale(const std::vector<double>& inertia_scales);
+
     //================================== DIRECT CARTESIAN CONTROL ==================================
     /**
-     * @brief [Non-blocking] Continuously stream Cartesian motion and/or force command for the robot
-     * to track using its unified motion-force controller, which allows doing force control in zero
-     * or more Cartesian axes and motion control in the rest axes.
+     * @brief [Non-blocking] Continuously stream Cartesian motion and/or force commands for the
+     * robot to track using its unified motion-force controller, which allows doing force control in
+     * zero or more Cartesian axes and motion control in the rest axes.
      * @param[in] pose Target TCP pose in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7
      * \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
      * \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
@@ -540,7 +618,7 @@ public:
         const std::array<double, kCartDoF>& acceleration = {});
 
     /**
-     * @brief [Non-blocking] Discretely send Cartesian motion and/or force command for the robot to
+     * @brief [Non-blocking] Discretely send Cartesian motion and/or force commands for the robot to
      * track using its unified motion-force controller, which allows doing force control in zero or
      * more Cartesian axes and motion control in the rest axes. The robot's internal motion
      * generator will smoothen the discrete commands.
@@ -552,6 +630,12 @@ public:
      * robot will track the target wrench using an explicit force controller. Consists of \f$
      * \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y,
      * f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]:[Nm] \f$.
+     * @param[in] velocity Target TCP velocity (linear and angular) in world frame when reaching the
+     * target pose specified above: \f$ ^{0}\dot{x}_d \in \mathbb{R}^{6 \times 1} \f$. Providing
+     * properly calculated target velocity can improve the robot's overall tracking performance at
+     * the cost of reduced robustness. Leaving this input 0 can maximize robustness at the cost of
+     * reduced tracking performance. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear and \f$
+     * \mathbb{R}^{3 \times 1} \f$ angular velocity. Unit: \f$ [m/s]:[rad/s] \f$.
      * @param[in] max_linear_vel Maximum Cartesian linear velocity when moving to the target pose.
      * A safe value is provided as default. Unit: \f$ [m/s] \f$.
      * @param[in] max_angular_vel Maximum Cartesian angular velocity when moving to the target
@@ -560,7 +644,7 @@ public:
      * pose. A safe value is provided as default. Unit: \f$ [m/s^2] \f$.
      * @param[in] max_angular_acc Maximum Cartesian angular acceleration when moving to the target
      * pose. A safe value is provided as default. Unit: \f$ [rad/s^2] \f$.
-     * @throw std::invalid_argument if any of the last 4 input parameters is negative.
+     * @throw std::invalid_argument if any of the last 4 input parameters is not positive.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @note Applicable control modes: NRT_CARTESIAN_MOTION_FORCE, NRT_SUPER_PRIMITIVE.
      * @warning Same as Flexiv Elements, the target wrench is expressed as wrench sensed at TCP
@@ -580,7 +664,8 @@ public:
      * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
      */
     void SendCartesianMotionForce(const std::array<double, kPoseSize>& pose,
-        const std::array<double, kCartDoF>& wrench = {}, double max_linear_vel = 0.5,
+        const std::array<double, kCartDoF>& wrench = {},
+        const std::array<double, kCartDoF>& velocity = {}, double max_linear_vel = 0.5,
         double max_angular_vel = 1.0, double max_linear_acc = 2.0, double max_angular_acc = 5.0);
 
     /**
@@ -634,7 +719,7 @@ public:
      * \f$ q_{ns} \in \mathbb{R}^{n \times 1} \f$. Valid range: [RobotInfo::q_min,
      * RobotInfo::q_max]. Unit: \f$ [rad] \f$.
      * @throw std::invalid_argument if [ref_positions] contains any value outside the valid
-     * range or size of any input vector does not match robot DoF.
+     * range or its size does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,
@@ -769,9 +854,6 @@ public:
      * @note This function blocks until the request is successfully delivered.
      */
     void SetDigitalOutputs(const std::map<unsigned int, bool>& digital_outputs);
-
-    [[deprecated("Use the other SetDigitalOutputs() instead")]] void SetDigitalOutputs(
-        const std::vector<unsigned int>& port_idx, const std::vector<bool>& values);
 
     /**
      * @brief [Non-blocking] Current reading from all digital input ports, including 16 on the

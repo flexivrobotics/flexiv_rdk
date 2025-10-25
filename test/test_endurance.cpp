@@ -48,7 +48,7 @@ struct LogData
 std::atomic<bool> g_stop = {false};
 }
 
-void highPriorityTask(
+void HighPriorityTask(
     flexiv::rdk::Robot& robot, const std::array<double, flexiv::rdk::kPoseSize>& init_pose)
 {
     // Local periodic loop counter
@@ -58,7 +58,7 @@ void highPriorityTask(
         // Monitor fault on the connected robot
         if (robot.fault()) {
             throw std::runtime_error(
-                "highPriorityTask: Fault occurred on the connected robot, exiting ...");
+                "HighPriorityTask: Fault occurred on the connected robot, exiting ...");
         }
 
         // Swing along Z direction
@@ -82,7 +82,7 @@ void highPriorityTask(
     }
 }
 
-void lowPriorityTask()
+void LowPriorityTask()
 {
     // Low-priority task loop counter
     uint64_t loop_counter = 0;
@@ -234,13 +234,13 @@ int main(int argc, char* argv[])
         //==========================================================================================
         flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(std::bind(highPriorityTask, std::ref(robot), std::ref(init_pose)),
+        scheduler.AddTask(std::bind(HighPriorityTask, std::ref(robot), std::ref(init_pose)),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();
 
         // Use std::thread for logging task without strict chronology
-        std::thread low_priority_thread(lowPriorityTask);
+        std::thread low_priority_thread(LowPriorityTask);
 
         // low_priority_thread is responsible to release blocking
         low_priority_thread.join();

@@ -11,10 +11,12 @@ message("Processor: ${CMAKE_SYSTEM_PROCESSOR}")
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "CMake build type" FORCE)
 endif()
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "RelWithDebInfo" "MinSizeRel")
 
 # Tests for Windows
 set(TEST_LIST
   test_dynamics_engine
+  test_repeated_instantiation
 )
 
 # Additional tests for Linux and Mac

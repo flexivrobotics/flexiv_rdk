@@ -2,17 +2,17 @@
 set -e
 echo "Installing eigen"
 
+# Use a specific version
+VER_TAG=3.4.0
+
 # Clone source code
 if [ ! -d eigen ] ; then
-  git clone https://gitlab.com/libeigen/eigen.git
+  git clone https://gitlab.com/libeigen/eigen.git --branch $VER_TAG
   cd eigen
 else
   cd eigen
+  git checkout $VER_TAG
 fi
-
-# Use specific version
-git fetch -p
-git checkout 3.3.7
 
 # Apply patch if building for QNX
 git reset --hard

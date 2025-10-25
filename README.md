@@ -18,7 +18,9 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 | Windows 10+           | x86_64          | MSVC  v14.2+         | 3.8, 3.10, 3.12        |
 | QNX 8.0.2+            | x86_64, aarch64 | QCC   v12.2+         | Not supported          |
 
-**IMPORTANT**: You might need to turn off your computer's firewall or whitelist the RDK programs to be able to establish connection with the robot.
+## Important Notice
+
+Before trying to run any RDK program, please make sure to carefully go through the [First Time Setup](https://www.flexiv.com/software/rdk/manual/index.html#first-time-setup) chapter in RDK Manual. Otherwise, you might run into blocking issues.
 
 ## Quick Start - Python
 
@@ -89,7 +91,7 @@ For example:
 #### QNX
 
 1. Prepare a host computer with Ubuntu 22.04 or higher.
-2. Download and install [QNX SDP 8.0.2](https://blackberry.qnx.com/en/products/foundation-software/qnx-software-development-platform) to the host computer. You'll need a trial or commercial license.
+2. Download and install [QNX SDP 8.0.3](https://blackberry.qnx.com/en/products/foundation-software/qnx-software-development-platform) to the host computer. You'll need a trial or commercial license.
 3. Install CMake on the host computer using package manager:
 
        sudo apt install cmake

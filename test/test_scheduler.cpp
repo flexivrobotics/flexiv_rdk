@@ -30,7 +30,7 @@ std::atomic<bool> g_stop_sched = {false};
 }
 
 /** User-defined high-priority periodic task @ 1kHz */
-void highPriorityTask()
+void HighPriorityTask()
 {
     static unsigned int loop_counter = 0;
 
@@ -67,7 +67,7 @@ void highPriorityTask()
 }
 
 /** User-defined low-priority periodic task @1Hz */
-void lowPriorityTask()
+void LowPriorityTask()
 {
     static uint64_t accumulated_time = 0;
     static uint64_t num_measures = 0;
@@ -113,9 +113,9 @@ int main(int argc, char* argv[])
         //==========================================================================================
         flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(std::bind(highPriorityTask), "HP periodic", 1, scheduler.max_priority());
+        scheduler.AddTask(std::bind(HighPriorityTask), "HP periodic", 1, scheduler.max_priority());
         // Add periodic task with 1s interval and lowest applicable priority
-        scheduler.AddTask(std::bind(lowPriorityTask), "LP periodic", 1000, 0);
+        scheduler.AddTask(std::bind(LowPriorityTask), "LP periodic", 1000, 0);
         // Start all added tasks
         scheduler.Start();
 

@@ -20,7 +20,7 @@ fi
 INSTALL_DIR=$1
 echo "Dependencies will be installed to: $INSTALL_DIR"
 
-# Use specified number for parallel build jobs, otherwise use number of cores 
+# Use specified number for parallel build jobs, otherwise use 4
 if [ -n "$2" ] ;then
     export NUM_JOBS=$2
 else
