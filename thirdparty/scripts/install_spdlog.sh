@@ -1,18 +1,17 @@
 #!/bin/bash
 set -e
-echo "Installing spdlog"
+
+# Use a specific version
+VER_TAG=v1.14.1
 
 # Clone source code
 if [ ! -d spdlog ] ; then
-  git clone https://github.com/gabime/spdlog.git
+  git clone https://github.com/gabime/spdlog.git --branch $VER_TAG
   cd spdlog
 else
   cd spdlog
+  git checkout $VER_TAG
 fi
-
-# Use specific version
-git fetch -p
-git checkout v1.14.1
 
 # Configure CMake
 mkdir -p build && cd build

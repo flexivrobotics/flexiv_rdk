@@ -134,9 +134,7 @@ def main():
             # Otherwise all joints will hold at initial positions
 
             # Send command
-            robot.SendJointPosition(
-                target_pos, target_vel, target_acc, MAX_VEL, MAX_ACC
-            )
+            robot.SendJointPosition(target_pos, target_vel, MAX_VEL, MAX_ACC)
 
             # Increment loop time
             loop_time += period

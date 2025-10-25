@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
 
         // Send target point to robot to start searching for contact and limit the velocity. Keep
         // target wrench 0 at this stage since we are not doing force control yet
-        robot.SendCartesianMotionForce(target_pose, {}, kSearchVelocity);
+        robot.SendCartesianMotionForce(target_pose, {}, {}, kSearchVelocity);
 
         // Use a while loop to poll robot states and check if a contact is made
         bool is_contacted = false;

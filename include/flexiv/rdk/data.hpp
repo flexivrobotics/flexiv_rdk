@@ -128,56 +128,51 @@ struct RobotInfo
      * external axes: \f$ n \f$. */
     size_t DoF = {};
 
-    /**
-     * Nominal motion stiffness of the Cartesian motion-force control modes: \f$ K_x^{nom} \in
+    /** Nominal motion stiffness of the Cartesian motion-force control modes: \f$ K_x^{nom} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and
      * \f$ \mathbb{R}^{3 \times 1} \f$ angular stiffness: \f$ [k_x, k_y, k_z, k_{Rx}, k_{Ry},
-     * k_{Rz}]^T \f$. Unit: \f$ [N/m]:[Nm/rad] \f$.
-     */
+     * k_{Rz}]^T \f$. Unit: \f$ [N/m]:[Nm/rad] \f$. */
     std::array<double, kCartDoF> K_x_nom = {};
 
-    /**
-     * Nominal motion stiffness of the joint impedance control modes: \f$ K_q^{nom} \in
-     * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm/rad] \f$.
-     */
+    /** Nominal motion stiffness of the joint impedance control modes: \f$ K_q^{nom} \in
+     * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm/rad] \f$. */
     std::vector<double> K_q_nom = {};
 
-    /**
-     * Lower software limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
-     * Unit: \f$ [rad] \f$.
-     */
+    /** Lower software limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
+     * Unit: \f$ [rad] \f$. */
     std::vector<double> q_min = {};
 
-    /**
-     * Upper software limits of joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1} \f$.
-     * Unit: \f$ [rad] \f$.
-     */
+    /** Upper software limits of joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1} \f$.
+     * Unit: \f$ [rad] \f$. */
     std::vector<double> q_max = {};
 
-    /**
-     * Upper software limits of joint velocities: \f$ \dot{q}_{max} \in \mathbb{R}^{n \times 1} \f$.
-     * Unit: \f$ [rad/s] \f$.
-     */
+    /** Upper software limits of joint velocities: \f$ \dot{q}_{max} \in \mathbb{R}^{n \times 1}
+     * \f$. Unit: \f$ [rad/s] \f$. */
     std::vector<double> dq_max = {};
 
-    /**
-     * Upper software limits of joint torques: \f$ \tau_{max} \in \mathbb{R}^{n \times 1} \f$.
-     * Unit: \f$ [Nm] \f$.
-     */
+    /** Upper software limits of joint torques: \f$ \tau_{max} \in \mathbb{R}^{n \times 1} \f$.
+     * Unit: \f$ [Nm] \f$. */
     std::vector<double> tau_max = {};
+
+    /** Whether the robot has a force-torque (FT) sensor installed */
+    bool has_FT_sensor = false;
 };
 
 /**
  * @struct RobotStates
- * @brief Robot states data in joint- and Cartesian-space.
- * @see Robot::states().
+ * @brief Robot states data in joint and Cartesian space.
+ * @note If external axes exist, the joint-space states will contain external axes data at the front
+ * of the vectors.
  */
 struct RobotStates
 {
+    /** Current time since epoch of the robot system. The pair consists of {seconds since epoch,
+     * nanoseconds since last full second} */
+    std::pair<int, int> timestamp = {};
+
     /**
      * Measured joint positions of the full system using link-side encoder: \f$ q \in \mathbb{R}^{n
      * \times 1} \f$. This is the direct measurement of joint positions. Unit: \f$ [rad] or [m] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
      * @note If a joint has only one encoder, then \f$ \theta = q \f$.
      */
     std::vector<double> q = {};
@@ -187,7 +182,6 @@ struct RobotStates
      * \mathbb{R}^{n \times 1} \f$. This is the indirect measurement of joint positions. \f$ \theta
      * = q + \Delta \f$, where \f$ \Delta \f$ is the joint's internal deflection between motor and
      * link. Unit: \f$ [rad] or [m] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
      * @note If a joint has only one encoder, then \f$ \theta = q \f$.
      */
     std::vector<double> theta = {};
@@ -196,7 +190,6 @@ struct RobotStates
      * Measured joint velocities of the full system using link-side encoder: \f$ \dot{q} \in
      * \mathbb{R}^{n \times 1} \f$. This is the direct but more noisy measurement of joint
      * velocities. Unit: \f$ [rad/s] or [m/s] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
      * @note If a joint has only one encoder, then \f$ \dot{\theta} = \dot{q} \f$.
      */
     std::vector<double> dq = {};
@@ -205,7 +198,6 @@ struct RobotStates
      * Measured joint velocities of the full system using motor-side encoder: \f$ \dot{\theta} \in
      * \mathbb{R}^{n \times 1} \f$. This is the indirect but less noisy measurement of joint
      * velocities. Unit: \f$ [rad/s] or [m/s] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
      * @note If a joint has only one encoder, then \f$ \dot{\theta} = \dot{q} \f$.
      */
     std::vector<double> dtheta = {};
@@ -213,8 +205,7 @@ struct RobotStates
     /**
      * Measured joint torques of the full system: \f$ \tau \in \mathbb{R}^{n \times 1} \f$. Unit:
      * \f$ [Nm] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
-     * @note If a joint has no torque measurement, then the corresponding value will be 0.
+     * @note If a joint has no torque measurement, the corresponding value will be 0.
      */
     std::vector<double> tau = {};
 
@@ -222,16 +213,14 @@ struct RobotStates
      * Desired joint torques of the full system: \f$ \tau_{d} \in \mathbb{R}^{n \times 1} \f$.
      * Compensation of nonlinear dynamics (gravity, centrifugal, and Coriolis) is excluded. Unit:
      * \f$ [Nm] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
-     * @note If a joint has no torque control capability, then the corresponding value will be 0.
+     * @note If a joint has no torque control capability, the corresponding value will be 0.
      */
     std::vector<double> tau_des = {};
 
     /**
      * Numerical derivative of measured joint torques of the full system: \f$ \dot{\tau} \in
      * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm/s] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
-     * @note If a joint has no torque measurement, then the corresponding value will be 0.
+     * @note If a joint has no torque measurement, the corresponding value will be 0.
      */
     std::vector<double> tau_dot = {};
 
@@ -239,29 +228,42 @@ struct RobotStates
      * Estimated external joint torques of the full system: \f$ \hat \tau_{ext} \in \mathbb{R}^{n
      * \times 1} \f$. Produced by any external contact (with robot body or end-effector) that does
      * not belong to the known robot model. Unit: \f$ [Nm] \f$.
-     * @note This contains values for both the external axes (if any) and the robot manipulator.
-     * @note If a joint has no torque measurement, then the corresponding value will be 0.
+     * @note If a joint has no torque measurement, the corresponding value will be 0.
      */
     std::vector<double> tau_ext = {};
 
     /**
-     * Measured TCP pose expressed in world frame: \f$ ^{O}T_{TCP} \in \mathbb{R}^{7 \times 1} \f$.
+     * Estimated interaction joint torques of the full system: \f$ \hat \tau_{int} \in \mathbb{R}^{n
+     * \times 1} \f$. Produced by any interaction forces at the TCP. Unit: \f$ [Nm] \f$.
+     * @note If a joint has no torque measurement, the corresponding value will be 0.
+     */
+    std::vector<double> tau_interact = {};
+
+    /**
+     * Measured joint temperatures of the full system: \f$ temp \in \mathbb{R}^{n \times 1} \f$.
+     * Unit: \f$ [°C] \f$.
+     * @note If a joint has no temperature measurement, the corresponding value will be 0.
+     */
+    std::vector<double> temperature = {};
+
+    /**
+     * Measured TCP pose w.r.t. world frame: \f$ ^{O}T_{TCP} \in \mathbb{R}^{7 \times 1} \f$.
      * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
      * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
      */
     std::array<double, kPoseSize> tcp_pose = {};
 
     /**
-     * Measured TCP velocity expressed in world frame: \f$ ^{O}\dot{X} \in \mathbb{R}^{6 \times 1}
-     * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear velocity and \f$ \mathbb{R}^{3 \times
-     * 1} \f$ angular velocity: \f$ [v_x, v_y, v_z, \omega_x, \omega_y, \omega_z]^T \f$.
-     * Unit: \f$ [m/s]:[rad/s] \f$.
+     * Measured TCP velocity w.r.t. world frame: \f$ ^{O}\dot{X} \in \mathbb{R}^{6 \times 1} \f$.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear velocity and \f$ \mathbb{R}^{3 \times 1}
+     * \f$ angular velocity: \f$ [v_x, v_y, v_z, \omega_x, \omega_y, \omega_z]^T \f$. Unit: \f$
+     * [m/s]:[rad/s] \f$.
      */
     std::array<double, kCartDoF> tcp_vel = {};
 
     /**
-     * Measured flange pose expressed in world frame: \f$ ^{O}T_{flange} \in \mathbb{R}^{7 \times 1}
-     * \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
+     * Measured flange pose w.r.t. world frame: \f$ ^{O}T_{flange} \in \mathbb{R}^{7 \times 1} \f$.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
      * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
      */
     std::array<double, kPoseSize> flange_pose = {};
@@ -275,7 +277,7 @@ struct RobotStates
     std::array<double, kCartDoF> ft_sensor_raw = {};
 
     /**
-     * Estimated external wrench applied on TCP and expressed in TCP frame: \f$ ^{TCP}F_{ext} \in
+     * Estimated external wrench w.r.t. TCP frame, applied on TCP: \f$ ^{TCP}F_{ext} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
      * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
      * Unit: \f$ [N]:[Nm] \f$.
@@ -283,7 +285,7 @@ struct RobotStates
     std::array<double, kCartDoF> ext_wrench_in_tcp = {};
 
     /**
-     * Estimated external wrench applied on TCP and expressed in world frame: \f$ ^{0}F_{ext} \in
+     * Estimated external wrench w.r.t. world frame, applied on TCP: \f$ ^{0}F_{ext} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
      * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
      * Unit: \f$ [N]:[Nm] \f$.
