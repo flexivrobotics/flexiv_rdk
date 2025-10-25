@@ -16,7 +16,7 @@ fi
 
 # Configure CMake
 mkdir -p build && cd build
-cmake .. $SHARED_CMAKE_ARGS -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+cmake .. $SHARED_CMAKE_ARGS
 
 # Build and install
 cmake --build . --target install --config Release -j $NUM_JOBS
