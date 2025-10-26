@@ -3,11 +3,17 @@ runs:
   using: "composite"
   # Note: working directory will be reset to the repo root for each new step
   steps:
+    # Use a fixed CMake version
+    - name: Set up CMake
+      uses: jwlawson/actions-setup-cmake@v2
+      with:
+        cmake-version: '3.22.1'
+
     # Build and install all dependencies to RDK installation directory.
     - name: Build and install dependencies
       shell: bash
       run: |
-        pwd
+        cmake --version
         cd thirdparty
         bash build_and_install_dependencies.sh ~/rdk_install 4
 
@@ -15,7 +21,6 @@ runs:
     - name: Build and install library
       shell: bash
       run: |
-        pwd
         mkdir -p build && cd build
         cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
         cmake --build . --target install --config Release
@@ -24,7 +29,6 @@ runs:
     - name: Build examples
       shell: bash
       run: |
-        pwd
         cd example
         mkdir -p build && cd build
         cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install
@@ -34,7 +38,6 @@ runs:
     - name: Build tests
       shell: bash
       run: |
-        pwd
         cd test
         mkdir -p build && cd build
         cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install

@@ -29,8 +29,7 @@ mkdir -p build && cd build
 cmake .. $SHARED_CMAKE_ARGS \
          -DTHIRDPARTY_Asio=ON \
          -DCOMPILE_EXAMPLES=OFF \
-         -DSQLITE3_SUPPORT=OFF \
-         -DOPENSSL_USE_STATIC_LIBS=ON
+         -DSQLITE3_SUPPORT=OFF
 
 # Build and install
 cmake --build . --target install --config Release -j $NUM_JOBS
