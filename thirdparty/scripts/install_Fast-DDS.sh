@@ -21,7 +21,7 @@ git submodule update --init --recursive
 # Apply patch if building for QNX
 git reset --hard
 if [ -n "$QNX_TARGET" ]; then
-  git apply $SCRIPTPATH/patches/fastdds_qnx802.patch
+  git apply $SCRIPT_DIR/patches/fastdds_qnx802.patch
 fi
 
 # Configure CMake

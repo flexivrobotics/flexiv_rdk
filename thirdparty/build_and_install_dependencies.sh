@@ -2,7 +2,7 @@
 # This script builds from source and installs all dependencies of flexiv_rdk.
 
 # Absolute path of this script
-export SCRIPTPATH="$(dirname $(readlink -f $0))"
+export SCRIPT_DIR="$(dirname $(readlink -f $0))"
 set -e
 
 # Check script arguments
@@ -55,11 +55,11 @@ mkdir -p cloned && cd cloned
 export SHARED_CMAKE_ARGS
 
 # Build and install all dependencies to INSTALL_DIR
-bash $SCRIPTPATH/scripts/install_eigen.sh
-bash $SCRIPTPATH/scripts/install_spdlog.sh
-bash $SCRIPTPATH/scripts/install_tinyxml2.sh
-bash $SCRIPTPATH/scripts/install_foonathan_memory.sh
-bash $SCRIPTPATH/scripts/install_Fast-CDR.sh
-bash $SCRIPTPATH/scripts/install_Fast-DDS.sh
+bash $SCRIPT_DIR/scripts/install_eigen.sh
+bash $SCRIPT_DIR/scripts/install_spdlog.sh
+bash $SCRIPT_DIR/scripts/install_tinyxml2.sh
+bash $SCRIPT_DIR/scripts/install_foonathan_memory.sh
+bash $SCRIPT_DIR/scripts/install_Fast-CDR.sh
+bash $SCRIPT_DIR/scripts/install_Fast-DDS.sh
 
 echo ">>>>>>>>>> Finished <<<<<<<<<<"
