@@ -12,7 +12,7 @@ assignees: pzhu-flexiv
 
 - RDK: [e.g. v1.5]
 - Robot software: [e.g. v3.7]
-- OS: [e.g. Ubuntu 20.04, x86_64]
+- OS: [e.g. Ubuntu 22.04, x86_64]
 
 ## How urgent is this bug? Have you found any workarounds?
 
