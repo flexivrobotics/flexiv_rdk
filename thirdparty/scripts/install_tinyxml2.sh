@@ -3,7 +3,7 @@ set -e
 echo "Installing tinyxml2"
 
 # Use a specific version
-VER_TAG=8.0.0
+VER_TAG=9.0.0
 
 # Clone source code
 if [ ! -d tinyxml2 ] ; then
