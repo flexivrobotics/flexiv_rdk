@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Use a specific version
+# Same as the apt installed version on Ubuntu 22.04
 VER_TAG=v1.9.2
 
 # Clone source code

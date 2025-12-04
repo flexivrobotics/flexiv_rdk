@@ -58,8 +58,12 @@ export SHARED_CMAKE_ARGS
 bash $SCRIPT_DIR/scripts/install_eigen.sh
 bash $SCRIPT_DIR/scripts/install_spdlog.sh
 bash $SCRIPT_DIR/scripts/install_tinyxml2.sh
+bash $SCRIPT_DIR/scripts/install_yaml-cpp.sh
 bash $SCRIPT_DIR/scripts/install_foonathan_memory.sh
 bash $SCRIPT_DIR/scripts/install_Fast-CDR.sh
 bash $SCRIPT_DIR/scripts/install_Fast-DDS.sh
+bash $SCRIPT_DIR/scripts/install_boost.sh
+bash $SCRIPT_DIR/scripts/install_SpaceVecAlg.sh
+bash $SCRIPT_DIR/scripts/install_RBDyn.sh
 
 echo ">>>>>>>>>> Finished <<<<<<<<<<"

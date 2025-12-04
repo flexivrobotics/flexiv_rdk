@@ -2,7 +2,7 @@
 set -e
 echo "Installing eigen"
 
-# Use a specific version
+# Same as the apt installed version on Ubuntu 22.04
 VER_TAG=3.4.0
 
 # Clone source code
