@@ -42,23 +42,30 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
   else()
     message(FATAL_ERROR "Linux with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
   endif()
+else()
+  message(FATAL_ERROR "${CMAKE_SYSTEM_NAME} is currently not supported.")
 endif()
 
 # Option to support ROS2 Jazzy
 option(RDK_SUPPORT_ROS2_JAZZY "Use RDK library compatible with ROS2 Jazzy" OFF)
 if(RDK_SUPPORT_ROS2_JAZZY)
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
-    set(RDK_LIB "libflexiv_rdk.x86_64-linux-gnu.ros2-jazzy.a")
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+      set(RDK_LIB "libflexiv_rdk.x86_64-linux-gnu.ros2-jazzy.a")
+    elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+      set(RDK_LIB "libflexiv_rdk.aarch64-linux-gnu.ros2-jazzy.a")
+    else()
+      message(FATAL_ERROR "Linux with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
+    endif()
   else()
-    message(FATAL_ERROR "ROS2 Jazzy compatibility is currently only supported on x86_64 Linux")
-  endif()
+    message(FATAL_ERROR "ROS2 Jazzy is currently not supported on ${CMAKE_SYSTEM_NAME}.")
 endif()
 
 # Parse expected hash of the library file
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_LIB}.sha256 EXPECTED_HASH)
 
 # Download the library file from GitHub 
-set(RDK_LIB_URL https://github.com/flexivrobotics/flexiv_rdk/releases/download/v1.8/${RDK_LIB})
+set(RDK_LIB_URL https://github.com/flexivrobotics/flexiv_rdk/releases/download/test_release/${RDK_LIB})
 message(STATUS "Downloading ${RDK_LIB_URL} ...")
 file(DOWNLOAD ${RDK_LIB_URL} ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
      SHOW_PROGRESS
