@@ -58,7 +58,7 @@ if(RDK_SUPPORT_ROS2_JAZZY)
       message(FATAL_ERROR "Linux with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
     endif()
   else()
-    message(FATAL_ERROR "ROS2 Jazzy is currently not supported on ${CMAKE_SYSTEM_NAME}.")
+    message(FATAL_ERROR "Compatibility with ROS2 Jazzy is currently not supported on ${CMAKE_SYSTEM_NAME}.")
   endif()
 endif()
 
