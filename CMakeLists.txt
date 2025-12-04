@@ -59,6 +59,7 @@ if(RDK_SUPPORT_ROS2_JAZZY)
     endif()
   else()
     message(FATAL_ERROR "ROS2 Jazzy is currently not supported on ${CMAKE_SYSTEM_NAME}.")
+  endif()
 endif()
 
 # Parse expected hash of the library file
