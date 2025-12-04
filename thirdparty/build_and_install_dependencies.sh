@@ -1,5 +1,5 @@
 #!/bin/sh
-# This script builds from source and installs all dependencies of flexiv_rdk.
+# Build and install all dependencies of flexiv_rdk.
 
 # Absolute path of this script
 export SCRIPT_DIR="$(dirname $(readlink -f $0))"
