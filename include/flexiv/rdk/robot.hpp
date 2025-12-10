@@ -159,6 +159,14 @@ public:
     bool enabling_button_pressed() const;
 
     /**
+     * @brief [Non-blocking] Whether the timeliness failure limit has been reached within a
+     * 1-second moving window.
+     * @return True: reached limit; false: not reached limit.
+     * @see SetTimelinessFailureLimit().
+     */
+    bool reached_timeliness_failure_limit() const;
+
+    /**
      * @brief [Non-blocking] Robot events stored since the last successful instantiation of this
      * class.
      * @return Event log as a vector of RobotEvent, with the first element being the
