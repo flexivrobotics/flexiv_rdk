@@ -42,7 +42,8 @@ struct SafetyLimits
  * @class Safety
  * @brief Interface to manage safety settings of the robot. A password is required to authenticate
  * this interface.
- * @note Only the manipulator has safety settings, the external axes do not.
+ * @note As mentioned in the function doc, certain safety settings are only applicable to the
+ * manipulator but not the external axes.
  */
 class Safety
 {
@@ -79,10 +80,12 @@ public:
     /**
      * @brief [Blocking] Set safety limits on the joint positions of the manipulator, which will
      * honor this setting when making movements.
-     * @param[in] min_positions Minimum joint positions: \f$ q_min \in \mathbb{R}^{n \times 1} \f$.
-     * Valid range: [default_min_joint_positions, default_max_joint_positions]. Unit: \f$ [rad] \f$.
-     * @param[in] max_positions Maximum joint positions: \f$ q_max \in \mathbb{R}^{n \times 1} \f$.
-     * Valid range: [default_min_joint_positions, default_max_joint_positions]. Unit: \f$ [rad] \f$.
+     * @param[in] min_positions Minimum joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1}
+     * \f$. Valid range: [default_min_joint_positions, default_max_joint_positions]. Unit: \f$ [rad]
+     * \f$.
+     * @param[in] max_positions Maximum joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1}
+     * \f$. Valid range: [default_min_joint_positions, default_max_joint_positions]. Unit: \f$ [rad]
+     * \f$.
      * @throw std::invalid_argument if [min_positions] or [max_positions] contains any value outside
      * the valid range, or size of any input vector does not match manipulator DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
@@ -98,7 +101,7 @@ public:
     /**
      * @brief [Blocking] Set safety limits on the joint velocities of the manipulator, which will
      * honor this setting when making movements under the normal state.
-     * @param[in] max_velocities Maximum joint velocities for normal state: \f$ dq_max \in
+     * @param[in] max_velocities Maximum joint velocities for normal state: \f$ \dot{q}_{max} \in
      * \mathbb{R}^{n \times 1} \f$. Valid range: [0.8727, joint_velocity_normal_limits]. Unit: \f$
      * [rad/s] \f$.
      * @throw std::invalid_argument if [max_velocities] contains any value outside the valid range,
@@ -115,7 +118,7 @@ public:
     /**
      * @brief [Blocking] Set safety limits on the joint velocities of the manipulator, which will
      * honor this setting when making movements under the reduced state.
-     * @param[in] max_velocities Maximum joint velocities for reduced state: \f$ dq_max \in
+     * @param[in] max_velocities Maximum joint velocities for reduced state: \f$ \dot{q}_{max} \in
      * \mathbb{R}^{n \times 1} \f$. Valid range: [0.8727, joint_velocity_normal_limits]. Unit: \f$
      * [rad/s] \f$.
      * @throw std::invalid_argument if [max_velocities] contains any value outside the valid range,
