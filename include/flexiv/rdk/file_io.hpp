@@ -111,6 +111,17 @@ public:
      */
     void DownloadProject(const std::string& project_name, const std::string& save_dir);
 
+    /**
+     * @brief [Blocking] Download all collision mesh files of the connected robot and save to the
+     * specified directory.
+     * @param[in] save_dir Relative or absolute path of the directory to save the downloaded
+     * mesh files. E.g. /home/user/Documents/.
+     * @throw std::runtime_error if failed to download or save the mesh files.
+     * @throw std::filesystem::filesystem_error if failed to create the specified directory.
+     * @note This function blocks until all collision mesh files are successfully downloaded.
+     */
+    void DownloadCollisionMesh(const std::string& save_dir);
+
 private:
     class Impl;
     std::unique_ptr<Impl> pimpl_;
