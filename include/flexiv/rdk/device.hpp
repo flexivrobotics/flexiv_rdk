@@ -31,9 +31,10 @@ public:
     virtual ~Device();
 
     /**
-     * @brief [Blocking] A list of existing devices and their status (enabled/disabled).
-     * @return A map of {device_name, is_enabled}. For example, {{"Mirka-AIROS-550CV", true},
-     * {"LinearRail", false}}.
+     * @brief [Non-blocking] A list of all existing devices.
+     * @return Device names as a string list.
+     */
+    std::vector<std::string> list() const;
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
