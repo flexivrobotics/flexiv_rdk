@@ -139,19 +139,32 @@ public:
 
     /**
      * @brief [Blocking] Sync the actual kinematic parameters of the connected robot into the
-     * template URDF.
-     * @param[in] template_urdf_path Path to the template URDF in [flexiv_rdk/resources] directory.
-     * This template URDF will be updated when the sync is finished.
-     * @throw std::invalid_argument if failed to load the template URDF.
-     * @throw std::runtime_error if failed to sync the URDF.
-     * @note This function blocks until the URDF syncing is finished.
+     * template URDF file.
+     * @param[in] template_urdf_path Path to the template URDF file that can be generated in
+     * [flexiv_description](https://github.com/flexivrobotics/flexiv_description). This template
+     * URDF file will be updated when the sync is finished.
+     * @throw std::invalid_argument if failed to load the template URDF file.
+     * @throw std::runtime_error if failed to sync the URDF file.
+     * @note This function blocks until the sync is finished.
      * @par Why is this function needed?
-     * The URDFs in [flexiv_rdk/resources] directory contain kinematic parameters of the latest
-     * robot hardware version, which might be different from older versions. This function is
-     * therefore provided to sync the actual kinematic parameters of the connected robot into the
-     * template URDF.
+     * The template URDF contains kinematic parameters of the latest version of robot hardware,
+     * which might be different from older versions. This function is therefore provided to sync the
+     * actual kinematic parameters of the connected robot into the template URDF.
      */
     void SyncURDF(const std::string& template_urdf_path);
+
+    /**
+     * @brief [Blocking] Sync the actual kinematic parameters of the connected robot into the
+     * template YAML file.
+     * @param[in] template_yaml_path Path to the template YAML file located at
+     * [flexiv_description/config/.../default_kinematics.yaml]. This template YAML file will be
+     * updated when the sync is finished.
+     * @return Total number of joints that have been successfully synced.
+     * @throw std::invalid_argument if failed to load the template YAML file.
+     * @throw std::runtime_error if failed to sync the YAML file.
+     * @note This function blocks until the sync is finished.
+     */
+    size_t SyncKinematicsYAML(const std::string& template_yaml_path);
 
     /**
      * @brief [Blocking] Check if a Cartesian pose is reachable. If yes, also return an IK solution
