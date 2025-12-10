@@ -282,13 +282,15 @@ public:
     void SyncWithPositioner(bool toggle);
 
     /**
-     * @brief [Non-blocking] Set the maximum tolerable number of failed timeliness checks within 60
-     * seconds when running real-time control modes. The functions marked as "Real-time (RT)" will
-     * throw an exception when this limit is violated.
-     * @param[in] limit Limit on number of failures, default to 3 times.
-     * @note The failure counter will be reset if no failure has occurred for the past 10 seconds.
+     * @brief [Non-blocking] Set the maximum tolerable percentage of real-time commands that arrived
+     * the robot too late within a 1-second moving window. This only applies to the real-time
+     * control modes and functions marked as "Real-time (RT)" will throw an exception when this
+     * limit is reached.
+     * @param[in] percentage Percentage limit, default to 2%. Valid range: [0, 100].
+     * @throw std::invalid_argument if [percentage] is outside the valid range.
+     * @see reached_timeliness_failure_limit().
      */
-    void SetTimelinessFailureLimit(unsigned int limit = 3);
+    void SetTimelinessFailureLimit(double percentage = 2.0);
 
     //======================================= PLAN EXECUTION =======================================
     /**
