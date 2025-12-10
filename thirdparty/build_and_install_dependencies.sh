@@ -17,7 +17,7 @@ if [ "$#" -lt 1 ]; then
 fi
 
 # Get dependencies install directory from script argument, should be the same as the install directory of flexiv_rdk
-INSTALL_DIR=$1
+export INSTALL_DIR=$1
 echo "Dependencies will be installed to: $INSTALL_DIR"
 
 # Use specified number for parallel build jobs, otherwise use 4
