@@ -96,6 +96,10 @@ message(STATUS "Found fastrtps v${fastrtps_VERSION}: ${fastrtps_DIR}")
 find_package(fastcdr REQUIRED)
 message(STATUS "Found fastcdr v${fastcdr_VERSION}: ${fastcdr_DIR}")
 
+# RBDyn
+find_package(RBDyn REQUIRED)
+message(STATUS "Found RBDyn v${RBDyn_VERSION}: ${RBDyn_DIR}")
+
 # ===================================================================
 #      CREATE LIBRARY
 # ===================================================================
@@ -118,6 +122,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   spdlog::spdlog
   fastrtps
   fastcdr
+  RBDyn::RBDyn
+  RBDyn::Parsers
 )
 
 # Use moderate compiler warning option
