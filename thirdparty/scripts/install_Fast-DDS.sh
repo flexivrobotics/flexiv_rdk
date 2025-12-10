@@ -8,15 +8,12 @@ VER_TAG=v2.6.10
 
 # Clone source code
 if [ ! -d Fast-DDS ] ; then
-  git clone https://github.com/eProsima/Fast-DDS.git --branch $VER_TAG
+  git clone --recurse-submodules https://github.com/eProsima/Fast-DDS.git --branch $VER_TAG
   cd Fast-DDS
 else
   cd Fast-DDS
   git checkout $VER_TAG
 fi
-
-# Initialize submodules
-git submodule update --init --recursive
 
 # Apply patch if building for QNX
 git reset --hard
@@ -26,10 +23,7 @@ fi
 
 # Configure CMake
 mkdir -p build && cd build
-cmake .. $SHARED_CMAKE_ARGS \
-         -DTHIRDPARTY_Asio=ON \
-         -DCOMPILE_EXAMPLES=OFF \
-         -DSQLITE3_SUPPORT=OFF
+cmake .. $SHARED_CMAKE_ARGS -DTHIRDPARTY_Asio=ON -DCOMPILE_EXAMPLES=OFF -DSQLITE3_SUPPORT=OFF
 
 # Build and install
 cmake --build . --target install --config Release -j $NUM_JOBS
