@@ -460,7 +460,7 @@ public:
     //==================================== DIRECT JOINT CONTROL ====================================
     /**
      * @brief [Non-blocking] Continuously stream joint torque commands to the robot.
-     * @param[in] torques Target joint torques: \f$ {\tau_J}_d \in \mathbb{R}^{n \times 1} \f$.
+     * @param[in] torques Target joint torques: \f$ \tau_d \in \mathbb{R}^{n \times 1} \f$.
      * Unit: \f$ [Nm] \f$.
      * @param[in] enable_gravity_comp Enable/disable robot gravity compensation.
      * @param[in] enable_soft_limits Enable/disable soft limits to keep the joints from moving
@@ -468,7 +468,6 @@ public:
      * operation.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if number of timeliness failures has reached limit.
      * @note Applicable control modes: RT_JOINT_TORQUE.
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
@@ -488,7 +487,6 @@ public:
      * 1} \f$. Unit: \f$ [rad/s^2] \f$.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if number of timeliness failures has reached limit.
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, RT_JOINT_POSITION.
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
@@ -601,7 +599,6 @@ public:
      * leave this input 0. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear and \f$
      * \mathbb{R}^{3 \times 1} \f$ angular acceleration. Unit: \f$ [m/s^2]:[rad/s^2] \f$.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if number of timeliness failures has reached limit.
      * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE.
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous motion commands to avoid sudden movements. The
