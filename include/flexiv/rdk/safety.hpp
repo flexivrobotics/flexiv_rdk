@@ -132,6 +132,27 @@ public:
      */
     void SetJointVelocityReducedLimits(const std::vector<double>& max_velocities);
 
+    /**
+     * @brief [Blocking] Change settings of the regulator on the joint output torques of the
+     * manipulator and external axes. The regulator will limit the joints' total output torques so
+     * that the measured torques are less likely to exceed safety limits under large payload or
+     * fast/abrupt motions.
+     * @param[in] limiting_factor Factor to limit the total output torques: \f$ \tau^{o}_{max} =
+     * \tau_{max} \times factor \f$.
+     * @param[in] error_threshold If the unregulated output torque of any joint exceeds the
+     * configured regulator limit for more than [error_threshold] cycles consecutively, the robot
+     * will trigger a minor fault and stop.
+     * @throw std::invalid_argument if [limiting_factor] or [error_threshold] is not positive.
+     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note Applicable control modes: IDLE.
+     * @note This function blocks until the request is successfully delivered.
+     * @note This setting takes effect immediately and doesn't require a reboot.
+     * @warning Setting the limiting factor too small can cause performance degradation.
+     */
+    void SetJointOutputTorqueRegulator(
+        double limiting_factor = 1.3, unsigned int error_threshold = 50);
+
 private:
     class Impl;
     std::unique_ptr<Impl> pimpl_;
