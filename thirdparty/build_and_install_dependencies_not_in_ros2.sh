@@ -36,6 +36,16 @@ export SHARED_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release \
                           -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
                           -DBUILD_TESTING=OFF"
 
+# OS type
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    OS_NAME="Linux"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    OS_NAME="Darwin"
+else
+    OS_NAME="Windows"
+fi
+export OS_NAME
+
 # Clone all dependencies in a subfolder
 mkdir -p cloned && cd cloned
 

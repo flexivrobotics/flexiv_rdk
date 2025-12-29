@@ -37,6 +37,15 @@ SHARED_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release \
                    -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
                    -DBUILD_TESTING=OFF"
 
+# OS type
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    OS_NAME="Linux"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    OS_NAME="Darwin"
+else
+    OS_NAME="Windows"
+fi
+
 # Building for QNX
 if [ -n "$QNX_TARGET" ]; then
     # Path to the toolchain file must be set
@@ -48,12 +57,14 @@ if [ -n "$QNX_TARGET" ]; then
     fi
     # Append toolchain file to cmake arguments
     SHARED_CMAKE_ARGS="$SHARED_CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=$QNX_TOOLCHAIN"
+    OS_NAME="QNX"
     echo "Building for QNX with toolchain [$QNX_TOOLCHAIN]"
 fi
+export OS_NAME
+export SHARED_CMAKE_ARGS
 
 # Clone all dependencies in a subfolder
 mkdir -p cloned && cd cloned
-export SHARED_CMAKE_ARGS
 
 # Build and install all dependencies to INSTALL_DIR
 bash $SCRIPT_DIR/scripts/install_eigen.sh
