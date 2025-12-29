@@ -1,5 +1,6 @@
 #!/bin/sh
 # Build and install flexiv_rdk dependencies that are not included with ROS2 installation.
+echo ">>>>> Start: flexiv_rdk/thirdparty/build_and_install_dependencies_not_in_ros2.sh <<<<<"
 
 # Absolute path of this script
 export SCRIPT_DIR="$(dirname $(readlink -f $0))"
@@ -43,4 +44,4 @@ bash $SCRIPT_DIR/scripts/install_boost.sh
 bash $SCRIPT_DIR/scripts/install_SpaceVecAlg.sh
 bash $SCRIPT_DIR/scripts/install_RBDyn.sh
 
-echo ">>>>>>>>>> Finished <<<<<<<<<<"
+echo ">>>>> Finished: flexiv_rdk/thirdparty/build_and_install_dependencies_not_in_ros2.sh <<<<<"
