@@ -34,7 +34,8 @@ public:
      * defined by its associated IPv4 address. For example, {"10.42.0.1", "192.168.2.102"}. If left
      * empty, all available network interfaces will be tried when searching for the specified robot.
      * @param[in] verbose Enable/disable info and warning prints.
-     * @param[in] lite Whether to create a lite instance. See details below.
+     * @param[in] lite Whether to create a lite instance. See details below. A normal instance must
+     * have already connected to the robot for lite instances to function properly.
      * @throw std::invalid_argument if the format of [robot_sn] is invalid.
      * @throw std::runtime_error if the initialization sequence failed.
      * @throw std::logic_error if the connected robot lacks a valid RDK license, or is incompatible
