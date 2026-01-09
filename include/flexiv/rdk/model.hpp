@@ -72,9 +72,7 @@ public:
      * \f$.
      * @throw std::invalid_argument if [link_name] does not exist.
      * @note Call Update() before this function.
-     * @note Available links can be found in the provided URDF. They are {"base_link", "link1",
-     * "link2", "link3", "link4", "link5", "link6", "link7", "flange"}, plus "tool" if any flange
-     * tool is mounted.
+     * @see link_names().
      */
     Eigen::MatrixXd dJ(const std::string& link_name);
 
@@ -118,9 +116,7 @@ public:
      * @return Jacobian matrix: \f$ ^{0}J_i \in \mathbb{R}^{m \times n} \f$.
      * @throw std::invalid_argument if [link_name] does not exist.
      * @note Call Update() before this function.
-     * @note Available links can be found in the provided URDF. They are {"base_link", "link1",
-     * "link2", "link3", "link4", "link5", "link6", "link7", "flange"}, plus "tool" if any flange
-     * tool is mounted.
+     * @see link_names().
      */
     Eigen::MatrixXd J(const std::string& link_name);
 
@@ -128,12 +124,10 @@ public:
      * @brief [Non-blocking] Compute the transformation matrix of the specified frame w.r.t. world
      * frame.
      * @param[in] link_name Name of the link whose frame is the specified one.
-     * @return Jacobian matrix: \f$ ^{0}J_i \in \mathbb{R}^{m \times n} \f$.
+     * @return Transformation matrix: \f$ ^{0}T_i \in \mathbb{R}^{4 \times 4} \f$.
      * @throw std::invalid_argument if [link_name] does not exist.
      * @note Call Update() before this function.
-     * @note Available links can be found in the provided URDF. They are {"base_link", "link1",
-     * "link2", "link3", "link4", "link5", "link6", "link7", "flange"}, plus "tool" if any flange
-     * tool is mounted.
+     * @see link_names().
      */
     Eigen::Isometry3d T(const std::string& link_name);
 
