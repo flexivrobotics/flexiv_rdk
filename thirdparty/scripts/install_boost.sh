@@ -38,12 +38,10 @@ if [ $OS_NAME == "QNX" ]; then
     # Build for x86_64 target
     echo "Building boost for QNX x86_64"
     ./b2 -j$NUM_JOBS --prefix=$INSTALL_DIR --with-system variant=release link=shared toolset=qcc target-os=qnx architecture=x86 address-model=64 cxxflags="-Vgcc_ntox86_64" linkflags="-Vgcc_ntox86_64" install
-    ntox86_64-ranlib $INSTALL_DIR/lib/libboost_system.a
   elif [ $QNX_ARCH == "aarch64" ]; then
     # Build for aarch64 target
     echo "Building boost for QNX aarch64"
     ./b2 -j$NUM_JOBS --prefix=$INSTALL_DIR --with-system variant=release link=shared toolset=qcc target-os=qnx architecture=arm address-model=64 cxxflags="-Vgcc_ntoaarch64le" linkflags="-Vgcc_ntoaarch64le" install
-    ntoaarch64-ranlib $INSTALL_DIR/lib/libboost_system.a
   else
     echo "Error: unknown QNX platform architecture"
     exit 1

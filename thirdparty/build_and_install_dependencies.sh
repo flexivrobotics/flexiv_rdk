@@ -59,6 +59,15 @@ if [ -n "$QNX_TARGET" ]; then
     SHARED_CMAKE_ARGS="$SHARED_CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=$QNX_TOOLCHAIN"
     OS_NAME="QNX"
     echo "Building for QNX with toolchain [$QNX_TOOLCHAIN]"
+    # Extract QNX target architecture from toolchain file name, and set it as an environment variable for later use
+    if [[ "$QNX_TOOLCHAIN" == *"x86_64"* ]]; then
+        export QNX_ARCH="x86_64"
+    elif [[ "$QNX_TOOLCHAIN" == *"aarch64"* ]]; then
+        export QNX_ARCH="aarch64"
+    else
+        echo "Error: cannot determine QNX target architecture"
+        exit 1
+    fi
 fi
 export OS_NAME
 export SHARED_CMAKE_ARGS
