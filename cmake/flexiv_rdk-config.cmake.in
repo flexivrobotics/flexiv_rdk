@@ -2,6 +2,7 @@ include(CMakeFindDependencyMacro)
 
 # Find dependency
 set(THREADS_PREFER_PTHREAD_FLAG ON)
+set(Boost_USE_STATIC_LIBS OFF)
 find_dependency(Threads REQUIRED)
 find_dependency(Eigen3 REQUIRED)
 find_dependency(spdlog REQUIRED)

@@ -106,6 +106,7 @@ find_package(fastcdr REQUIRED)
 message(STATUS "Found fastcdr v${fastcdr_VERSION}: ${fastcdr_DIR}")
 
 # RBDyn
+set(Boost_USE_STATIC_LIBS OFF)
 find_package(RBDyn REQUIRED)
 message(STATUS "Found RBDyn v${RBDyn_VERSION}: ${RBDyn_DIR}")
 
