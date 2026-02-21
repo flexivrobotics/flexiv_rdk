@@ -16,7 +16,7 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 | Linux (Ubuntu 22.04+) | x86_64, aarch64 | GCC   v11.4+         | 3.8, 3.10, 3.12        |
 | macOS 12+             | arm64           | Clang v14.0+         | 3.10, 3.12             |
 | Windows 10+           | x86_64          | MSVC  v14.2+         | 3.8, 3.10, 3.12        |
-| QNX 8.0.2+            | x86_64, aarch64 | QCC   v12.2+         | Not supported          |
+| QNX 8.0.3+            | x86_64, aarch64 | QCC   v12.2+         | Not supported          |
 
 ## Important Notice
 
@@ -160,13 +160,13 @@ NOTE: ``-D`` followed by ``CMAKE_PREFIX_PATH`` tells the user project's CMake wh
 To run an example C++ program compiled during the previous step:
 
     cd flexiv_rdk/example/build
-    ./<example_name> [robot_serial_number]
+    LD_LIBRARY_PATH=~/rdk_install/lib ./<example_name> [robot_serial_number]
 
 For example:
 
-    ./basics1_display_robot_states Rizon4-123456
+    LD_LIBRARY_PATH=~/rdk_install/lib ./basics1_display_robot_states Rizon4-123456
 
-NOTE: ``sudo`` is only required if the real-time scheduler API ``flexiv::rdk::Scheduler`` is used in the program.
+NOTE: ``LD_LIBRARY_PATH`` is used to specify where the shared libraries of the dependencies are installed. ``sudo`` is only required if the real-time scheduler API ``flexiv::rdk::Scheduler`` is used in the program.
 
 ## API Documentation
 
