@@ -34,7 +34,7 @@ NOTE: replace `3.x` with a specific Python version.
 
 ### Use the installed Python package
 
-After the ``flexivrdk`` Python package is installed, it can be imported from any Python script. Test with the following commands in a new Terminal, which should start Flexiv RDK:
+After the `flexivrdk` Python package is installed, it can be imported from any Python script. Test with the following commands in a new Terminal, which should start Flexiv RDK:
 
     python3.x
     import flexivrdk
@@ -85,7 +85,7 @@ For example:
    * MSVC ... C++ x64/x86 build tools (Latest)
    * C++ CMake tools for Windows
    * Windows 10 SDK or Windows 11 SDK, depending on your actual Windows version
-2. Install CMake: Download ``cmake-3.x.x-windows-x86_64.msi`` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that ``cmake`` and ``cmake-gui`` command can be used from Command Prompt or a bash emulator.
+2. Install CMake: Download `cmake-3.x.x-windows-x86_64.msi` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.16.3. **Add CMake to system PATH** when prompted, so that `cmake` and `cmake-gui` command can be used from Command Prompt or a bash emulator.
 3. Install bash emulator: Download and install [Git for Windows](https://git-scm.com/download/win/), which comes with a bash emulator Git Bash. The following steps are to be carried out in this bash emulator.
 
 #### QNX
@@ -100,73 +100,80 @@ For example:
 
 The following steps are mostly the same on all supported platforms, with some variations.
 
-1. Choose a directory for installing the C++ library of RDK and its dependencies. This directory can be under system path or not, depending on whether you want RDK to be globally discoverable by CMake. For example, a new folder named ``rdk_install`` under the home directory.
+1. Choose a directory for installing the C++ library of RDK and its dependencies. This directory can be under system path or not, depending on whether you want RDK to be globally discoverable by CMake. For example, a new folder named `rdk_install` under the home directory.
 2. In a new Terminal, run the provided script to compile and install all dependencies to the installation directory chosen in step 1:
 
        cd flexiv_rdk/thirdparty
 
-   For non-QNX:
+   On non-QNX:
 
        bash build_and_install_dependencies.sh ~/rdk_install
 
-   For QNX:
+   On QNX:
 
        source <qnx-sdp-dir>/qnxsdp-env.sh
        bash build_and_install_dependencies.sh ~/rdk_install $(nproc) <path-to-qnx-toolchain-file>
 
-   NOTE: the QNX toolchain files are located under ``flexiv_rdk/cmake`` directory, with one for x86_64 target and one for aarch64 target.
+   NOTE: the QNX toolchain files are located under `flexiv_rdk/cmake` directory, with one for x86_64 target and one for aarch64 target.
 
-3. In the same Terminal, configure the ``flexiv_rdk`` CMake project:
+3. In the same Terminal, configure the `flexiv_rdk` CMake project:
 
        cd flexiv_rdk
        mkdir build && cd build
 
-   For non-QNX:
+   On non-QNX:
 
        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
 
-   For QNX:
+   On QNX:
 
        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install -DCMAKE_TOOLCHAIN_FILE=<path-to-qnx-toolchain-file>
 
-   NOTE: ``-D`` followed by ``CMAKE_INSTALL_PREFIX`` sets the absolute path of the installation directory, which should be the one chosen in step 1.
+   NOTE: `-D` followed by `CMAKE_INSTALL_PREFIX` sets the absolute path of the installation directory, which should be the one chosen in step 1.
 
-4. Install ``flexiv_rdk`` C++ library to ``CMAKE_INSTALL_PREFIX`` path, which may or may not be globally discoverable by CMake depending on the location:
+4. Install `flexiv_rdk` C++ library to `CMAKE_INSTALL_PREFIX` path, which may or may not be globally discoverable by CMake depending on the location:
 
        cd flexiv_rdk/build
        cmake --build . --target install --config Release
 
 ### Use the installed C++ library
 
-After the library is installed as ``flexiv_rdk`` CMake target, it can be linked from any other CMake projects. Using the provided `flexiv_rdk-examples` project for instance:
+After the library is installed as `flexiv_rdk` CMake target, it can be linked from any other CMake projects. Using the provided `flexiv_rdk-examples` project for instance:
 
     cd flexiv_rdk/example
     mkdir build && cd build
 
-For non-QNX:
+On non-QNX:
 
     cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install
     cmake --build . --config Release -j 4
 
-For QNX:
+On QNX:
 
     cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install -DCMAKE_TOOLCHAIN_FILE=<path-to-qnx-toolchain-file>
     cmake --build . --config Release -j 4
 
-NOTE: ``-D`` followed by ``CMAKE_PREFIX_PATH`` tells the user project's CMake where to find the installed C++ library. This argument can be skipped if the RDK library and its dependencies are installed to a globally discoverable location.
+NOTE: `-D` followed by `CMAKE_PREFIX_PATH` tells the user project's CMake where to find the installed C++ library. This argument can be skipped if the RDK library and its dependencies are installed to a globally discoverable location.
 
 ### Run example C++ programs
 
-To run an example C++ program compiled during the previous step:
+To run an example C++ program compiled during the previous step, using `basics1_display_robot_states` for example:
 
     cd flexiv_rdk/example/build
-    LD_LIBRARY_PATH=~/rdk_install/lib ./<example_name> [robot_serial_number]
 
-For example:
+On non-Windows:
 
     LD_LIBRARY_PATH=~/rdk_install/lib ./basics1_display_robot_states Rizon4-123456
 
-NOTE: ``LD_LIBRARY_PATH`` is used to specify where the shared libraries of the dependencies are installed. ``sudo`` is only required if the real-time scheduler API ``flexiv::rdk::Scheduler`` is used in the program.
+On Windows (Command Prompt):
+
+    set PATH=%USERPROFILE%\rdk_install\bin;%PATH%
+    basics1_display_robot_states Rizon4-123456
+
+NOTE: 
+1. Replace `Rizon4-123456` with the actual serial number of the robot.
+2. `LD_LIBRARY_PATH` or `PATH` is used to specify where the shared libraries of the dependencies are installed. 
+3. Root privilege is required if the real-time scheduler API `flexiv::rdk::Scheduler` is used in the program.
 
 ## API Documentation
 
@@ -177,4 +184,4 @@ The complete and detailed API documentation of the **latest release** can be fou
     git checkout <previous_release_tag>
     doxygen doc/Doxyfile.in
 
-Open any html file under ``flexiv_rdk/doc/html/`` with your browser to view the doc.
+Open any html file under `flexiv_rdk/doc/html/` with your browser to view the doc.
