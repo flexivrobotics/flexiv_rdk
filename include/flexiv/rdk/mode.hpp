@@ -102,13 +102,10 @@ enum class Mode
      * @see Robot::SendCartesianMotionForce().
      */
     NRT_SUPER_PRIMITIVE,
-
-    /** Total number of control modes */
-    MODES_CNT,
 };
 
 /** String names of the above control modes */
-static const std::array<std::string, static_cast<size_t>(Mode::MODES_CNT)> kModeNames
+static const std::array<std::string, static_cast<size_t>(Mode::NRT_SUPER_PRIMITIVE) + 1> kModeNames
     = {"UNKNOWN", "IDLE", "RT_JOINT_TORQUE", "RT_JOINT_IMPEDANCE", "NRT_JOINT_IMPEDANCE",
         "RT_JOINT_POSITION", "NRT_JOINT_POSITION", "NRT_PLAN_EXECUTION", "NRT_PRIMITIVE_EXECUTION",
         "RT_CARTESIAN_MOTION_FORCE", "NRT_CARTESIAN_MOTION_FORCE", "NRT_SUPER_PRIMITIVE"};

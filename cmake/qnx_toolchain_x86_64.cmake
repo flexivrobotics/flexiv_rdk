@@ -1,27 +1,30 @@
 # QNX toolchain for cross-compilation of x86_64 target
 
-# set target system
+# Set target system
 set(CMAKE_SYSTEM_NAME QNX)
 set(CMAKE_SYSTEM_PROCESSOR x86_64)
 set(arch gcc_ntox86_64)
 
-# specify the cross compiler
+# Specify the cross compiler
 set(CMAKE_C_COMPILER qcc)
 set(CMAKE_C_COMPILER_TARGET ${arch})
 set(CMAKE_CXX_COMPILER q++)
 set(CMAKE_CXX_COMPILER_TARGET ${arch})
 
-# set qnx build flags
+# Set qnx build flags
 add_definitions("-D_QNX_SOURCE")
 
-# set QNX_TARGET
+# Set QNX_TARGET
 if (DEFINED ENV{QNX_TARGET})
     set (QNX_TARGET $ENV{QNX_TARGET})
 else ()
     message (FATAL_ERROR "NO QNX TARGET ENV DEFINED")
 endif ()
 
-# set default cmake_install_prefix
+# Set the sysroot to the QNX target directory, so the compiler can find the correct headers and libraries for the target system.
+set(CMAKE_SYSROOT ${QNX_TARGET})
+
+# Set default cmake_install_prefix
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR NOT DEFINED CMAKE_INSTALL_PREFIX)
     set(CMAKE_INSTALL_PREFIX ${QNX_TARGET}/${CMAKE_SYSTEM_PROCESSOR}/usr/local CACHE PATH "cmake install prefix" FORCE)
 endif()
@@ -51,15 +54,14 @@ endif()
 list(APPEND CMAKE_FIND_ROOT_PATH ${CMAKE_INSTALL_PREFIX})
 list(APPEND CMAKE_FIND_ROOT_PATH ${QNX_TARGET}/${CMAKE_SYSTEM_PROCESSOR} ${QNX_TARGET}/usr)
 
-# remove duplicates, since we are appending
+# Remove duplicates, since we are appending
 list(REMOVE_DUPLICATES CMAKE_FIND_ROOT_PATH)
 
-# search only the paths prefixed with CMAKE_FIND_ROOT_PATH
+# Search only the paths prefixed with CMAKE_FIND_ROOT_PATH
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
-# set(CMAKE_SYSROOT $ENV{QNX_TARGET})
 
 # QNX does not support -pthread compiler flag,
 # because pthread is already part of the c library

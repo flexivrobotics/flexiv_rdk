@@ -31,22 +31,35 @@ public:
     virtual ~Device();
 
     /**
-     * @brief [Blocking] A list of existing devices and their status (enabled/disabled).
-     * @return A map of {device_name, is_enabled}. For example, {{"Mirka-AIROS-550CV", true},
-     * {"LinearRail", false}}.
-     * @throw std::runtime_error if failed to get a reply from the connected robot.
-     * @note This function blocks until a reply is received.
+     * @brief [Non-blocking] A list of all existing devices.
+     * @return Device names as a string list.
      */
-    std::map<std::string, bool> list() const;
+    std::vector<std::string> list() const;
 
     /**
-     * @brief [Blocking] Whether the specified device already exists.
+     * @brief [Non-blocking] Whether the specified device already exists.
      * @param[in] name Name of the device to check.
      * @return True if the specified device exists.
+     */
+    bool exist(const std::string& name) const;
+
+    /**
+     * @brief [Blocking] Whether the specified device is enabled.
+     * @param[in] name Name of the device to check.
+     * @return True if the specified device is enabled.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    bool exist(const std::string& name) const;
+    bool enabled(const std::string& name) const;
+
+    /**
+     * @brief [Blocking] Whether the specified device is connected.
+     * @param[in] name Name of the device to check.
+     * @return True if the specified device is connected.
+     * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @note This function blocks until a reply is received.
+     */
+    bool connected(const std::string& name) const;
 
     /**
      * @brief [Blocking] Configuration parameters of the specified device.

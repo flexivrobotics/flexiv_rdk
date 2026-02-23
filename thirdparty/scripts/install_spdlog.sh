@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-# Use a specific version
-VER_TAG=v1.14.1
+# Same as the apt installed version on Ubuntu 22.04
+VER_TAG=v1.9.2
 
 # Clone source code
 if [ ! -d spdlog ] ; then
@@ -15,9 +15,7 @@ fi
 
 # Configure CMake
 mkdir -p build && cd build
-cmake .. $SHARED_CMAKE_ARGS \
-         -DSPDLOG_BUILD_EXAMPLE=OFF \
-         -DSPDLOG_BUILD_TESTS=OFF
+cmake .. $SHARED_CMAKE_ARGS -DSPDLOG_BUILD_EXAMPLE=OFF -DSPDLOG_BUILD_TESTS=OFF
 
 # Build and install
 cmake --build . --target install --config Release -j $NUM_JOBS

@@ -1,8 +1,9 @@
 #!/bin/sh
-# This script builds from source and installs all dependencies of flexiv_rdk.
+# Build and install all dependencies of flexiv_rdk.
+echo ">>>>> Start: flexiv_rdk/thirdparty/build_and_install_dependencies.sh <<<<<"
 
 # Absolute path of this script
-export SCRIPTPATH="$(dirname $(readlink -f $0))"
+export SCRIPT_DIR="$(dirname $(readlink -f $0))"
 set -e
 
 # Check script arguments
@@ -17,7 +18,7 @@ if [ "$#" -lt 1 ]; then
 fi
 
 # Get dependencies install directory from script argument, should be the same as the install directory of flexiv_rdk
-INSTALL_DIR=$1
+export INSTALL_DIR=$1
 echo "Dependencies will be installed to: $INSTALL_DIR"
 
 # Use specified number for parallel build jobs, otherwise use 4
@@ -30,11 +31,20 @@ echo "Number of parallel build jobs: $NUM_JOBS"
 
 # Set shared cmake arguments
 SHARED_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release \
-                   -DBUILD_SHARED_LIBS=OFF \
+                   -DBUILD_SHARED_LIBS=ON \
                    -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
                    -DCMAKE_PREFIX_PATH=$INSTALL_DIR \
                    -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
                    -DBUILD_TESTING=OFF"
+
+# OS type
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    OS_NAME="Linux"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+    OS_NAME="Darwin"
+else
+    OS_NAME="Windows"
+fi
 
 # Building for QNX
 if [ -n "$QNX_TARGET" ]; then
@@ -47,19 +57,34 @@ if [ -n "$QNX_TARGET" ]; then
     fi
     # Append toolchain file to cmake arguments
     SHARED_CMAKE_ARGS="$SHARED_CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=$QNX_TOOLCHAIN"
-    echo "Building for QNX with toolchain [$QNX_TOOLCHAIN]"
+    OS_NAME="QNX"
+    # Extract QNX target architecture from toolchain file name, and set it as an environment variable for later use
+    if [[ "$QNX_TOOLCHAIN" == *"x86_64"* ]]; then
+        export QNX_ARCH="x86_64"
+    elif [[ "$QNX_TOOLCHAIN" == *"aarch64"* ]]; then
+        export QNX_ARCH="aarch64"
+    else
+        echo "Error: cannot determine QNX target architecture"
+        exit 1
+    fi
+    echo "Building for QNX $QNX_ARCH target with toolchain file [$QNX_TOOLCHAIN]"
 fi
+export OS_NAME
+export SHARED_CMAKE_ARGS
 
 # Clone all dependencies in a subfolder
 mkdir -p cloned && cd cloned
-export SHARED_CMAKE_ARGS
 
 # Build and install all dependencies to INSTALL_DIR
-bash $SCRIPTPATH/scripts/install_eigen.sh
-bash $SCRIPTPATH/scripts/install_spdlog.sh
-bash $SCRIPTPATH/scripts/install_tinyxml2.sh
-bash $SCRIPTPATH/scripts/install_foonathan_memory.sh
-bash $SCRIPTPATH/scripts/install_Fast-CDR.sh
-bash $SCRIPTPATH/scripts/install_Fast-DDS.sh
+bash $SCRIPT_DIR/scripts/install_eigen.sh
+bash $SCRIPT_DIR/scripts/install_spdlog.sh
+bash $SCRIPT_DIR/scripts/install_tinyxml2.sh
+bash $SCRIPT_DIR/scripts/install_yaml-cpp.sh
+bash $SCRIPT_DIR/scripts/install_foonathan_memory.sh
+bash $SCRIPT_DIR/scripts/install_Fast-CDR.sh
+bash $SCRIPT_DIR/scripts/install_Fast-DDS.sh
+bash $SCRIPT_DIR/scripts/install_boost.sh
+bash $SCRIPT_DIR/scripts/install_SpaceVecAlg.sh
+bash $SCRIPT_DIR/scripts/install_RBDyn.sh
 
-echo ">>>>>>>>>> Finished <<<<<<<<<<"
+echo ">>>>> Finished: flexiv_rdk/thirdparty/build_and_install_dependencies.sh <<<<<"

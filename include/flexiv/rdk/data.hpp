@@ -52,6 +52,12 @@ enum class OperationalStatus
     IN_AUTO_MODE,       ///< In regular Auto mode, need to switch to Auto (Remote) mode.
 };
 
+/** String names of the above operational status */
+static const std::array<std::string, static_cast<size_t>(OperationalStatus::IN_AUTO_MODE) + 1>
+    kOpStatusNames = {"Unknown status", "Ready", "System booting", "E-Stop not released",
+        "Not enabled", "Releasing brakes", "Minor fault occurred", "Critical fault occurred",
+        "In reduced state", "In recovery state", "In Manual mode", "In regular Auto mode"};
+
 /**
  * @brief Type of commonly-used reference coordinates.
  */
@@ -210,7 +216,7 @@ struct RobotStates
     std::vector<double> tau = {};
 
     /**
-     * Desired joint torques of the full system: \f$ \tau_{d} \in \mathbb{R}^{n \times 1} \f$.
+     * Desired joint torques of the full system: \f$ \tau_d \in \mathbb{R}^{n \times 1} \f$.
      * Compensation of nonlinear dynamics (gravity, centrifugal, and Coriolis) is excluded. Unit:
      * \f$ [Nm] \f$.
      * @note If a joint has no torque control capability, the corresponding value will be 0.

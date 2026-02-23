@@ -2,7 +2,7 @@
 set -e
 echo "Installing eigen"
 
-# Use a specific version
+# Same as the apt installed version on Ubuntu 22.04
 VER_TAG=3.4.0
 
 # Clone source code
@@ -17,7 +17,7 @@ fi
 # Apply patch if building for QNX
 git reset --hard
 if [ -n "$QNX_TARGET" ]; then
-  git apply $SCRIPTPATH/patches/eigen_qnx802.patch
+  git apply $SCRIPT_DIR/patches/eigen_qnx802.patch
 fi
 
 # Configure CMake

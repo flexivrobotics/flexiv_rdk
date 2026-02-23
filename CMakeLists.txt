@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16.3)
 # ===================================================================
 #      PROJECT SETUP
 # ===================================================================
-project(flexiv_rdk VERSION 1.8.0)
+project(flexiv_rdk VERSION 1.9.0)
 
 # Configure build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -55,7 +55,8 @@ if(RDK_SUPPORT_ROS2_JAZZY)
     elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
       set(RDK_LIB "libflexiv_rdk.aarch64-linux-gnu.ros2-jazzy.a")
     else()
-      message(FATAL_ERROR "Linux with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
+      message(FATAL_ERROR 
+        "Compatibility with ROS2 Jazzy is currently not supported on Linux with ${CMAKE_SYSTEM_PROCESSOR} processor.")
     endif()
   else()
     message(FATAL_ERROR "Compatibility with ROS2 Jazzy is currently not supported on ${CMAKE_SYSTEM_NAME}.")
@@ -66,7 +67,7 @@ endif()
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_LIB}.sha256 EXPECTED_HASH)
 
 # Download the library file from GitHub 
-set(RDK_LIB_URL https://github.com/flexivrobotics/flexiv_rdk/releases/download/v1.8/${RDK_LIB})
+set(RDK_LIB_URL https://github.com/flexivrobotics/flexiv_rdk/releases/download/v1.9/${RDK_LIB})
 message(STATUS "Downloading ${RDK_LIB_URL} ...")
 file(DOWNLOAD ${RDK_LIB_URL} ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
      SHOW_PROGRESS
@@ -104,6 +105,11 @@ message(STATUS "Found fastrtps v${fastrtps_VERSION}: ${fastrtps_DIR}")
 find_package(fastcdr REQUIRED)
 message(STATUS "Found fastcdr v${fastcdr_VERSION}: ${fastcdr_DIR}")
 
+# RBDyn
+set(Boost_USE_STATIC_LIBS OFF)
+find_package(RBDyn REQUIRED)
+message(STATUS "Found RBDyn v${RBDyn_VERSION}: ${RBDyn_DIR}")
+
 # ===================================================================
 #      CREATE LIBRARY
 # ===================================================================
@@ -126,6 +132,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   spdlog::spdlog
   fastrtps
   fastcdr
+  RBDyn::RBDyn
+  RBDyn::Parsers
 )
 
 # Use moderate compiler warning option
