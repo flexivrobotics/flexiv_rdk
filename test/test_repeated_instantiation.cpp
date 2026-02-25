@@ -10,6 +10,7 @@
 #include <spdlog/spdlog.h>
 
 #include <iostream>
+#include <thread>
 
 using namespace flexiv;
 
