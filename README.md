@@ -161,14 +161,14 @@ To run an example C++ program compiled during the previous step:
 
     cd flexiv_rdk/example/build
 
-On non-Windows:
+On Linux and macOS:
 
     LD_LIBRARY_PATH=~/rdk_install/lib ./<example-name> <robot-sn>
 
 On Windows (Command Prompt):
 
     set PATH=%USERPROFILE%\rdk_install\bin;%PATH%
-    <example-name>.exe <robot-sn>
+    Release\<example-name>.exe <robot-sn>
 
 Note:
 
