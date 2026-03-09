@@ -30,7 +30,7 @@ On all supported platforms, the Python package of RDK and its dependencies for a
 
     python3.x -m pip install numpy spdlog flexivrdk
 
-NOTE: replace `3.x` with a specific Python version.
+Note: replace `3.x` with a specific Python version.
 
 ### Use the installed Python package
 
@@ -47,7 +47,7 @@ The program will start searching for a robot with serial number `Rizon4-123456`,
 To run an example Python script in this repo:
 
     cd flexiv_rdk/example_py
-    python3.x <example_name>.py [robot_serial_number]
+    python3.x <example-name>.py <robot-sn>
 
 For example:
 
@@ -114,7 +114,7 @@ The following steps are mostly the same on all supported platforms, with some va
        source <qnx-sdp-dir>/qnxsdp-env.sh
        bash build_and_install_dependencies.sh ~/rdk_install $(nproc) <path-to-qnx-toolchain-file>
 
-   NOTE: the QNX toolchain files are located under `flexiv_rdk/cmake` directory, with one for x86_64 target and one for aarch64 target.
+   Note: the QNX toolchain files are located under `flexiv_rdk/cmake` directory, with one for x86_64 target and one for aarch64 target.
 
 3. In the same Terminal, configure the `flexiv_rdk` CMake project:
 
@@ -129,7 +129,7 @@ The following steps are mostly the same on all supported platforms, with some va
 
        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install -DCMAKE_TOOLCHAIN_FILE=<path-to-qnx-toolchain-file>
 
-   NOTE: `-D` followed by `CMAKE_INSTALL_PREFIX` sets the absolute path of the installation directory, which should be the one chosen in step 1.
+   Note: `-D` followed by `CMAKE_INSTALL_PREFIX` sets the absolute path of the installation directory, which should be the one chosen in step 1.
 
 4. Install `flexiv_rdk` C++ library to `CMAKE_INSTALL_PREFIX` path, which may or may not be globally discoverable by CMake depending on the location:
 
@@ -153,26 +153,27 @@ On QNX:
     cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install -DCMAKE_TOOLCHAIN_FILE=<path-to-qnx-toolchain-file>
     cmake --build . --config Release -j 4
 
-NOTE: `-D` followed by `CMAKE_PREFIX_PATH` tells the user project's CMake where to find the installed C++ library. This argument can be skipped if the RDK library and its dependencies are installed to a globally discoverable location.
+Note: `-D` followed by `CMAKE_PREFIX_PATH` tells the user project's CMake where to find the installed C++ library. This argument can be skipped if the RDK library and its dependencies are installed to a globally discoverable location.
 
 ### Run example C++ programs
 
-To run an example C++ program compiled during the previous step, using `basics1_display_robot_states` for example:
+To run an example C++ program compiled during the previous step:
 
     cd flexiv_rdk/example/build
 
 On non-Windows:
 
-    LD_LIBRARY_PATH=~/rdk_install/lib ./basics1_display_robot_states Rizon4-123456
+    LD_LIBRARY_PATH=~/rdk_install/lib ./<example-name> <robot-sn>
 
 On Windows (Command Prompt):
 
     set PATH=%USERPROFILE%\rdk_install\bin;%PATH%
-    basics1_display_robot_states Rizon4-123456
+    <example-name>.exe <robot-sn>
 
-NOTE: 
-1. Replace `Rizon4-123456` with the actual serial number of the robot.
-2. `LD_LIBRARY_PATH` or `PATH` is used to specify where the shared libraries of the dependencies are installed. 
+Note:
+
+1. Replace `<robot-sn>` with the actual serial number of the robot, for example `Rizon4-123456`.
+2. `LD_LIBRARY_PATH` or `PATH` is used to specify where the shared libraries of the dependencies are installed.
 3. Root privilege is required if the real-time scheduler API `flexiv::rdk::Scheduler` is used in the program.
 
 ## API Documentation
