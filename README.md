@@ -13,9 +13,9 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 | **OS**                | **Platform**    | **C++ compiler kit** | **Python interpreter** |
 | --------------------- | --------------- | -------------------- | ---------------------- |
-| Linux (Ubuntu 22.04+) | x86_64, aarch64 | GCC   v11.4+         | 3.8, 3.10, 3.12        |
+| Linux (Ubuntu 22.04+) | x86_64, aarch64 | GCC   v11.4+         | 3.10, 3.12, 3.13       |
 | macOS 12+             | arm64           | Clang v14.0+         | 3.10, 3.12             |
-| Windows 10+           | x86_64          | MSVC  v14.2+         | 3.8, 3.10, 3.12        |
+| Windows 10+           | x86_64          | MSVC  v14.2+         | 3.10, 3.12             |
 | QNX 8.0.3+            | x86_64, aarch64 | QCC   v12.2+         | Not supported          |
 
 ## Important Notice
