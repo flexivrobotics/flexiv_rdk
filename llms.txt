@@ -1,0 +1,146 @@
+# llms.txt - Guidance for generating Flexiv robot control code in this repository
+
+Scope: This file captures repository-specific, API-accurate knowledge for LLMs that generate Python control scripts using `flexivrdk`.
+
+## 0) Authoritative References
+- RDK Manual: https://www.flexiv.com/software/rdk/manual
+- API Documentation (latest): https://www.flexiv.com/software/rdk/api
+- Python package page: https://pypi.org/project/flexivrdk
+- Primitive catalog and documentation: https://primitive.flexiv.com/primitives/en/3.10/rizon4/index.html
+
+Use these sources for API behavior details and argument meaning when in doubt.
+
+## 0.1) C++ and Python API Parity
+- In this project, Python RDK is generated from pybind bindings of C++ RDK.
+- Function names and function documentation are expected to match between C++ and Python APIs.
+- Generation rule: if Python docs are sparse, use the corresponding C++ API docs as canonical backup for names, parameters, and semantics.
+
+## 1) Preferred Script Pattern (Python)
+- Use examples under `example_py/` as style reference.
+- Typical imports:
+  - `import argparse`
+  - `import time`
+  - `import spdlog`
+  - `import flexivrdk`
+- Typical flow:
+  1. Parse `robot_sn` argument.
+  2. `robot = flexivrdk.Robot(robot_sn)`.
+  3. If `robot.fault()`: call `robot.ClearFault()` and handle failure.
+  4. `robot.Enable()` and wait until `robot.operational()`.
+  5. `robot.SwitchMode(flexivrdk.Mode.NRT_PRIMITIVE_EXECUTION)`.
+  6. Execute primitives with `robot.ExecutePrimitive(name, params)`.
+  7. Wait for primitive completion using the primitive's documented Default Transition Condition (only use `reachedTarget` when that is the documented default for the active primitive).
+  8. End with `robot.Stop()`.
+
+## 2) Primitive Execution Conventions
+- Use explicit primitive names such as `Home`, `MoveJ`, `MoveL`.
+- For each primitive call, pass a Python dict as parameter map.
+- Keep transitions explicit in code (sequential primitive calls) unless user asks for asynchronous behavior.
+- Primitive transition rule:
+  - Each primitive exposes a set of primitive states as listed in Primitive State Parameters.
+  - In most cases, use the primitive's documented Default Transition Condition. But other Primitive State Parameters can also be used as transition conditions.
+  - Do not assume `reachedTarget` is the only valid transition condition for all primitives.
+- Polling loop pattern:
+  - `states = robot.primitive_states()`
+  - check the documented state key(s) for the active primitive
+  - `time.sleep(0.1-1.0)` in the loop
+
+## 3) Data Type Mapping for `ExecutePrimitive`
+Map plan-like values to RDK Python objects:
+- `JPOS` -> `flexivrdk.JPos(q_m, q_e)`
+- `COORD` -> `flexivrdk.Coord(position, orientation, ref_frame, ref_q_m, ref_q_e)`
+- `ARRAY_COORD` -> Python list of `flexivrdk.Coord(...)`
+- Scalar types:
+  - `BOOL` -> `bool`
+  - `INT` -> `int`
+  - `DOUBLE` -> `float`
+  - `TYPE` -> `str`
+  - `VEC_3d` -> Python list/array length 3
+
+## 4) Critical `Coord` Rule (Do Not Omit Fields)
+From `include/flexiv/rdk/data.hpp`, `Coord` consists of 5 members in order:
+1. `position`
+2. `orientation`
+3. `ref_frame`
+4. `ref_q_m`
+5. `ref_q_e`
+
+Generation rule:
+- If source data provides all five fields, populate all five in `flexivrdk.Coord(...)`.
+- Do not silently drop `ref_q_m` or `ref_q_e`.
+
+## 5) Units Guidance
+- Library-level note in headers: RDK data structures use SI length unit `[m]`.
+- RDK API rule: always send Cartesian distances in meters.
+- Primitive-documentation caveat: some primitive pages may show distance parameters in mm.
+  - If source values are in mm, convert to meters before calling RDK.
+  - If source values are already in meters, do not convert.
+
+## 6) Safety and Robustness Defaults
+- Always include fault clear path before enabling.
+- Always wait for operational state before switching mode or sending primitives.
+- Use try/except and log exceptions with `spdlog`.
+- Avoid busy-spin loops; include `time.sleep(...)` in polling loops.
+- Keep command sequence deterministic and human-readable.
+
+## 7) Output Style for Generated Scripts
+- Prefer one self-contained runnable script per task.
+- Include short comments only for non-obvious behavior.
+- Keep numeric trajectory data hardcoded only when user explicitly asks for hardcoding.
+- Do not parse external plan files if the user asks for hardcoded primitive calls.
+
+## 8) Repository Anchors
+- Python examples: `example_py/`
+- Primitive tutorial reference: `example_py/basics3_primitive_execution.py`
+- Core data type definitions: `include/flexiv/rdk/data.hpp`
+- Repo readme and setup guide: `README.md`
+
+## 9) Minimal Skeleton
+```python
+import argparse
+import time
+import spdlog
+import flexivrdk
+
+
+def wait_default_transition(robot, state_key="reachedTarget", dt=0.2):
+    # Use the primitive's documented Default Transition Condition as state_key.
+    while not robot.primitive_states()[state_key]:
+        time.sleep(dt)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("robot_sn")
+    args = parser.parse_args()
+
+    logger = spdlog.ConsoleLogger("LLMGenerated")
+    try:
+        robot = flexivrdk.Robot(args.robot_sn)
+
+        if robot.fault():
+            logger.warn("Fault detected, clearing")
+            if not robot.ClearFault():
+                raise RuntimeError("Cannot clear fault")
+
+        robot.Enable()
+        while not robot.operational():
+            time.sleep(1)
+
+        robot.SwitchMode(flexivrdk.Mode.NRT_PRIMITIVE_EXECUTION)
+
+        robot.ExecutePrimitive("Home", {})
+        wait_default_transition(robot, "reachedTarget")
+
+        # Add other primitive calls here.
+
+        robot.Stop()
+
+    except Exception as e:
+        logger.error(f"Unhandled exception: {e}")
+        raise
+
+
+if __name__ == "__main__":
+    main()
+```
