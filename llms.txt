@@ -115,25 +115,30 @@ def main():
     args = parser.parse_args()
 
     logger = spdlog.ConsoleLogger("LLMGenerated")
-    robot = flexivrdk.Robot(args.robot_sn)
+    try:
+        robot = flexivrdk.Robot(args.robot_sn)
 
-    if robot.fault():
-        logger.warn("Fault detected, clearing")
-        if not robot.ClearFault():
-            raise RuntimeError("Cannot clear fault")
+        if robot.fault():
+            logger.warn("Fault detected, clearing")
+            if not robot.ClearFault():
+                raise RuntimeError("Cannot clear fault")
 
-    robot.Enable()
-    while not robot.operational():
-        time.sleep(1)
+        robot.Enable()
+        while not robot.operational():
+            time.sleep(1)
 
-    robot.SwitchMode(flexivrdk.Mode.NRT_PRIMITIVE_EXECUTION)
+        robot.SwitchMode(flexivrdk.Mode.NRT_PRIMITIVE_EXECUTION)
 
-    robot.ExecutePrimitive("Home", {})
-    wait_default_transition(robot, "reachedTarget")
+        robot.ExecutePrimitive("Home", {})
+        wait_default_transition(robot, "reachedTarget")
 
-    # Add MoveJ / MoveL calls here.
+        # Add other primitive calls here.
 
-    robot.Stop()
+        robot.Stop()
+
+    except Exception as e:
+        logger.error(f"Unhandled exception: {e}")
+        raise
 
 
 if __name__ == "__main__":
