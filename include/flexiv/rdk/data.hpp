@@ -13,6 +13,7 @@
 #include <ostream>
 #include <variant>
 #include <chrono>
+#include <map>
 
 namespace flexiv {
 namespace rdk {
@@ -61,7 +62,7 @@ const std::map<JointGroup, std::string> kJointGroupNames {
  */
 enum class OperationalStatus
 {
-    UNKNOWN = 0,        ///< Unkown status.
+    UNKNOWN,            ///< Unkown status.
     READY,              ///< Ready to be operated.
     BOOTING,            ///< System still booting, please wait.
     ESTOP_NOT_RELEASED, ///< E-Stop is not released.
@@ -99,11 +100,11 @@ struct RobotEvent
 {
     enum Level
     {
-        UNKNOWN = 0,
-        INFO,
-        WARNING,
-        ERROR,
-        CRITICAL,
+        UNKNOWN,  ///< Not set
+        INFO,     ///< Informational event
+        WARNING,  ///< Warning event
+        ERROR,    ///< Error event
+        CRITICAL, ///< Critical error event
     };
 
     /** Level of the event */
