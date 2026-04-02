@@ -299,22 +299,7 @@ struct RobotStates
     std::array<double, kCartDoF> tcp_twist = {};
 
     /**
-     * Measured flange pose w.r.t. world frame: \f$ ^{O}T_{flange} \in \mathbb{R}^{7 \times 1} \f$.
-     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
-     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
-     */
-    std::array<double, kPoseSize> flange_pose = {};
-
-    /**
-     * Force-torque (FT) sensor raw reading in flange frame: \f$ ^{flange}F_{raw} \in \mathbb{R}^{6
-     * \times 1} \f$. The value is 0 if no FT sensor is installed. Consists of \f$ \mathbb{R}^{3
-     * \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y,
-     * m_z]^T \f$. Unit: \f$ [N]:[Nm] \f$.
-     */
-    std::array<double, kCartDoF> ft_sensor_raw = {};
-
-    /**
-     * Estimated external wrench w.r.t. TCP frame, applied on TCP: \f$ ^{TCP}F_{ext} \in
+     * Measured or estimated external wrench applied on TCP w.r.t. world frame: \f$ ^{0}F_{ext} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
      * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
      * Unit: \f$ [N]:[Nm] \f$.
@@ -337,7 +322,13 @@ struct RobotStates
     /**
      * Unfiltered version of ext_wrench_in_world The data is more noisy but has no filter latency.
      */
-    std::array<double, kCartDoF> ext_wrench_in_world_raw = {};
+    /**
+     * Raw reading from the force-torque (FT) sensor w.r.t. flange frame: \f$ ^{flange}F_{raw} \in
+     * \mathbb{R}^{6 \times 1} \f$. The value is 0 if no FT sensor is installed. Consists of \f$
+     * \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y,
+     * f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]:[Nm] \f$.
+     */
+    std::array<double, kCartDoF> raw_ft_sensor = {};
 };
 
 /**
