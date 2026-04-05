@@ -76,11 +76,21 @@ enum class OperationalStatus
     IN_AUTO_MODE,       ///< In regular Auto mode, need to switch to Auto (Remote) mode.
 };
 
-/** String names of the above operational status */
-static const std::array<std::string, static_cast<size_t>(OperationalStatus::IN_AUTO_MODE) + 1>
-    kOpStatusNames = {"Unknown status", "Ready", "System booting", "E-Stop not released",
-        "Not enabled", "Releasing brakes", "Minor fault occurred", "Critical fault occurred",
-        "In reduced state", "In recovery state", "In Manual mode", "In regular Auto mode"};
+/** Map OperationalStatus enum to string */
+const std::map<OperationalStatus, std::string> kOpStatusNames {
+    {OperationalStatus::UNKNOWN, "Unknown status"},
+    {OperationalStatus::READY, "Ready"},
+    {OperationalStatus::BOOTING, "System booting"},
+    {OperationalStatus::ESTOP_NOT_RELEASED, "E-Stop not released"},
+    {OperationalStatus::NOT_ENABLED, "Not enabled"},
+    {OperationalStatus::RELEASING_BRAKE, "Releasing brakes"},
+    {OperationalStatus::MINOR_FAULT, "Minor fault occurred"},
+    {OperationalStatus::CRITICAL_FAULT, "Critical fault occurred"},
+    {OperationalStatus::IN_REDUCED_STATE, "In reduced state"},
+    {OperationalStatus::IN_RECOVERY_STATE, "In recovery state"},
+    {OperationalStatus::IN_MANUAL_MODE, "In Manual mode"},
+    {OperationalStatus::IN_AUTO_MODE, "In regular Auto mode"},
+};
 
 /**
  * @brief Type of commonly-used reference coordinates.
@@ -374,18 +384,20 @@ struct PlanInfo
  */
 struct JPos
 {
+    /** Default constructor */
+    JPos() = default;
+
     /**
-     * @brief Construct an instance of JPos.
-     * @param[in] _q_m Sets struct member [q_m].
-     * @param[in] _q_e Sets struct member [q_e]. Leave empty if there's no external axis.
+     * @brief Custom constructor.
+     * @param[in] q_m Sets struct member [q_m].
+     * @param[in] q_e Sets struct member [q_e]. Leave empty if there's no external axis.
      */
-    JPos(const std::array<double, kSerialJointDoF>& _q_m,
-        const std::array<double, kMaxExtAxes>& _q_e = {})
-    : q_m(_q_m)
-    , q_e(_q_e)
+    JPos(const std::array<double, kSerialJointDoF>& q_m,
+        const std::array<double, kMaxExtAxes>& q_e = {})
+    : q_m(q_m)
+    , q_e(q_e)
     {
     }
-    JPos() = default;
 
     /** Joint positions of the robot manipulator. Unit: [degree] */
     std::array<double, kSerialJointDoF> q_m = {};
@@ -408,27 +420,29 @@ struct JPos
  */
 struct Coord
 {
+    /** Default constructor */
+    Coord() = default;
+
     /**
-     * @brief Construct an instance of Coord.
-     * @param[in] _position Sets struct member [position].
-     * @param[in] _orientation Sets struct member [orientation].
-     * @param[in] _ref_frame Sets struct member [ref_frame].
-     * @param[in] _ref_q_m Sets struct member [ref_q_m]. Leave empty to use default values.
-     * @param[in] _ref_q_e Sets struct member [ref_q_e]. Leave empty if there's no external axis.
+     * @brief Custom constructor.
+     * @param[in] position Sets struct member [position].
+     * @param[in] orientation Sets struct member [orientation].
+     * @param[in] ref_frame Sets struct member [ref_frame].
+     * @param[in] ref_q_m Sets struct member [ref_q_m]. Leave empty to use default values.
+     * @param[in] ref_q_e Sets struct member [ref_q_e]. Leave empty if there's no external axis.
      */
-    Coord(const std::array<double, kCartDoF / 2>& _position,
-        const std::array<double, kCartDoF / 2>& _orientation,
-        const std::array<std::string, 2>& _ref_frame,
-        const std::array<double, kSerialJointDoF>& _ref_q_m = {},
-        const std::array<double, kMaxExtAxes>& _ref_q_e = {})
-    : position(_position)
-    , orientation(_orientation)
-    , ref_frame(_ref_frame)
-    , ref_q_m(_ref_q_m)
-    , ref_q_e(_ref_q_e)
+    Coord(const std::array<double, kCartDoF / 2>& position,
+        const std::array<double, kCartDoF / 2>& orientation,
+        const std::array<std::string, 2>& ref_frame,
+        const std::array<double, kSerialJointDoF>& ref_q_m = {},
+        const std::array<double, kMaxExtAxes>& ref_q_e = {})
+    : position(position)
+    , orientation(orientation)
+    , ref_frame(ref_frame)
+    , ref_q_m(ref_q_m)
+    , ref_q_e(ref_q_e)
     {
     }
-    Coord() = default;
 
     /** Position in [ref_frame]. Unit: [m] */
     std::array<double, kCartDoF / 2> position = {};
