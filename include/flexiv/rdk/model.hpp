@@ -193,6 +193,29 @@ public:
      */
     std::pair<double, double> configuration_score() const;
 
+    //======================================= MULTI-CONTACT ========================================
+    /**
+     * @brief [Non-blocking] Estimated multi-contact forces applied on each link of applicable joint
+     * groups, calculated using the force-torque sensors installed in every joint of the robot.
+     * @return A map of JointGroup to \f$ f_c \in \mathbb{R}^{n \times 1} \f$. Each vector element
+     * is a \f$ \mathbb{R}^{3 \times 1} \f$ force vector w.r.t. the corresponding link frame. Only
+     * contains joint groups that are capable of multi-contact estimation.
+     * @warning This data is only available on certain robot models. An empty vector will be
+     * returned if the connected robot does not support multi-contact estimation.
+     */
+    std::map<JointGroup, std::vector<Eigen::Vector3d>> multi_contact_forces() const;
+
+    /**
+     * @brief [Non-blocking] Estimated multi-contact positions on each link of applicable joint
+     * groups, calculated using the force-torque sensors installed in every joint of the robot.
+     * @return A map of JointGroup to \f$ p_c \in \mathbb{R}^{n \times 1} \f$. Each vector element
+     * is a \f$ \mathbb{R}^{3 \times 1} \f$ position vector w.r.t. the corresponding link frame.
+     * Only contains joint groups that are capable of multi-contact estimation.
+     * @warning This data is only available on certain robot models. An empty vector will be
+     * returned if the connected robot does not support multi-contact estimation.
+     */
+    std::map<JointGroup, std::vector<Eigen::Vector3d>> multi_contact_positions() const;
+
 private:
     class Impl;
     std::unique_ptr<Impl> pimpl_;
