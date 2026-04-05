@@ -7,6 +7,7 @@
 #define FLEXIV_RDK_MODE_HPP_
 
 #include <array>
+#include <map>
 #include <string>
 
 namespace flexiv {
@@ -104,11 +105,21 @@ enum class Mode
     NRT_SUPER_PRIMITIVE,
 };
 
-/** String names of the above control modes */
-static const std::array<std::string, static_cast<size_t>(Mode::NRT_SUPER_PRIMITIVE) + 1> kModeNames
-    = {"UNKNOWN", "IDLE", "RT_JOINT_TORQUE", "RT_JOINT_IMPEDANCE", "NRT_JOINT_IMPEDANCE",
-        "RT_JOINT_POSITION", "NRT_JOINT_POSITION", "NRT_PLAN_EXECUTION", "NRT_PRIMITIVE_EXECUTION",
-        "RT_CARTESIAN_MOTION_FORCE", "NRT_CARTESIAN_MOTION_FORCE", "NRT_SUPER_PRIMITIVE"};
+/** Map Mode enum to string */
+static const std::map<Mode, std::string> kModeNames {
+    {Mode::UNKNOWN, "UNKNOWN"},
+    {Mode::IDLE, "IDLE"},
+    {Mode::RT_JOINT_TORQUE, "RT_JOINT_TORQUE"},
+    {Mode::RT_JOINT_IMPEDANCE, "RT_JOINT_IMPEDANCE"},
+    {Mode::NRT_JOINT_IMPEDANCE, "NRT_JOINT_IMPEDANCE"},
+    {Mode::RT_JOINT_POSITION, "RT_JOINT_POSITION"},
+    {Mode::NRT_JOINT_POSITION, "NRT_JOINT_POSITION"},
+    {Mode::NRT_PLAN_EXECUTION, "NRT_PLAN_EXECUTION"},
+    {Mode::NRT_PRIMITIVE_EXECUTION, "NRT_PRIMITIVE_EXECUTION"},
+    {Mode::RT_CARTESIAN_MOTION_FORCE, "RT_CARTESIAN_MOTION_FORCE"},
+    {Mode::NRT_CARTESIAN_MOTION_FORCE, "NRT_CARTESIAN_MOTION_FORCE"},
+    {Mode::NRT_SUPER_PRIMITIVE, "NRT_SUPER_PRIMITIVE"},
+};
 
 } /* namespace rdk */
 } /* namespace flexiv */
