@@ -35,9 +35,15 @@ public:
 
     /**
      * @brief [Non-blocking] Names of all links in the robot model.
-     * @return Names vector in the same order as the robot's kinematic chain.
+     * @return Name vector in the same order as the robot's kinematic chain.
      */
     std::vector<std::string> link_names() const;
+
+    /**
+     * @brief [Non-blocking] Names of all actuated joints in the robot model.
+     * @return Name vector in the same order as the robot's kinematic chain.
+     */
+    std::vector<std::string> joint_names() const;
 
     /**
      * @brief [Blocking] Reload (refresh) parameters of the robot model stored locally in this class
@@ -55,10 +61,10 @@ public:
     /**
      * @brief [Non-blocking] Update the configuration (posture) of the locally-stored robot model so
      * that the locally computed functions return results based on the updated configuration.
-     * @param[in] positions Current joint positions: \f$ q \in \mathbb{R}^{n \times 1} \f$. Unit:
-     * \f$ [rad] \f$.
-     * @param[in] velocities Current joint velocities: \f$ \dot{q} \in \mathbb{R}^{n \times 1}
-     * \f$. Unit: \f$ [rad/s] \f$.
+     * @param[in] positions Current joint positions of all joint groups combined and matching the
+     * order of joint_names(): \f$ q \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad] \f$.
+     * @param[in] velocities Current joint velocities of all joint groups combined and matching the
+     * order of joint_names(): \f$ \dot{q} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      */
     void Update(const std::vector<double>& positions, const std::vector<double>& velocities);
