@@ -31,6 +31,7 @@ public:
      * calibration posture, then start the low-level calibration of all joint torque sensors.
      * Trigger this calibration if the sensed joint torques have noticeable deviations from true
      * values. See below for more details.
+     * @param[in] group The joint group to run calibration for.
      * @param[in] cali_posture Joint positions to move to before starting the calibration: \f$
      * q_cali \in \mathbb{R}^{n \times 1} \f$. If left empty, the robot will use the recommended
      * upright posture for calibration. Otherwise the specified posture will be used, which is NOT
@@ -45,12 +46,13 @@ public:
      * @warning The robot needs to be rebooted for the calibration result to take effect.
      * @par How to determine when this calibration is needed?
      * 1. When the robot is static and there's no payload or external force exerted on it, if
-     * RobotStates::ext_wrench_in_tcp still gives greater than 5N reading, then this calibration
+     * RobotStates::tcp_wrench_local still gives greater than 5N reading, then this calibration
      * should be triggered once.
      * 2. When running the "intermediate4_realtime_joint_floating.cpp" example, if the joints drift
      * swiftly toward one direction, then this calibration should be triggered once.
      */
-    void CalibrateJointTorqueSensors(const std::vector<double>& cali_posture = {});
+    void CalibrateJointTorqueSensors(
+        JointGroup group, const std::vector<double>& cali_posture = {});
 
 private:
     class Impl;
