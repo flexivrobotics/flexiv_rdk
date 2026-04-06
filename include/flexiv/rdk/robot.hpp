@@ -439,11 +439,8 @@ public:
     /**
      * @brief [Blocking] Execute a primitive by specifying its name and parameters, which can be
      * found in the [Flexiv Primitives documentation](https://www.flexiv.com/primitives/).
-     * @param[in] primitive_name Primitive name. For example, "Home", "MoveL", "ZeroFTSensor", etc.
-     * @param[in] input_params A map of {input_parameter_name, input_parameter_value(s)} specifying
-     * basic and advanced parameters of the primitive. Use int 1 and 0 to represent booleans. E.g.
-     * {{"target", rdk::Coord({0.65, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})}, {"vel",
-     * 0.6}, {"zoneRadius", "Z50"}}.
+     * @param[in] primitive_args A map of JointGroup to PrimitiveArgs, specifying the name and input
+     * parameters of a primitive to run on the corresponding joint group.
      * @param[in] block_until_started Whether to wait for the commanded primitive to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the primitive ready, the loading process typically takes no more than 200 ms.
@@ -463,9 +460,8 @@ public:
      * transitions based on specific primitive states. In such case, busy() will stay true even if
      * it seems everything is done for that primitive.
      */
-    void ExecutePrimitive(const std::string& primitive_name,
-        const std::map<std::string, FlexivDataTypes>& input_params,
-        bool block_until_started = true);
+    void ExecutePrimitive(
+        const std::map<JointGroup, PrimitiveArgs>& primitive_args, bool block_until_started = true);
 
     /**
      * @brief [Blocking] Names and values of the executing primitive's state parameters.
