@@ -91,8 +91,14 @@ public:
      * @return Existing joint groups ordered by the enum value from low to high.
      */
     std::vector<JointGroup> groups() const;
+
+    /**
+     * @brief [Non-blocking] Whether specific joint groups of the robot have come to a complete
+     * stop.
+     * @return A map of JointGroup to stopped flag. True: this joint group has stopped; false: this
+     * joint group is still moving.
      */
-    bool stopped() const;
+    std::map<JointGroup, bool> stopped() const;
 
     /**
      * @brief [Non-blocking] Whether the robot is ready to be operated, which requires the
