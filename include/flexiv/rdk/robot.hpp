@@ -524,6 +524,7 @@ public:
     /**
      * @brief [Blocking] Set impedance properties of the robot's joint motion controller used in
      * the joint impedance control modes.
+     * @param[in] group The joint group to set impedance properties for.
      * @param[in] K_q Joint motion stiffness: \f$ K_q \in \mathbb{R}^{n \times 1} \f$.
      * Setting motion stiffness of a joint axis to 0 will make this axis free-floating. Valid range:
      * [0, RobotInfo::K_q_nom]. Unit: \f$ [Nm/rad] \f$.
@@ -538,12 +539,14 @@ public:
      * @warning Changing damping ratio [Z_q] to a non-nominal value may lead to performance and
      * stability issues, please use with caution.
      */
-    void SetJointImpedance(const std::vector<double>& K_q, const std::vector<double>& Z_q = {});
+    void SetJointImpedance(
+        JointGroup group, const std::vector<double>& K_q, const std::vector<double>& Z_q = {});
 
     /**
      * @brief [Blocking] Set maximum contact torques for the robot's joint motion controller used in
      * the joint impedance control modes. The controller will regulate its output to maintain
      * contact torques with the environment under the set values.
+     * @param[in] group The joint group to set maximum contact torques for.
      * @param[in] max_torques Maximum contact torques: \f$ tau_q \in \mathbb{R}^{n \times 1} \f$.
      * Valid range: [0, RobotInfo::tau_max]. Unit: \f$ [Nm] \f$.
      * @throw std::invalid_argument if [max_torques] contains any value outside the valid range or
@@ -553,11 +556,12 @@ public:
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
      * @note This function blocks until the request is successfully delivered.
      */
-    void SetMaxContactTorque(const std::vector<double>& max_torques);
+    void SetMaxContactTorque(JointGroup group, const std::vector<double>& max_torques);
 
     /**
      * @brief [Blocking] Set inertia shaping scales for the robot's joint motion controller used in
      * the joint impedance control modes.
+     * @param[in] group The joint group to set inertia shaping scales for.
      * @param[in] inertia_scales Inertia shaping scales: \f$ \sigma_q \in \mathbb{R}^{n \times 1}
      * \f$. Valid range: [0.75, 1.0]. The nominal (safe) value is 1.0, which means no shaping.
      * @throw std::invalid_argument if [inertia_scales] contains any value outside the valid range
@@ -571,7 +575,7 @@ public:
      * joints to make them behave as if they are lighter. The parameter [inertia_scales] sets the
      * scale of shaped/natural inertia for each joint. Smaller scale corresponds to lighter inertia.
      */
-    void SetJointInertiaScale(const std::vector<double>& inertia_scales);
+    void SetJointInertiaScale(JointGroup group, const std::vector<double>& inertia_scales);
 
     //================================== DIRECT CARTESIAN CONTROL ==================================
     /**
@@ -636,6 +640,7 @@ public:
     /**
      * @brief [Blocking] Set impedance properties of the robot's Cartesian motion controller
      * used in the Cartesian motion-force control modes.
+     * @param[in] group The joint group to set Cartesian impedance for.
      * @param[in] K_x Cartesian motion stiffness: \f$ K_x \in \mathbb{R}^{6 \times 1} \f$.
      * Setting motion stiffness of a motion-controlled Cartesian axis to 0 will make this axis
      * free-floating. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and \f$
@@ -654,13 +659,14 @@ public:
      * @warning Changing damping ratio [Z_x] to a non-nominal value may lead to performance and
      * stability issues, please use with caution.
      */
-    void SetCartesianImpedance(const std::array<double, kCartDoF>& K_x,
+    void SetCartesianImpedance(JointGroup group, const std::array<double, kCartDoF>& K_x,
         const std::array<double, kCartDoF>& Z_x = {0.7, 0.7, 0.7, 0.7, 0.7, 0.7});
 
     /**
      * @brief [Blocking] Set maximum contact wrench for the motion control part of the Cartesian
      * motion-force control modes. The controller will regulate its output to maintain contact
      * wrench (force and moment) with the environment under the set values.
+     * @param[in] group The joint group to set maximum contact wrench for.
      * @param[in] max_wrench Maximum contact wrench (force and moment): \f$ F_{max} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ maximum force and
      * \f$ \mathbb{R}^{3 \times 1} \f$ maximum moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
@@ -675,11 +681,12 @@ public:
      * @warning The maximum contact wrench regulation cannot be enabled if any of the rotational
      * Cartesian axes is enabled for moment control.
      */
-    void SetMaxContactWrench(const std::array<double, kCartDoF>& max_wrench);
+    void SetMaxContactWrench(JointGroup group, const std::array<double, kCartDoF>& max_wrench);
 
     /**
      * @brief [Blocking] Set reference joint positions for the null-space posture control module
      * used in the Cartesian motion-force control modes.
+     * @param[in] group The joint group to set null-space posture for.
      * @param[in] ref_positions Reference joint positions for the null-space posture control:
      * \f$ q_{ns} \in \mathbb{R}^{n \times 1} \f$. Valid range: [RobotInfo::q_min,
      * RobotInfo::q_max]. Unit: \f$ [rad] \f$.
@@ -700,12 +707,13 @@ public:
      * try to pull the arm as close to this posture as possible without affecting the primary
      * Cartesian motion-force control task.
      */
-    void SetNullSpacePosture(const std::vector<double>& ref_positions);
+    void SetNullSpacePosture(JointGroup group, const std::vector<double>& ref_positions);
 
     /**
      * @brief [Blocking] Set weights of the three optimization objectives while computing the
      * robot's null-space posture. Change the weights to optimize robot performance for different
      * use cases.
+     * @param[in] group The joint group to set null-space objectives for.
      * @param[in] linear_manipulability Increase this weight to improve the robot's capability to
      * translate freely in Cartesian space, i.e. a broader range of potential translation movements.
      * Valid range: [0.0, 1.0].
@@ -724,12 +732,13 @@ public:
      * @warning The optimization weights will be automatically reset to the provided default values
      * upon re-entering the applicable control modes.
      */
-    void SetNullSpaceObjectives(double linear_manipulability = 0.0,
+    void SetNullSpaceObjectives(JointGroup group, double linear_manipulability = 0.0,
         double angular_manipulability = 0.0, double ref_positions_tracking = 0.5);
 
     /**
      * @brief [Blocking] Set Cartesian axes to enable force control while in the Cartesian
      * motion-force control modes. Axes not enabled for force control will be motion-controlled.
+     * @param[in] group The joint group to set force control axes for.
      * @param[in] enabled_axes Flags to enable/disable force control for certain Cartesian axes in
      * the force control reference frame (configured by SetForceControlFrame()). The axis order is
      * \f$ [X, Y, Z, Rx, Ry, Rz] \f$.
@@ -747,13 +756,14 @@ public:
      * under active force control (i.e. passive force control disabled), see
      * SetPassiveForceControl().
      */
-    void SetForceControlAxis(const std::array<bool, kCartDoF>& enabled_axes,
+    void SetForceControlAxis(JointGroup group, const std::array<bool, kCartDoF>& enabled_axes,
         const std::array<double, kCartDoF / 2>& max_linear_vel = {1.0, 1.0, 1.0});
 
     /**
      * @brief [Blocking] Set reference frame for force control while in the Cartesian motion-force
      * control modes. The force control frame is defined by specifying its transformation with
      * regard to the root coordinate.
+     * @param[in] group The joint group to set force control frame for.
      * @param[in] root_coord Reference coordinate of [T_in_root].
      * @param[in] T_in_root Transformation from [root_coord] to the user-defined force control
      * frame: \f$ ^{root}T_{force} \in \mathbb{R}^{7 \times 1} \f$. Consists of \f$ \mathbb{R}^{3
@@ -781,7 +791,7 @@ public:
      * direction(s). If they are not orthogonal, the motion control's vector component(s) in the
      * force direction(s) will be eliminated.
      */
-    void SetForceControlFrame(CoordType root_coord,
+    void SetForceControlFrame(JointGroup group, CoordType root_coord,
         const std::array<double, kPoseSize>& T_in_root = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0});
 
     /**
@@ -789,6 +799,7 @@ public:
      * control modes. When enabled, an open-loop force controller will be used to feed forward the
      * target wrench, i.e. passive force control. When disabled, a closed-loop force controller will
      * be used to track the target wrench, i.e. active force control.
+     * @param[in] group The joint group to toggle passive force control for.
      * @param[in] is_enabled True: enable; false: disable. By default, passive force control is
      * disabled and active force control is used.
      * @throw std::logic_error if the robot is not in the correct control mode.
@@ -805,7 +816,7 @@ public:
      * additional Cartesian damping. The choice of active or passive force control depends on the
      * actual application.
      */
-    void SetPassiveForceControl(bool is_enabled);
+    void SetPassiveForceControl(JointGroup group, bool is_enabled);
 
     //======================================== IO CONTROL ========================================
     /**
