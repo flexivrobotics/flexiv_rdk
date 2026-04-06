@@ -81,10 +81,10 @@ public:
     Mode mode() const;
 
     /**
-     * @brief [Non-blocking] Current states data of the robot.
-     * @return Value copy of RobotStates struct.
+     * @brief [Non-blocking] Current states data of all joint groups of the robot.
+     * @return A map of JointGroup to RobotStates. Only contains joint groups that exist.
      */
-    RobotStates states() const;
+    std::map<JointGroup, RobotStates> states() const;
 
     /**
      * @brief [Non-blocking] Whether the robot has come to a complete stop.
