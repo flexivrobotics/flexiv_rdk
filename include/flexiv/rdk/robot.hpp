@@ -204,13 +204,14 @@ public:
      * @brief [Blocking] Force robot brakes to engage or release during normal operation.
      * Restrictions apply, see warning.
      * @param[in] engage True: engage brakes; false: release brakes.
+     * @param[in] groups Joint groups to apply the brake action to. Default to brake all.
      * @throw std::logic_error if the connected robot is not a medical model or is moving.
      * @throw std::runtime_error if failed to engage/release the brakes.
      * @note This function blocks until the brakes are successfully engaged/released.
      * @warning This function is accessible only if a) the connected robot is a medical model AND
      * b) the robot is not moving.
      */
-    void Brake(bool engage);
+    void Brake(bool engage, const std::vector<JointGroup>& groups = {JointGroup::ARM});
 
     /**
      * @brief [Blocking] Switch the robot to a new control mode and wait for the mode transition
