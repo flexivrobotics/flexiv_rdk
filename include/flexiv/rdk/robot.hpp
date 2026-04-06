@@ -578,25 +578,8 @@ public:
      * @brief [Non-blocking] Continuously stream Cartesian motion and/or force commands for the
      * robot to track using its unified motion-force controller, which allows doing force control in
      * zero or more Cartesian axes and motion control in the rest axes.
-     * @param[in] pose Target TCP pose in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7
-     * \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
-     * \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
-     * @param[in] wrench Target TCP wrench (force and moment) in the force control reference frame
-     * (configured by SetForceControlFrame()): \f$ ^{0}F_d \in \mathbb{R}^{6 \times 1} \f$. The
-     * robot will track the target wrench using an explicit force controller. Consists of \f$
-     * \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y,
-     * f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]:[Nm] \f$.
-     * @param[in] velocity Target TCP velocity (linear and angular) in world frame: \f$
-     * ^{0}\dot{x}_d \in \mathbb{R}^{6 \times 1} \f$. Providing properly calculated target velocity
-     * can improve the robot's overall tracking performance at the cost of reduced robustness.
-     * Leaving this input 0 can maximize robustness at the cost of reduced tracking performance.
-     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear and \f$ \mathbb{R}^{3 \times 1} \f$
-     * angular velocity. Unit: \f$ [m/s]:[rad/s] \f$.
-     * @param[in] acceleration Target TCP acceleration (linear and angular) in world frame: \f$
-     * ^{0}\ddot{x}_d \in \mathbb{R}^{6 \times 1} \f$. Feeding forward target acceleration can
-     * improve the robot's tracking performance for highly dynamic motions, but it's also okay to
-     * leave this input 0. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear and \f$
-     * \mathbb{R}^{3 \times 1} \f$ angular acceleration. Unit: \f$ [m/s^2]:[rad/s^2] \f$.
+     * @param[in] cmds A map of JointGroup to RtCartesianCmd, specifying the Cartesian motion and/or
+     * force commands for each joint group.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE.
@@ -619,38 +602,15 @@ public:
      * @see SetCartesianImpedance(), SetMaxContactWrench(), SetNullSpacePosture(),
      * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
      */
-    void StreamCartesianMotionForce(const std::array<double, kPoseSize>& pose,
-        const std::array<double, kCartDoF>& wrench = {},
-        const std::array<double, kCartDoF>& velocity = {},
-        const std::array<double, kCartDoF>& acceleration = {});
+    void StreamCartesianMotionForce(const std::map<JointGroup, RtCartesianCmd>& cmds);
 
     /**
      * @brief [Non-blocking] Discretely send Cartesian motion and/or force commands for the robot to
      * track using its unified motion-force controller, which allows doing force control in zero or
      * more Cartesian axes and motion control in the rest axes. The robot's internal motion
      * generator will smoothen the discrete commands.
-     * @param[in] pose Target TCP pose in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7
-     * \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4
-     * \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
-     * @param[in] wrench Target TCP wrench (force and moment) in the force control reference frame
-     * (configured by SetForceControlFrame()): \f$ ^{0}F_d \in \mathbb{R}^{6 \times 1} \f$. The
-     * robot will track the target wrench using an explicit force controller. Consists of \f$
-     * \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y,
-     * f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]:[Nm] \f$.
-     * @param[in] velocity Target TCP velocity (linear and angular) in world frame when reaching the
-     * target pose specified above: \f$ ^{0}\dot{x}_d \in \mathbb{R}^{6 \times 1} \f$. Providing
-     * properly calculated target velocity can improve the robot's overall tracking performance at
-     * the cost of reduced robustness. Leaving this input 0 can maximize robustness at the cost of
-     * reduced tracking performance. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear and \f$
-     * \mathbb{R}^{3 \times 1} \f$ angular velocity. Unit: \f$ [m/s]:[rad/s] \f$.
-     * @param[in] max_linear_vel Maximum Cartesian linear velocity when moving to the target pose.
-     * A safe value is provided as default. Unit: \f$ [m/s] \f$.
-     * @param[in] max_angular_vel Maximum Cartesian angular velocity when moving to the target
-     * pose. A safe value is provided as default. Unit: \f$ [rad/s] \f$.
-     * @param[in] max_linear_acc Maximum Cartesian linear acceleration when moving to the target
-     * pose. A safe value is provided as default. Unit: \f$ [m/s^2] \f$.
-     * @param[in] max_angular_acc Maximum Cartesian angular acceleration when moving to the target
-     * pose. A safe value is provided as default. Unit: \f$ [rad/s^2] \f$.
+     * @param[in] cmds A map of JointGroup to NrtCartesianCmd, specifying the Cartesian motion
+     * and/or force commands for each joint group.
      * @throw std::invalid_argument if any of the last 4 input parameters is not positive.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
@@ -671,10 +631,7 @@ public:
      * @see SetCartesianImpedance(), SetMaxContactWrench(), SetNullSpacePosture(),
      * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
      */
-    void SendCartesianMotionForce(const std::array<double, kPoseSize>& pose,
-        const std::array<double, kCartDoF>& wrench = {},
-        const std::array<double, kCartDoF>& velocity = {}, double max_linear_vel = 0.5,
-        double max_angular_vel = 1.0, double max_linear_acc = 2.0, double max_angular_acc = 5.0);
+    void SendCartesianMotionForce(const std::map<JointGroup, NrtCartesianCmd>& cmds);
 
     /**
      * @brief [Blocking] Set impedance properties of the robot's Cartesian motion controller
