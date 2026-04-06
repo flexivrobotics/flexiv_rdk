@@ -475,12 +475,8 @@ public:
     //==================================== DIRECT JOINT CONTROL ====================================
     /**
      * @brief [Non-blocking] Continuously stream joint torque commands to the robot.
-     * @param[in] torques Target joint torques: \f$ \tau_d \in \mathbb{R}^{n \times 1} \f$.
-     * Unit: \f$ [Nm] \f$.
-     * @param[in] enable_gravity_comp Enable/disable robot gravity compensation.
-     * @param[in] enable_soft_limits Enable/disable soft limits to keep the joints from moving
-     * outside allowed position range, which will trigger a safety fault that requires recovery
-     * operation.
+     * @param[in] cmds A map of JointGroup to RtJointTorqueCmd, specifying the joint torque commands
+     * for each joint group.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
@@ -488,19 +484,14 @@ public:
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
      */
-    void StreamJointTorque(const std::vector<double>& torques, bool enable_gravity_comp = true,
-        bool enable_soft_limits = true);
+    void StreamJointTorque(const std::map<JointGroup, RtJointTorqueCmd>& cmds);
 
     /**
      * @brief [Non-blocking] Continuously stream joint position, velocity, and acceleration commands
      * to the robot. The commands are tracked by either the joint impedance controller or the joint
      * position controller, depending on the control mode.
-     * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{n \times 1} \f$. Unit:
-     * \f$ [rad] \f$.
-     * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{n \times 1}
-     * \f$. Unit: \f$ [rad/s] \f$.
-     * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{n \times
-     * 1} \f$. Unit: \f$ [rad/s^2] \f$.
+     * @param[in] cmds A map of JointGroup to RtJointPositionCmd, specifying the joint position,
+     * velocity, and acceleration commands for each joint group.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
@@ -509,25 +500,17 @@ public:
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
      * @see SetJointImpedance().
      */
-    void StreamJointPosition(const std::vector<double>& positions,
-        const std::vector<double>& velocities, const std::vector<double>& accelerations);
+    void StreamJointPosition(const std::map<JointGroup, RtJointPositionCmd>& cmds);
 
     /**
      * @brief [Non-blocking] Discretely send joint position and velocity commands to the robot. The
      * robot's internal motion generator will smoothen the discrete commands, which are tracked by
      * either the joint impedance controller or the joint position controller, depending on the
      * control mode.
-     * @param[in] positions Target joint positions: \f$ q_d \in \mathbb{R}^{n \times 1} \f$. Unit:
-     * \f$ [rad] \f$.
-     * @param[in] velocities Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{n \times 1}
-     * \f$. Each joint will maintain this amount of velocity when it reaches the target position.
-     * Unit: \f$ [rad/s] \f$.
-     * @param[in] max_vel Maximum joint velocities for the planned trajectory: \f$ \dot{q}_{max} \in
-     * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
-     * @param[in] max_acc Maximum joint accelerations for the planned trajectory: \f$ \ddot{q}_{max}
-     * \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
+     * @param[in] cmds A map of JointGroup to NrtJointPositionCmd, specifying the joint position and
+     * velocity commands for each joint group.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF, or
-     * [max_vel] or [max_acc] contains any non-positive value.
+     * [dq_max] or [ddq_max] contains any non-positive value.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: NRT_JOINT_IMPEDANCE, NRT_JOINT_POSITION.
@@ -536,9 +519,7 @@ public:
      * command is aborted and the new command starts to execute.
      * @see SetJointImpedance().
      */
-    void SendJointPosition(const std::vector<double>& positions,
-        const std::vector<double>& velocities, const std::vector<double>& max_vel,
-        const std::vector<double>& max_acc);
+    void SendJointPosition(const std::map<JointGroup, NrtJointPositionCmd>& cmds);
 
     /**
      * @brief [Blocking] Set impedance properties of the robot's joint motion controller used in
