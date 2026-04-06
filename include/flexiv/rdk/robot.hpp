@@ -87,8 +87,10 @@ public:
     std::map<JointGroup, RobotStates> states() const;
 
     /**
-     * @brief [Non-blocking] Whether the robot has come to a complete stop.
-     * @return True: stopped; false: still moving.
+     * @brief [Non-blocking] Joint groups that the connected robot has.
+     * @return Existing joint groups ordered by the enum value from low to high.
+     */
+    std::vector<JointGroup> groups() const;
      */
     bool stopped() const;
 
