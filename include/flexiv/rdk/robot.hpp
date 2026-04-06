@@ -101,6 +101,12 @@ public:
     std::map<JointGroup, bool> stopped() const;
 
     /**
+     * @brief [Non-blocking] Whether all joint groups of the robot have come to a complete stop.
+     * @return True: all stopped; false: not all stopped.
+     */
+    bool all_stopped() const;
+
+    /**
      * @brief [Non-blocking] Whether the robot is ready to be operated, which requires the
      * following conditions to be met: enabled, brakes fully released, in auto mode, no fault, and
      * not in reduced state.
