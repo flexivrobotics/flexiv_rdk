@@ -464,13 +464,13 @@ public:
         const std::map<JointGroup, PrimitiveArgs>& primitive_args, bool block_until_started = true);
 
     /**
-     * @brief [Blocking] Names and values of the executing primitive's state parameters.
-     * @return A map of {pt_state_name, pt_state_value(s)}. Booleans are represented by int 1
-     * and 0. E.g. {{"reachedTarget", 1}, {"timePeriod", 5.6}, {"forceOffset", {0.1, 0.2, -1.3}}}.
+     * @brief [Blocking] States data of the primitive(s) that are currently running on each joint
+     * group.
+     * @return A map of JointGroup to PrimitiveStates. Only contains joint groups that exist.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    std::map<std::string, FlexivDataTypes> primitive_states() const;
+    std::map<JointGroup, PrimitiveStates> primitive_states() const;
 
     //==================================== DIRECT JOINT CONTROL ====================================
     /**
