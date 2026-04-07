@@ -3,7 +3,7 @@
 echo ">>>>> Start: flexiv_rdk/thirdparty/build_and_install_dependencies.sh <<<<<"
 
 # Absolute path of this script
-export SCRIPT_DIR="$(dirname $(readlink -f $0))"
+script_dir="$(dirname $(readlink -f $0))"
 set -e
 
 # Check script arguments
@@ -65,15 +65,15 @@ export SHARED_CMAKE_ARGS
 mkdir -p cloned && cd cloned
 
 # Build and install all dependencies to INSTALL_DIR
-bash $SCRIPT_DIR/scripts/install_eigen.sh
-bash $SCRIPT_DIR/scripts/install_spdlog.sh
-bash $SCRIPT_DIR/scripts/install_tinyxml2.sh
-bash $SCRIPT_DIR/scripts/install_yaml-cpp.sh
-bash $SCRIPT_DIR/scripts/install_foonathan_memory.sh
-bash $SCRIPT_DIR/scripts/install_Fast-CDR.sh
-bash $SCRIPT_DIR/scripts/install_Fast-DDS.sh
-bash $SCRIPT_DIR/scripts/install_boost.sh
-bash $SCRIPT_DIR/scripts/install_SpaceVecAlg.sh
-bash $SCRIPT_DIR/scripts/install_RBDyn.sh
+bash $script_dir/scripts/install_eigen.sh
+bash $script_dir/scripts/install_spdlog.sh
+bash $script_dir/scripts/install_tinyxml2.sh
+bash $script_dir/scripts/install_yaml-cpp.sh
+bash $script_dir/scripts/install_foonathan_memory.sh
+bash $script_dir/scripts/install_Fast-CDR.sh
+bash $script_dir/scripts/install_Fast-DDS.sh
+bash $script_dir/scripts/install_boost.sh
+bash $script_dir/scripts/install_SpaceVecAlg.sh
+bash $script_dir/scripts/install_RBDyn.sh
 
 echo ">>>>> Finished: flexiv_rdk/thirdparty/build_and_install_dependencies.sh <<<<<"

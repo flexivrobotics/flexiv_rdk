@@ -3,7 +3,7 @@
 echo ">>>>> Start: flexiv_rdk/thirdparty/build_and_install_dependencies_not_in_ros2.sh <<<<<"
 
 # Absolute path of this script
-export SCRIPT_DIR="$(dirname $(readlink -f $0))"
+script_dir="$(dirname $(readlink -f $0))"
 set -e
 
 # Check script arguments
@@ -40,8 +40,8 @@ export SHARED_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release \
 mkdir -p cloned && cd cloned
 
 # Build and install all dependencies to INSTALL_DIR
-bash $SCRIPT_DIR/scripts/install_boost.sh
-bash $SCRIPT_DIR/scripts/install_SpaceVecAlg.sh
-bash $SCRIPT_DIR/scripts/install_RBDyn.sh
+bash $script_dir/scripts/install_boost.sh
+bash $script_dir/scripts/install_SpaceVecAlg.sh
+bash $script_dir/scripts/install_RBDyn.sh
 
 echo ">>>>> Finished: flexiv_rdk/thirdparty/build_and_install_dependencies_not_in_ros2.sh <<<<<"

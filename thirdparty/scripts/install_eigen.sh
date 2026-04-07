@@ -2,6 +2,7 @@
 set -e
 repo="eigen"
 echo "Installing $repo"
+script_dir="$(dirname $(readlink -f $0))"
 
 # Default version on Ubuntu 22.04
 ver_tag=3.4.0
@@ -18,7 +19,7 @@ fi
 # Apply patch if building for QNX
 git reset --hard
 if [ -n "$QNX_TARGET" ]; then
-  git apply $SCRIPT_DIR/patches/eigen_qnx802.patch
+  git apply $script_dir/../patches/eigen_qnx802.patch
 fi
 
 # Configure CMake
