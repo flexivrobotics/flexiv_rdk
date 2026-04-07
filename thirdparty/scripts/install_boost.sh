@@ -9,21 +9,21 @@ ver_tag=1.83.0
 ver_str=1_83_0
 
 # Download source code, 1.83 
-if [ ! -d $repo_$ver_str ] ; then
+if [ ! -d ${repo}_${ver_str} ] ; then
   # download is faster than clone
-  URL="https://archives.boost.io/release/$ver_tag/source/$repo_$ver_str.tar.bz2"
+  URL="https://archives.boost.io/release/$ver_tag/source/${repo}_${ver_str}.tar.bz2"
   echo "-- Downloading: $URL"
   if [[ "$OSTYPE" == "msys"* ]]; then # Windows
-    curl -L -o $repo_$ver_str.tar.bz2 $URL
+    curl -L -o ${repo}_${ver_str}.tar.bz2 $URL
   else
     wget $URL --no-clobber --quiet --show-progress --progress=bar:force 2>&1
   fi
   # Unzip
-  echo "-- Extracting: $repo_$ver_str.tar.bz2"
-  tar --bzip2 -xf "$repo_$ver_str.tar.bz2"
-  cd $repo_$ver_str
+  echo "-- Extracting: ${repo}_${ver_str}.tar.bz2"
+  tar --bzip2 -xf "${repo}_${ver_str}.tar.bz2"
+  cd ${repo}_${ver_str}
 else
-  cd $repo_$ver_str
+  cd ${repo}_${ver_str}
 fi
 
 # Bootstrap differently on Unix and Windows
