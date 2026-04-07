@@ -40,18 +40,22 @@ if [ -n "$QNX_TARGET" ]; then
   if [ $QNX_ARCH == "x86_64" ]; then
     # Build for x86_64 target
     echo "Building $repo for QNX x86_64"
-    ./b2 -j$NUM_JOBS --prefix=$INSTALL_DIR --with-system variant=release link=shared toolset=qcc target-os=qnx architecture=x86 address-model=64 cxxflags="-Vgcc_ntox86_64" linkflags="-Vgcc_ntox86_64" install
+    ./b2 -j$NUM_JOBS --prefix=$INSTALL_DIR --with-system --with-filesystem variant=release link=shared \
+    toolset=qcc target-os=qnx architecture=x86 address-model=64 \
+    cxxflags="-Vgcc_ntox86_64" linkflags="-Vgcc_ntox86_64" install
   elif [ $QNX_ARCH == "aarch64" ]; then
     # Build for aarch64 target
     echo "Building $repo for QNX aarch64"
-    ./b2 -j$NUM_JOBS --prefix=$INSTALL_DIR --with-system variant=release link=shared toolset=qcc target-os=qnx architecture=arm address-model=64 cxxflags="-Vgcc_ntoaarch64le" linkflags="-Vgcc_ntoaarch64le" install
+    ./b2 -j$NUM_JOBS --prefix=$INSTALL_DIR --with-system --with-filesystem variant=release link=shared \
+    toolset=qcc target-os=qnx architecture=arm address-model=64 \
+    cxxflags="-Vgcc_ntoaarch64le" linkflags="-Vgcc_ntoaarch64le" install
   else
     echo "Error: unknown QNX platform architecture"
     exit 1
   fi
 else
   # Build for non-QNX
-  ./b2 -j$NUM_JOBS --prefix=$INSTALL_DIR --with-system variant=release link=shared install
+  ./b2 -j$NUM_JOBS --prefix=$INSTALL_DIR --with-system --with-filesystem variant=release link=shared install
 fi
 
 echo "Installed $repo"
