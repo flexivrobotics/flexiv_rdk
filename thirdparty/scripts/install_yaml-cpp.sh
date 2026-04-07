@@ -1,17 +1,18 @@
 #!/bin/bash
 set -e
-echo "Installing yaml-cpp"
+repo="yaml-cpp"
+echo "Installing $repo"
 
-# Same as the apt installed version on Ubuntu 22.04
-VER_TAG=yaml-cpp-0.7.0
+# Default version on Ubuntu 22.04
+ver_tag=yaml-cpp-0.7.0
 
 # Clone source code
-if [ ! -d yaml-cpp ] ; then
-  git clone https://github.com/jbeder/yaml-cpp.git --branch $VER_TAG
-  cd yaml-cpp
+if [ ! -d $repo ] ; then
+  git clone https://github.com/jbeder/$repo.git --branch $ver_tag
+  cd $repo
 else
-  cd yaml-cpp
-  git checkout $VER_TAG
+  cd $repo
+  git checkout $ver_tag
 fi
 
 # Configure CMake
@@ -21,4 +22,4 @@ cmake .. $SHARED_CMAKE_ARGS -DYAML_CPP_BUILD_TESTS=OFF
 # Build and install
 cmake --build . --target install --config Release -j $NUM_JOBS
 
-echo "Installed yaml-cpp"
+echo "Installed $repo"
