@@ -90,24 +90,24 @@ find_package(Threads REQUIRED)
 message(STATUS "Found Threads")
 
 # Eigen3
-find_package(Eigen3 REQUIRED)
+find_package(Eigen3 3.4.0 REQUIRED)
 message(STATUS "Found Eigen3 v${Eigen3_VERSION}: ${Eigen3_DIR}")
 
 # spdlog
-find_package(spdlog REQUIRED)
+find_package(spdlog 1.9.2 REQUIRED)
 message(STATUS "Found spdlog v${spdlog_VERSION}: ${spdlog_DIR}")
 
-# Fast-DDS (Fast-RTPS)
-find_package(fastrtps REQUIRED)
-message(STATUS "Found fastrtps v${fastrtps_VERSION}: ${fastrtps_DIR}")
+# Fast-DDS
+find_package(fastdds 3.5.0 REQUIRED)
+message(STATUS "Found fastdds v${fastdds_VERSION}: ${fastdds_DIR}")
 
 # Fast-CDR
-find_package(fastcdr REQUIRED)
+find_package(fastcdr 2.3.5 REQUIRED)
 message(STATUS "Found fastcdr v${fastcdr_VERSION}: ${fastcdr_DIR}")
 
 # RBDyn
 set(Boost_USE_STATIC_LIBS OFF)
-find_package(RBDyn REQUIRED)
+find_package(RBDyn 1.9.3 REQUIRED)
 message(STATUS "Found RBDyn v${RBDyn_VERSION}: ${RBDyn_DIR}")
 
 # ===================================================================
@@ -130,7 +130,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   Threads::Threads
   Eigen3::Eigen
   spdlog::spdlog
-  fastrtps
+  fastdds
   fastcdr
   RBDyn::RBDyn
   RBDyn::Parsers
