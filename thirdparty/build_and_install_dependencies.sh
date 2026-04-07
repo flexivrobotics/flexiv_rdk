@@ -37,15 +37,6 @@ SHARED_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release \
                    -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
                    -DBUILD_TESTING=OFF"
 
-# OS type
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    OS_NAME="Linux"
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    OS_NAME="Darwin"
-else
-    OS_NAME="Windows"
-fi
-
 # Building for QNX
 if [ -n "$QNX_TARGET" ]; then
     # Path to the toolchain file must be set
@@ -57,7 +48,6 @@ if [ -n "$QNX_TARGET" ]; then
     fi
     # Append toolchain file to cmake arguments
     SHARED_CMAKE_ARGS="$SHARED_CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=$QNX_TOOLCHAIN"
-    OS_NAME="QNX"
     # Extract QNX target architecture from toolchain file name, and set it as an environment variable for later use
     if [[ "$QNX_TOOLCHAIN" == *"x86_64"* ]]; then
         export QNX_ARCH="x86_64"
@@ -69,7 +59,6 @@ if [ -n "$QNX_TARGET" ]; then
     fi
     echo "Building for QNX $QNX_ARCH target with toolchain file [$QNX_TOOLCHAIN]"
 fi
-export OS_NAME
 export SHARED_CMAKE_ARGS
 
 # Clone all dependencies in a subfolder
