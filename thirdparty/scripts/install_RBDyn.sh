@@ -1,24 +1,29 @@
 #!/bin/bash
+# Depends on: tinyxml2, yaml-cpp, Eigen3, SpaceVecAlg
 set -e
-echo "Installing RBDyn"
+repo="RBDyn"
+echo "Installing $repo"
 
-# Use a specific version
-VER_TAG=v1.9.0
+# https://github.com/jrl-umi3218/RBDyn/releases/tag/v1.9.3
+ver_tag=v1.9.3
 
 # Clone source code
-if [ ! -d RBDyn ] ; then
-  git clone --recurse-submodules https://github.com/jrl-umi3218/RBDyn.git --branch $VER_TAG
-  cd RBDyn
+if [ ! -d $repo ] ; then
+  git clone --recurse-submodules https://github.com/jrl-umi3218/$repo.git --branch $ver_tag
+  cd $repo
 else
-  cd RBDyn
-  git checkout $VER_TAG
+  cd $repo
+  git checkout $ver_tag
 fi
 
 # Configure CMake
 mkdir -p build && cd build
-cmake .. $SHARED_CMAKE_ARGS -DPYTHON_BINDING=OFF -DCXX_DISABLE_WERROR=ON -DBoost_USE_STATIC_LIBS=OFF
+cmake .. $SHARED_CMAKE_ARGS \
+         -DPYTHON_BINDING=OFF \
+         -DBoost_USE_STATIC_LIBS=OFF \
+         -DCXX_DISABLE_WERROR=ON
 
 # Build and install
 cmake --build . --target install --config Release -j $NUM_JOBS
 
-echo "Installed RBDyn"
+echo "Installed $repo"
