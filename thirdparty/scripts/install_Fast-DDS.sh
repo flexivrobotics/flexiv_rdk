@@ -1,31 +1,29 @@
 #!/bin/bash
 # Depends on: foonathan_memory, tinyxml2, Fast-CDR
 set -e
-echo "Installing Fast-DDS"
+repo="Fast-DDS"
+echo "Installing $repo"
 
-# Use a specific version
-VER_TAG=v2.6.10
+# Latest v3 version
+ver_tag=v3.5.0
 
 # Clone source code
-if [ ! -d Fast-DDS ] ; then
-  git clone --recurse-submodules https://github.com/eProsima/Fast-DDS.git --branch $VER_TAG
-  cd Fast-DDS
+if [ ! -d $repo ] ; then
+  git clone --recurse-submodules https://github.com/eProsima/$repo.git --branch $ver_tag
+  cd $repo
 else
-  cd Fast-DDS
-  git checkout $VER_TAG
-fi
-
-# Apply patch if building for QNX
-git reset --hard
-if [ -n "$QNX_TARGET" ]; then
-  git apply $SCRIPT_DIR/patches/fastdds_qnx802.patch
+  cd $repo
+  git checkout $ver_tag
 fi
 
 # Configure CMake
 mkdir -p build && cd build
-cmake .. $SHARED_CMAKE_ARGS -DTHIRDPARTY_Asio=ON -DCOMPILE_EXAMPLES=OFF -DSQLITE3_SUPPORT=OFF
+cmake .. $SHARED_CMAKE_ARGS \
+         -DTHIRDPARTY_Asio=ON \
+         -DCOMPILE_EXAMPLES=OFF \
+         -DSQLITE3_SUPPORT=OFF
 
 # Build and install
 cmake --build . --target install --config Release -j $NUM_JOBS
 
-echo "Installed Fast-DDS"
+echo "Installed $repo"
