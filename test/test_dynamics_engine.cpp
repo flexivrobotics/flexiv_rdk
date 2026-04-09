@@ -30,6 +30,20 @@ struct GroundTruth
 };
 }
 
+namespace {
+std::vector<double> CombineStates(
+    const std::map<flexiv::rdk::JointGroup, flexiv::rdk::RobotStates>& all_states, bool position)
+{
+    std::vector<double> combined;
+    for (const auto& [group, states] : all_states) {
+        (void)group;
+        const auto& src = position ? states.q : states.dtheta;
+        combined.insert(combined.end(), src.begin(), src.end());
+    }
+    return combined;
+}
+}
+
 /** Step the dynamics engine once */
 void StepDynamics(flexiv::rdk::Robot& robot, flexiv::rdk::Model& model, const GroundTruth& ref)
 {
@@ -37,7 +51,8 @@ void StepDynamics(flexiv::rdk::Robot& robot, flexiv::rdk::Model& model, const Gr
     auto tic = std::chrono::high_resolution_clock::now();
 
     // Update robot model in dynamics engine
-    model.Update(robot.states().q, robot.states().dtheta);
+    const auto all_states = robot.states();
+    model.Update(CombineStates(all_states, true), CombineStates(all_states, false));
 
     // Get J, M, G from dynamic engine
     Eigen::MatrixXd J = model.J("flange");
