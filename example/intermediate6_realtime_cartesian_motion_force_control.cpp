@@ -188,10 +188,13 @@ int main(int argc, char* argv[])
 
         // Zero Force-torque Sensor
         // =========================================================================================
+        // All available joint groups of the robot
+        const auto joint_groups = robot.groups();
+
         robot.SwitchMode(rdk::Mode::NRT_PRIMITIVE_EXECUTION);
         // IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
         std::map<rdk::JointGroup, rdk::PrimitiveArgs> pt_args;
-        for (const auto& group : robot.groups()) {
+        for (const auto& group : joint_groups) {
             pt_args[group] = rdk::PrimitiveArgs("ZeroFTSensor", {});
         }
         robot.ExecutePrimitive(pt_args);
@@ -221,7 +224,7 @@ int main(int argc, char* argv[])
         std::map<rdk::JointGroup, std::array<double, rdk::kPoseSize>> all_init_pose;
         for (const auto& [group, states] : robot.states()) {
             all_init_pose[group] = states.tcp_pose;
-            spdlog::info("Initial TCP pose [{}] set to [position 3x1, rotation (quaternion) 4x1]: "
+            spdlog::info("[{}] Initial TCP pose [position 3x1, rotation (quaternion) 4x1]: "
                              + rdk::utility::Arr2Str(all_init_pose.at(group)),
                 rdk::kJointGroupNames.at(group));
         }
@@ -230,7 +233,7 @@ int main(int argc, char* argv[])
         robot.SwitchMode(rdk::Mode::NRT_CARTESIAN_MOTION_FORCE);
 
         // Search for contact with max contact wrench set to a small value for making soft contact
-        for (const auto& group : robot.groups()) {
+        for (const auto& group : joint_groups) {
             robot.SetMaxContactWrench(group, kMaxWrenchForContactSearch);
         }
 
@@ -258,7 +261,7 @@ int main(int argc, char* argv[])
                 if (ext_force.norm() > kPressingForce) {
                     is_contacted = true;
                     spdlog::info(
-                        "Contact detected at robot TCP [{}]", rdk::kJointGroupNames.at(group));
+                        "[{}] Contact detected at robot TCP", rdk::kJointGroupNames.at(group));
                     break;
                 }
             }
@@ -273,13 +276,13 @@ int main(int argc, char* argv[])
 
         // Set force control reference frame based on program argument. See function doc for more
         // details
-        for (const auto& group : robot.groups()) {
+        for (const auto& group : joint_groups) {
             robot.SetForceControlFrame(group, force_ctrl_frame);
         }
 
         // Set which Cartesian axis(s) to activate for force control. See function doc for more
         // details. Here we only active Z axis
-        for (const auto& group : robot.groups()) {
+        for (const auto& group : joint_groups) {
             robot.SetForceControlAxis(
                 group, std::array<bool, rdk::kCartDoF> {false, false, true, false, false, false});
         }
@@ -299,7 +302,7 @@ int main(int argc, char* argv[])
         // spike after the max contact wrench regulation for motion control is disabled
         std::array<double, rdk::kCartDoF> inf;
         inf.fill(std::numeric_limits<double>::infinity());
-        for (const auto& group : robot.groups()) {
+        for (const auto& group : joint_groups) {
             robot.SetMaxContactWrench(group, inf);
         }
 

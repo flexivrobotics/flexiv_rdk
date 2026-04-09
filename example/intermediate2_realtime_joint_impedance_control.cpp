@@ -44,6 +44,7 @@ void PrintHelp()
 
 /** @brief Callback function for realtime periodic task */
 void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
+    const std::vector<rdk::JointGroup>& joint_groups,
     const std::map<rdk::JointGroup, std::vector<double>>& all_init_pos)
 {
     // Local periodic loop counter
@@ -87,7 +88,7 @@ void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
             for (auto& v : new_Kq) {
                 v *= 0.5;
             }
-            for (const auto& [group, _] : all_init_pos) {
+            for (const auto& group : joint_groups) {
                 robot.SetJointImpedance(group, new_Kq);
             }
             spdlog::info("Joint stiffness set to [{}]", rdk::utility::Vec2Str(new_Kq));
@@ -95,7 +96,7 @@ void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
 
         // Reset impedance properties to nominal values after another 5 seconds
         if (loop_counter == 10000) {
-            for (const auto& [group, _] : all_init_pos) {
+            for (const auto& group : joint_groups) {
                 robot.SetJointImpedance(group, robot.info().K_q_nom);
             }
             spdlog::info("Joint impedance properties are reset");
@@ -178,6 +179,9 @@ int main(int argc, char* argv[])
 
         // Real-time Joint Impedance Control
         // =========================================================================================
+        // All available joint groups of the robot
+        const auto joint_groups = robot.groups();
+
         // Switch to real-time joint impedance control mode
         robot.SwitchMode(rdk::Mode::RT_JOINT_IMPEDANCE);
 
@@ -185,7 +189,7 @@ int main(int argc, char* argv[])
         std::map<rdk::JointGroup, std::vector<double>> all_init_pos;
         for (const auto& [group, states] : robot.states()) {
             all_init_pos[group] = states.q;
-            spdlog::info("Initial joint positions [{}]: {}", rdk::kJointGroupNames.at(group),
+            spdlog::info("[{}] Initial joint positions: {}", rdk::kJointGroupNames.at(group),
                 rdk::utility::Vec2Str(all_init_pos.at(group)));
         }
 
@@ -193,7 +197,7 @@ int main(int argc, char* argv[])
         rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(motion_type),
-                              std::cref(all_init_pos)),
+                              std::cref(joint_groups), std::cref(all_init_pos)),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();

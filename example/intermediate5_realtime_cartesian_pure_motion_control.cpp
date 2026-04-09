@@ -56,7 +56,7 @@ void PrintHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void PeriodicTask(rdk::Robot& robot,
+void PeriodicTask(rdk::Robot& robot, const std::vector<rdk::JointGroup>& joint_groups,
     const std::map<rdk::JointGroup, std::array<double, rdk::kPoseSize>>& all_init_pose,
     const std::map<rdk::JointGroup, std::vector<double>>& all_init_q, bool enable_hold,
     bool enable_collision)
@@ -96,7 +96,7 @@ void PeriodicTask(rdk::Robot& robot,
             case (3 * kLoopFreq): {
                 const std::vector<double> ref_q
                     = {0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658};
-                for (const auto& [group, _] : all_init_pose) {
+                for (const auto& group : joint_groups) {
                     robot.SetNullSpacePosture(group, ref_q);
                 }
                 spdlog::info("Reference joint positions updated for all groups");
@@ -107,7 +107,7 @@ void PeriodicTask(rdk::Robot& robot,
                 for (auto& v : new_K) {
                     v *= 0.5;
                 }
-                for (const auto& [group, _] : all_init_pose) {
+                for (const auto& group : joint_groups) {
                     robot.SetCartesianImpedance(group, new_K);
                 }
                 spdlog::info("Cartesian stiffness set to: {}", rdk::utility::Arr2Str(new_K));
@@ -116,14 +116,14 @@ void PeriodicTask(rdk::Robot& robot,
             case (9 * kLoopFreq): {
                 const std::vector<double> ref_q
                     = {-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658};
-                for (const auto& [group, _] : all_init_pose) {
+                for (const auto& group : joint_groups) {
                     robot.SetNullSpacePosture(group, ref_q);
                 }
                 spdlog::info("Reference joint positions updated for all groups");
             } break;
             // Online reset impedance properties to nominal at 12 seconds
             case (12 * kLoopFreq): {
-                for (const auto& [group, _] : all_init_pose) {
+                for (const auto& group : joint_groups) {
                     robot.SetCartesianImpedance(group, robot.info().K_x_nom);
                 }
                 spdlog::info("Cartesian impedance properties are reset");
@@ -138,7 +138,7 @@ void PeriodicTask(rdk::Robot& robot,
             // Online enable max contact wrench regulation at 16 seconds
             case (16 * kLoopFreq): {
                 std::array<double, rdk::kCartDoF> max_wrench = {10.0, 10.0, 10.0, 2.0, 2.0, 2.0};
-                for (const auto& [group, _] : all_init_pose) {
+                for (const auto& group : joint_groups) {
                     robot.SetMaxContactWrench(group, max_wrench);
                 }
                 spdlog::info("Max contact wrench set to: {}", rdk::utility::Arr2Str(max_wrench));
@@ -147,7 +147,7 @@ void PeriodicTask(rdk::Robot& robot,
             case (19 * kLoopFreq): {
                 std::array<double, rdk::kCartDoF> inf;
                 inf.fill(std::numeric_limits<double>::infinity());
-                for (const auto& [group, _] : all_init_pose) {
+                for (const auto& group : joint_groups) {
                     robot.SetMaxContactWrench(group, inf);
                 }
                 spdlog::info("Max contact wrench regulation is disabled");
@@ -159,8 +159,8 @@ void PeriodicTask(rdk::Robot& robot,
         // Simple collision detection: stop robot if collision is detected from either end-effector
         // or robot body
         if (enable_collision) {
-            bool collision_detected = false;
-            for (const auto& [_, states] : robot.states()) {
+            for (const auto& [group, states] : robot.states()) {
+                bool collision_detected = false;
                 Eigen::Vector3d ext_force
                     = {states.tcp_wrench[0], states.tcp_wrench[1], states.tcp_wrench[2]};
                 if (ext_force.norm() > kExtForceThreshold) {
@@ -171,11 +171,14 @@ void PeriodicTask(rdk::Robot& robot,
                         collision_detected = true;
                     }
                 }
-            }
-            if (collision_detected) {
-                robot.Stop();
-                spdlog::warn("Collision detected, stopping robot and exit program ...");
-                g_stop_sched = true;
+
+                if (collision_detected) {
+                    robot.Stop();
+                    spdlog::warn("[{}] Collision detected, stopping robot and exit program ...",
+                        rdk::kJointGroupNames.at(group));
+                    g_stop_sched = true;
+                    break;
+                }
             }
         }
 
@@ -262,10 +265,13 @@ int main(int argc, char* argv[])
 
         // Zero Force-torque Sensor
         // =========================================================================================
+        // All available joint groups of the robot
+        const auto joint_groups = robot.groups();
+
         robot.SwitchMode(rdk::Mode::NRT_PRIMITIVE_EXECUTION);
         // IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
         std::map<rdk::JointGroup, rdk::PrimitiveArgs> pt_args;
-        for (const auto& group : robot.groups()) {
+        for (const auto& group : joint_groups) {
             pt_args[group] = rdk::PrimitiveArgs("ZeroFTSensor", {});
         }
         robot.ExecutePrimitive(pt_args);
@@ -298,7 +304,7 @@ int main(int argc, char* argv[])
         robot.SwitchMode(rdk::Mode::RT_CARTESIAN_MOTION_FORCE);
 
         // Set all Cartesian axis(s) to motion control
-        for (const auto& group : robot.groups()) {
+        for (const auto& group : joint_groups) {
             robot.SetForceControlAxis(
                 group, std::array<bool, rdk::kCartDoF> {false, false, false, false, false, false});
         }
@@ -314,8 +320,9 @@ int main(int argc, char* argv[])
         // Create real-time scheduler to run periodic tasks
         rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::cref(all_init_pose),
-                              std::cref(all_init_q), enable_hold, enable_collision),
+        scheduler.AddTask(
+            std::bind(PeriodicTask, std::ref(robot), std::cref(joint_groups),
+                std::cref(all_init_pose), std::cref(all_init_q), enable_hold, enable_collision),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();

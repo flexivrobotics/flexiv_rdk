@@ -74,14 +74,15 @@ int main(int argc, char* argv[])
 
         // Zero Sensors
         // =========================================================================================
-        const auto joint_groups = robot.groups();
-
         // Get and print the current TCP force/moment readings
-        for (const auto& group : joint_groups) {
-            spdlog::info("TCP force and moment reading in world frame BEFORE sensor zeroing [{}]: "
-                     + rdk::utility::Arr2Str(robot.states().at(group).tcp_wrench) + "[N][Nm]",
-            rdk::kJointGroupNames.at(group));
+        for (const auto& [group, states] : robot.states()) {
+            spdlog::info(
+                "[{}] TCP force and moment reading in world frame BEFORE sensor zeroing: {} N-Nm",
+                rdk::kJointGroupNames.at(group), rdk::utility::Arr2Str(states.tcp_wrench));
         }
+
+        // All available joint groups of the robot
+        const auto joint_groups = robot.groups();
 
         // Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
         robot.SwitchMode(rdk::Mode::NRT_PRIMITIVE_EXECUTION);
@@ -98,9 +99,8 @@ int main(int argc, char* argv[])
 
         // Wait for primitive to finish
         while (!std::all_of(
-            joint_groups.begin(), joint_groups.end(), [&](const rdk::JointGroup& group) {
-                return std::get<int>(
-                    robot.primitive_states().at(group).names_and_values.at("terminated"));
+            robot.primitive_states().begin(), robot.primitive_states().end(), [](const auto& kv) {
+                return std::get<int>(kv.second.names_and_values.at("terminated"));
             })) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
@@ -108,10 +108,10 @@ int main(int argc, char* argv[])
 
         // Get and print the current TCP force/moment readings
         for (const auto& group : joint_groups) {
-            spdlog::info("TCP force and moment reading in world frame AFTER sensor zeroing [{}]: "
-                     + rdk::utility::Arr2Str(robot.states().at(group).tcp_wrench)
-                     + "[N][Nm]",
-            rdk::kJointGroupNames.at(group));
+            spdlog::info(
+                "[{}] TCP force and moment reading in world frame AFTER sensor zeroing: {} N-Nm",
+                rdk::kJointGroupNames.at(group),
+                rdk::utility::Arr2Str(robot.states().at(group).tcp_wrench));
         }
 
     } catch (const std::exception& e) {

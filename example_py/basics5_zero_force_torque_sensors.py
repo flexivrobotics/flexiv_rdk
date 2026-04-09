@@ -65,13 +65,19 @@ def main():
         # Zero Sensors
         # ==========================================================================================
         # Get and print the current TCP force/moment readings
-        logger.info(
-            f"TCP force and moment reading in world frame BEFORE sensor zeroing: {robot.states().ext_wrench_in_world} N-Nm"
-        )
+        for group, states in robot.states().items():
+            logger.info(
+                f"[{flexivrdk.kJointGroupNames[group]}] TCP force and moment reading in world frame BEFORE sensor zeroing: {states.tcp_wrench} N-Nm"
+            )
 
         # Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
-        robot.ExecutePrimitive("ZeroFTSensor", dict())
+        robot.ExecutePrimitive(
+            {
+                group: flexivrdk.PrimitiveArgs("ZeroFTSensor", dict())
+                for group in robot.groups()
+            }
+        )
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations
@@ -80,14 +86,18 @@ def main():
         )
 
         # Wait for primitive to finish
-        while not robot.primitive_states()["terminated"]:
+        while not all(
+            bool(state.names_and_values["terminated"])
+            for state in robot.primitive_states().values()
+        ):
             time.sleep(1)
         logger.info("Sensor zeroing complete")
 
         # Get and print the current TCP force/moment readings
-        logger.info(
-            f"TCP force and moment reading in world frame AFTER sensor zeroing: {robot.states().ext_wrench_in_world} N-Nm"
-        )
+        for group, states in robot.states().items():
+            logger.info(
+                f"[{flexivrdk.kJointGroupNames[group]}] TCP force and moment reading in world frame AFTER sensor zeroing: {states.tcp_wrench} N-Nm"
+            )
 
     except Exception as e:
         # Print exception error message

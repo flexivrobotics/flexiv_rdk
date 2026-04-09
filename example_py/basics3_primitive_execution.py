@@ -65,6 +65,9 @@ def main():
 
         # Execute Primitives
         # ==========================================================================================
+        # All available joint groups of the robot
+        joint_groups = robot.groups()
+
         # Switch to primitive execution mode
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
 
@@ -75,11 +78,14 @@ def main():
         logger.info("Executing primitive: Home")
 
         # Send command to robot
-        robot.ExecutePrimitive("Home", dict())
+        robot.ExecutePrimitive(
+            {group: flexivrdk.PrimitiveArgs("Home", dict()) for group in joint_groups}
+        )
 
-        # Wait for reached target
-        # Note: primitive_states() returns a dictionary of {pt_state_name, [pt_state_values]}
-        while not robot.primitive_states()["reachedTarget"]:
+        while not all(
+            bool(state.names_and_values["reachedTarget"])
+            for state in robot.primitive_states().values()
+        ):
             time.sleep(1)
 
         # (2) Move robot joints to target positions
@@ -95,26 +101,34 @@ def main():
 
         # Send command to robot
         robot.ExecutePrimitive(
-            "MoveJ",
             {
-                "target": flexivrdk.JPos(
-                    [30, -45, 0, 90, 0, 40, 30], [-50, 30, 0, 0, 0, 0]
-                ),
-                "waypoints": [
-                    flexivrdk.JPos(
-                        [10, -30, 10, 30, 10, 15, 10], [-15, 10, 0, 0, 0, 0]
-                    ),
-                    flexivrdk.JPos(
-                        [20, -60, -10, 60, -10, 30, 20], [-30, 20, 0, 0, 0, 0]
-                    ),
-                ],
-            },
+                group: flexivrdk.PrimitiveArgs(
+                    "MoveJ",
+                    {
+                        "target": flexivrdk.JPos(
+                            [30, -45, 0, 90, 0, 40, 30], [-50, 30, 0, 0, 0, 0]
+                        ),
+                        "waypoints": [
+                            flexivrdk.JPos(
+                                [10, -30, 10, 30, 10, 15, 10], [-15, 10, 0, 0, 0, 0]
+                            ),
+                            flexivrdk.JPos(
+                                [20, -60, -10, 60, -10, 30, 20], [-30, 20, 0, 0, 0, 0]
+                            ),
+                        ],
+                    },
+                )
+                for group in joint_groups
+            }
         )
         # Most primitives won't exit by themselves and require users to explicitly trigger
         # transitions based on specific primitive states. Here we check if the primitive state
         # [reachedTarget] becomes true and trigger the transition manually by sending a new
         # primitive command.
-        while not robot.primitive_states()["reachedTarget"]:
+        while not all(
+            bool(state.names_and_values["reachedTarget"])
+            for state in robot.primitive_states().values()
+        ):
             # Print current primitive states
             print(robot.primitive_states())
             time.sleep(1)
@@ -133,25 +147,37 @@ def main():
 
         # Send command to robot
         robot.ExecutePrimitive(
-            "MoveL",
             {
-                "target": flexivrdk.Coord(
-                    [0.65, -0.3, 0.2], [180, 0, 180], ["WORLD", "WORLD_ORIGIN"]
-                ),
-                "waypoints": [
-                    flexivrdk.Coord(
-                        [0.45, 0.1, 0.2], [180, 0, 180], ["WORLD", "WORLD_ORIGIN"]
-                    ),
-                    flexivrdk.Coord(
-                        [0.45, -0.3, 0.2], [180, 0, 180], ["WORLD", "WORLD_ORIGIN"]
-                    ),
-                ],
-                "vel": 0.6,
-                "zoneRadius": "Z50",
-            },
+                group: flexivrdk.PrimitiveArgs(
+                    "MoveL",
+                    {
+                        "target": flexivrdk.Coord(
+                            [0.65, -0.3, 0.2], [180, 0, 180], ["WORLD", "WORLD_ORIGIN"]
+                        ),
+                        "waypoints": [
+                            flexivrdk.Coord(
+                                [0.45, 0.1, 0.2],
+                                [180, 0, 180],
+                                ["WORLD", "WORLD_ORIGIN"],
+                            ),
+                            flexivrdk.Coord(
+                                [0.45, -0.3, 0.2],
+                                [180, 0, 180],
+                                ["WORLD", "WORLD_ORIGIN"],
+                            ),
+                        ],
+                        "vel": 0.6,
+                        "zoneRadius": "Z50",
+                    },
+                )
+                for group in joint_groups
+            }
         )
         # Wait for reached target
-        while not robot.primitive_states()["reachedTarget"]:
+        while not all(
+            bool(state.names_and_values["reachedTarget"])
+            for state in robot.primitive_states().values()
+        ):
             time.sleep(1)
 
         # (4) Another MoveL that uses TCP frame
@@ -168,17 +194,25 @@ def main():
 
         # Send command to robot. This motion will hold current TCP position and only do rotation
         robot.ExecutePrimitive(
-            "MoveL",
             {
-                "target": flexivrdk.Coord(
-                    [0.0, 0.0, 0.0], eulerZYX_deg, ["TRAJ", "START"]
-                ),
-                "vel": 0.2,
-            },
+                group: flexivrdk.PrimitiveArgs(
+                    "MoveL",
+                    {
+                        "target": flexivrdk.Coord(
+                            [0.0, 0.0, 0.0], eulerZYX_deg, ["TRAJ", "START"]
+                        ),
+                        "vel": 0.2,
+                    },
+                )
+                for group in joint_groups
+            }
         )
 
         # Wait for reached target
-        while not robot.primitive_states()["reachedTarget"]:
+        while not all(
+            bool(state.names_and_values["reachedTarget"])
+            for state in robot.primitive_states().values()
+        ):
             time.sleep(1)
 
         # All done, stop robot and put into IDLE mode

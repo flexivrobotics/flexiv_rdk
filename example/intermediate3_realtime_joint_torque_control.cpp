@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
         std::map<rdk::JointGroup, std::vector<double>> all_init_pos;
         for (const auto& [group, states] : robot.states()) {
             all_init_pos[group] = states.q;
-            spdlog::info("Initial joint positions [{}]: {}", rdk::kJointGroupNames.at(group),
+            spdlog::info("[{}] Initial joint positions: {}", rdk::kJointGroupNames.at(group),
                 rdk::utility::Vec2Str(all_init_pos.at(group)));
         }
 

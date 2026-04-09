@@ -132,9 +132,17 @@ def main():
 
         # Zero Force-torque Sensor
         # =========================================================================================
+        # All available joint groups of the robot
+        joint_groups = robot.groups()
+
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
         # IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
-        robot.ExecutePrimitive("ZeroFTSensor", dict())
+        robot.ExecutePrimitive(
+            {
+                group: flexivrdk.PrimitiveArgs("ZeroFTSensor", dict())
+                for group in joint_groups
+            }
+        )
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations
@@ -143,7 +151,10 @@ def main():
         )
 
         # Wait for primitive to finish
-        while not robot.primitive_states()["terminated"]:
+        while not all(
+            bool(state.names_and_values["terminated"])
+            for state in robot.primitive_states().values()
+        ):
             time.sleep(1)
         logger.info("Sensor zeroing complete")
 
@@ -154,42 +165,48 @@ def main():
         # control for example.
         logger.info("Searching for contact ...")
 
-        # Set initial pose to current TCP pose
-        init_pose = robot.states().tcp_pose.copy()
-        logger.info(
-            f"Initial TCP pose set to {init_pose} (position 3x1, rotation (quaternion) 4x1)"
-        )
+        # Set initial poses to current TCP poses
+        all_init_pose = {}
+        for group, states in robot.states().items():
+            all_init_pose[group] = states.tcp_pose.copy()
+            logger.info(
+                f"[{flexivrdk.kJointGroupNames[group]}] Initial TCP pose [position 3x1, rotation (quaternion) 4x1]: {all_init_pose[group]}"
+            )
 
         # Use non-real-time mode to make the robot go to a set point with its own motion generator
         robot.SwitchMode(mode.NRT_CARTESIAN_MOTION_FORCE)
 
         # Search for contact with max contact wrench set to a small value for making soft contact
-        robot.SetMaxContactWrench(MAX_WRENCH_FOR_CONTACT_SEARCH)
+        for group in joint_groups:
+            robot.SetMaxContactWrench(group, MAX_WRENCH_FOR_CONTACT_SEARCH)
 
         # Set target point along -Z direction and expect contact to happen during the travel
-        target_pose = init_pose.copy()
-        target_pose[2] -= SEARCH_DISTANCE
+        cmds = {}
+        for group, init_pose in all_init_pose.items():
+            target_pose = init_pose.copy()
+            target_pose[2] -= SEARCH_DISTANCE
+            cmds[group] = flexivrdk.NrtCartesianCmd(
+                target_pose, [0.0] * 6, [0.0] * 6, SEARCH_VELOCITY
+            )
 
         # Send target point to robot to start searching for contact and limit the velocity. Keep
         # target wrench 0 at this stage since we are not doing force control yet
-        robot.SendCartesianMotionForce(target_pose, [0] * 6, [0] * 6, SEARCH_VELOCITY)
+        robot.SendCartesianMotionForce(cmds)
 
         # Use a while loop to poll robot states and check if a contact is made
         is_contacted = False
         while not is_contacted:
             # Compute norm of sensed external force applied on robot TCP
-            ext_force = np.array(
-                [
-                    robot.states().ext_wrench_in_world[0],
-                    robot.states().ext_wrench_in_world[1],
-                    robot.states().ext_wrench_in_world[2],
-                ]
-            )
+            for group, states in robot.states().items():
+                ext_force = np.array(states.tcp_wrench[:3])
 
-            # Contact is considered to be made if sensed TCP force exceeds the threshold
-            if np.linalg.norm(ext_force) > PRESSING_FORCE:
-                is_contacted = True
-                logger.info("Contact detected at robot TCP")
+                # Contact is considered to be made if sensed TCP force exceeds the threshold
+                if np.linalg.norm(ext_force) > PRESSING_FORCE:
+                    is_contacted = True
+                    logger.info(
+                        f"[{flexivrdk.kJointGroupNames[group]}] Contact detected at robot TCP"
+                    )
+                    break
 
             # Check at 1ms interval
             time.sleep(0.001)
@@ -201,11 +218,13 @@ def main():
 
         # Set force control reference frame based on program argument. See function doc for more
         # details
-        robot.SetForceControlFrame(force_ctrl_frame)
+        for group in joint_groups:
+            robot.SetForceControlFrame(group, force_ctrl_frame)
 
         # Set which Cartesian axis(s) to activate for force control. See function doc for more
         # details. Here we only active Z axis
-        robot.SetForceControlAxis([False, False, True, False, False, False])
+        for group in joint_groups:
+            robot.SetForceControlAxis(group, [False, False, True, False, False, False])
 
         # Uncomment the following line to enable passive force control, otherwise active force
         # control is used by default. See function doc for more details
@@ -220,13 +239,15 @@ def main():
         # is activated (i.e. motion control disabled in Z axis) and the motion force control mode
         # is entered, this way the contact force along Z axis is explicitly regulated and will not
         # spike after the max contact wrench regulation for motion control is disabled
-        robot.SetMaxContactWrench([float("inf")] * 6)
+        for group in joint_groups:
+            robot.SetMaxContactWrench(group, [float("inf")] * 6)
 
-        # Update initial pose to current TCP pose
-        init_pose = robot.states().tcp_pose.copy()
-        logger.info(
-            f"Initial TCP pose set to {init_pose} (position 3x1, rotation (quaternion) 4x1)"
-        )
+        # Update initial poses to current TCP poses
+        for group, pose in all_init_pose.items():
+            pose = robot.states()[group].tcp_pose.copy()
+            logger.info(
+                f"[{flexivrdk.kJointGroupNames[group]}] Initial TCP pose [position 3x1, rotation (quaternion) 4x1]: {pose}"
+            )
 
         # Periodic Task
         # =========================================================================================
@@ -248,9 +269,6 @@ def main():
             if robot.fault():
                 raise Exception("Fault occurred on the connected robot, exiting ...")
 
-            # Initialize target pose to initial pose
-            target_pose = init_pose.copy()
-
             # Set Fz according to reference frame to achieve a "pressing down" behavior
             Fz = 0.0
             if force_ctrl_frame == flexivrdk.CoordType.WORLD:
@@ -259,20 +277,17 @@ def main():
                 Fz = -PRESSING_FORCE
             target_wrench = [0.0, 0.0, Fz, 0.0, 0.0, 0.0]
 
-            # Apply constant force along Z axis of chosen reference frame, and do a simple polish
-            # motion along XY plane in robot world frame
-            if args.polish:
-                # Create motion command to sine-sweep along Y direction
-                target_pose[1] = init_pose[1] + SWING_AMP * math.sin(
-                    2 * math.pi * SWING_FREQ * loop_counter * period
-                )
-                # Command target pose and target wrench
-                robot.SendCartesianMotionForce(target_pose, target_wrench)
-            # Apply constant force along Z axis of chosen reference frame, and hold motions in all
-            # other axes
-            else:
-                # Command initial pose and target wrench
-                robot.SendCartesianMotionForce(init_pose, target_wrench)
+            cmds = {}
+            for group, init_pose in all_init_pose.items():
+                target_pose = init_pose.copy()
+                if args.polish:
+                    target_pose[1] += SWING_AMP * math.sin(
+                        2 * math.pi * SWING_FREQ * loop_counter * period
+                    )
+
+                cmds[group] = flexivrdk.NrtCartesianCmd(target_pose, target_wrench)
+
+            robot.SendCartesianMotionForce(cmds)
 
             # Increment loop counter
             loop_counter += 1

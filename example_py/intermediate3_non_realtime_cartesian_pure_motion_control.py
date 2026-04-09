@@ -119,9 +119,17 @@ def main():
 
         # Zero Force-torque Sensor
         # =========================================================================================
+        # All available joint groups of the robot
+        joint_groups = robot.groups()
+
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
         # IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
-        robot.ExecutePrimitive("ZeroFTSensor", dict())
+        robot.ExecutePrimitive(
+            {
+                group: flexivrdk.PrimitiveArgs("ZeroFTSensor", dict())
+                for group in joint_groups
+            }
+        )
 
         # WARNING: during the process, the robot must not contact anything, otherwise the result
         # will be inaccurate and affect following operations
@@ -130,7 +138,10 @@ def main():
         )
 
         # Wait for primitive to finish
-        while not robot.primitive_states()["terminated"]:
+        while not all(
+            bool(state.names_and_values["terminated"])
+            for state in robot.primitive_states().values()
+        ):
             time.sleep(1)
         logger.info("Sensor zeroing complete")
 
@@ -148,13 +159,15 @@ def main():
         robot.SwitchMode(mode.NRT_CARTESIAN_MOTION_FORCE)
 
         # Set all Cartesian axis(s) to motion control
-        robot.SetForceControlAxis([False, False, False, False, False, False])
+        for group in joint_groups:
+            robot.SetForceControlAxis(group, [False, False, False, False, False, False])
 
-        # Set initial pose to current TCP pose
-        init_pose = robot.states().tcp_pose.copy()
-
-        # Save initial joint positions
-        init_q = robot.states().q.copy()
+        # Save initial poses and joint positions
+        all_init_pose = {}
+        all_init_q = {}
+        for group, states in robot.states().items():
+            all_init_pose[group] = states.tcp_pose.copy()
+            all_init_q[group] = states.q.copy()
 
         # Periodic Task
         # =========================================================================================
@@ -174,79 +187,84 @@ def main():
             if robot.fault():
                 raise Exception("Fault occurred on the connected robot, exiting ...")
 
-            # Initialize target pose to initial pose
-            target_pose = init_pose.copy()
+            cmds = {}
+            sine_offset = SWING_AMP * math.sin(
+                2 * math.pi * SWING_FREQ * loop_counter * period
+            )
+            for group, init_pose in all_init_pose.items():
+                target_pose = init_pose.copy()
 
-            # Sine-sweep TCP along Y axis
-            if not args.hold:
-                target_pose[1] = init_pose[1] + SWING_AMP * math.sin(
-                    2 * math.pi * SWING_FREQ * loop_counter * period
-                )
-            # Otherwise robot TCP will hold at initial pose
+                # Sine-sweep TCP along Y axis
+                if not args.hold:
+                    target_pose[1] += sine_offset
+
+                cmds[group] = flexivrdk.NrtCartesianCmd(target_pose)
 
             # Send command. Calling this method with only target pose input results
             # in pure motion control
-            robot.SendCartesianMotionForce(target_pose)
+            robot.SendCartesianMotionForce(cmds)
 
             #  Do the following operations in sequence for every 20 seconds
             time_elapsed = loop_counter * period
             # Online change reference joint positions at 3 seconds
             if time_elapsed % 20.0 == 3.0:
-                preferred_jnt_pos = [0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658]
-                robot.SetNullSpacePosture(preferred_jnt_pos)
-                logger.info(f"Reference joint positions set to {preferred_jnt_pos}")
+                ref_q = [0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658]
+                for group in joint_groups:
+                    robot.SetNullSpacePosture(group, ref_q)
+                logger.info(f"Reference joint positions set to: {ref_q}")
             # Online change stiffness to half of nominal at 6 seconds
             elif time_elapsed % 20.0 == 6.0:
-                new_K = np.multiply(robot.info().K_x_nom, 0.5)
-                robot.SetCartesianImpedance(new_K)
-                logger.info(f"Cartesian stiffness set to {new_K}")
+                new_K = np.multiply(robot.info().K_x_nom, 0.5).tolist()
+                for group in joint_groups:
+                    robot.SetCartesianImpedance(group, new_K)
+                logger.info(f"Cartesian stiffness set to: {new_K}")
             # Online change to another reference joint positions at 9 seconds
             elif time_elapsed % 20.0 == 9.0:
-                preferred_jnt_pos = [-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658]
-                robot.SetNullSpacePosture(preferred_jnt_pos)
-                logger.info(f"Reference joint positions set to {preferred_jnt_pos}")
+                ref_q = [-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658]
+                for group in joint_groups:
+                    robot.SetNullSpacePosture(group, ref_q)
+                logger.info(f"Reference joint positions set to: {ref_q}")
             # Online reset impedance properties to nominal at 12 seconds
             elif time_elapsed % 20.0 == 12.0:
-                robot.SetCartesianImpedance(robot.info().K_x_nom)
+                for group in joint_groups:
+                    robot.SetCartesianImpedance(group, robot.info().K_x_nom)
                 logger.info("Cartesian impedance properties are reset")
             # Online reset reference joint positions to nominal at 14 seconds
             elif time_elapsed % 20.0 == 14.0:
-                robot.SetNullSpacePosture(init_q)
+                for group, init_q in all_init_q.items():
+                    robot.SetNullSpacePosture(group, init_q)
                 logger.info("Reference joint positions are reset")
             # Online enable max contact wrench regulation at 16 seconds
             elif time_elapsed % 20.0 == 16.0:
                 max_wrench = [10.0, 10.0, 10.0, 2.0, 2.0, 2.0]
-                robot.SetMaxContactWrench(max_wrench)
-                logger.info(f"Max contact wrench set to {max_wrench}")
+                for group in joint_groups:
+                    robot.SetMaxContactWrench(group, max_wrench)
+                logger.info(f"Max contact wrench set to: {max_wrench}")
             # Disable max contact wrench regulation at 19 seconds
             elif time_elapsed % 20.0 == 19.0:
-                robot.SetMaxContactWrench([float("inf")] * 6)
+                for group in joint_groups:
+                    robot.SetMaxContactWrench(group, [float("inf")] * 6)
                 logger.info("Max contact wrench regulation is disabled")
 
             # Simple collision detection: stop robot if collision is detected at
             # end-effector
             if args.collision:
-                collision_detected = False
-                ext_force = np.array(
-                    [
-                        robot.states().ext_wrench_in_world[0],
-                        robot.states().ext_wrench_in_world[1],
-                        robot.states().ext_wrench_in_world[2],
-                    ]
-                )
-                if np.linalg.norm(ext_force) > EXT_FORCE_THRESHOLD:
-                    collision_detected = True
-
-                for v in robot.states().tau_ext:
-                    if abs(v) > EXT_TORQUE_THRESHOLD:
+                for group, states in robot.states().items():
+                    collision_detected = False
+                    ext_force = np.array(states.tcp_wrench[:3])
+                    if np.linalg.norm(ext_force) > EXT_FORCE_THRESHOLD:
                         collision_detected = True
 
-                if collision_detected:
-                    robot.Stop()
-                    logger.warn(
-                        "Collision detected, stopping robot and exit program ..."
-                    )
-                    return
+                    for v in states.tau_ext:
+                        if abs(v) > EXT_TORQUE_THRESHOLD:
+                            collision_detected = True
+
+                    if collision_detected:
+                        robot.Stop()
+                        logger.warn(
+                            f"[{flexivrdk.kJointGroupNames[group]}] Collision detected, stopping robot and exit program ..."
+                        )
+                        return
 
             # Increment loop counter
             loop_counter += 1

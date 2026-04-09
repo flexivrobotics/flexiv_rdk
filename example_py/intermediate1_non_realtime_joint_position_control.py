@@ -95,20 +95,12 @@ def main():
         )
 
         # Use current robot joint positions as initial positions
-        init_pos = robot.states().q.copy()
-        logger.info(f"Initial positions set to: {init_pos}")
-
-        # Robot joint degrees of freedom
-        DoF = robot.info().DoF
-
-        # Initialize target vectors
-        target_pos = init_pos.copy()
-        target_vel = [0.0] * DoF
-        target_acc = [0.0] * DoF
-
-        # Joint motion constraints
-        MAX_VEL = [2.0] * DoF
-        MAX_ACC = [3.0] * DoF
+        all_init_pos = {}
+        for group, states in robot.states().items():
+            all_init_pos[group] = states.q.copy()
+            logger.info(
+                f"[{flexivrdk.kJointGroupNames[group]}] Initial joint positions: {all_init_pos[group]}"
+            )
 
         # Joint sine-sweep amplitude [rad]
         SWING_AMP = 0.1
@@ -125,16 +117,22 @@ def main():
             if robot.fault():
                 raise Exception("Fault occurred on the connected robot, exiting ...")
 
-            # Sine-sweep all joints
-            if not args.hold:
-                for i in range(DoF):
-                    target_pos[i] = init_pos[i] + SWING_AMP * math.sin(
-                        2 * math.pi * SWING_FREQ * loop_time
-                    )
-            # Otherwise all joints will hold at initial positions
+            cmds = {}
+            sine_offset = SWING_AMP * math.sin(2 * math.pi * SWING_FREQ * loop_time)
+            for group, init_pos in all_init_pos.items():
+                target_pos = init_pos.copy()
+                if not args.hold:
+                    for i in range(len(target_pos)):
+                        target_pos[i] += sine_offset
 
-            # Send command
-            robot.SendJointPosition(target_pos, target_vel, MAX_VEL, MAX_ACC)
+                zero_vel = [0.0] * len(init_pos)
+                max_vel = [2.0] * len(init_pos)
+                max_acc = [3.0] * len(init_pos)
+                cmds[group] = flexivrdk.NrtJointPositionCmd(
+                    target_pos, zero_vel, max_vel, max_acc
+                )
+
+            robot.SendJointPosition(cmds)
 
             # Increment loop time
             loop_time += period
