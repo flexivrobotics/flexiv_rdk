@@ -89,13 +89,25 @@ int main(int argc, char* argv[])
         // Initialize dynamics engine
         rdk::Model model(robot);
 
+        auto CombineStates
+            = [](const std::map<rdk::JointGroup, rdk::RobotStates>& all_states, bool position) {
+                  std::vector<double> combined;
+                  for (const auto& [group, states] : all_states) {
+                      (void)group;
+                      const auto& src = position ? states.q : states.dtheta;
+                      combined.insert(combined.end(), src.begin(), src.end());
+                  }
+                  return combined;
+              };
+
         // Step dynamics engine 5 times
         for (size_t i = 0; i < 5; i++) {
             // Mark timer start point
             auto tic = std::chrono::high_resolution_clock::now();
 
             // Update robot model in dynamics engine
-            model.Update(robot.states().q, robot.states().dtheta);
+            const auto all_states = robot.states();
+            model.Update(CombineStates(all_states, true), CombineStates(all_states, false));
 
             // Compute gravity vector
             auto g = model.g();
@@ -124,11 +136,12 @@ int main(int argc, char* argv[])
         }
 
         // Check reachability of a Cartesian pose based on current pose
-        auto pose_to_check = robot.states().tcp_pose;
+        const auto states_for_reach = robot.states();
+        auto pose_to_check = states_for_reach.begin()->second.tcp_pose;
         pose_to_check[0] += 0.1;
         spdlog::info(
             "Checking reachability of Cartesian pose [{}]", rdk::utility::Arr2Str(pose_to_check));
-        auto result = model.reachable(pose_to_check, robot.states().q, true);
+        auto result = model.reachable(pose_to_check, CombineStates(states_for_reach, true), true);
         spdlog::info("Got a result: reachable = {}, IK solution = [{}]", result.first,
             rdk::utility::Vec2Str(result.second));
 

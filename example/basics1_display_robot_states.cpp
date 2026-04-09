@@ -32,7 +32,10 @@ void PrintRobotStates(rdk::Robot& robot)
     while (true) {
         // Print all robot states in JSON format using the built-in ostream operator overloading
         spdlog::info("Current robot states:");
-        std::cout << robot.states() << std::endl;
+        for (const auto& [group, states] : robot.states()) {
+            spdlog::info("=== Joint group: {} ===", rdk::kJointGroupNames.at(group));
+            std::cout << states << std::endl;
+        }
 
         // Print digital inputs
         spdlog::info("Current digital inputs:");

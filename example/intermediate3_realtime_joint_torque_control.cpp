@@ -52,8 +52,8 @@ void PrintHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void PeriodicTask(
-    rdk::Robot& robot, const std::string& motion_type, const std::vector<double>& init_pos)
+void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
+    const std::map<rdk::JointGroup, std::vector<double>>& all_init_pos)
 {
     // Local periodic loop counter
     static unsigned int loop_counter = 0;
@@ -65,31 +65,37 @@ void PeriodicTask(
                 "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
 
-        // Target joint positions
-        std::vector<double> target_pos(robot.info().DoF);
-
-        // Set target position based on motion type
-        if (motion_type == "hold") {
-            target_pos = init_pos;
-        } else if (motion_type == "sine-sweep") {
-            for (size_t i = 0; i < target_pos.size(); ++i) {
-                target_pos[i] = init_pos[i]
-                                + kSineAmp * sin(2 * M_PI * kSineFreq * loop_counter * kLoopPeriod);
-            }
-        } else {
+        if ((motion_type != "hold") && (motion_type != "sine-sweep")) {
             throw std::invalid_argument(
                 "PeriodicTask: Unknown motion type. Accepted motion types: hold, sine-sweep");
         }
 
-        // Run impedance control on all joints
-        std::vector<double> target_torque(robot.info().DoF);
-        for (size_t i = 0; i < target_torque.size(); ++i) {
-            target_torque[i] = kImpedanceKp[i] * (target_pos[i] - robot.states().q[i])
-                               - kImpedanceKd[i] * robot.states().dtheta[i];
+        std::map<rdk::JointGroup, rdk::RtJointTorqueCmd> rt_cmds;
+        const auto all_states = robot.states();
+        for (const auto& [group, init_pos] : all_init_pos) {
+            std::vector<double> target_pos(init_pos.size());
+            if (motion_type == "hold") {
+                target_pos = init_pos;
+            } else {
+                for (size_t i = 0; i < target_pos.size(); ++i) {
+                    target_pos[i]
+                        = init_pos[i]
+                          + kSineAmp * sin(2 * M_PI * kSineFreq * loop_counter * kLoopPeriod);
+                }
+            }
+
+            std::vector<double> target_torque(target_pos.size());
+            const auto& states = all_states.at(group);
+            for (size_t i = 0; i < target_torque.size(); ++i) {
+                target_torque[i] = kImpedanceKp[i] * (target_pos[i] - states.q[i])
+                                   - kImpedanceKd[i] * states.dtheta[i];
+            }
+
+            rt_cmds[group] = rdk::RtJointTorqueCmd(target_torque, true, true);
         }
 
         // Send target joint torque to RDK server
-        robot.StreamJointTorque(target_torque, true);
+        robot.StreamJointTorque(rt_cmds);
 
         loop_counter++;
 
@@ -170,14 +176,18 @@ int main(int argc, char* argv[])
         robot.SwitchMode(rdk::Mode::RT_JOINT_TORQUE);
 
         // Set initial joint positions
-        auto init_pos = robot.states().q;
-        spdlog::info("Initial joint positions set to: {}", rdk::utility::Vec2Str(init_pos));
+        std::map<rdk::JointGroup, std::vector<double>> all_init_pos;
+        for (const auto& [group, states] : robot.states()) {
+            all_init_pos[group] = states.q;
+            spdlog::info("Initial joint positions [{}]: {}", rdk::kJointGroupNames.at(group),
+                rdk::utility::Vec2Str(all_init_pos.at(group)));
+        }
 
         // Create real-time scheduler to run periodic tasks
         rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(
-            std::bind(PeriodicTask, std::ref(robot), std::ref(motion_type), std::ref(init_pos)),
+        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(motion_type),
+                              std::cref(all_init_pos)),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();
