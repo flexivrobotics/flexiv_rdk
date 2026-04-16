@@ -6,7 +6,7 @@ Comprehensive primitive-only reference script for code-generation agents.
 
 Primitives demonstrated (in order):
   1. Home          - send robot to home with custom optional target joint positions.
-  2. ZeroFTSensor  - conditionally zero force/torque sensors when FT sensor exists; uses "terminated" transition (not "reachedTarget").
+  2. ZeroFTSensor  - conditionally zero force/torque sensors when FT sensor exists.
   3. MoveJ         - joint-space move with waypoints and joint-velocity scaling.
   4. MoveL         - Cartesian linear move in WORLD frame with velocity, blending (zoneRadius).
   5. MoveL         - multi-waypoint sweep in WORLD frame.
@@ -17,10 +17,12 @@ Primitives demonstrated (in order):
 
 Key patterns shown:
   - Fault clear, enable, wait operational, mode switch (essential setup).
-  - execute_primitive_blocking() wrapper parameterised with the correct transition key per primitive.
+  - exec_prim() wrapper parameterised with the correct transition key per primitive.
+  - Transition keys must be looked up per primitive from Flexiv primitive documentation:
+      https://primitive.flexiv.com/primitives/en/3.11/rizon4/index.html
   - Reading tcp_pose to extract live orientation (quaternion [w,x,y,z] at indices [3..6]).
   - Converting quaternion to Euler ZYX degrees using utility.quat2eulerZYX for MoveL orientation.
-  - ZeroFTSensor is gated by robot.info().has_FT_sensor and blocks on "terminated".
+  - ZeroFTSensor is gated by robot.info().has_FT_sensor.
   - MoveL with optional velocity, zoneRadius blending, and waypoints.
   - MoveJ with optional waypoints list and jntVelScale.
   - All JPos calls use 7-element arm-joint list; second (external-axis) argument is optional.
@@ -64,8 +66,8 @@ def wait_until_operational(robot, dt=1.0, timeout_s=120.0):
 def wait_primitive_transition(robot, state_key, dt=0.2, timeout_s=300.0):
     """Block until primitive_states()[state_key] is True, or raise TimeoutError.
 
-    Always pass the primitive's documented Default Transition Condition as state_key;
-    common values are "reachedTarget" and "terminated". Check primitive docs to confirm.
+    Use the primitive's default transition key unless a custom transition condition
+    is intended. Check primitive docs to confirm available primitive state keys.
     """
     t0 = time.time()
     while not robot.primitive_states()[state_key]:
@@ -76,20 +78,24 @@ def wait_primitive_transition(robot, state_key, dt=0.2, timeout_s=300.0):
         time.sleep(dt)
 
 
-def exec_prim(
-    robot, name, params, transition_key="reachedTarget", dt=0.2, timeout_s=300.0
-):
+def exec_prim(robot, name, params, transition_key):
     """Execute one primitive and block until transition_key is True.
 
     Args:
         robot:          flexivrdk.Robot instance.
         name:           Primitive name string, e.g. "Home", "MoveJ", "MoveL".
         params:         Dict of primitive parameters.
-        transition_key: Primitive state key to wait for (default "reachedTarget").
-                        Use "terminated" for self-terminating primitives like ZeroFTSensor.
+        transition_key: Primitive state key selected by caller for transition.
+            This can be the primitive's default key or another primitive state key.
+            Look up primitive states from:
+            https://primitive.flexiv.com/primitives/en/3.11/rizon4/index.html
+
+        Note:
+        This helper waits on primitive_states() only. If transition depends on
+        robot states, implement a custom wait loop at call site.
     """
     robot.ExecutePrimitive(name, params)
-    wait_primitive_transition(robot, transition_key, dt, timeout_s)
+    wait_primitive_transition(robot, transition_key)
 
 
 def prepare_robot(robot_sn, logger):
@@ -145,11 +151,10 @@ def main():
         # the platform-defined home posture. An explicit target joint position
         # can be passed to customise the joint-space goal.
         logger.info("Step 1: Home (default target)")
-        exec_prim(robot, "Home", {})
+        exec_prim(robot, "Home", {}, transition_key="reachedTarget")
 
         # ── 2) ZeroFTSensor (if available) ────────────────────────────────────
-        # ZeroFTSensor is self-terminating: it does not set reachedTarget.
-        # Use transition_key="terminated" instead.
+        # Use this primitive's documented default transition condition.
         # The robot must not be in contact with anything during zeroing.
         if robot.info().has_FT_sensor:
             logger.info("Step 2: ZeroFTSensor")
@@ -174,6 +179,7 @@ def main():
                 ],
                 "jntVelScale": 50,  # 50% of max joint speed
             },
+            transition_key="reachedTarget",
         )
 
         # ── 4) MoveL in WORLD frame with velocity and blending ────────────────
@@ -200,6 +206,7 @@ def main():
                 "vel": 0.3,  # m/s TCP linear speed
                 "zoneRadius": "Z50",  # blended corners; use "Z0" for hard stops
             },
+            transition_key="reachedTarget",
         )
 
         # ── 5) MoveL multi-point sweep, exact stops ───────────────────────────
@@ -220,11 +227,12 @@ def main():
                     "vel": 0.2,
                     "zoneRadius": "Z0",  # exact stop at each corner
                 },
+                transition_key="reachedTarget",
             )
 
         # ── 6) Home before TCP-frame relative move ────────────────────────────
         logger.info("Step 6: Home")
-        exec_prim(robot, "Home", {})
+        exec_prim(robot, "Home", {}, transition_key="reachedTarget")
 
         # ── 7) MoveL in TCP frame (TRAJ::START) - relative orientation change ─
         # TRAJ::START means both translation and orientation targets are relative
@@ -245,6 +253,7 @@ def main():
                 ),
                 "vel": 0.1,
             },
+            transition_key="reachedTarget",
         )
 
         # ── 8) MoveJ to upright posture ───────────────────────────────────────
@@ -257,11 +266,12 @@ def main():
                 "target": flexivrdk.JPos([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
                 "jntVelScale": 40,
             },
+            transition_key="reachedTarget",
         )
 
         # ── 9) Home ───────────────────────────────────────────────────────────
         logger.info("Step 9: Home")
-        exec_prim(robot, "Home", {})
+        exec_prim(robot, "Home", {}, transition_key="reachedTarget")
 
         logger.info("Reference sequence completed successfully")
         robot.Stop()
