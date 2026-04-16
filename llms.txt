@@ -14,6 +14,8 @@ Use these sources for API behavior details and argument meaning when in doubt.
 - In this project, Python RDK is generated from pybind bindings of C++ RDK.
 - Function names and function documentation are expected to match between C++ and Python APIs.
 - Generation rule: if Python docs are sparse, use the corresponding C++ API docs as canonical backup for names, parameters, and semantics.
+- Verification rule: before emitting a Python API call, verify parameter count, optionality, and fixed-size container constraints against API docs or headers.
+- Priority references for verification: API docs first, then C++ headers (for exact sizes/types when docs are ambiguous).
 
 ## 1) Preferred Script Pattern (Python)
 - Use examples under `example_py/` as style reference.
@@ -47,7 +49,7 @@ Use these sources for API behavior details and argument meaning when in doubt.
 
 ## 3) Data Type Mapping for `ExecutePrimitive`
 Map plan-like values to RDK Python objects:
-- `JPOS` -> `flexivrdk.JPos(q_m, q_e)`
+- `JPOS` -> `flexivrdk.JPos(q_m, q_e)` or `flexivrdk.JPos(q_m)`
 - `COORD` -> `flexivrdk.Coord(position, orientation, ref_frame, ref_q_m, ref_q_e)`
 - `ARRAY_COORD` -> Python list of `flexivrdk.Coord(...)`
 - Scalar types:
@@ -56,6 +58,11 @@ Map plan-like values to RDK Python objects:
   - `DOUBLE` -> `float`
   - `TYPE` -> `str`
   - `VEC_3d` -> Python list/array length 3
+
+### 3.1) Fixed-Size Argument Checklist (Pybind)
+- Treat constructor/type hints with fixed sizes as strict runtime requirements.
+- For list-like arguments, validate expected length before code generation (for example, 7 for arm `q_m`, 6 for external-axis `q_e`).
+- If an argument is optional, prefer omitting it over passing an empty list or placeholder with wrong size.
 
 ## 4) Critical `Coord` Rule (Do Not Omit Fields)
 From `include/flexiv/rdk/data.hpp`, `Coord` consists of 5 members in order:
@@ -76,6 +83,15 @@ Generation rule:
   - If source values are in mm, convert to meters before calling RDK.
   - If source values are already in meters, do not convert.
 
+## 5.1) Upright Posture Convention
+- The robot upright posture is defined as all joint positions being 0.
+
+## 5.2) Euler Readback Normalization
+- Robot Euler orientation readback is normalized to the range [-180, 180] degrees.
+- If an Euler angle increases past 180, it wraps to -180. If it decreases past -180, it wraps to 180.
+- This wraparound does not indicate a different physical orientation; it is only a different representation of the same rotation.
+- When comparing Euler angles from commanded values versus robot readback, compare with wraparound awareness instead of raw numeric equality.
+
 ## 6) Safety and Robustness Defaults
 - Always include fault clear path before enabling.
 - Always wait for operational state before switching mode or sending primitives.
@@ -91,6 +107,7 @@ Generation rule:
 
 ## 8) Repository Anchors
 - Python examples: `example_py/`
+- Agent primitive-only reference: `example_py/AGENT_REFERENCE_primitives_only.py`
 - Primitive tutorial reference: `example_py/basics3_primitive_execution.py`
 - Core data type definitions: `include/flexiv/rdk/data.hpp`
 - Repo readme and setup guide: `README.md`
