@@ -151,7 +151,15 @@ def main():
         # the platform-defined home posture. An explicit target joint position
         # can be passed to customise the joint-space goal.
         logger.info("Step 1: Home (default target)")
-        exec_prim(robot, "Home", {}, transition_key="reachedTarget")
+        exec_prim(
+            robot,
+            "Home",
+            {
+                "jntVelScale": 20,
+                "jntAccMultiplier": 1,
+            },
+            transition_key="reachedTarget",
+        )
 
         # ── 2) ZeroFTSensor (if available) ────────────────────────────────────
         # Use this primitive's documented default transition condition.
@@ -159,7 +167,16 @@ def main():
         if robot.info().has_FT_sensor:
             logger.info("Step 2: ZeroFTSensor")
             logger.warn("Zeroing F/T sensors - ensure nothing contacts the robot")
-            exec_prim(robot, "ZeroFTSensor", {}, transition_key="terminated")
+            exec_prim(
+                robot,
+                "ZeroFTSensor",
+                {
+                    "dataCollectTime": 0.2,
+                    "enableStaticCheck": False,
+                    "calibExtraPayload": False,
+                },
+                transition_key="terminated",
+            )
             logger.info("F/T sensor zeroing complete")
         else:
             logger.info("Step 2: Skip ZeroFTSensor (no FT sensor installed)")
@@ -178,6 +195,10 @@ def main():
                     flexivrdk.JPos([20, -60, -10, 60, -10, 30, 20]),
                 ],
                 "jntVelScale": 50,  # 50% of max joint speed
+                "zoneRadius": "Z50",
+                "targetTolerLevel": 1,
+                "enableRelativeMove": False,
+                "jntAccMultiplier": 1,
             },
             transition_key="reachedTarget",
         )
@@ -205,6 +226,15 @@ def main():
                 ],
                 "vel": 0.3,  # m/s TCP linear speed
                 "zoneRadius": "Z50",  # blended corners; use "Z0" for hard stops
+                "targetTolerLevel": 3,
+                "acc": 1.5,
+                "angVel": 150,
+                "enableFixRefJntPos": False,
+                "refJntPos": flexivrdk.JPos([0, -40, 0, 90, 0, 40, 0]),
+                "jerk": 50,
+                "configOptObj": [0, 0, 0.5],
+                "enableSixAxisJntCtrl": False,
+                "enableNullspaceTraj": False,
             },
             transition_key="reachedTarget",
         )
@@ -226,6 +256,15 @@ def main():
                     ),
                     "vel": 0.2,
                     "zoneRadius": "Z0",  # exact stop at each corner
+                    "targetTolerLevel": 3,
+                    "acc": 1.5,
+                    "angVel": 150,
+                    "enableFixRefJntPos": False,
+                    "refJntPos": flexivrdk.JPos([0, -40, 0, 90, 0, 40, 0]),
+                    "jerk": 50,
+                    "configOptObj": [0, 0, 0.5],
+                    "enableSixAxisJntCtrl": False,
+                    "enableNullspaceTraj": False,
                 },
                 transition_key="reachedTarget",
             )
@@ -252,6 +291,16 @@ def main():
                     ["TRAJ", "START"],
                 ),
                 "vel": 0.1,
+                "zoneRadius": "Z0",
+                "targetTolerLevel": 3,
+                "acc": 1.0,
+                "angVel": 120,
+                "enableFixRefJntPos": False,
+                "refJntPos": flexivrdk.JPos([0, -40, 0, 90, 0, 40, 0]),
+                "jerk": 50,
+                "configOptObj": [0, 0, 0.5],
+                "enableSixAxisJntCtrl": False,
+                "enableNullspaceTraj": False,
             },
             transition_key="reachedTarget",
         )
@@ -265,6 +314,10 @@ def main():
             {
                 "target": flexivrdk.JPos([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
                 "jntVelScale": 40,
+                "zoneRadius": "Z50",
+                "targetTolerLevel": 1,
+                "enableRelativeMove": False,
+                "jntAccMultiplier": 1,
             },
             transition_key="reachedTarget",
         )

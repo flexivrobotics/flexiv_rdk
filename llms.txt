@@ -6,7 +6,7 @@ Scope: This file captures repository-specific, API-accurate knowledge for LLMs t
 - RDK Manual: https://www.flexiv.com/software/rdk/manual
 - API Documentation (latest): https://www.flexiv.com/software/rdk/api
 - Python package page: https://pypi.org/project/flexivrdk
-- Primitive catalog and documentation: https://primitive.flexiv.com/primitives/en/3.10/rizon4/index.html
+- Primitive catalog and documentation: https://primitive.flexiv.com/primitives/en/3.11/rizon4/index.html
 
 Use these sources for API behavior details and argument meaning when in doubt.
 
