@@ -1,7 +1,7 @@
 /**
  * @test test_repeated_instantiation.cpp
  * A test to repeatedly construct and destruct rdk::Robot instance.
- * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 

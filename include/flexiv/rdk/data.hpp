@@ -1,7 +1,7 @@
 /**
  * @file data.hpp
  * @brief Header file containing various constant expressions, data structures, and enums.
- * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved.
  */
 
 #ifndef FLEXIV_RDK_DATA_HPP_
@@ -39,18 +39,18 @@ constexpr size_t kMaxExtAxes = 6;
 enum class JointGroup
 {
     UNKNOWN = 0, ///< Unknown group
-    ARM = 2,     ///< The single arm if only one exists or arms as a whole if more than one exists
+    ARMS = 2,    ///< The single arm if only one exists or arms as a whole if more than one exists
     ARM_1 = 3,   ///< The 1st arm if more than one exists
     ARM_2 = 4,   ///< The 2nd arm if more than one exists
 
-    FIRST = ARM,
+    FIRST = ARMS,
     LAST = ARM_2,
 };
 
 /** Map JointGroup enum to string */
 const std::map<JointGroup, std::string> kJointGroupNames {
     {JointGroup::UNKNOWN, "UNKNOWN"},
-    {JointGroup::ARM, "ARM"},
+    {JointGroup::ARMS, "ARMS"},
     {JointGroup::ARM_1, "ARM_1"},
     {JointGroup::ARM_2, "ARM_2"},
 };

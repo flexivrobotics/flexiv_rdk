@@ -1,6 +1,6 @@
 /**
  * @file robot.hpp
- * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved.
  */
 
 #ifndef FLEXIV_RDK_ROBOT_HPP_
@@ -211,7 +211,7 @@ public:
      * @warning This function is accessible only if a) the connected robot is a medical model AND
      * b) the robot is not moving.
      */
-    void Brake(bool engage, const std::vector<JointGroup>& groups = {JointGroup::ARM});
+    void Brake(bool engage, const std::vector<JointGroup>& groups = {JointGroup::ARMS});
 
     /**
      * @brief [Blocking] Switch the robot to a new control mode and wait for the mode transition
