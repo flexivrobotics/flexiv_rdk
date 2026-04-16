@@ -29,6 +29,9 @@ Key patterns shown:
   - All Coord calls use positional args: (position, orientation_eulerZYX_deg, ref_frame_list).
 """
 
+__copyright__ = "Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved."
+__author__ = "Flexiv"
+
 import argparse
 import time
 import spdlog  # pip install spdlog
@@ -208,20 +211,34 @@ def main():
         # ref_frame is a 2-element list: [frame_type, frame_origin].
         # vel: TCP linear speed in m/s.
         # zoneRadius: blending zone size string, e.g. "Z50". Use "Z0" for exact stops.
+        live_euler = current_euler_zyx_deg(robot)
+        wp1_euler = normalize_euler_deg(
+            [live_euler[0] + 20.0, live_euler[1] - 20.0, live_euler[2] + 10.0]
+        )
+        wp2_euler = normalize_euler_deg(
+            [live_euler[0] - 30.0, live_euler[1] + 30.0, live_euler[2] - 30.0]
+        )
+        target_euler = normalize_euler_deg(
+            [live_euler[0] + 40.0, live_euler[1] - 20.0, live_euler[2] + 20.0]
+        )
         logger.info("Step 4: MoveL in WORLD frame with speed and blending")
+        logger.info(f"Step 4 live Euler ZYX (deg): {live_euler}")
+        logger.info(f"Step 4 waypoint1 Euler ZYX (deg): {wp1_euler}")
+        logger.info(f"Step 4 waypoint2 Euler ZYX (deg): {wp2_euler}")
+        logger.info(f"Step 4 target Euler ZYX (deg): {target_euler}")
         exec_prim(
             robot,
             "MoveL",
             {
                 "target": flexivrdk.Coord(
-                    [0.65, -0.3, 0.3], [180, 0, 180], ["WORLD", "WORLD_ORIGIN"]
+                    [0.65, -0.3, 0.3], target_euler, ["WORLD", "WORLD_ORIGIN"]
                 ),
                 "waypoints": [
                     flexivrdk.Coord(
-                        [0.45, 0.1, 0.3], [180, 0, 180], ["WORLD", "WORLD_ORIGIN"]
+                        [0.45, 0.1, 0.3], wp1_euler, ["WORLD", "WORLD_ORIGIN"]
                     ),
                     flexivrdk.Coord(
-                        [0.45, -0.3, 0.3], [180, 0, 180], ["WORLD", "WORLD_ORIGIN"]
+                        [0.45, -0.3, 0.3], wp2_euler, ["WORLD", "WORLD_ORIGIN"]
                     ),
                 ],
                 "vel": 0.3,  # m/s TCP linear speed
