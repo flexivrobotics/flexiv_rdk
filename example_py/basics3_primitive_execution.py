@@ -152,16 +152,16 @@ def main():
                     "MoveL",
                     {
                         "target": flexivrdk.Coord(
-                            [0.65, -0.3, 0.2], [180, 0, 180], ["WORLD", "WORLD_ORIGIN"]
+                            [0.3, -0.1, 0.2], [160, 20, 180], ["WORLD", "WORLD_ORIGIN"]
                         ),
                         "waypoints": [
                             flexivrdk.Coord(
-                                [0.45, 0.1, 0.2],
-                                [180, 0, 180],
+                                [0.1, 0.1, 0.1],
+                                [-160, -20, 180],
                                 ["WORLD", "WORLD_ORIGIN"],
                             ),
                             flexivrdk.Coord(
-                                [0.45, -0.3, 0.2],
+                                [0.3, 0.2, 0.1],
                                 [180, 0, 180],
                                 ["WORLD", "WORLD_ORIGIN"],
                             ),

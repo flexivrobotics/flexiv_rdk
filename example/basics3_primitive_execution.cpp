@@ -95,10 +95,10 @@ int main(int argc, char* argv[])
         robot.ExecutePrimitive(pt_args);
 
         // Wait for reached target
-        while (!std::all_of(
-            robot.primitive_states().begin(), robot.primitive_states().end(), [](const auto& kv) {
-                return std::get<int>(kv.second.names_and_values.at("reachedTarget"));
-            })) {
+        while (!std::all_of(joint_groups.begin(), joint_groups.end(), [&robot](const auto& group) {
+            return std::get<int>(
+                robot.primitive_states().at(group).names_and_values.at("reachedTarget"));
+        })) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -130,10 +130,10 @@ int main(int argc, char* argv[])
         // transitions based on specific primitive states. Here we check if the primitive state
         // [reachedTarget] becomes true and trigger the transition manually by sending a new
         // primitive command.
-        while (!std::all_of(
-            robot.primitive_states().begin(), robot.primitive_states().end(), [](const auto& kv) {
-                return std::get<int>(kv.second.names_and_values.at("reachedTarget"));
-            })) {
+        while (!std::all_of(joint_groups.begin(), joint_groups.end(), [&robot](const auto& group) {
+            return std::get<int>(
+                robot.primitive_states().at(group).names_and_values.at("reachedTarget"));
+        })) {
             // Print current primitive states
             spdlog::info("Current primitive states:");
             for (const auto& group : joint_groups) {
@@ -164,21 +164,21 @@ int main(int argc, char* argv[])
         for (const auto& group : joint_groups) {
             pt_args[group] = rdk::PrimitiveArgs("MoveL",
                 {{"target",
-                     rdk::Coord({0.65, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})},
+                     rdk::Coord({0.3, -0.1, 0.2}, {160, 20, 180}, {"WORLD", "WORLD_ORIGIN"})},
                     {"waypoints",
-                        std::vector<rdk::Coord> {
-                            rdk::Coord({0.45, 0.1, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"}),
-                            rdk::Coord(
-                                {0.45, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})}},
+                        std::vector<rdk::Coord> {rdk::Coord({0.1, 0.1, 0.1}, {-160, -20, 180},
+                                                     {"WORLD", "WORLD_ORIGIN"}),
+                            rdk::Coord({0.3, 0.2, 0.1}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})}},
+
                     {"vel", 0.6}, {"zoneRadius", "Z50"}});
         }
         robot.ExecutePrimitive(pt_args);
 
         // Wait for reached target
-        while (!std::all_of(
-            robot.primitive_states().begin(), robot.primitive_states().end(), [](const auto& kv) {
-                return std::get<int>(kv.second.names_and_values.at("reachedTarget"));
-            })) {
+        while (!std::all_of(joint_groups.begin(), joint_groups.end(), [&robot](const auto& group) {
+            return std::get<int>(
+                robot.primitive_states().at(group).names_and_values.at("reachedTarget"));
+        })) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -204,10 +204,10 @@ int main(int argc, char* argv[])
         }
         robot.ExecutePrimitive(pt_args);
         // Wait for reached target
-        while (!std::all_of(
-            robot.primitive_states().begin(), robot.primitive_states().end(), [](const auto& kv) {
-                return std::get<int>(kv.second.names_and_values.at("reachedTarget"));
-            })) {
+        while (!std::all_of(joint_groups.begin(), joint_groups.end(), [&robot](const auto& group) {
+            return std::get<int>(
+                robot.primitive_states().at(group).names_and_values.at("reachedTarget"));
+        })) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
