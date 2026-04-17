@@ -282,10 +282,10 @@ int main(int argc, char* argv[])
             "Zeroing force/torque sensors, make sure nothing is in contact with the robot");
 
         // Wait for primitive to finish
-        while (!std::all_of(
-            robot.primitive_states().begin(), robot.primitive_states().end(), [](const auto& kv) {
-                return std::get<int>(kv.second.names_and_values.at("terminated"));
-            })) {
+        while (!std::all_of(joint_groups.begin(), joint_groups.end(), [&robot](const auto& group) {
+            return std::get<int>(
+                robot.primitive_states().at(group).names_and_values.at("terminated"));
+        })) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         spdlog::info("Sensor zeroing complete");
