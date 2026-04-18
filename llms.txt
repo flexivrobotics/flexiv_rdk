@@ -30,22 +30,29 @@ Use these sources for API behavior details and argument meaning when in doubt.
   3. If `robot.fault()`: call `robot.ClearFault()` and handle failure.
   4. `robot.Enable()` and wait until `robot.operational()`.
   5. `robot.SwitchMode(flexivrdk.Mode.NRT_PRIMITIVE_EXECUTION)`.
-  6. Execute primitives with `robot.ExecutePrimitive(name, params)`.
-  7. Wait for primitive completion using the primitive's documented Default Transition Condition (only use `reachedTarget` when that is the documented default for the active primitive).
-  8. End with `robot.Stop()`.
+  6. Get available joint groups with `joint_groups = robot.groups()`.
+  7. Execute primitives with `robot.ExecutePrimitive({group: flexivrdk.PrimitiveArgs(name, params) for group in joint_groups})`.
+  8. Wait for primitive completion using the primitive's documented Default Transition Condition from each group's primitive state map.
+  9. End with `robot.Stop()`.
 
 ## 2) Primitive Execution Conventions
 - Use explicit primitive names such as `Home`, `MoveJ`, `MoveL`.
-- For each primitive call, pass a Python dict as parameter map.
+- For each primitive call, wrap parameters in `flexivrdk.PrimitiveArgs(name, params)` and send as a map keyed by joint group.
 - Keep transitions explicit in code (sequential primitive calls) unless user asks for asynchronous behavior.
 - Primitive transition rule:
   - Each primitive exposes a set of primitive states as listed in Primitive State Parameters.
   - In most cases, use the primitive's documented Default Transition Condition. But other Primitive State Parameters can also be used as transition conditions.
   - Do not assume `reachedTarget` is the only valid transition condition for all primitives.
 - Polling loop pattern:
-  - `states = robot.primitive_states()`
-  - check the documented state key(s) for the active primitive
+  - `all_states = robot.primitive_states()`
+  - check the documented state key(s) from `state.names_and_values` for each running joint group
   - `time.sleep(0.1-1.0)` in the loop
+
+### 2.1) RDK v2.0 Joint-Group API Rule
+- `robot.states()` returns `dict[JointGroup, RobotStates]`, not a single `RobotStates`.
+- `robot.primitive_states()` returns `dict[JointGroup, PrimitiveStates]`, not a flat key-value map.
+- `robot.ExecutePrimitive(...)` takes `dict[JointGroup, PrimitiveArgs]`, not `(name, params)`.
+- When using fields like `tcp_pose`, first choose a specific group (for example, ARMS if present).
 
 ## 3) Data Type Mapping for `ExecutePrimitive`
 Map plan-like values to RDK Python objects:
@@ -121,8 +128,13 @@ import flexivrdk
 
 
 def wait_default_transition(robot, state_key="reachedTarget", dt=0.2):
-    # Use the primitive's documented Default Transition Condition as state_key.
-    while not robot.primitive_states()[state_key]:
+  # Use the primitive's documented Default Transition Condition as state_key.
+  # In RDK v2.0, primitive states are keyed by joint group.
+  joint_groups = robot.groups()
+  while not all(
+    bool(state.names_and_values[state_key])
+    for state in robot.primitive_states().values()
+  ):
         time.sleep(dt)
 
 
@@ -146,7 +158,14 @@ def main():
 
         robot.SwitchMode(flexivrdk.Mode.NRT_PRIMITIVE_EXECUTION)
 
-        robot.ExecutePrimitive("Home", {})
+        joint_groups = robot.groups()
+
+        robot.ExecutePrimitive(
+          {
+            group: flexivrdk.PrimitiveArgs("Home", dict())
+            for group in joint_groups
+          }
+        )
         wait_default_transition(robot, "reachedTarget")
 
         # Add other primitive calls here.
