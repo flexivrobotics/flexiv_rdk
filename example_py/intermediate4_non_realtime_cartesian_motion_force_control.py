@@ -295,6 +295,7 @@ def main():
     except Exception as e:
         # Print exception error message
         logger.error(str(e))
+        return 1
 
 
 if __name__ == "__main__":
