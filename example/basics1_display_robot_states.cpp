@@ -30,14 +30,21 @@ void PrintHelp()
 void PrintRobotStates(rdk::Robot& robot)
 {
     while (true) {
+        // Print Available joint groups
+        std::string joint_groups_str;
+        for (const auto& group : robot.groups()) {
+            joint_groups_str += "[" + rdk::kJointGroupNames.at(group) + "] ";
+        }
+        spdlog::info("Available joint groups: {}", joint_groups_str);
+
         // Print all robot states in JSON format using the built-in ostream operator overloading
         for (const auto& [group, states] : robot.states()) {
-            spdlog::info("[{}] Current robot states:", rdk::kJointGroupNames.at(group));
+            spdlog::info("[{}] robot states:", rdk::kJointGroupNames.at(group));
             std::cout << states << std::endl;
         }
 
         // Print digital inputs
-        spdlog::info("Current digital inputs:");
+        spdlog::info("Digital inputs:");
         std::cout << rdk::utility::Arr2Str(robot.digital_inputs()) << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }

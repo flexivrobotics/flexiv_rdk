@@ -23,8 +23,15 @@ def print_robot_states(robot, logger, stop_event):
     """
 
     while not stop_event.is_set():
+        # Print available joint groups
+        joint_groups_str = " ".join(
+            [f"[{flexivrdk.kJointGroupNames[group]}]" for group in robot.groups()]
+        )
+        logger.info(f"Available joint groups: {joint_groups_str}")
+
+        # Print all robot states in JSON format using the built-in __str__ overloading
         for group, states in robot.states().items():
-            logger.info(f"[{flexivrdk.kJointGroupNames[group]}] Current robot states:")
+            logger.info(f"[{flexivrdk.kJointGroupNames[group]}] robot states:")
             # fmt: off
             print("{")
             print(f"timestamp: [{states.timestamp[0]}, {states.timestamp[1]}]")
@@ -50,7 +57,7 @@ def print_robot_states(robot, logger, stop_event):
             # fmt: on
 
         # Print digital inputs
-        logger.info("Current digital inputs:")
+        logger.info("Digital inputs:")
         print(robot.digital_inputs())
         time.sleep(1)
 
@@ -71,8 +78,6 @@ def main():
 
     # Define alias
     logger = spdlog.ConsoleLogger("Example")
-    mode = flexivrdk.Mode
-
     # Print description
     logger.info(
         ">>> Tutorial description <<<\nThis tutorial does the very first thing: check connection "
@@ -107,6 +112,7 @@ def main():
     except Exception as e:
         # Print exception error message
         logger.error(str(e))
+        return 1
 
     # Print States
     # =============================================================================
