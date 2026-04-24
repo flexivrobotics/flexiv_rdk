@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 repo="Fast-CDR"
 echo "Installing $repo"

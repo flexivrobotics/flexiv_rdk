@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Depends on: foonathan_memory, tinyxml2, Fast-CDR
 set -e
 repo="Fast-DDS"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 repo="foonathan_memory_vendor"
 echo "Installing $repo"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Depends on: tinyxml2, yaml-cpp, Eigen3, SpaceVecAlg
 set -e
 repo="RBDyn"

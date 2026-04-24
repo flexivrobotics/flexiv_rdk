@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 repo="tinyxml2"
 echo "Installing $repo"

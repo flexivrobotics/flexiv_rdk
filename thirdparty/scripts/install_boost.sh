@@ -1,7 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 repo="boost"
 echo "Installing $repo"
+
+# Function to check if running on Windows
+is_windows() {
+  [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "mingw"* || "$OSTYPE" == "win32"* ]]
+}
 
 # Default version on Ubuntu 24.04
 # Also the minimum version compatible with MSVC v143
@@ -13,7 +18,7 @@ if [ ! -d ${repo}_${ver_str} ] ; then
   # download is faster than clone
   URL="https://archives.boost.io/release/$ver_tag/source/${repo}_${ver_str}.tar.bz2"
   echo "-- Downloading: $URL"
-  if [[ "$OSTYPE" == "msys"* ]]; then # Windows
+  if is_windows; then
     curl -L -o ${repo}_${ver_str}.tar.bz2 $URL
   else
     wget $URL --no-clobber --quiet --show-progress --progress=bar:force 2>&1
@@ -27,7 +32,7 @@ else
 fi
 
 # Bootstrap differently on Unix and Windows
-if [[ "$OSTYPE" == "msys"* ]]; then
+if is_windows; then
   # Windows
   ./bootstrap.bat
 else
