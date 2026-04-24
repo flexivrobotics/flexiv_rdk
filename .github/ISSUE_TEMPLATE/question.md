@@ -4,7 +4,7 @@ about: Ask a question related to RDK
 title: "[QUESTION] "
 type: Question
 labels: help wanted
-assignees: pzhu-flexiv, gavin-flexiv, zlin-flexiv, yunhong-flexiv, Aathitian-flexiv, eltonsi-flexiv
+assignees: [pzhu-flexiv, gavin-flexiv, zlin-flexiv, yunhong-flexiv, Aathitian-flexiv, eltonsi-flexiv]
 
 ---
 
