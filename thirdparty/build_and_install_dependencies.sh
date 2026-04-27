@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Build and install all dependencies of flexiv_rdk.
 echo ">>>>> Start: flexiv_rdk/thirdparty/build_and_install_dependencies.sh <<<<<"
 

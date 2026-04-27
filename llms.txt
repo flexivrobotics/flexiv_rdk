@@ -128,13 +128,13 @@ import flexivrdk
 
 
 def wait_default_transition(robot, state_key="reachedTarget", dt=0.2):
-  # Use the primitive's documented Default Transition Condition as state_key.
-  # In RDK v2.0, primitive states are keyed by joint group.
-  joint_groups = robot.groups()
-  while not all(
-    bool(state.names_and_values[state_key])
-    for state in robot.primitive_states().values()
-  ):
+    # Use the primitive's documented Default Transition Condition as state_key.
+    # In RDK v2.0, primitive states are keyed by joint group.
+    joint_groups = robot.groups()
+    while not all(
+        bool(state.names_and_values[state_key])
+        for state in robot.primitive_states().values()
+    ):
         time.sleep(dt)
 
 

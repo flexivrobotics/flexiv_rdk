@@ -62,7 +62,7 @@ const std::map<JointGroup, std::string> kJointGroupNames {
  */
 enum class OperationalStatus
 {
-    UNKNOWN,            ///< Unkown status.
+    UNKNOWN,            ///< Unknown status.
     READY,              ///< Ready to be operated.
     BOOTING,            ///< System still booting, please wait.
     ESTOP_NOT_RELEASED, ///< E-Stop is not released.
