@@ -4,7 +4,7 @@ about: Ask a question related to RDK
 title: "[QUESTION] "
 type: Question
 labels: help wanted
-assignees: pzhu-flexiv, dajun-flexiv, gavin-flexiv, zlin-flexiv
+assignees: [pzhu-flexiv, gavin-flexiv, zlin-flexiv, yunhong-flexiv, Aathitian-flexiv, eltonsi-flexiv]
 
 ---
 
@@ -25,6 +25,10 @@ You can take a look at the [C++ examples](https://github.com/flexivrobotics/flex
 ## Is this related to a specific version of RDK?
 
 If yes, please specify.
+
+## What is your country or region?
+
+Please provide your country or region. This helps us determine the most appropriate issue assignees.
 
 ## Please describe your question
 

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16.3)
 # ===================================================================
 #      PROJECT SETUP
 # ===================================================================
-project(flexiv_rdk VERSION 1.9.0)
+project(flexiv_rdk VERSION 1.9.1)
 
 # Configure build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -67,7 +67,7 @@ endif()
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_LIB}.sha256 EXPECTED_HASH)
 
 # Download the library file from GitHub 
-set(RDK_LIB_URL https://github.com/flexivrobotics/flexiv_rdk/releases/download/v1.9/${RDK_LIB})
+set(RDK_LIB_URL https://github.com/flexivrobotics/flexiv_rdk/releases/download/v${PROJECT_VERSION}/${RDK_LIB})
 message(STATUS "Downloading ${RDK_LIB_URL} ...")
 file(DOWNLOAD ${RDK_LIB_URL} ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
      SHOW_PROGRESS

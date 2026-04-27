@@ -1,6 +1,10 @@
 name: CMake
 
 on:
+  push:
+    branches: [main, "v*.x"]
+  pull_request:
+    branches: [main, "v*.x"]
   workflow_dispatch:
 
 env:
