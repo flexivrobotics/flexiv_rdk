@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
 
@@ -17,7 +18,7 @@ jobs:
     runs-on: ubuntu-24.04
     # Use shared steps
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/workflows/shared_steps
 
   build-ubuntu-22:
@@ -25,7 +26,7 @@ jobs:
     runs-on: ubuntu-22.04
     # Use shared steps
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/workflows/shared_steps
 
   build-macos-14:
@@ -33,7 +34,7 @@ jobs:
     runs-on: macos-14
     # Use shared steps
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/workflows/shared_steps
 
   build-windows-2022:
@@ -41,5 +42,5 @@ jobs:
     runs-on: windows-2022
     # Use shared steps
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/workflows/shared_steps
