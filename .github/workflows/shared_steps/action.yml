@@ -7,7 +7,7 @@ runs:
     - name: Set up CMake
       uses: jwlawson/actions-setup-cmake@v2
       with:
-        cmake-version: '3.29.x'
+        cmake-version: '3.28.3'
 
     # Build and install all dependencies to RDK installation directory.
     - name: Build and install dependencies
