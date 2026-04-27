@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-24.04
     # Use shared steps
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/workflows/shared_steps
 
   build-ubuntu-22:
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-22.04
     # Use shared steps
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/workflows/shared_steps
 
   build-macos-14:
@@ -33,7 +33,7 @@ jobs:
     runs-on: macos-14
     # Use shared steps
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/workflows/shared_steps
 
   build-windows-2022:
@@ -41,5 +41,5 @@ jobs:
     runs-on: windows-2022
     # Use shared steps
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/workflows/shared_steps
