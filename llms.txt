@@ -109,8 +109,76 @@ Generation rule:
 - Python examples: `example_py/`
 - Agent primitive-only reference: `example_py/AGENT_REFERENCE_primitives_only.py`
 - Primitive tutorial reference: `example_py/basics3_primitive_execution.py`
+- NRT Cartesian velocity-trajectory reference: `example_py/intermediate6_non_realtime_cartesian_vel_trajectory.py`
 - Core data type definitions: `include/flexiv/rdk/data.hpp`
 - Repo readme and setup guide: `README.md`
+
+## 10) Control Mode Selection and Precision Guidance
+
+### 10.1) NRT vs RT Mode Summary
+| Mode | Function | Timing | Use case |
+|---|---|---|---|
+| NRT_CARTESIAN_MOTION_FORCE | SendCartesianMotionForce | 1–100 Hz | Goal-to-goal Cartesian moves, velocity-integrated trajectories |
+| NRT_JOINT_POSITION | SendJointPosition | 1–100 Hz | Precise joint-space waypoints; better position accuracy for small displacements |
+| RT_CARTESIAN_MOTION_FORCE | StreamCartesianMotionForce | 1 kHz strict | Continuous high-bandwidth Cartesian streaming; velocity/force feedforward |
+| RT_JOINT_POSITION | StreamJointPosition | 1 kHz strict | Continuous high-bandwidth joint streaming |
+
+Real-time (RT) modes require a real-time Linux kernel for deterministic 1 kHz execution.
+Non-real-time (NRT) modes work on any OS but rely on the robot's internal trajectory generator.
+
+### 10.2) NRT Cartesian – Absolute Target Rule (CRITICAL)
+**Never** use the robot's measured current pose as the trajectory origin for incremental
+commands in NRT Cartesian control.  The robot's internal trajectory generator moves the arm
+from its measured current position to the *commanded* target pose and replans on every new
+command.  If you set `target = robot.states().tcp_pose + small_delta`, the generator receives
+a displacement that may already be behind the robot by the time the NRT packet is delivered
+(due to network and scheduling jitter), producing erratic, stalled, or reversed motion.
+
+**Correct pattern** – maintain an independent absolute target and advance it each cycle:
+```python
+# Initialize once before the loop
+absolute_target = robot.states().tcp_pose.copy()
+
+# Inside the control loop
+elapsed += dt
+absolute_target[0] = init_pose[0] + velocity_x * elapsed  # or any trajectory formula
+robot.SendCartesianMotionForce(absolute_target, [], [])
+```
+This pattern ensures the commanded target is always ahead of the robot regardless of
+communication jitter, producing smooth, reliable motion for arbitrarily small per-cycle steps.
+
+### 10.3) NRT Cartesian – Velocity Feedforward
+The `velocity` argument of `SendCartesianMotionForce` specifies the TCP velocity *at the
+target pose* (i.e. arrival velocity), **not** a velocity command that replaces the position
+target.  To improve tracking of a known trajectory, pass the analytical derivative of the
+target position as the velocity feedforward:
+```python
+vel_x = amplitude * 2 * math.pi * freq * math.cos(2 * math.pi * freq * t)
+robot.SendCartesianMotionForce(absolute_target, [], [vel_x, 0, 0, 0, 0, 0])
+```
+Setting velocity to all zeros maximizes robustness; providing the correct velocity improves
+tracking performance at higher speeds.
+
+### 10.4) NRT Joint Position – Absolute Targets and Lag
+NRT_JOINT_POSITION is more accurate than NRT_CARTESIAN_MOTION_FORCE for sub-millimeter
+displacements, but shares the same trajectory-generator principle: **always send absolute
+joint-space targets**, not increments from the current joint positions.  Sending the current
+joint angles as targets each cycle (for a "hold" loop) does not guarantee the robot stays
+exactly stationary if an external force moves it, because the NRT controller plans motion to
+the last commanded target, not to the dynamically updated current position.
+
+### 10.5) RT Velocity / Cartesian Streaming
+For continuous velocity control with minimal latency and no deadband, use
+`StreamCartesianMotionForce` in `RT_CARTESIAN_MOTION_FORCE` mode at 1 kHz.
+Send the desired velocity as the `velocity` argument and a pose that is integrated from the
+same velocity (absolute, not relative to measured current pose) as the `pose` argument:
+```cpp
+// C++ RT loop (1 kHz)
+target_pose[0] += desired_vx * kLoopPeriod;   // integrate velocity
+robot.StreamCartesianMotionForce(target_pose, {}, {desired_vx, 0, 0, 0, 0, 0});
+```
+This minimizes the ~8–10 % steady-state velocity error that arises when a fixed or
+current-pose-based position target conflicts with the velocity command.
 
 ## 9) Minimal Skeleton
 ```python
