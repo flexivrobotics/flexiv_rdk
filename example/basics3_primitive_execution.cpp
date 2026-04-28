@@ -2,7 +2,7 @@
  * @example basics3_primitive_execution.cpp
  * This tutorial executes several basic robot primitives (unit skills). For detailed documentation
  * on all available primitives, please see [Flexiv Primitives](https://www.flexiv.com/primitives/).
- * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
@@ -13,6 +13,7 @@
 #include <iostream>
 #include <iomanip>
 #include <thread>
+#include <algorithm>
 
 using namespace flexiv;
 
@@ -74,6 +75,9 @@ int main(int argc, char* argv[])
 
         // Execute Primitives
         // =========================================================================================
+        // All available joint groups of the robot
+        const auto joint_groups = robot.groups();
+
         // Switch to primitive execution mode
         robot.SwitchMode(rdk::Mode::NRT_PRIMITIVE_EXECUTION);
 
@@ -84,10 +88,17 @@ int main(int argc, char* argv[])
         spdlog::info("Executing primitive: Home");
 
         // Send command to robot
-        robot.ExecutePrimitive("Home", std::map<std::string, rdk::FlexivDataTypes> {});
+        std::map<rdk::JointGroup, rdk::PrimitiveArgs> pt_args;
+        for (const auto& group : joint_groups) {
+            pt_args[group] = rdk::PrimitiveArgs("Home", {});
+        }
+        robot.ExecutePrimitive(pt_args);
 
         // Wait for reached target
-        while (!std::get<int>(robot.primitive_states()["reachedTarget"])) {
+        while (!std::all_of(joint_groups.begin(), joint_groups.end(), [&robot](const auto& group) {
+            return std::get<int>(
+                robot.primitive_states().at(group).names_and_values.at("reachedTarget"));
+        })) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -103,24 +114,35 @@ int main(int argc, char* argv[])
         spdlog::info("Executing primitive: MoveJ");
 
         // Send command to robot
-        robot.ExecutePrimitive("MoveJ",
-            {
-                {"target", rdk::JPos({30, -45, 0, 90, 0, 40, 30}, {-50, 30})},
-                {"waypoints",
-                    std::vector<rdk::JPos> {rdk::JPos({10, -30, 10, 30, 10, 15, 10}, {-15, 10}),
-                        rdk::JPos({20, -60, -10, 60, -10, 30, 20}, {-30, 20})}},
-            });
+        pt_args.clear();
+        for (const auto& group : joint_groups) {
+            pt_args[group] = rdk::PrimitiveArgs("MoveJ",
+                {
+                    {"target", rdk::JPos({30, -45, 0, 90, 0, 40, 30}, {-50, 30})},
+                    {"waypoints",
+                        std::vector<rdk::JPos> {rdk::JPos({10, -30, 10, 30, 10, 15, 10}, {-15, 10}),
+                            rdk::JPos({20, -60, -10, 60, -10, 30, 20}, {-30, 20})}},
+                });
+        }
+        robot.ExecutePrimitive(pt_args);
 
         // Most primitives won't exit by themselves and require users to explicitly trigger
         // transitions based on specific primitive states. Here we check if the primitive state
         // [reachedTarget] becomes true and trigger the transition manually by sending a new
         // primitive command.
-        while (!std::get<int>(robot.primitive_states()["reachedTarget"])) {
+        while (!std::all_of(joint_groups.begin(), joint_groups.end(), [&robot](const auto& group) {
+            return std::get<int>(
+                robot.primitive_states().at(group).names_and_values.at("reachedTarget"));
+        })) {
             // Print current primitive states
             spdlog::info("Current primitive states:");
-            for (const auto& st : robot.primitive_states()) {
-                std::cout << st.first << ": " << rdk::utility::FlexivTypes2Str(st.second);
-                std::cout << std::endl;
+            for (const auto& group : joint_groups) {
+                std::cout << rdk::kJointGroupNames.at(group) << ":" << std::endl;
+                const auto primitive_states = robot.primitive_states().at(group).names_and_values;
+                for (const auto& st : primitive_states) {
+                    std::cout << st.first << ": " << rdk::utility::FlexivTypes2Str(st.second);
+                    std::cout << std::endl;
+                }
             }
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
@@ -138,19 +160,25 @@ int main(int argc, char* argv[])
         spdlog::info("Executing primitive: MoveL");
 
         // Send command to robot
-        robot.ExecutePrimitive("MoveL",
-            {
-                {"target", rdk::Coord({0.65, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})},
-                {"waypoints",
-                    std::vector<rdk::Coord> {
-                        rdk::Coord({0.45, 0.1, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"}),
-                        rdk::Coord({0.45, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})}},
-                {"vel", 0.6},
-                {"zoneRadius", "Z50"},
-            });
+        pt_args.clear();
+        for (const auto& group : joint_groups) {
+            pt_args[group] = rdk::PrimitiveArgs("MoveL",
+                {{"target",
+                     rdk::Coord({0.3, -0.1, 0.2}, {160, 20, 180}, {"WORLD", "WORLD_ORIGIN"})},
+                    {"waypoints",
+                        std::vector<rdk::Coord> {rdk::Coord({0.1, 0.1, 0.1}, {-160, -20, 180},
+                                                     {"WORLD", "WORLD_ORIGIN"}),
+                            rdk::Coord({0.3, 0.2, 0.1}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})}},
+
+                    {"vel", 0.6}, {"zoneRadius", "Z50"}});
+        }
+        robot.ExecutePrimitive(pt_args);
 
         // Wait for reached target
-        while (!std::get<int>(robot.primitive_states()["reachedTarget"])) {
+        while (!std::all_of(joint_groups.begin(), joint_groups.end(), [&robot](const auto& group) {
+            return std::get<int>(
+                robot.primitive_states().at(group).names_and_values.at("reachedTarget"));
+        })) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -166,13 +194,20 @@ int main(int argc, char* argv[])
         auto targetEulerDeg = rdk::utility::Rad2Deg(rdk::utility::Quat2EulerZYX(targetQuat));
 
         // Send command to robot. This motion will hold current TCP position and only do rotation
-        robot.ExecutePrimitive(
-            "MoveL", {
-                         {"target", rdk::Coord({0.0, 0.0, 0.0}, targetEulerDeg, {"TRAJ", "START"})},
-                         {"vel", 0.2},
-                     });
+        pt_args.clear();
+        for (const auto& group : joint_groups) {
+            pt_args[group] = rdk::PrimitiveArgs("MoveL",
+                {
+                    {"target", rdk::Coord({0.0, 0.0, 0.0}, targetEulerDeg, {"TRAJ", "START"})},
+                    {"vel", 0.2},
+                });
+        }
+        robot.ExecutePrimitive(pt_args);
         // Wait for reached target
-        while (!std::get<int>(robot.primitive_states()["reachedTarget"])) {
+        while (!std::all_of(joint_groups.begin(), joint_groups.end(), [&robot](const auto& group) {
+            return std::get<int>(
+                robot.primitive_states().at(group).names_and_values.at("reachedTarget"));
+        })) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 

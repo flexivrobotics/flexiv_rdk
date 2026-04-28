@@ -2,7 +2,7 @@
  * @test test_endurance.cpp
  * Endurance test running Cartesian impedance control to slowly sine-sweep near home for a duration
  * of user-specified hours. Raw data will be logged to CSV files continuously.
- * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
@@ -29,7 +29,7 @@ const double kSwingAmp = 0.1;
 const double kSwingFreq = 0.025; // = 10mm/s linear velocity
 
 /** Current Cartesian-space pose (position + rotation) of robot TCP */
-std::array<double, flexiv::rdk::kPoseSize> g_curr_tcp_pose;
+std::map<flexiv::rdk::JointGroup, std::array<double, flexiv::rdk::kPoseSize>> g_curr_tcp_pose;
 
 /** Test duration converted from user-specified hours to loop counts */
 uint64_t g_test_duration_loop_counts = 0;
@@ -40,16 +40,17 @@ const unsigned int kLogDurationLoopCounts = 10 * 60 * 1000; // = 10 min/file
 /** Data to be logged in low-priority thread */
 struct LogData
 {
-    std::array<double, flexiv::rdk::kPoseSize> tcp_pose;
-    std::array<double, flexiv::rdk::kCartDoF> tcp_force;
+    std::map<flexiv::rdk::JointGroup, std::array<double, flexiv::rdk::kPoseSize>> tcp_pose;
+    std::map<flexiv::rdk::JointGroup, std::array<double, flexiv::rdk::kCartDoF>> tcp_force;
 } g_log_data;
 
 /** Atomic signal to stop the test */
 std::atomic<bool> g_stop = {false};
 }
 
-void HighPriorityTask(
-    flexiv::rdk::Robot& robot, const std::array<double, flexiv::rdk::kPoseSize>& init_pose)
+void HighPriorityTask(flexiv::rdk::Robot& robot,
+    const std::vector<flexiv::rdk::JointGroup>& joint_groups,
+    const std::map<flexiv::rdk::JointGroup, std::array<double, flexiv::rdk::kPoseSize>>& init_poses)
 {
     // Local periodic loop counter
     static uint64_t loop_counter = 0;
@@ -62,14 +63,22 @@ void HighPriorityTask(
         }
 
         // Swing along Z direction
-        g_curr_tcp_pose[2]
-            = init_pose[2] + kSwingAmp * sin(2 * M_PI * kSwingFreq * loop_counter * kLoopPeriod);
-        robot.StreamCartesianMotionForce(g_curr_tcp_pose);
+        std::map<flexiv::rdk::JointGroup, flexiv::rdk::RtCartesianCmd> rt_cmds;
+        for (const auto& group : joint_groups) {
+            auto target_pose = g_curr_tcp_pose.at(group);
+            target_pose[2] = init_poses.at(group)[2]
+                             + kSwingAmp * sin(2 * M_PI * kSwingFreq * loop_counter * kLoopPeriod);
+            g_curr_tcp_pose[group] = target_pose;
+            rt_cmds[group] = flexiv::rdk::RtCartesianCmd(target_pose);
+        }
+        robot.StreamCartesianMotionForce(rt_cmds);
 
         // Save data to global buffer, not using mutex to avoid interruption on RT loop from
         // potential priority inversion
-        g_log_data.tcp_pose = robot.states().tcp_pose;
-        g_log_data.tcp_force = robot.states().ext_wrench_in_world;
+        for (const auto& [group, states] : robot.states()) {
+            g_log_data.tcp_pose[group] = states.tcp_pose;
+            g_log_data.tcp_force[group] = states.tcp_wrench;
+        }
 
         // Stop after test duration has elapsed
         if (++loop_counter > g_test_duration_loop_counts) {
@@ -129,13 +138,16 @@ void LowPriorityTask()
 
         // Log data to file in CSV format
         if (csv_file.is_open()) {
-            // Loop counter x1, TCP pose x7, TCP external force x6
+            // Loop counter x1, then grouped TCP pose x7 and TCP wrench x6
             csv_file << loop_counter << ",";
-            for (const auto& i : g_log_data.tcp_pose) {
-                csv_file << i << ",";
-            }
-            for (const auto& i : g_log_data.tcp_force) {
-                csv_file << i << ",";
+            for (const auto& [group, pose] : g_log_data.tcp_pose) {
+                csv_file << flexiv::rdk::kJointGroupNames.at(group) << ",";
+                for (const auto& i : pose) {
+                    csv_file << i << ",";
+                }
+                for (const auto& i : g_log_data.tcp_force.at(group)) {
+                    csv_file << i << ",";
+                }
             }
             // End of line
             csv_file << '\n';
@@ -213,6 +225,9 @@ int main(int argc, char* argv[])
 
         // Bring Robot To Home
         //==========================================================================================
+        // All available joint groups of the robot
+        const auto joint_groups = robot.groups();
+
         robot.SwitchMode(flexiv::rdk::Mode::NRT_PLAN_EXECUTION);
         robot.ExecutePlan("PLAN-Home");
 
@@ -224,17 +239,27 @@ int main(int argc, char* argv[])
         // Switch mode after robot is at home
         robot.SwitchMode(flexiv::rdk::Mode::RT_CARTESIAN_MOTION_FORCE);
 
+        for (const auto& group : joint_groups) {
+            robot.SetForceControlAxis(group,
+                std::array<bool, flexiv::rdk::kCartDoF> {false, false, false, false, false, false});
+        }
+
         // Set initial pose to current TCP pose
-        auto init_pose = robot.states().tcp_pose;
-        spdlog::info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
-                     + flexiv::rdk::utility::Arr2Str(init_pose));
-        g_curr_tcp_pose = init_pose;
+        std::map<flexiv::rdk::JointGroup, std::array<double, flexiv::rdk::kPoseSize>> init_poses;
+        for (const auto& [group, states] : robot.states()) {
+            init_poses[group] = states.tcp_pose;
+            g_curr_tcp_pose[group] = states.tcp_pose;
+            spdlog::info("[{}] Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
+                             + flexiv::rdk::utility::Arr2Str(init_poses.at(group)),
+                flexiv::rdk::kJointGroupNames.at(group));
+        }
 
         // Periodic Tasks
         //==========================================================================================
         flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(std::bind(HighPriorityTask, std::ref(robot), std::ref(init_pose)),
+        scheduler.AddTask(std::bind(HighPriorityTask, std::ref(robot), std::cref(joint_groups),
+                              std::cref(init_poses)),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();

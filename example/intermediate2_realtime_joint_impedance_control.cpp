@@ -1,7 +1,7 @@
 /**
  * @example intermediate2_realtime_joint_impedance_control.cpp
  * This tutorial runs real-time joint impedance control to hold or sine-sweep all robot joints.
- * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
@@ -43,8 +43,9 @@ void PrintHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void PeriodicTask(
-    rdk::Robot& robot, const std::string& motion_type, const std::vector<double>& init_pos)
+void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
+    const std::vector<rdk::JointGroup>& joint_groups,
+    const std::map<rdk::JointGroup, std::vector<double>>& all_init_pos)
 {
     // Local periodic loop counter
     static unsigned int loop_counter = 0;
@@ -56,22 +57,29 @@ void PeriodicTask(
                 "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
 
-        // Initialize target vectors to hold position
-        std::vector<double> target_pos(robot.info().DoF);
-        std::vector<double> target_vel(robot.info().DoF);
-        std::vector<double> target_acc(robot.info().DoF);
+        std::map<rdk::JointGroup, rdk::RtJointPositionCmd> rt_cmds;
 
-        // Set target vectors based on motion type
-        if (motion_type == "hold") {
-            target_pos = init_pos;
-        } else if (motion_type == "sine-sweep") {
-            for (size_t i = 0; i < target_pos.size(); ++i) {
-                target_pos[i] = init_pos[i]
-                                + kSineAmp * sin(2 * M_PI * kSineFreq * loop_counter * kLoopPeriod);
-            }
-        } else {
+        if ((motion_type != "hold") && (motion_type != "sine-sweep")) {
             throw std::invalid_argument(
                 "PeriodicTask: Unknown motion type. Accepted motion types: hold, sine-sweep");
+        }
+
+        for (const auto& [group, init_pos] : all_init_pos) {
+            std::vector<double> target_pos(init_pos.size());
+            std::vector<double> target_vel(init_pos.size());
+            std::vector<double> target_acc(init_pos.size());
+
+            if (motion_type == "hold") {
+                target_pos = init_pos;
+            } else {
+                for (size_t i = 0; i < target_pos.size(); ++i) {
+                    target_pos[i]
+                        = init_pos[i]
+                          + kSineAmp * sin(2 * M_PI * kSineFreq * loop_counter * kLoopPeriod);
+                }
+            }
+
+            rt_cmds[group] = rdk::RtJointPositionCmd(target_pos, target_vel, target_acc);
         }
 
         // Reduce stiffness to half of nominal values after 5 seconds
@@ -80,18 +88,22 @@ void PeriodicTask(
             for (auto& v : new_Kq) {
                 v *= 0.5;
             }
-            robot.SetJointImpedance(new_Kq);
+            for (const auto& group : joint_groups) {
+                robot.SetJointImpedance(group, new_Kq);
+            }
             spdlog::info("Joint stiffness set to [{}]", rdk::utility::Vec2Str(new_Kq));
         }
 
         // Reset impedance properties to nominal values after another 5 seconds
         if (loop_counter == 10000) {
-            robot.SetJointImpedance(robot.info().K_q_nom);
+            for (const auto& group : joint_groups) {
+                robot.SetJointImpedance(group, robot.info().K_q_nom);
+            }
             spdlog::info("Joint impedance properties are reset");
         }
 
         // Send commands
-        robot.StreamJointPosition(target_pos, target_vel, target_acc);
+        robot.StreamJointPosition(rt_cmds);
 
         // Increment loop counter
         loop_counter++;
@@ -167,18 +179,25 @@ int main(int argc, char* argv[])
 
         // Real-time Joint Impedance Control
         // =========================================================================================
+        // All available joint groups of the robot
+        const auto joint_groups = robot.groups();
+
         // Switch to real-time joint impedance control mode
         robot.SwitchMode(rdk::Mode::RT_JOINT_IMPEDANCE);
 
         // Set initial joint positions
-        auto init_pos = robot.states().q;
-        spdlog::info("Initial joint positions set to: {}", rdk::utility::Vec2Str(init_pos));
+        std::map<rdk::JointGroup, std::vector<double>> all_init_pos;
+        for (const auto& [group, states] : robot.states()) {
+            all_init_pos[group] = states.q;
+            spdlog::info("[{}] Initial joint positions: {}", rdk::kJointGroupNames.at(group),
+                rdk::utility::Vec2Str(all_init_pos.at(group)));
+        }
 
         // Create real-time scheduler to run periodic tasks
         rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(
-            std::bind(PeriodicTask, std::ref(robot), std::ref(motion_type), std::ref(init_pos)),
+        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(motion_type),
+                              std::cref(joint_groups), std::cref(all_init_pos)),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();

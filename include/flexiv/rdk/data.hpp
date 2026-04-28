@@ -1,7 +1,7 @@
 /**
  * @file data.hpp
  * @brief Header file containing various constant expressions, data structures, and enums.
- * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved.
  */
 
 #ifndef FLEXIV_RDK_DATA_HPP_
@@ -13,6 +13,7 @@
 #include <ostream>
 #include <variant>
 #include <chrono>
+#include <map>
 
 namespace flexiv {
 namespace rdk {
@@ -25,11 +26,34 @@ constexpr size_t kSerialJointDoF = 7;
 /** Size of pose array (3 position + 4 quaternion) */
 constexpr size_t kPoseSize = 7;
 
-/** Number of digital IO ports (16 on control box + 2 inside the wrist connector) */
-constexpr size_t kIOPorts = 18;
+/** Number of digital IO ports (16 on control box + 2 inside the wrist connector) * maximum 4 wrists
+ */
+constexpr size_t kIOPorts = 16 + 2 * 4;
 
 /** Maximum number of external axes */
 constexpr size_t kMaxExtAxes = 6;
+
+/**
+ * @brief Joint group selection for robots with one or more arms.
+ */
+enum class JointGroup
+{
+    UNKNOWN = 0, ///< Unknown group
+    ARMS = 2,    ///< The single arm if only one exists or arms as a whole if more than one exists
+    ARM_1 = 3,   ///< The 1st arm if more than one exists
+    ARM_2 = 4,   ///< The 2nd arm if more than one exists
+
+    FIRST = ARMS,
+    LAST = ARM_2,
+};
+
+/** Map JointGroup enum to string */
+const std::map<JointGroup, std::string> kJointGroupNames {
+    {JointGroup::UNKNOWN, "UNKNOWN"},
+    {JointGroup::ARMS, "ARMS"},
+    {JointGroup::ARM_1, "ARM_1"},
+    {JointGroup::ARM_2, "ARM_2"},
+};
 
 /**
  * @brief Operational status of the robot. Except for the first two, the other enumerators
@@ -38,7 +62,7 @@ constexpr size_t kMaxExtAxes = 6;
  */
 enum class OperationalStatus
 {
-    UNKNOWN = 0,        ///< Unkown status.
+    UNKNOWN,            ///< Unknown status.
     READY,              ///< Ready to be operated.
     BOOTING,            ///< System still booting, please wait.
     ESTOP_NOT_RELEASED, ///< E-Stop is not released.
@@ -52,11 +76,21 @@ enum class OperationalStatus
     IN_AUTO_MODE,       ///< In regular Auto mode, need to switch to Auto (Remote) mode.
 };
 
-/** String names of the above operational status */
-static const std::array<std::string, static_cast<size_t>(OperationalStatus::IN_AUTO_MODE) + 1>
-    kOpStatusNames = {"Unknown status", "Ready", "System booting", "E-Stop not released",
-        "Not enabled", "Releasing brakes", "Minor fault occurred", "Critical fault occurred",
-        "In reduced state", "In recovery state", "In Manual mode", "In regular Auto mode"};
+/** Map OperationalStatus enum to string */
+const std::map<OperationalStatus, std::string> kOpStatusNames {
+    {OperationalStatus::UNKNOWN, "Unknown status"},
+    {OperationalStatus::READY, "Ready"},
+    {OperationalStatus::BOOTING, "System booting"},
+    {OperationalStatus::ESTOP_NOT_RELEASED, "E-Stop not released"},
+    {OperationalStatus::NOT_ENABLED, "Not enabled"},
+    {OperationalStatus::RELEASING_BRAKE, "Releasing brakes"},
+    {OperationalStatus::MINOR_FAULT, "Minor fault occurred"},
+    {OperationalStatus::CRITICAL_FAULT, "Critical fault occurred"},
+    {OperationalStatus::IN_REDUCED_STATE, "In reduced state"},
+    {OperationalStatus::IN_RECOVERY_STATE, "In recovery state"},
+    {OperationalStatus::IN_MANUAL_MODE, "In Manual mode"},
+    {OperationalStatus::IN_AUTO_MODE, "In regular Auto mode"},
+};
 
 /**
  * @brief Type of commonly-used reference coordinates.
@@ -76,11 +110,11 @@ struct RobotEvent
 {
     enum Level
     {
-        UNKNOWN = 0,
-        INFO,
-        WARNING,
-        ERROR,
-        CRITICAL,
+        UNKNOWN,  ///< Not set
+        INFO,     ///< Informational event
+        WARNING,  ///< Warning event
+        ERROR,    ///< Error event
+        CRITICAL, ///< Critical error event
     };
 
     /** Level of the event */
@@ -253,21 +287,6 @@ struct RobotStates
     std::vector<double> temperature = {};
 
     /**
-     * Measured TCP pose w.r.t. world frame: \f$ ^{O}T_{TCP} \in \mathbb{R}^{7 \times 1} \f$.
-     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
-     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
-     */
-    std::array<double, kPoseSize> tcp_pose = {};
-
-    /**
-     * Measured TCP velocity w.r.t. world frame: \f$ ^{O}\dot{X} \in \mathbb{R}^{6 \times 1} \f$.
-     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear velocity and \f$ \mathbb{R}^{3 \times 1}
-     * \f$ angular velocity: \f$ [v_x, v_y, v_z, \omega_x, \omega_y, \omega_z]^T \f$. Unit: \f$
-     * [m/s]:[rad/s] \f$.
-     */
-    std::array<double, kCartDoF> tcp_vel = {};
-
-    /**
      * Measured flange pose w.r.t. world frame: \f$ ^{O}T_{flange} \in \mathbb{R}^{7 \times 1} \f$.
      * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
      * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
@@ -275,38 +294,53 @@ struct RobotStates
     std::array<double, kPoseSize> flange_pose = {};
 
     /**
-     * Force-torque (FT) sensor raw reading in flange frame: \f$ ^{flange}F_{raw} \in \mathbb{R}^{6
-     * \times 1} \f$. The value is 0 if no FT sensor is installed. Consists of \f$ \mathbb{R}^{3
-     * \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y,
-     * m_z]^T \f$. Unit: \f$ [N]:[Nm] \f$.
+     * Measured TCP pose w.r.t. world frame: \f$ ^{O}T_{TCP} \in \mathbb{R}^{7 \times 1} \f$.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
+     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
      */
-    std::array<double, kCartDoF> ft_sensor_raw = {};
+    std::array<double, kPoseSize> tcp_pose = {};
 
     /**
-     * Estimated external wrench w.r.t. TCP frame, applied on TCP: \f$ ^{TCP}F_{ext} \in
+     * Measured TCP twist w.r.t. world frame: \f$ ^{O}\dot{X} \in \mathbb{R}^{6 \times 1} \f$.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear velocity and \f$ \mathbb{R}^{3 \times 1}
+     * \f$ angular velocity: \f$ [v_x, v_y, v_z, \omega_x, \omega_y, \omega_z]^T \f$. Unit: \f$
+     * [m/s]:[rad/s] \f$.
+     */
+    std::array<double, kCartDoF> tcp_twist = {};
+
+    /**
+     * Measured or estimated external wrench applied on TCP w.r.t. world frame: \f$ ^{0}F_{ext} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
      * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
      * Unit: \f$ [N]:[Nm] \f$.
      */
-    std::array<double, kCartDoF> ext_wrench_in_tcp = {};
+    std::array<double, kCartDoF> tcp_wrench = {};
 
     /**
-     * Estimated external wrench w.r.t. world frame, applied on TCP: \f$ ^{0}F_{ext} \in
-     * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
+     * Measured or estimated external wrench applied on TCP w.r.t. local frame: \f$ ^{TCP}F_{ext}
+     * \in \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
      * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
      * Unit: \f$ [N]:[Nm] \f$.
      */
-    std::array<double, kCartDoF> ext_wrench_in_world = {};
+    std::array<double, kCartDoF> tcp_wrench_local = {};
 
     /**
-     * Unfiltered version of ext_wrench_in_tcp. The data is more noisy but has no filter latency.
+     * Unfiltered tcp_wrench. The data is more noisy but has no filter latency.
      */
-    std::array<double, kCartDoF> ext_wrench_in_tcp_raw = {};
+    std::array<double, kCartDoF> raw_tcp_wrench = {};
 
     /**
-     * Unfiltered version of ext_wrench_in_world The data is more noisy but has no filter latency.
+     * Unfiltered tcp_wrench_local. The data is more noisy but has no filter latency.
      */
-    std::array<double, kCartDoF> ext_wrench_in_world_raw = {};
+    std::array<double, kCartDoF> raw_tcp_wrench_local = {};
+
+    /**
+     * Raw reading from the force-torque (FT) sensor w.r.t. flange frame: \f$ ^{flange}F_{raw} \in
+     * \mathbb{R}^{6 \times 1} \f$. The value is 0 if no FT sensor is installed. Consists of \f$
+     * \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y,
+     * f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]:[Nm] \f$.
+     */
+    std::array<double, kCartDoF> raw_ft_sensor = {};
 };
 
 /**
@@ -350,18 +384,20 @@ struct PlanInfo
  */
 struct JPos
 {
+    /** Default constructor */
+    JPos() = default;
+
     /**
-     * @brief Construct an instance of JPos.
-     * @param[in] _q_m Sets struct member [q_m].
-     * @param[in] _q_e Sets struct member [q_e]. Leave empty if there's no external axis.
+     * @brief Custom constructor.
+     * @param[in] q_m Sets struct member [q_m].
+     * @param[in] q_e Sets struct member [q_e]. Leave empty if there's no external axis.
      */
-    JPos(const std::array<double, kSerialJointDoF>& _q_m,
-        const std::array<double, kMaxExtAxes>& _q_e = {})
-    : q_m(_q_m)
-    , q_e(_q_e)
+    JPos(const std::array<double, kSerialJointDoF>& q_m,
+        const std::array<double, kMaxExtAxes>& q_e = {})
+    : q_m(q_m)
+    , q_e(q_e)
     {
     }
-    JPos() = default;
 
     /** Joint positions of the robot manipulator. Unit: [degree] */
     std::array<double, kSerialJointDoF> q_m = {};
@@ -384,27 +420,29 @@ struct JPos
  */
 struct Coord
 {
+    /** Default constructor */
+    Coord() = default;
+
     /**
-     * @brief Construct an instance of Coord.
-     * @param[in] _position Sets struct member [position].
-     * @param[in] _orientation Sets struct member [orientation].
-     * @param[in] _ref_frame Sets struct member [ref_frame].
-     * @param[in] _ref_q_m Sets struct member [ref_q_m]. Leave empty to use default values.
-     * @param[in] _ref_q_e Sets struct member [ref_q_e]. Leave empty if there's no external axis.
+     * @brief Custom constructor.
+     * @param[in] position Sets struct member [position].
+     * @param[in] orientation Sets struct member [orientation].
+     * @param[in] ref_frame Sets struct member [ref_frame].
+     * @param[in] ref_q_m Sets struct member [ref_q_m]. Leave empty to use default values.
+     * @param[in] ref_q_e Sets struct member [ref_q_e]. Leave empty if there's no external axis.
      */
-    Coord(const std::array<double, kCartDoF / 2>& _position,
-        const std::array<double, kCartDoF / 2>& _orientation,
-        const std::array<std::string, 2>& _ref_frame,
-        const std::array<double, kSerialJointDoF>& _ref_q_m = {},
-        const std::array<double, kMaxExtAxes>& _ref_q_e = {})
-    : position(_position)
-    , orientation(_orientation)
-    , ref_frame(_ref_frame)
-    , ref_q_m(_ref_q_m)
-    , ref_q_e(_ref_q_e)
+    Coord(const std::array<double, kCartDoF / 2>& position,
+        const std::array<double, kCartDoF / 2>& orientation,
+        const std::array<std::string, 2>& ref_frame,
+        const std::array<double, kSerialJointDoF>& ref_q_m = {},
+        const std::array<double, kMaxExtAxes>& ref_q_e = {})
+    : position(position)
+    , orientation(orientation)
+    , ref_frame(ref_frame)
+    , ref_q_m(ref_q_m)
+    , ref_q_e(ref_q_e)
     {
     }
-    Coord() = default;
 
     /** Position in [ref_frame]. Unit: [m] */
     std::array<double, kCartDoF / 2> position = {};
@@ -441,6 +479,258 @@ struct Coord
 using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::Coord,
     std::vector<int>, std::vector<double>, std::vector<std::string>, std::vector<rdk::JPos>,
     std::vector<rdk::Coord>>;
+
+/**
+ * @struct PrimitiveArgs
+ * @brief Arguments of a primitive command.
+ * @see Robot::ExecutePrimitive().
+ */
+struct PrimitiveArgs
+{
+    /** Default constructor */
+    PrimitiveArgs() = default;
+
+    /** Custom constructor */
+    PrimitiveArgs(
+        const std::string& pt_name, const std::map<std::string, FlexivDataTypes>& input_params)
+    : pt_name(pt_name)
+    , input_params(input_params)
+    {
+    }
+
+    /** Name of the primitive to execute. For example, "Home", "MoveL", "ZeroFTSensor", etc. */
+    std::string pt_name = {};
+
+    /** Input parameter names and values of the primitive. Use int 1 and 0 to represent booleans.
+     * E.g. {{"target", rdk::Coord({0.65, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})},
+     * {"vel", 0.6}, {"zoneRadius", "Z50"}}. */
+    std::map<std::string, FlexivDataTypes> input_params = {};
+};
+
+/**
+ * @struct PrimitiveStates
+ * @brief States data of a primitive.
+ * @see Robot::primitive_states().
+ */
+struct PrimitiveStates
+{
+    /** Name of the currently running primitive */
+    std::string pt_name = {};
+
+    /** Names and corresponding values of the primitive's states. Booleans are represented by int 1
+     * and 0. For example:
+     * {{"reachedTarget", 1}, {"timePeriod", 5.6}, {"forceOffset", {0.1, 0.2, -1.3}}}.
+     */
+    std::map<std::string, FlexivDataTypes> names_and_values = {};
+};
+
+/**
+ * @struct RtJointTorqueCmd
+ * @brief Commands data for real-time joint torque control.
+ * @see Robot::StreamJointTorque().
+ */
+struct RtJointTorqueCmd
+{
+    /** Default constructor */
+    RtJointTorqueCmd() = default;
+
+    /** Custom constructor */
+    RtJointTorqueCmd(const std::vector<double>& tau_d, bool enable_gravity_comp = true,
+        bool enable_soft_limits = true)
+    : tau_d(tau_d)
+    , enable_gravity_comp(enable_gravity_comp)
+    , enable_soft_limits(enable_soft_limits)
+    {
+    }
+
+    /** Target joint torques: \f$ \tau_d \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm] \f$ */
+    std::vector<double> tau_d = {};
+
+    /** Enable/disable robot gravity compensation */
+    bool enable_gravity_comp = true;
+
+    /** Enable/disable soft limits to keep the joints from moving outside allowed position range,
+     * which will trigger a safety fault that requires recovery operation */
+    bool enable_soft_limits = true;
+};
+
+/**
+ * @struct RtJointPositionCmd
+ * @brief Commands data for real-time joint position control.
+ * @see Robot::StreamJointPosition().
+ */
+struct RtJointPositionCmd
+{
+    /** Default constructor */
+    RtJointPositionCmd() = default;
+
+    /** Custom constructor */
+    RtJointPositionCmd(const std::vector<double>& q_d, const std::vector<double>& dq_d,
+        const std::vector<double>& ddq_d)
+    : q_d(q_d)
+    , dq_d(dq_d)
+    , ddq_d(ddq_d)
+    {
+    }
+
+    /** Target joint positions: \f$ q_d \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad] \f$ */
+    std::vector<double> q_d = {};
+
+    /** Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s]
+     * \f$ */
+    std::vector<double> dq_d = {};
+
+    /** Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{n \times 1} \f$. Unit: \f$
+     * [rad/s^2] \f$ */
+    std::vector<double> ddq_d = {};
+};
+
+/**
+ * @struct NrtJointPositionCmd
+ * @brief Commands data for non-real-time joint position control.
+ * @see Robot::SendJointPosition().
+ */
+struct NrtJointPositionCmd
+{
+    /** Default constructor */
+    NrtJointPositionCmd() = default;
+
+    /** Custom constructor */
+    NrtJointPositionCmd(const std::vector<double>& q_d, const std::vector<double>& dq_d,
+        const std::vector<double>& dq_max, const std::vector<double>& ddq_max)
+    : q_d(q_d)
+    , dq_d(dq_d)
+    , dq_max(dq_max)
+    , ddq_max(ddq_max)
+    {
+    }
+
+    /** Target joint positions: \f$ q_d \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad] \f$ */
+    std::vector<double> q_d = {};
+
+    /** Target joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{n \times 1} \f$. Each joint will
+     * maintain this amount of velocity when it reaches the target position. Unit: \f$ [rad/s] \f$
+     */
+    std::vector<double> dq_d = {};
+
+    /** Maximum joint velocities for the planned trajectory: \f$ \dot{q}_{max} \in \mathbb{R}^{n
+     * \times 1} \f$. Unit: \f$ [rad/s] \f$ */
+    std::vector<double> dq_max = {};
+
+    /** Maximum joint accelerations for the planned trajectory: \f$ \ddot{q}_{max} \in \mathbb{R}^{n
+     * \times 1} \f$. Unit: \f$ [rad/s^2] \f$ */
+    std::vector<double> ddq_max = {};
+};
+
+/**
+ * @struct RtCartesianCmd
+ * @brief Commands data for real-time Cartesian motion-force control.
+ * @see Robot::StreamCartesianMotionForce().
+ */
+struct RtCartesianCmd
+{
+    /** Default constructor */
+    RtCartesianCmd() = default;
+
+    /** Custom constructor */
+    RtCartesianCmd(const std::array<double, kPoseSize>& pose_d,
+        const std::array<double, kCartDoF>& wrench_d = {},
+        const std::array<double, kCartDoF>& twist_d = {},
+        const std::array<double, kCartDoF>& acc_d = {})
+    : pose_d(pose_d)
+    , wrench_d(wrench_d)
+    , twist_d(twist_d)
+    , acc_d(acc_d)
+    {
+    }
+
+    /** Target TCP pose in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7 \times 1} \f$.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
+     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$ */
+    std::array<double, kPoseSize> pose_d = {};
+
+    /** Target TCP wrench in the force control reference frame (configured by
+     * SetForceControlFrame()): \f$ ^{0}F_d \in \mathbb{R}^{6 \times 1} \f$. The robot will track
+     * the target wrench using an explicit force controller. Consists of \f$ \mathbb{R}^{3 \times 1}
+     * \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T
+     * \f$. Unit: \f$ [N]:[Nm] \f$ */
+    std::array<double, kCartDoF> wrench_d = {};
+
+    /** Target TCP twist in world frame: \f$ ^{0}\dot{x}_d \in \mathbb{R}^{6 \times 1} \f$.
+     * Providing properly calculated target twist can improve the robot's overall tracking
+     * performance at the cost of reduced robustness. Leaving this input 0 can maximize robustness
+     * at the cost of reduced tracking performance. Consists of \f$ \mathbb{R}^{3 \times 1} \f$
+     * linear and \f$ \mathbb{R}^{3 \times 1} \f$ angular velocity. Unit: \f$ [m/s]:[rad/s] \f$ */
+    std::array<double, kCartDoF> twist_d = {};
+
+    /** Target TCP acceleration in world frame: \f$ ^{0}\ddot{x}_d \in \mathbb{R}^{6 \times 1} \f$.
+     * Feeding forward target acceleration can improve the robot's tracking performance for highly
+     * dynamic motions, but it's also okay to leave this input 0. Consists of \f$ \mathbb{R}^{3
+     * \times 1} \f$ linear and \f$ \mathbb{R}^{3 \times 1} \f$ angular acceleration. Unit: \f$
+     * [m/s^2]:[rad/s^2] \f$ */
+    std::array<double, kCartDoF> acc_d = {};
+};
+
+/**
+ * @struct NrtCartesianCmd
+ * @brief Commands data for non-real-time Cartesian motion-force control.
+ * @see Robot::SendCartesianMotionForce().
+ */
+struct NrtCartesianCmd
+{
+    /** Default constructor */
+    NrtCartesianCmd() = default;
+
+    /** Custom constructor */
+    NrtCartesianCmd(const std::array<double, kPoseSize>& pose_d,
+        const std::array<double, kCartDoF>& wrench_d = {},
+        const std::array<double, kCartDoF>& twist_d = {}, double max_linear_vel = 0.5,
+        double max_angular_vel = 1.0, double max_linear_acc = 2.0, double max_angular_acc = 5.0)
+    : pose_d(pose_d)
+    , wrench_d(wrench_d)
+    , twist_d(twist_d)
+    , max_linear_vel(max_linear_vel)
+    , max_angular_vel(max_angular_vel)
+    , max_linear_acc(max_linear_acc)
+    , max_angular_acc(max_angular_acc)
+    {
+    }
+
+    /** Target TCP pose in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7 \times 1} \f$.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
+     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$ */
+    std::array<double, kPoseSize> pose_d = {};
+
+    /** Target TCP wrench in the force control reference frame (configured by
+     * SetForceControlFrame()): \f$ ^{0}F_d \in \mathbb{R}^{6 \times 1} \f$. The robot will track
+     * the target wrench using an explicit force controller. Consists of \f$ \mathbb{R}^{3 \times 1}
+     * \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T
+     * \f$. Unit: \f$ [N]:[Nm] \f$ */
+    std::array<double, kCartDoF> wrench_d = {};
+
+    /** Target TCP twist in world frame: \f$ ^{0}\dot{x}_d \in \mathbb{R}^{6 \times 1} \f$.
+     * Providing properly calculated target twist can improve the robot's overall tracking
+     * performance at the cost of reduced robustness. Leaving this input 0 can maximize robustness
+     * at the cost of reduced tracking performance. Consists of \f$ \mathbb{R}^{3 \times 1} \f$
+     * linear and \f$ \mathbb{R}^{3 \times 1} \f$ angular velocity. Unit: \f$ [m/s]:[rad/s] \f$ */
+    std::array<double, kCartDoF> twist_d = {};
+
+    /** Maximum Cartesian linear velocity when moving to the target pose. A safe value is provided
+     * as default. Unit: \f$ [m/s] \f$ */
+    double max_linear_vel = 0.5;
+
+    /** Maximum Cartesian angular velocity when moving to the target pose. A safe value is provided
+     * as default. Unit: \f$ [rad/s] \f$ */
+    double max_angular_vel = 1.0;
+
+    /** Maximum Cartesian linear acceleration when moving to the target pose. A safe value is
+     * provided as default. Unit: \f$ [m/s^2] \f$ */
+    double max_linear_acc = 2.0;
+
+    /** Maximum Cartesian angular acceleration when moving to the target pose. A safe value is
+     * provided as default. Unit: \f$ [rad/s^2] \f$ */
+    double max_angular_acc = 5.0;
+};
 
 /**
  * @brief Operator overloading to out stream all members of RobotEvent in JSON format.

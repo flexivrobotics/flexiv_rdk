@@ -7,7 +7,7 @@ the robot tool system will take effect immediately without needing to reboot. Ho
 must be put into IDLE mode when making these changes.
 """
 
-__copyright__ = "Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
@@ -138,6 +138,7 @@ def main():
 
     except Exception as e:
         logger.error(str(e))
+        return 1
 
 
 if __name__ == "__main__":

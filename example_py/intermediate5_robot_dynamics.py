@@ -6,13 +6,20 @@ This tutorial runs the integrated dynamics engine to obtain robot Jacobian, mass
 gravity torques. Also checks reachability of a Cartesian pose.
 """
 
-__copyright__ = "Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
 import argparse
 import spdlog  # pip install spdlog
 import flexivrdk  # pip install flexivrdk
+
+
+def combine_states(all_states, position):
+    combined = []
+    for _, states in all_states.items():
+        combined.extend(states.q if position else states.dtheta)
+    return combined
 
 
 def main():
@@ -78,7 +85,10 @@ def main():
         # Step dynamics engine 5 times
         for i in range(5):
             # Update robot model in dynamics engine
-            model.Update(robot.states().q, robot.states().dtheta)
+            all_states = robot.states()
+            model.Update(
+                combine_states(all_states, True), combine_states(all_states, False)
+            )
 
             # Compute gravity vector
             g = model.g()
@@ -99,14 +109,16 @@ def main():
             print()
 
         # Check reachability of a Cartesian pose based on current pose
-        pose_to_check = robot.states().tcp_pose.copy()
+        all_states = robot.states()
+        pose_to_check = next(iter(all_states.values())).tcp_pose.copy()
         pose_to_check[0] += 0.1
         logger.info(f"Checking reachability of Cartesian pose {pose_to_check}")
-        result = model.reachable(pose_to_check, robot.states().q, True)
+        result = model.reachable(pose_to_check, combine_states(all_states, True), True)
         logger.info(f"Got a result: reachable = {result[0]}, IK solution = {result[1]}")
 
     except Exception as e:
         logger.error(str(e))
+        return 1
 
 
 if __name__ == "__main__":

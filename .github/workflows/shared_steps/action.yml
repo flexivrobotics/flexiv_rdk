@@ -15,7 +15,7 @@ runs:
       run: |
         cmake --version
         cd thirdparty
-        bash build_and_install_dependencies.sh ~/rdk_install 4
+        bash build_and_install_dependencies.sh ~/rdk_install 8
 
     # Configure CMake, then build and install flexiv_rdk library to RDK installation directory.
     - name: Build and install library
@@ -32,7 +32,7 @@ runs:
         cd example
         mkdir -p build && cd build
         cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install
-        cmake --build . --config Release -j 4
+        cmake --build . --config Release -j 8
 
     # Find and link to flexiv_rdk library, then build all test programs.
     - name: Build tests
@@ -41,4 +41,4 @@ runs:
         cd test
         mkdir -p build && cd build
         cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install
-        cmake --build . --config Release -j 4
+        cmake --build . --config Release -j 8

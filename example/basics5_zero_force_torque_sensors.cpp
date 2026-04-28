@@ -2,7 +2,7 @@
  * @example basics5_zero_force_torque_sensors.cpp
  * This tutorial zeros the robot's force and torque sensors, which is a recommended (but not
  * mandatory) step before any operations that require accurate force/torque measurement.
- * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <thread>
+#include <algorithm>
 
 using namespace flexiv;
 
@@ -74,12 +75,22 @@ int main(int argc, char* argv[])
         // Zero Sensors
         // =========================================================================================
         // Get and print the current TCP force/moment readings
-        spdlog::info("TCP force and moment reading in world frame BEFORE sensor zeroing: "
-                     + rdk::utility::Arr2Str(robot.states().ext_wrench_in_world) + "[N][Nm]");
+        for (const auto& [group, states] : robot.states()) {
+            spdlog::info(
+                "[{}] TCP force and moment reading in world frame BEFORE sensor zeroing: {} N-Nm",
+                rdk::kJointGroupNames.at(group), rdk::utility::Arr2Str(states.tcp_wrench));
+        }
+
+        // All available joint groups of the robot
+        const auto joint_groups = robot.groups();
 
         // Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
         robot.SwitchMode(rdk::Mode::NRT_PRIMITIVE_EXECUTION);
-        robot.ExecutePrimitive("ZeroFTSensor", std::map<std::string, rdk::FlexivDataTypes> {});
+        std::map<rdk::JointGroup, rdk::PrimitiveArgs> pt_args;
+        for (const auto& group : joint_groups) {
+            pt_args[group] = rdk::PrimitiveArgs("ZeroFTSensor", {});
+        }
+        robot.ExecutePrimitive(pt_args);
 
         // WARNING: during the process, the robot must not contact anything, otherwise the result
         // will be inaccurate and affect following operations
@@ -87,14 +98,21 @@ int main(int argc, char* argv[])
             "Zeroing force/torque sensors, make sure nothing is in contact with the robot");
 
         // Wait for primitive to finish
-        while (!std::get<int>(robot.primitive_states()["terminated"])) {
+        while (!std::all_of(joint_groups.begin(), joint_groups.end(), [&robot](const auto& group) {
+            return std::get<int>(
+                robot.primitive_states().at(group).names_and_values.at("terminated"));
+        })) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         spdlog::info("Sensor zeroing complete");
 
         // Get and print the current TCP force/moment readings
-        spdlog::info("TCP force and moment reading in world frame AFTER sensor zeroing: "
-                     + rdk::utility::Arr2Str(robot.states().ext_wrench_in_world) + "[N][Nm]");
+        for (const auto& group : joint_groups) {
+            spdlog::info(
+                "[{}] TCP force and moment reading in world frame AFTER sensor zeroing: {} N-Nm",
+                rdk::kJointGroupNames.at(group),
+                rdk::utility::Arr2Str(robot.states().at(group).tcp_wrench));
+        }
 
     } catch (const std::exception& e) {
         spdlog::error(e.what());

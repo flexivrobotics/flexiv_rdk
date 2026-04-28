@@ -1,6 +1,6 @@
 /**
  * @file model.hpp
- * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved.
  */
 
 #ifndef FLEXIV_RDK_MODEL_HPP_
@@ -35,9 +35,15 @@ public:
 
     /**
      * @brief [Non-blocking] Names of all links in the robot model.
-     * @return Names vector in the same order as the robot's kinematic chain.
+     * @return Name vector in the same order as the robot's kinematic chain.
      */
     std::vector<std::string> link_names() const;
+
+    /**
+     * @brief [Non-blocking] Names of all actuated joints in the robot model.
+     * @return Name vector in the same order as the robot's kinematic chain.
+     */
+    std::vector<std::string> joint_names() const;
 
     /**
      * @brief [Blocking] Reload (refresh) parameters of the robot model stored locally in this class
@@ -55,10 +61,10 @@ public:
     /**
      * @brief [Non-blocking] Update the configuration (posture) of the locally-stored robot model so
      * that the locally computed functions return results based on the updated configuration.
-     * @param[in] positions Current joint positions: \f$ q \in \mathbb{R}^{n \times 1} \f$. Unit:
-     * \f$ [rad] \f$.
-     * @param[in] velocities Current joint velocities: \f$ \dot{q} \in \mathbb{R}^{n \times 1}
-     * \f$. Unit: \f$ [rad/s] \f$.
+     * @param[in] positions Current joint positions of all joint groups combined and matching the
+     * order of joint_names(): \f$ q \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad] \f$.
+     * @param[in] velocities Current joint velocities of all joint groups combined and matching the
+     * order of joint_names(): \f$ \dot{q} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      */
     void Update(const std::vector<double>& positions, const std::vector<double>& velocities);
@@ -186,6 +192,29 @@ public:
      * manipulability and task results.
      */
     std::pair<double, double> configuration_score() const;
+
+    //======================================= MULTI-CONTACT ========================================
+    /**
+     * @brief [Non-blocking] Estimated multi-contact forces applied on each link of applicable joint
+     * groups, calculated using the force-torque sensors installed in every joint of the robot.
+     * @return A map of JointGroup to \f$ f_c \in \mathbb{R}^{n \times 1} \f$. Each vector element
+     * is a \f$ \mathbb{R}^{3 \times 1} \f$ force vector w.r.t. the corresponding link frame. Only
+     * contains joint groups that are capable of multi-contact estimation.
+     * @warning This data is only available on certain robot models. An empty vector will be
+     * returned if the connected robot does not support multi-contact estimation.
+     */
+    std::map<JointGroup, std::vector<Eigen::Vector3d>> multi_contact_forces() const;
+
+    /**
+     * @brief [Non-blocking] Estimated multi-contact positions on each link of applicable joint
+     * groups, calculated using the force-torque sensors installed in every joint of the robot.
+     * @return A map of JointGroup to \f$ p_c \in \mathbb{R}^{n \times 1} \f$. Each vector element
+     * is a \f$ \mathbb{R}^{3 \times 1} \f$ position vector w.r.t. the corresponding link frame.
+     * Only contains joint groups that are capable of multi-contact estimation.
+     * @warning This data is only available on certain robot models. An empty vector will be
+     * returned if the connected robot does not support multi-contact estimation.
+     */
+    std::map<JointGroup, std::vector<Eigen::Vector3d>> multi_contact_positions() const;
 
 private:
     class Impl;

@@ -1,9 +1,9 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Build and install all dependencies of flexiv_rdk.
 echo ">>>>> Start: flexiv_rdk/thirdparty/build_and_install_dependencies.sh <<<<<"
 
 # Absolute path of this script
-export SCRIPT_DIR="$(dirname $(readlink -f $0))"
+script_dir="$(dirname $(readlink -f $0))"
 set -e
 
 # Check script arguments
@@ -37,15 +37,6 @@ SHARED_CMAKE_ARGS="-DCMAKE_BUILD_TYPE=Release \
                    -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
                    -DBUILD_TESTING=OFF"
 
-# OS type
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    OS_NAME="Linux"
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-    OS_NAME="Darwin"
-else
-    OS_NAME="Windows"
-fi
-
 # Building for QNX
 if [ -n "$QNX_TARGET" ]; then
     # Path to the toolchain file must be set
@@ -57,7 +48,6 @@ if [ -n "$QNX_TARGET" ]; then
     fi
     # Append toolchain file to cmake arguments
     SHARED_CMAKE_ARGS="$SHARED_CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=$QNX_TOOLCHAIN"
-    OS_NAME="QNX"
     # Extract QNX target architecture from toolchain file name, and set it as an environment variable for later use
     if [[ "$QNX_TOOLCHAIN" == *"x86_64"* ]]; then
         export QNX_ARCH="x86_64"
@@ -69,22 +59,21 @@ if [ -n "$QNX_TARGET" ]; then
     fi
     echo "Building for QNX $QNX_ARCH target with toolchain file [$QNX_TOOLCHAIN]"
 fi
-export OS_NAME
 export SHARED_CMAKE_ARGS
 
 # Clone all dependencies in a subfolder
 mkdir -p cloned && cd cloned
 
 # Build and install all dependencies to INSTALL_DIR
-bash $SCRIPT_DIR/scripts/install_eigen.sh
-bash $SCRIPT_DIR/scripts/install_spdlog.sh
-bash $SCRIPT_DIR/scripts/install_tinyxml2.sh
-bash $SCRIPT_DIR/scripts/install_yaml-cpp.sh
-bash $SCRIPT_DIR/scripts/install_foonathan_memory.sh
-bash $SCRIPT_DIR/scripts/install_Fast-CDR.sh
-bash $SCRIPT_DIR/scripts/install_Fast-DDS.sh
-bash $SCRIPT_DIR/scripts/install_boost.sh
-bash $SCRIPT_DIR/scripts/install_SpaceVecAlg.sh
-bash $SCRIPT_DIR/scripts/install_RBDyn.sh
+bash $script_dir/scripts/install_eigen.sh
+bash $script_dir/scripts/install_spdlog.sh
+bash $script_dir/scripts/install_tinyxml2.sh
+bash $script_dir/scripts/install_yaml-cpp.sh
+bash $script_dir/scripts/install_foonathan_memory.sh
+bash $script_dir/scripts/install_Fast-CDR.sh
+bash $script_dir/scripts/install_Fast-DDS.sh
+bash $script_dir/scripts/install_boost.sh
+bash $script_dir/scripts/install_SpaceVecAlg.sh
+bash $script_dir/scripts/install_RBDyn.sh
 
 echo ">>>>> Finished: flexiv_rdk/thirdparty/build_and_install_dependencies.sh <<<<<"

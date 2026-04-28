@@ -5,7 +5,7 @@
  * check to fail. A warning will be issued first, then if the check has failed too many times, the
  * RDK connection with the server will be closed. During this test, the robot will hold its position
  * using joint torque streaming mode.
- * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
@@ -26,7 +26,9 @@ std::atomic<bool> g_stop_sched = {false};
 }
 
 // callback function for realtime periodic task
-void PeriodicTask(flexiv::rdk::Robot& robot, const std::vector<double>& init_pos)
+void PeriodicTask(flexiv::rdk::Robot& robot,
+    const std::vector<flexiv::rdk::JointGroup>& joint_groups,
+    const std::map<flexiv::rdk::JointGroup, std::vector<double>>& all_init_pos)
 {
     // Loop counter
     static unsigned int loop_counter = 0;
@@ -38,9 +40,14 @@ void PeriodicTask(flexiv::rdk::Robot& robot, const std::vector<double>& init_pos
                 "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
         // Hold position
-        std::vector<double> target_vel(robot.info().DoF);
-        std::vector<double> target_acc(robot.info().DoF);
-        robot.StreamJointPosition(init_pos, target_vel, target_acc);
+        std::map<flexiv::rdk::JointGroup, flexiv::rdk::RtJointPositionCmd> rt_cmds;
+        for (const auto& group : joint_groups) {
+            const auto& init_pos = all_init_pos.at(group);
+            std::vector<double> target_vel(init_pos.size());
+            std::vector<double> target_acc(init_pos.size());
+            rt_cmds[group] = flexiv::rdk::RtJointPositionCmd(init_pos, target_vel, target_acc);
+        }
+        robot.StreamJointPosition(rt_cmds);
 
         if (loop_counter == 5000) {
             spdlog::warn(">>>>> Adding simulated loop delay <<<<<");
@@ -110,16 +117,25 @@ int main(int argc, char* argv[])
         // set mode after robot is operational
         robot.SwitchMode(flexiv::rdk::Mode::RT_JOINT_POSITION);
 
+        // All available joint groups of the robot
+        const auto joint_groups = robot.groups();
+
         // Set initial joint positions
-        auto init_pos = robot.states().q;
-        spdlog::info("Initial joint positions set to: {}", flexiv::rdk::utility::Vec2Str(init_pos));
+        std::map<flexiv::rdk::JointGroup, std::vector<double>> all_init_pos;
+        for (const auto& [group, states] : robot.states()) {
+            all_init_pos[group] = states.q;
+            spdlog::info("[{}] Initial joint positions: {}",
+                flexiv::rdk::kJointGroupNames.at(group),
+                flexiv::rdk::utility::Vec2Str(all_init_pos.at(group)));
+        }
         spdlog::warn(">>>>> Simulated loop delay will be added after 5 seconds <<<<<");
 
         // Periodic Tasks
         //==========================================================================================
         flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(init_pos)),
+        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::cref(joint_groups),
+                              std::cref(all_init_pos)),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();

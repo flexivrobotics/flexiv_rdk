@@ -1,17 +1,18 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
-echo "Installing SpaceVecAlg"
+repo="SpaceVecAlg"
+echo "Installing $repo"
 
-# Use a specific version
-VER_TAG=v1.2.4
+# https://github.com/jrl-umi3218/SpaceVecAlg/releases/tag/v1.2.8
+ver_tag=v1.2.8
 
 # Clone source code
-if [ ! -d SpaceVecAlg ] ; then
-  git clone --recurse-submodules https://github.com/jrl-umi3218/SpaceVecAlg.git --branch $VER_TAG
-  cd SpaceVecAlg
+if [ ! -d $repo ] ; then
+  git clone --recurse-submodules https://github.com/jrl-umi3218/$repo.git --branch $ver_tag
+  cd $repo
 else
-  cd SpaceVecAlg
-  git checkout $VER_TAG
+  cd $repo
+  git checkout $ver_tag
 fi
 
 # Configure CMake
@@ -21,4 +22,4 @@ cmake .. $SHARED_CMAKE_ARGS -DPYTHON_BINDING=OFF
 # Build and install
 cmake --build . --target install --config Release -j $NUM_JOBS
 
-echo "Installed SpaceVecAlg"
+echo "Installed $repo"

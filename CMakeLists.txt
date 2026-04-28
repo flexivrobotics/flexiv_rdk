@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.16.3)
+cmake_minimum_required(VERSION 3.22.1)
 
 # ===================================================================
 #      PROJECT SETUP
 # ===================================================================
-project(flexiv_rdk VERSION 1.9.1)
+project(flexiv_rdk VERSION 2.0)
 
 # Configure build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -46,23 +46,6 @@ else()
   message(FATAL_ERROR "${CMAKE_SYSTEM_NAME} is currently not supported.")
 endif()
 
-# Option to support ROS2 Jazzy
-option(RDK_SUPPORT_ROS2_JAZZY "Use RDK library compatible with ROS2 Jazzy" OFF)
-if(RDK_SUPPORT_ROS2_JAZZY)
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
-      set(RDK_LIB "libflexiv_rdk.x86_64-linux-gnu.ros2-jazzy.a")
-    elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
-      set(RDK_LIB "libflexiv_rdk.aarch64-linux-gnu.ros2-jazzy.a")
-    else()
-      message(FATAL_ERROR 
-        "Compatibility with ROS2 Jazzy is currently not supported on Linux with ${CMAKE_SYSTEM_PROCESSOR} processor.")
-    endif()
-  else()
-    message(FATAL_ERROR "Compatibility with ROS2 Jazzy is currently not supported on ${CMAKE_SYSTEM_NAME}.")
-  endif()
-endif()
-
 # Parse expected hash of the library file
 file(READ ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_LIB}.sha256 EXPECTED_HASH)
 
@@ -90,24 +73,24 @@ find_package(Threads REQUIRED)
 message(STATUS "Found Threads")
 
 # Eigen3
-find_package(Eigen3 REQUIRED)
+find_package(Eigen3 3.4.0 REQUIRED)
 message(STATUS "Found Eigen3 v${Eigen3_VERSION}: ${Eigen3_DIR}")
 
 # spdlog
-find_package(spdlog REQUIRED)
+find_package(spdlog 1.9.2 REQUIRED)
 message(STATUS "Found spdlog v${spdlog_VERSION}: ${spdlog_DIR}")
 
-# Fast-DDS (Fast-RTPS)
-find_package(fastrtps REQUIRED)
-message(STATUS "Found fastrtps v${fastrtps_VERSION}: ${fastrtps_DIR}")
+# Fast-DDS
+find_package(fastdds 3.5.0 REQUIRED)
+message(STATUS "Found fastdds v${fastdds_VERSION}: ${fastdds_DIR}")
 
 # Fast-CDR
-find_package(fastcdr REQUIRED)
+find_package(fastcdr 2.3.5 REQUIRED)
 message(STATUS "Found fastcdr v${fastcdr_VERSION}: ${fastcdr_DIR}")
 
 # RBDyn
 set(Boost_USE_STATIC_LIBS OFF)
-find_package(RBDyn REQUIRED)
+find_package(RBDyn 1.9.3 REQUIRED)
 message(STATUS "Found RBDyn v${RBDyn_VERSION}: ${RBDyn_DIR}")
 
 # ===================================================================
@@ -130,7 +113,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   Threads::Threads
   Eigen3::Eigen
   spdlog::spdlog
-  fastrtps
+  fastdds
   fastcdr
   RBDyn::RBDyn
   RBDyn::Parsers

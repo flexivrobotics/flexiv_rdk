@@ -6,7 +6,7 @@ This tutorial does the very first thing: check connection with the robot server 
 received robot states.
 """
 
-__copyright__ = "Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
@@ -23,31 +23,41 @@ def print_robot_states(robot, logger, stop_event):
     """
 
     while not stop_event.is_set():
-        # Print all robot states, round all float values to 2 decimals
-        logger.info("Current robot states:")
-        # fmt: off
-        print("{")
-        print(f"q: {['%.2f' % i for i in robot.states().q]}",)
-        print(f"theta: {['%.2f' % i for i in robot.states().theta]}")
-        print(f"dq: {['%.2f' % i for i in robot.states().dq]}")
-        print(f"dtheta: {['%.2f' % i for i in robot.states().dtheta]}")
-        print(f"tau: {['%.2f' % i for i in robot.states().tau]}")
-        print(f"tau_des: {['%.2f' % i for i in robot.states().tau_des]}")
-        print(f"tau_dot: {['%.2f' % i for i in robot.states().tau_dot]}")
-        print(f"tau_ext: {['%.2f' % i for i in robot.states().tau_ext]}")
-        print(f"tcp_pose: {['%.2f' % i for i in robot.states().tcp_pose]}")
-        print(f"tcp_velocity: {['%.2f' % i for i in robot.states().tcp_vel]}")
-        print(f"flange_pose: {['%.2f' % i for i in robot.states().flange_pose]}")
-        print(f"ft_sensor_raw: {['%.2f' % i for i in robot.states().ft_sensor_raw]}")
-        print(f"ext_wrench_in_tcp: {['%.2f' % i for i in robot.states().ext_wrench_in_tcp]}")
-        print(f"ext_wrench_in_world: {['%.2f' % i for i in robot.states().ext_wrench_in_world]}")
-        print(f"ext_wrench_in_tcp_raw: {['%.2f' % i for i in robot.states().ext_wrench_in_tcp_raw]}")
-        print(f"ext_wrench_in_world_raw: {['%.2f' % i for i in robot.states().ext_wrench_in_world_raw]}")
-        print("}", flush= True)
-        # fmt: on
+        # Print available joint groups
+        joint_groups_str = " ".join(
+            [f"[{flexivrdk.kJointGroupNames[group]}]" for group in robot.groups()]
+        )
+        logger.info(f"Available joint groups: {joint_groups_str}")
+
+        # Print all robot states in JSON format using the built-in __str__ overloading
+        for group, states in robot.states().items():
+            logger.info(f"[{flexivrdk.kJointGroupNames[group]}] robot states:")
+            # fmt: off
+            print("{")
+            print(f"timestamp: [{states.timestamp[0]}, {states.timestamp[1]}]")
+            print(f"q: {['%.3f' % i for i in states.q]}")
+            print(f"theta: {['%.3f' % i for i in states.theta]}")
+            print(f"dq: {['%.3f' % i for i in states.dq]}")
+            print(f"dtheta: {['%.3f' % i for i in states.dtheta]}")
+            print(f"tau: {['%.3f' % i for i in states.tau]}")
+            print(f"tau_des: {['%.3f' % i for i in states.tau_des]}")
+            print(f"tau_dot: {['%.3f' % i for i in states.tau_dot]}")
+            print(f"tau_ext: {['%.3f' % i for i in states.tau_ext]}")
+            print(f"tau_interact: {['%.3f' % i for i in states.tau_interact]}")
+            print(f"temperature: {['%.3f' % i for i in states.temperature]}")
+            print(f"flange_pose: {['%.3f' % i for i in states.flange_pose]}")
+            print(f"tcp_pose: {['%.3f' % i for i in states.tcp_pose]}")
+            print(f"tcp_twist: {['%.3f' % i for i in states.tcp_twist]}")
+            print(f"tcp_wrench: {['%.3f' % i for i in states.tcp_wrench]}")
+            print(f"tcp_wrench_local: {['%.3f' % i for i in states.tcp_wrench_local]}")
+            print(f"raw_tcp_wrench: {['%.3f' % i for i in states.raw_tcp_wrench]}")
+            print(f"raw_tcp_wrench_local: {['%.3f' % i for i in states.raw_tcp_wrench_local]}")
+            print(f"raw_ft_sensor: {['%.3f' % i for i in states.raw_ft_sensor]}")
+            print("}", flush=True)
+            # fmt: on
 
         # Print digital inputs
-        logger.info("Current digital inputs:")
+        logger.info("Digital inputs:")
         print(robot.digital_inputs())
         time.sleep(1)
 
@@ -68,8 +78,6 @@ def main():
 
     # Define alias
     logger = spdlog.ConsoleLogger("Example")
-    mode = flexivrdk.Mode
-
     # Print description
     logger.info(
         ">>> Tutorial description <<<\nThis tutorial does the very first thing: check connection "
@@ -104,6 +112,7 @@ def main():
     except Exception as e:
         # Print exception error message
         logger.error(str(e))
+        return 1
 
     # Print States
     # =============================================================================

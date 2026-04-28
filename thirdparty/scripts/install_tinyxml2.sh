@@ -1,17 +1,18 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
-echo "Installing tinyxml2"
+repo="tinyxml2"
+echo "Installing $repo"
 
-# Same as the apt installed version on Ubuntu 22.04
-VER_TAG=9.0.0
+# Default version on Ubuntu 22.04
+ver_tag=9.0.0
 
 # Clone source code
-if [ ! -d tinyxml2 ] ; then
-  git clone https://github.com/leethomason/tinyxml2.git --branch $VER_TAG
-  cd tinyxml2
+if [ ! -d $repo ] ; then
+  git clone https://github.com/leethomason/$repo.git --branch $ver_tag
+  cd $repo
 else
-  cd tinyxml2
-  git checkout $VER_TAG
+  cd $repo
+  git checkout $ver_tag
 fi
 
 # Configure CMake
@@ -21,4 +22,4 @@ cmake .. $SHARED_CMAKE_ARGS
 # Build and install
 cmake --build . --target install --config Release -j $NUM_JOBS
 
-echo "Installed tinyxml2"
+echo "Installed $repo"

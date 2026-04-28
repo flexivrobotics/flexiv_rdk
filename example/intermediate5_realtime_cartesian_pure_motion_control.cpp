@@ -2,7 +2,7 @@
  * @example intermediate5_realtime_cartesian_pure_motion_control.cpp
  * This tutorial runs real-time Cartesian-space pure motion control to hold or sine-sweep the robot
  * TCP. A simple collision detection is also included.
- * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
@@ -15,6 +15,7 @@
 #include <cmath>
 #include <thread>
 #include <atomic>
+#include <algorithm>
 
 using namespace flexiv;
 
@@ -55,8 +56,10 @@ void PrintHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void PeriodicTask(rdk::Robot& robot, const std::array<double, rdk::kPoseSize>& init_pose,
-    const std::vector<double>& init_q, bool enable_hold, bool enable_collision)
+void PeriodicTask(rdk::Robot& robot, const std::vector<rdk::JointGroup>& joint_groups,
+    const std::map<rdk::JointGroup, std::array<double, rdk::kPoseSize>>& all_init_pose,
+    const std::map<rdk::JointGroup, std::vector<double>>& all_init_q, bool enable_hold,
+    bool enable_collision)
 {
     // Local periodic loop counter
     static uint64_t loop_counter = 0;
@@ -68,29 +71,35 @@ void PeriodicTask(rdk::Robot& robot, const std::array<double, rdk::kPoseSize>& i
                 "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
 
-        // Initialize target pose to initial pose
-        auto target_pose = init_pose;
+        std::map<rdk::JointGroup, rdk::RtCartesianCmd> rt_cmds;
+        for (const auto& [group, init_pose] : all_init_pose) {
+            auto target_pose = init_pose;
 
-        // Sine-sweep TCP along Y axis
-        if (!enable_hold) {
-            target_pose[1] = init_pose[1]
-                             + kSwingAmp * sin(2 * M_PI * kSwingFreq * loop_counter * kLoopPeriod);
+            // Sine-sweep TCP along Y axis
+            if (!enable_hold) {
+                target_pose[1]
+                    = init_pose[1]
+                      + kSwingAmp * sin(2 * M_PI * kSwingFreq * loop_counter * kLoopPeriod);
+            }
+            // Otherwise robot TCP will hold at initial pose
+
+            rt_cmds[group] = rdk::RtCartesianCmd(target_pose);
         }
-        // Otherwise robot TCP will hold at initial pose
 
         // Send command. Calling this method with only target pose input results in pure motion
         // control
-        robot.StreamCartesianMotionForce(target_pose);
+        robot.StreamCartesianMotionForce(rt_cmds);
 
         // Do the following operations in sequence for every 20 seconds
         switch (loop_counter % (20 * kLoopFreq)) {
             // Online change reference joint positions at 3 seconds
             case (3 * kLoopFreq): {
-                std::vector<double> preferred_jnt_pos
+                const std::vector<double> ref_q
                     = {0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658};
-                robot.SetNullSpacePosture(preferred_jnt_pos);
-                spdlog::info("Reference joint positions set to: "
-                             + rdk::utility::Vec2Str(preferred_jnt_pos));
+                for (const auto& group : joint_groups) {
+                    robot.SetNullSpacePosture(group, ref_q);
+                }
+                spdlog::info("Reference joint positions updated for all groups");
             } break;
             // Online change stiffness to half of nominal at 6 seconds
             case (6 * kLoopFreq): {
@@ -98,38 +107,49 @@ void PeriodicTask(rdk::Robot& robot, const std::array<double, rdk::kPoseSize>& i
                 for (auto& v : new_K) {
                     v *= 0.5;
                 }
-                robot.SetCartesianImpedance(new_K);
+                for (const auto& group : joint_groups) {
+                    robot.SetCartesianImpedance(group, new_K);
+                }
                 spdlog::info("Cartesian stiffness set to: {}", rdk::utility::Arr2Str(new_K));
             } break;
             // Online change to another reference joint positions at 9 seconds
             case (9 * kLoopFreq): {
-                std::vector<double> preferred_jnt_pos
+                const std::vector<double> ref_q
                     = {-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658};
-                robot.SetNullSpacePosture(preferred_jnt_pos);
-                spdlog::info("Reference joint positions set to: "
-                             + rdk::utility::Vec2Str(preferred_jnt_pos));
+                for (const auto& group : joint_groups) {
+                    robot.SetNullSpacePosture(group, ref_q);
+                }
+                spdlog::info("Reference joint positions updated for all groups");
             } break;
             // Online reset impedance properties to nominal at 12 seconds
             case (12 * kLoopFreq): {
-                robot.SetCartesianImpedance(robot.info().K_x_nom);
+                for (const auto& group : joint_groups) {
+                    robot.SetCartesianImpedance(group, robot.info().K_x_nom);
+                }
                 spdlog::info("Cartesian impedance properties are reset");
             } break;
             // Online reset reference joint positions to nominal at 14 seconds
             case (14 * kLoopFreq): {
-                robot.SetNullSpacePosture(init_q);
+                for (const auto& [group, init_q] : all_init_q) {
+                    robot.SetNullSpacePosture(group, init_q);
+                }
                 spdlog::info("Reference joint positions are reset");
             } break;
             // Online enable max contact wrench regulation at 16 seconds
             case (16 * kLoopFreq): {
                 std::array<double, rdk::kCartDoF> max_wrench = {10.0, 10.0, 10.0, 2.0, 2.0, 2.0};
-                robot.SetMaxContactWrench(max_wrench);
+                for (const auto& group : joint_groups) {
+                    robot.SetMaxContactWrench(group, max_wrench);
+                }
                 spdlog::info("Max contact wrench set to: {}", rdk::utility::Arr2Str(max_wrench));
             } break;
             // Disable max contact wrench regulation at 19 seconds
             case (19 * kLoopFreq): {
                 std::array<double, rdk::kCartDoF> inf;
                 inf.fill(std::numeric_limits<double>::infinity());
-                robot.SetMaxContactWrench(inf);
+                for (const auto& group : joint_groups) {
+                    robot.SetMaxContactWrench(group, inf);
+                }
                 spdlog::info("Max contact wrench regulation is disabled");
             } break;
             default:
@@ -139,21 +159,26 @@ void PeriodicTask(rdk::Robot& robot, const std::array<double, rdk::kPoseSize>& i
         // Simple collision detection: stop robot if collision is detected from either end-effector
         // or robot body
         if (enable_collision) {
-            bool collision_detected = false;
-            Eigen::Vector3d ext_force = {robot.states().ext_wrench_in_world[0],
-                robot.states().ext_wrench_in_world[1], robot.states().ext_wrench_in_world[2]};
-            if (ext_force.norm() > kExtForceThreshold) {
-                collision_detected = true;
-            }
-            for (const auto& v : robot.states().tau_ext) {
-                if (fabs(v) > kExtTorqueThreshold) {
+            for (const auto& [group, states] : robot.states()) {
+                bool collision_detected = false;
+                Eigen::Vector3d ext_force
+                    = {states.tcp_wrench[0], states.tcp_wrench[1], states.tcp_wrench[2]};
+                if (ext_force.norm() > kExtForceThreshold) {
                     collision_detected = true;
                 }
-            }
-            if (collision_detected) {
-                robot.Stop();
-                spdlog::warn("Collision detected, stopping robot and exit program ...");
-                g_stop_sched = true;
+                for (const auto& v : states.tau_ext) {
+                    if (fabs(v) > kExtTorqueThreshold) {
+                        collision_detected = true;
+                    }
+                }
+
+                if (collision_detected) {
+                    robot.Stop();
+                    spdlog::warn("[{}] Collision detected, stopping robot and exit program ...",
+                        rdk::kJointGroupNames.at(group));
+                    g_stop_sched = true;
+                    break;
+                }
             }
         }
 
@@ -240,9 +265,16 @@ int main(int argc, char* argv[])
 
         // Zero Force-torque Sensor
         // =========================================================================================
+        // All available joint groups of the robot
+        const auto joint_groups = robot.groups();
+
         robot.SwitchMode(rdk::Mode::NRT_PRIMITIVE_EXECUTION);
         // IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
-        robot.ExecutePrimitive("ZeroFTSensor", std::map<std::string, rdk::FlexivDataTypes> {});
+        std::map<rdk::JointGroup, rdk::PrimitiveArgs> pt_args;
+        for (const auto& group : joint_groups) {
+            pt_args[group] = rdk::PrimitiveArgs("ZeroFTSensor", {});
+        }
+        robot.ExecutePrimitive(pt_args);
 
         // WARNING: during the process, the robot must not contact anything, otherwise the result
         // will be inaccurate and affect following operations
@@ -250,7 +282,10 @@ int main(int argc, char* argv[])
             "Zeroing force/torque sensors, make sure nothing is in contact with the robot");
 
         // Wait for primitive to finish
-        while (!std::get<int>(robot.primitive_states()["terminated"])) {
+        while (!std::all_of(joint_groups.begin(), joint_groups.end(), [&robot](const auto& group) {
+            return std::get<int>(
+                robot.primitive_states().at(group).names_and_values.at("terminated"));
+        })) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         spdlog::info("Sensor zeroing complete");
@@ -269,20 +304,25 @@ int main(int argc, char* argv[])
         robot.SwitchMode(rdk::Mode::RT_CARTESIAN_MOTION_FORCE);
 
         // Set all Cartesian axis(s) to motion control
-        robot.SetForceControlAxis(
-            std::array<bool, rdk::kCartDoF> {false, false, false, false, false, false});
+        for (const auto& group : joint_groups) {
+            robot.SetForceControlAxis(
+                group, std::array<bool, rdk::kCartDoF> {false, false, false, false, false, false});
+        }
 
-        // Save initial pose
-        auto init_pose = robot.states().tcp_pose;
-
-        // Save initial joint positions
-        auto init_q = robot.states().q;
+        // Save initial poses and joint positions
+        std::map<rdk::JointGroup, std::array<double, rdk::kPoseSize>> all_init_pose;
+        std::map<rdk::JointGroup, std::vector<double>> all_init_q;
+        for (const auto& [group, states] : robot.states()) {
+            all_init_pose[group] = states.tcp_pose;
+            all_init_q[group] = states.q;
+        }
 
         // Create real-time scheduler to run periodic tasks
         rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::ref(init_pose),
-                              std::ref(init_q), enable_hold, enable_collision),
+        scheduler.AddTask(
+            std::bind(PeriodicTask, std::ref(robot), std::cref(joint_groups),
+                std::cref(all_init_pose), std::cref(all_init_q), enable_hold, enable_collision),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();

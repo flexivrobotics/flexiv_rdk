@@ -5,7 +5,7 @@
 This tutorial clears minor or critical faults, if any, of the connected robot.
 """
 
-__copyright__ = "Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved."
+__copyright__ = "Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import argparse
@@ -55,6 +55,7 @@ def main():
     except Exception as e:
         # Print exception error message
         logger.error(str(e))
+        return 1
 
 
 if __name__ == "__main__":

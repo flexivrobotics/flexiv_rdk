@@ -4,7 +4,7 @@
  * and soft protection against position limits. This example is ideal for verifying the system's
  * whole-loop real-timeliness, accuracy of the robot dynamics model, and joint torque control
  * performance. If everything works well, all joints should float smoothly.
- * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
+ * @copyright Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
@@ -49,17 +49,21 @@ void PeriodicTask(rdk::Robot& robot)
                 "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
 
-        // Set 0 joint torques
-        std::vector<double> target_torque(robot.info().DoF);
+        std::map<rdk::JointGroup, rdk::RtJointTorqueCmd> rt_cmds;
+        for (const auto& [group, states] : robot.states()) {
+            std::vector<double> target_torque(states.q.size());
 
-        // Add some velocity damping
-        for (size_t i = 0; i < target_torque.size(); ++i) {
-            target_torque[i] += -kFloatingDamping[i] * robot.states().dtheta[i];
+            // Add some velocity damping
+            for (size_t i = 0; i < target_torque.size(); ++i) {
+                target_torque[i] += -kFloatingDamping[i] * states.dtheta[i];
+            }
+
+            rt_cmds[group] = rdk::RtJointTorqueCmd(target_torque, true, true);
         }
 
         // Send target joint torque to RDK server, enable gravity compensation and joint limits soft
         // protection
-        robot.StreamJointTorque(target_torque, true, true);
+        robot.StreamJointTorque(rt_cmds);
 
     } catch (const std::exception& e) {
         spdlog::error(e.what());
