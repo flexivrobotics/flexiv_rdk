@@ -48,7 +48,7 @@ enum class JointGroup
 };
 
 /** Map JointGroup enum to string */
-const std::map<JointGroup, std::string> kJointGroupNames {
+inline const std::map<JointGroup, std::string> kJointGroupNames {
     {JointGroup::UNKNOWN, "UNKNOWN"},
     {JointGroup::ARMS, "ARMS"},
     {JointGroup::ARM_1, "ARM_1"},
@@ -77,7 +77,7 @@ enum class OperationalStatus
 };
 
 /** Map OperationalStatus enum to string */
-const std::map<OperationalStatus, std::string> kOpStatusNames {
+inline const std::map<OperationalStatus, std::string> kOpStatusNames {
     {OperationalStatus::UNKNOWN, "Unknown status"},
     {OperationalStatus::READY, "Ready"},
     {OperationalStatus::BOOTING, "System booting"},

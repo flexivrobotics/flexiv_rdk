@@ -106,7 +106,7 @@ enum class Mode
 };
 
 /** Map Mode enum to string */
-static const std::map<Mode, std::string> kModeNames {
+inline const std::map<Mode, std::string> kModeNames {
     {Mode::UNKNOWN, "UNKNOWN"},
     {Mode::IDLE, "IDLE"},
     {Mode::RT_JOINT_TORQUE, "RT_JOINT_TORQUE"},
