@@ -536,10 +536,11 @@ struct RtJointTorqueCmd
 
     /** Custom constructor */
     RtJointTorqueCmd(const std::vector<double>& tau_d, bool enable_gravity_comp = true,
-        bool enable_soft_limits = true)
+        bool enable_soft_limits = true, double friction_comp_scale = 100.0)
     : tau_d(tau_d)
     , enable_gravity_comp(enable_gravity_comp)
     , enable_soft_limits(enable_soft_limits)
+    , friction_comp_scale(friction_comp_scale)
     {
     }
 
@@ -552,6 +553,12 @@ struct RtJointTorqueCmd
     /** Enable/disable soft limits to keep the joints from moving outside allowed position range,
      * which will trigger a safety fault that requires recovery operation */
     bool enable_soft_limits = true;
+
+    /** Percentage of joint friction to be compensated. Valid range: [0, 100]. Setting to 100 means
+     * to compensate all joint friction, and 0 means no friction compensation at all.
+     * Under-compensation increases natural damping of the joints, which can be useful in some
+     * cases, e.g. zero-torque floating. */
+    double friction_comp_scale = 100.0;
 };
 
 /**

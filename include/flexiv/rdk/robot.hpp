@@ -477,7 +477,8 @@ public:
      * @brief [Non-blocking] Continuously stream joint torque commands to the robot.
      * @param[in] cmds A map of JointGroup to RtJointTorqueCmd, specifying the joint torque commands
      * for each joint group.
-     * @throw std::invalid_argument if size of any input vector does not match robot DoF.
+     * @throw std::invalid_argument if size of any input vector does not match robot DoF, or
+     * [friction_comp_scale] is outside the valid range.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: RT_JOINT_TORQUE.
