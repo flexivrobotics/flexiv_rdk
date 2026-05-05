@@ -110,7 +110,7 @@ void PeriodicTask(rdk::Robot& robot, const std::vector<rdk::JointGroup>& joint_g
                 for (const auto& group : joint_groups) {
                     robot.SetCartesianImpedance(group, new_K);
                 }
-                spdlog::info("Cartesian stiffness set to: {}", rdk::utility::Arr2Str(new_K));
+                spdlog::info("Cartesian stiffness set to: [{}]", rdk::utility::Arr2Str(new_K));
             } break;
             // Online change to another reference joint positions at 9 seconds
             case (9 * kLoopFreq): {
@@ -121,12 +121,13 @@ void PeriodicTask(rdk::Robot& robot, const std::vector<rdk::JointGroup>& joint_g
                 }
                 spdlog::info("Reference joint positions updated for all groups");
             } break;
-            // Online reset impedance properties to nominal at 12 seconds
+            // Online reset stiffness to nominal at 12 seconds
             case (12 * kLoopFreq): {
                 for (const auto& group : joint_groups) {
                     robot.SetCartesianImpedance(group, robot.info().K_x_nom);
                 }
-                spdlog::info("Cartesian impedance properties are reset");
+                spdlog::info("Cartesian stiffness reset to nominal: [{}]",
+                    rdk::utility::Arr2Str(robot.info().K_x_nom));
             } break;
             // Online reset reference joint positions to nominal at 14 seconds
             case (14 * kLoopFreq): {

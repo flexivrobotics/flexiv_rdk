@@ -16,7 +16,6 @@ import spdlog  # pip install spdlog
 import numpy as np  # pip install numpy
 import flexivrdk  # pip install flexivrdk
 
-
 # Global constants
 # ==================================================================================================
 # TCP sine-sweep amplitude [m]
@@ -224,11 +223,13 @@ def main():
                 for group in joint_groups:
                     robot.SetNullSpacePosture(group, ref_q)
                 logger.info(f"Reference joint positions set to: {ref_q}")
-            # Online reset impedance properties to nominal at 12 seconds
+            # Online reset stiffness to nominal at 12 seconds
             elif time_elapsed % 20.0 == 12.0:
                 for group in joint_groups:
                     robot.SetCartesianImpedance(group, robot.info().K_x_nom)
-                logger.info("Cartesian impedance properties are reset")
+                logger.info(
+                    f"Cartesian stiffness reset to nominal: {robot.info().K_x_nom}"
+                )
             # Online reset reference joint positions to nominal at 14 seconds
             elif time_elapsed % 20.0 == 14.0:
                 for group, init_q in all_init_q.items():

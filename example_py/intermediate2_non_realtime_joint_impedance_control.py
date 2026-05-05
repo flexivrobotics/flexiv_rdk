@@ -123,13 +123,13 @@ def main():
                 new_Kq = np.multiply(robot.info().K_q_nom, 0.5).tolist()
                 for group in all_init_pos:
                     robot.SetJointImpedance(group, new_Kq)
-                logger.info(f"Joint stiffness set to {new_Kq}")
+                logger.info(f"Joint stiffness set to: {new_Kq}")
 
-            # Reset impedance properties to nominal values after another 5 seconds
+            # Reset stiffness to nominal values after another 5 seconds
             if loop_counter == 10 / period:
                 for group in all_init_pos:
                     robot.SetJointImpedance(group, robot.info().K_q_nom)
-                logger.info("Joint impedance properties are reset")
+                logger.info(f"Joint stiffness reset to nominal: {robot.info().K_q_nom}")
 
             # Send commands
             cmds = {}

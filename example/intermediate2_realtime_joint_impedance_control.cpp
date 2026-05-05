@@ -91,15 +91,16 @@ void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
             for (const auto& group : joint_groups) {
                 robot.SetJointImpedance(group, new_Kq);
             }
-            spdlog::info("Joint stiffness set to [{}]", rdk::utility::Vec2Str(new_Kq));
+            spdlog::info("Joint stiffness set to: [{}]", rdk::utility::Vec2Str(new_Kq));
         }
 
-        // Reset impedance properties to nominal values after another 5 seconds
+        // Reset stiffness to nominal values after another 5 seconds
         if (loop_counter == 10000) {
             for (const auto& group : joint_groups) {
                 robot.SetJointImpedance(group, robot.info().K_q_nom);
             }
-            spdlog::info("Joint impedance properties are reset");
+            spdlog::info("Joint stiffness reset to nominal: [{}]",
+                rdk::utility::Vec2Str(robot.info().K_q_nom));
         }
 
         // Send commands
