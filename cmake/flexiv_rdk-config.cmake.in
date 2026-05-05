@@ -6,8 +6,8 @@ set(Boost_USE_STATIC_LIBS OFF)
 find_dependency(Threads REQUIRED)
 find_dependency(Eigen3 3.4.0 REQUIRED)
 find_dependency(spdlog 1.9.2 REQUIRED)
-find_dependency(fastdds 3.5.0 REQUIRED)
-find_dependency(fastcdr 2.3.5 REQUIRED)
+find_dependency(zenohc 1.9.0 REQUIRED)
+find_dependency(zenohcxx 1.9.0 REQUIRED)
 find_dependency(RBDyn 1.9.3 REQUIRED)
 
 # Add targets file

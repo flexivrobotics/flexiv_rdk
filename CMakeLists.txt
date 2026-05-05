@@ -80,13 +80,13 @@ message(STATUS "Found Eigen3 v${Eigen3_VERSION}: ${Eigen3_DIR}")
 find_package(spdlog 1.9.2 REQUIRED)
 message(STATUS "Found spdlog v${spdlog_VERSION}: ${spdlog_DIR}")
 
-# Fast-DDS
-find_package(fastdds 3.5.0 REQUIRED)
-message(STATUS "Found fastdds v${fastdds_VERSION}: ${fastdds_DIR}")
+# zenoh-c
+find_package(zenohc 1.9.0 REQUIRED)
+message(STATUS "Found zenohc v${zenohc_VERSION}: ${zenohc_DIR}")
 
-# Fast-CDR
-find_package(fastcdr 2.3.5 REQUIRED)
-message(STATUS "Found fastcdr v${fastcdr_VERSION}: ${fastcdr_DIR}")
+# zenoh-cpp
+find_package(zenohcxx 1.9.0 REQUIRED)
+message(STATUS "Found zenohcxx v${zenohcxx_VERSION}: ${zenohcxx_DIR}")
 
 # RBDyn
 set(Boost_USE_STATIC_LIBS OFF)
@@ -113,8 +113,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   Threads::Threads
   Eigen3::Eigen
   spdlog::spdlog
-  fastdds
-  fastcdr
+  zenohcxx::zenohc
   RBDyn::RBDyn
   RBDyn::Parsers
 )

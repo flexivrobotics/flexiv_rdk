@@ -69,9 +69,7 @@ bash $script_dir/scripts/install_eigen.sh
 bash $script_dir/scripts/install_spdlog.sh
 bash $script_dir/scripts/install_tinyxml2.sh
 bash $script_dir/scripts/install_yaml-cpp.sh
-bash $script_dir/scripts/install_foonathan_memory.sh
-bash $script_dir/scripts/install_Fast-CDR.sh
-bash $script_dir/scripts/install_Fast-DDS.sh
+bash $script_dir/scripts/install_zenoh.sh
 bash $script_dir/scripts/install_boost.sh
 bash $script_dir/scripts/install_SpaceVecAlg.sh
 bash $script_dir/scripts/install_RBDyn.sh
