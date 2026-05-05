@@ -740,6 +740,27 @@ struct NrtCartesianCmd
 };
 
 /**
+ * @struct NrtCartesianMultiWaypointCmd
+ * @brief Commands data for non-real-time Cartesian multi-waypoint motion-force control.
+ * @see Robot::SendCartesianMotionForceMultiWaypoint().
+ */
+struct NrtCartesianMultiWaypointCmd
+{
+    /** Default constructor */
+    NrtCartesianMultiWaypointCmd() = default;
+
+    /** Custom constructor */
+    NrtCartesianMultiWaypointCmd(const std::vector<NrtCartesianCmd>& waypoints)
+    : waypoints(waypoints)
+    {
+    }
+
+    /** Sequence of Cartesian waypoints to execute. Each waypoint uses the same data layout as
+     * NrtCartesianCmd. */
+    std::vector<NrtCartesianCmd> waypoints = {};
+};
+
+/**
  * @brief Operator overloading to out stream all members of RobotEvent in JSON format.
  * @param[in] ostream Ostream instance.
  * @param[in] robot_event RobotEvent data structure to out stream.
