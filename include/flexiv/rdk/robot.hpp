@@ -29,10 +29,6 @@ public:
      * establish connection with the target robot.
      * @param[in] robot_sn Serial number of the robot to connect. The accepted formats are:
      * "Rizon 4s-123456" and "Rizon4s-123456".
-     * @param[in] network_interface_whitelist Limit the network interface(s) that can be used to try
-     * to establish connection with the specified robot. The whitelisted network interface is
-     * defined by its associated IPv4 address. For example, {"10.42.0.1", "192.168.2.102"}. If left
-     * empty, all available network interfaces will be tried when searching for the specified robot.
      * @param[in] verbose Enable/disable info and warning prints.
      * @param[in] lite Whether to create a lite instance. See details below. A normal instance must
      * have already connected to the robot for lite instances to function properly.
@@ -50,9 +46,7 @@ public:
      * one-shot requests, which are functions marked with the [Blocking] tag. A lite instance does
      * not receive robot states or system status, nor send motion commands.
      */
-    Robot(const std::string& robot_sn,
-        const std::vector<std::string>& network_interface_whitelist = {}, bool verbose = true,
-        bool lite = false);
+    Robot(const std::string& robot_sn, bool verbose = true, bool lite = false);
     virtual ~Robot();
 
     //========================================= ACCESSORS ==========================================
