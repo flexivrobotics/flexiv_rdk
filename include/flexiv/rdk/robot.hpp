@@ -639,6 +639,25 @@ public:
     void SendCartesianMotionForce(const std::map<JointGroup, NrtCartesianCmd>& cmds);
 
     /**
+     * @brief [Non-blocking] Discretely send Cartesian multi-waypoint motion and/or force commands
+     * for the robot to track using non-real-time super primitives.
+     * @param[in] cmds A map of JointGroup to NrtCartesianMultiWaypointCmd, specifying a sequence of
+     * Cartesian waypoints and/or force commands for each joint group.
+     * @throw std::invalid_argument if any waypoint list is empty or any waypoint's last 4 input
+     * parameters is not positive.
+     * @throw std::logic_error if the robot is not in the correct control mode.
+     * @throw std::runtime_error if the robot is not operational.
+     * @note Applicable control modes: NRT_SUPER_PRIMITIVE.
+     * @warning Same as Flexiv Elements, the target wrench is expressed as wrench sensed at TCP
+     * instead of wrench exerted by TCP. E.g. commanding f_z = +5 N will make the end-effector move
+     * towards -Z direction, so that upon contact, the sensed force will be +5 N.
+     * @see SetCartesianImpedance(), SetMaxContactWrench(), SetNullSpacePosture(),
+     * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
+     */
+    void SendCartesianMotionForceMultiWaypoint(
+        const std::map<JointGroup, NrtCartesianMultiWaypointCmd>& cmds);
+
+    /**
      * @brief [Blocking] Set impedance properties of the robot's Cartesian motion controller
      * used in the Cartesian motion-force control modes.
      * @param[in] group The joint group to set Cartesian impedance for.

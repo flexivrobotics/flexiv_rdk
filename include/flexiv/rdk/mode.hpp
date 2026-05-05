@@ -101,6 +101,7 @@ enum class Mode
      * like motion, force, vision, planning, etc.
      * @note Non-real-time (NRT) mode.
      * @see Robot::SendCartesianMotionForce().
+     * @see Robot::SendCartesianMotionForceMultiWaypoint().
      */
     NRT_SUPER_PRIMITIVE,
 };
