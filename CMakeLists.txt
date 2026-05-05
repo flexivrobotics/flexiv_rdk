@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.22.1)
 # ===================================================================
 #      PROJECT SETUP
 # ===================================================================
-project(flexiv_rdk VERSION 2.0)
+project(flexiv_rdk VERSION 2.1 LANGUAGES CXX)
 
 # Configure build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -125,6 +125,8 @@ else()
   target_compile_options(${PROJECT_NAME} PUBLIC /W1)
 endif()
 
-# Install the library
+# ===================================================================
+#      LIBRARY INSTALLATION
+# ===================================================================
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FlexivInstallLibrary.cmake)
 FlexivInstallLibrary()
