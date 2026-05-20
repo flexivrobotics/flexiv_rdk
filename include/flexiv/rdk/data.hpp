@@ -212,12 +212,9 @@ struct RobotInfo
      * \f$. Unit: \f$ [rad/s] \f$. */
     std::vector<double> dq_max = {};
 
-    /** Upper software limits of joint torques: \f$ \tau_{max} \in \mathbb{R}^{n \times 1} \f$.
-     * Unit: \f$ [Nm] \f$. */
-    std::vector<double> tau_max = {};
-
-    /** Whether the robot has a force-torque (FT) sensor installed */
-    bool has_FT_sensor = false;
+    /** Upper software limits of joint torques of all available joint groups: \f$ \tau_{max} \in
+     * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm] \f$. */
+    std::map<JointGroup, std::vector<double>> tau_max = {};
 };
 
 /**
