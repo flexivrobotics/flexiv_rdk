@@ -175,17 +175,17 @@ struct RobotInfo
     /** Serial number of the robot */
     std::string serial_num = {};
 
-    /** Robot software version. */
+    /** Software version of the robot */
     std::string software_ver = {};
 
     /** Type of license */
     std::string license_type = {};
 
-    /** Joint-space degrees of freedom of the external axes: \f$ n_e \f$. */
-    size_t DoF_e = {};
+    /** All available joint groups in the robot and their names */
+    std::map<JointGroup, std::string> all_groups = {};
 
-    /** Joint-space degrees of freedom of the robot manipulator: \f$ n_m \f$. */
-    size_t DoF_m = {};
+    /** Available single-arm joint groups in the robot and their names */
+    std::map<JointGroup, std::string> single_arm_groups = {};
 
     /** Joint-space degrees of freedom of the full system including the robot manipulator and any
      * external axes: \f$ n \f$. */
