@@ -187,9 +187,8 @@ struct RobotInfo
     /** Available single-arm joint groups in the robot and their names */
     std::map<JointGroup, std::string> single_arm_groups = {};
 
-    /** Joint-space degrees of freedom of the full system including the robot manipulator and any
-     * external axes: \f$ n \f$. */
-    size_t DoF = {};
+    /** Joint-space degrees of freedom for each joint group */
+    std::map<JointGroup, size_t> DoF = {};
 
     /** Nominal motion stiffness of the Cartesian motion-force control modes: \f$ K_x^{nom} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and
