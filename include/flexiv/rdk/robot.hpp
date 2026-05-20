@@ -83,7 +83,7 @@ public:
     /**
      * @brief [Non-blocking] Whether specific joint groups of the robot have come to a complete
      * stop.
-     * @return A map of JointGroup to stopped flag. True: this joint group has stopped; false: this
+     * @return Stopped flag mapped by joint group. True: this joint group has stopped; false: this
      * joint group is still moving.
      */
     std::map<JointGroup, bool> stopped() const;
@@ -187,6 +187,18 @@ public:
      * @note This function blocks until the request is successfully delivered.
      */
     void Enable();
+
+    /**
+     * @brief [Blocking] Move the specified joint groups to the home posture using Home primitive.
+     * @param[in] groups Joint group(s) to home. Only single-arm joint groups like ARM_1 and ARM_2
+     * are accepted, other groups are ignored. If left empty, home all applicable joint groups.
+     * @throw std::invalid_argument if [groups] contains non-single-arm joint groups.
+     * @throw std::runtime_error if failed to execute the Home primitive.
+     * @note The robot's control mode will be temporarily switched to NRT_PRIMITIVE_EXECUTION and
+     * restored to the previous mode before returning.
+     * @note This function blocks until all specified joint groups have reached the home posture.
+     */
+    void Home(const std::vector<JointGroup>& groups = {});
 
     /**
      * @brief [Blocking] Force robot brakes to engage or release during normal operation.
