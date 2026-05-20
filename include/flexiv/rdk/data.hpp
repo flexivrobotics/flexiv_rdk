@@ -52,34 +52,40 @@ inline const std::map<ProductModel, std::string> kProductModelNames
         {ProductModel::Enlight_LL, "Enlight-LL"}, {ProductModel::MICO_Core, "MICO-Core"},
         {ProductModel::MICO_Plus, "MICO-Plus"}, {ProductModel::MICO_Ultra, "MICO-Ultra"}};
 
+/**
+ * @brief All possible joint groups of the robot.
  */
 enum class JointGroup
 {
-    UNKNOWN = 0, ///< Unknown group
-    ARMS = 2,    ///< The single arm if only one exists or arms as a whole if more than one exists
-    ARM_1 = 3,   ///< The 1st arm if more than one exists
-    ARM_2 = 4,   ///< The 2nd arm if more than one exists
+    UNKNOWN = -1, ///< Unknown group
+    ALL = 0,      ///< The full system, including all actuated joints
+    ARMS = 2,     ///< The dual arms as a whole, only applicable to dual-arm robots
+    ARM_1 = 3,    ///< The 1st single arm in a dual-arm robot or the only arm in a single-arm robot
+    ARM_2 = 4,    ///< The 2nd single arm in a dual-arm robot, not applicable to single-arm robots
+    EXT_AXIS = 5, ///< External axis(es) for workspace extension
 
-    FIRST = ARMS,
-    LAST = ARM_2,
+    FIRST = ALL,
+    LAST = EXT_AXIS,
 };
 
-/** Map JointGroup enum to string */
+/** Map JointGroup enums to strings */
 inline const std::map<JointGroup, std::string> kJointGroupNames {
     {JointGroup::UNKNOWN, "UNKNOWN"},
+    {JointGroup::ALL, "ALL"},
     {JointGroup::ARMS, "ARMS"},
     {JointGroup::ARM_1, "ARM_1"},
     {JointGroup::ARM_2, "ARM_2"},
+    {JointGroup::EXT_AXIS, "EXT_AXIS"},
 };
 
 /**
- * @brief Operational status of the robot. Except for the first two, the other enumerators
- * indicate the cause of the robot being not ready to operate.
+ * @brief All possible operational statuses of the robot. Except for the first two, the other
+ * enumerators indicate the cause of the robot being not ready to operate.
  * @see Robot::operational_status().
  */
 enum class OperationalStatus
 {
-    UNKNOWN,            ///< Unknown status.
+    UNKNOWN = 0,        ///< Unknown status.
     READY,              ///< Ready to be operated.
     BOOTING,            ///< System still booting, please wait.
     ESTOP_NOT_RELEASED, ///< E-Stop is not released.
@@ -93,7 +99,7 @@ enum class OperationalStatus
     IN_AUTO_MODE,       ///< In regular Auto mode, need to switch to Auto (Remote) mode.
 };
 
-/** Map OperationalStatus enum to string */
+/** Map OperationalStatus enums to strings */
 inline const std::map<OperationalStatus, std::string> kOpStatusNames {
     {OperationalStatus::UNKNOWN, "Unknown status"},
     {OperationalStatus::READY, "Ready"},
@@ -127,11 +133,11 @@ struct RobotEvent
 {
     enum Level
     {
-        UNKNOWN,  ///< Not set
-        INFO,     ///< Informational event
-        WARNING,  ///< Warning event
-        ERROR,    ///< Error event
-        CRITICAL, ///< Critical error event
+        UNKNOWN = 0, ///< Not set
+        INFO,        ///< Informational event
+        WARNING,     ///< Warning event
+        ERROR,       ///< Error event
+        CRITICAL,    ///< Critical error event
     };
 
     /** Level of the event */
