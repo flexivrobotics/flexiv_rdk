@@ -8,11 +8,21 @@
 
 #include "data.hpp"
 #include <Eigen/Eigen>
+#include <algorithm>
 #include <sstream>
+#include <string>
+#include <variant>
 
 namespace flexiv {
 namespace rdk {
+
 namespace utility {
+
+/** @brief Whether the specified group represents a single arm. */
+inline bool IsSingleArmGroup(JointGroup group)
+{
+    return group == JointGroup::ARM_1 || group == JointGroup::ARM_2;
+}
 
 /**
  * @brief Convert quaternion to Euler angles with ZYX axis rotations.
