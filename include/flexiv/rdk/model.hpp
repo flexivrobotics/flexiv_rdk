@@ -10,8 +10,7 @@
 #include <Eigen/Eigen>
 #include <memory>
 
-namespace flexiv {
-namespace rdk {
+namespace flexiv::rdk {
 
 /**
  * @struct IKParams
@@ -249,7 +248,6 @@ private:
     std::unique_ptr<Impl> pimpl_;
 };
 
-} /* namespace rdk */
-} /* namespace flexiv */
+} /* namespace flexiv::rdk */
 
 #endif /* FLEXIV_RDK_MODEL_HPP_ */

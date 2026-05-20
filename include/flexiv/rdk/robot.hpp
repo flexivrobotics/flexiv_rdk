@@ -13,8 +13,7 @@
 #include <exception>
 #include <map>
 
-namespace flexiv {
-namespace rdk {
+namespace flexiv::rdk {
 
 /**
  * @class Robot
@@ -551,7 +550,7 @@ public:
      * Valid range: [0, RobotInfo::tau_max]. Unit: \f$ [Nm] \f$.
      * @throw std::invalid_argument if [max_torques] contains any value outside the valid range or
      * its size does not match robot DoF.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if the robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
      * @note This function blocks until the request is successfully delivered.
@@ -566,7 +565,7 @@ public:
      * \f$. Valid range: [0.75, 1.0]. The nominal (safe) value is 1.0, which means no shaping.
      * @throw std::invalid_argument if [inertia_scales] contains any value outside the valid range
      * or its size does not match robot DoF.
-     * @throw std::logic_error if robot is not in an applicable control mode.
+     * @throw std::logic_error if the robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
      * @note This function blocks until the request is successfully delivered.
@@ -889,7 +888,6 @@ private:
     friend class WorkCoord;
 };
 
-} /* namespace rdk */
-} /* namespace flexiv */
+} /* namespace flexiv::rdk */
 
 #endif /* FLEXIV_RDK_ROBOT_HPP_ */

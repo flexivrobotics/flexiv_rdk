@@ -10,11 +10,8 @@
 #include <Eigen/Eigen>
 #include <algorithm>
 #include <sstream>
-#include <string>
-#include <variant>
 
-namespace flexiv {
-namespace rdk {
+namespace flexiv::rdk {
 
 namespace utility {
 
@@ -232,7 +229,6 @@ inline bool ProgramArgsExist(int argc, char** argv, const std::string& ref_strin
 }
 
 } /* namespace utility */
-} /* namespace rdk */
-} /* namespace flexiv */
+} /* namespace flexiv::rdk */
 
 #endif /* FLEXIV_RDK_UTILITY_HPP_ */

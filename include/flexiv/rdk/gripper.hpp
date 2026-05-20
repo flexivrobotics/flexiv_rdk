@@ -10,8 +10,7 @@
 #include <map>
 #include <memory>
 
-namespace flexiv {
-namespace rdk {
+namespace flexiv::rdk {
 
 /**
  * @struct GripperParams
@@ -178,7 +177,6 @@ private:
     std::unique_ptr<Impl> pimpl_;
 };
 
-} /* namespace rdk */
-} /* namespace flexiv */
+} /* namespace flexiv::rdk */
 
 #endif /* FLEXIV_RDK_GRIPPER_HPP_ */

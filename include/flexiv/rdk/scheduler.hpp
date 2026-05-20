@@ -10,8 +10,7 @@
 #include <functional>
 #include <memory>
 
-namespace flexiv {
-namespace rdk {
+namespace flexiv::rdk {
 
 /**
  * @class Scheduler
@@ -109,7 +108,6 @@ private:
     std::unique_ptr<Impl> pimpl_;
 };
 
-} /* namespace rdk */
-} /* namespace flexiv */
+} /* namespace flexiv::rdk */
 
 #endif /* FLEXIV_RDK_SCHEDULER_HPP_ */

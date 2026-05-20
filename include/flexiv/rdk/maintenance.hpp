@@ -8,8 +8,7 @@
 
 #include "robot.hpp"
 
-namespace flexiv {
-namespace rdk {
+namespace flexiv::rdk {
 
 /**
  * @class Maintenance
@@ -59,7 +58,6 @@ private:
     std::unique_ptr<Impl> pimpl_;
 };
 
-} /* namespace rdk */
-} /* namespace flexiv */
+} /* namespace flexiv::rdk */
 
 #endif /* FLEXIV_RDK_MAINTENANCE_HPP_ */

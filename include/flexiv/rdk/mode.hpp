@@ -10,8 +10,7 @@
 #include <map>
 #include <string>
 
-namespace flexiv {
-namespace rdk {
+namespace flexiv::rdk {
 
 /**
  * @enum Mode
@@ -122,7 +121,6 @@ inline const std::map<Mode, std::string> kModeNames {
     {Mode::NRT_SUPER_PRIMITIVE, "NRT_SUPER_PRIMITIVE"},
 };
 
-} /* namespace rdk */
-} /* namespace flexiv */
+} /* namespace flexiv::rdk */
 
 #endif /* FLEXIV_RDK_MODE_HPP_ */

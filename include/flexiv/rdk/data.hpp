@@ -15,8 +15,7 @@
 #include <chrono>
 #include <map>
 
-namespace flexiv {
-namespace rdk {
+namespace flexiv::rdk {
 /** Cartesian-space degrees of freedom */
 constexpr size_t kCartDoF = 6;
 
@@ -817,7 +816,6 @@ std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states)
  */
 std::ostream& operator<<(std::ostream& ostream, const PlanInfo& plan_info);
 
-} /* namespace rdk */
-} /* namespace flexiv */
+} /* namespace flexiv::rdk */
 
 #endif /* FLEXIV_RDK_DATA_HPP_ */

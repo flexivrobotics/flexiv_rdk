@@ -9,8 +9,7 @@
 #include "robot.hpp"
 #include <map>
 
-namespace flexiv {
-namespace rdk {
+namespace flexiv::rdk {
 
 using DeviceParamDataTypes
     = std::variant<int, double, std::string, std::vector<double>, std::vector<std::string>>;
@@ -110,7 +109,6 @@ private:
     std::unique_ptr<Impl> pimpl_;
 };
 
-} /* namespace rdk */
-} /* namespace flexiv */
+} /* namespace flexiv::rdk */
 
 #endif /* FLEXIV_RDK_DEVICE_HPP_ */
