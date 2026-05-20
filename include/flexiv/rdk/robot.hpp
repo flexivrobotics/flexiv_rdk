@@ -258,7 +258,7 @@ public:
      * @brief [Blocking] Set values to global variables that already exist in the robot.
      * @param[in] global_vars A map of {global_var_name, global_var_value(s)}. Use int 1 and 0 to
      * represent booleans. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", 1}}.
-     * @throw std::length_error if [global_vars] is empty or too long to transmit in one request.
+     * @throw std::length_error if [global_vars] is empty.
      * @throw std::invalid_argument if any of the specified global variables does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the global variables are successfully set.
@@ -438,7 +438,7 @@ public:
      * @param[in] block_until_started Whether to wait for the commanded primitive to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the primitive ready, the loading process typically takes no more than 200 ms.
-     * @throw std::length_error if [input_params] is too long to transmit in one request.
+     * @throw std::invalid_argument if [primitive_args] contains non-single-arm joint groups.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot or the
      * robot is not operational.
