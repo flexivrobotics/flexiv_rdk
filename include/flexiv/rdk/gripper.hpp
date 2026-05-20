@@ -7,6 +7,7 @@
 #define FLEXIV_RDK_GRIPPER_HPP_
 
 #include "robot.hpp"
+#include <map>
 #include <memory>
 
 namespace flexiv {
@@ -85,53 +86,59 @@ public:
     virtual ~Gripper();
 
     /**
-     * @brief [Blocking] Enable the specified gripper as a robot device.
+     * @brief [Blocking] Enable the specified gripper as a device used by the specified joint group.
+     * @param[in] group Joint group that uses this gripper. Only single-arm joint groups like
+     * ARM_1 and ARM_2 are accepted, other groups are ignored.
      * @param[in] name Name of the gripper to enable.
      * @throw std::invalid_argument if the specified gripper does not exist.
-     * @throw std::logic_error if a gripper is already enabled.
      * @throw std::runtime_error if failed to deliver the request to the connected robot or failed
      * to sync gripper parameters.
      * @note This function blocks until the request is successfully delivered.
-     * @note There can only be one enabled gripper at a time, call Disable() on the currently
-     * enabled gripper before enabling another gripper.
      * @warning There's no enforced check on whether the enabled device is a gripper or not. Using
      * this function to enable a non-gripper device will likely lead to undefined behaviors.
      */
-    void Enable(const std::string& name);
+    void Enable(JointGroup group, const std::string& name);
 
     /**
-     * @brief [Blocking] Disable the currently enabled gripper.
-     * @throw std::logic_error if no gripper is enabled.
+     * @brief [Blocking] Disable the gripper currently used by the specified joint group.
+     * @param[in] group Joint group whose gripper to be disabled.
+     * @throw std::logic_error if no gripper is enabled for the specified joint group.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      */
-    void Disable();
+    void Disable(JointGroup group);
 
     /**
-     * @brief [Blocking] Manually trigger the initialization of the enabled gripper. This step is
-     * not needed for grippers that automatically initialize upon power-on.
-     * @throw std::logic_error if no gripper is enabled.
+     * @brief [Blocking] Manually trigger the initialization of the enabled gripper(s) used by the
+     * specified joint group(s). This step is not needed for grippers that automatically initialize
+     * upon power-on.
+     * @param[in] groups Joint group(s) whose gripper(s) to be initialized. Initialize all enabled
+     * grippers if left empty.
+     * @throw std::logic_error if no gripper is enabled for any of the specified joint group(s).
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      * @warning This function does not wait for the initialization sequence to finish, the user may
      * need to implement wait after calling this function before commanding the gripper.
      */
-    void Init();
+    void Init(const std::vector<JointGroup>& groups = {});
 
     /**
-     * @brief [Blocking] Grasp with direct force control. This function requires the enabled gripper
-     * to support direct force control.
+     * @brief [Blocking] Command the gripper used by the specified joint group to grasp with direct
+     * force control. This function requires the enabled gripper to support direct force control.
+     * @param[in] group Joint group whose gripper to send this command to.
      * @param[in] force Target gripping force. Positive: closing force, negative: opening force.
      * Valid range: [GripperParams::min_force, GripperParams::max_force]. Unit: \f$ [N] \f$.
      * @throw std::invalid_argument if [force] is outside the valid range.
-     * @throw std::logic_error if no gripper is enabled.
+     * @throw std::logic_error if no gripper is enabled for the specified joint group.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      */
-    void Grasp(double force);
+    void Grasp(JointGroup group, double force);
 
     /**
-     * @brief [Blocking] Move the gripper fingers with position control.
+     * @brief [Blocking] Command the gripper used by the specified joint group to move the fingers
+     * with position control.
+     * @param[in] group Joint group whose gripper to send this command to.
      * @param[in] width Target opening width. Valid range: [GripperParams::min_width,
      * GripperParams::max_width]. Unit: \f$ [m] \f$.
      * @param[in] velocity Closing/opening velocity, cannot be 0. Valid range:
@@ -139,31 +146,32 @@ public:
      * @param[in] force_limit Maximum contact force during movement. Valid range:
      * [GripperParams::min_force, GripperParams::max_force]. Unit: \f$ [N] \f$.
      * @throw std::invalid_argument if any input parameter is outside its valid range.
-     * @throw std::logic_error if no gripper is enabled.
+     * @throw std::logic_error if no gripper is enabled for the specified joint group.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      */
-    void Move(double width, double velocity, double force_limit);
+    void Move(JointGroup group, double width, double velocity, double force_limit);
 
     /**
-     * @brief [Blocking] Stop the gripper and hold its current finger width.
-     * @throw std::logic_error if no gripper is enabled.
+     * @brief [Blocking] Stop and hold the gripper used by the specified joint group.
+     * @param[in] group Joint group whose gripper to send this command to.
+     * @throw std::logic_error if no gripper is enabled for the specified joint group.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      */
-    void Stop();
+    void Stop(JointGroup group);
 
     /**
-     * @brief [Non-blocking] Parameters of the currently enabled gripper.
-     * @return GripperParams value copy.
+     * @brief [Non-blocking] Parameters of all enabled grippers.
+     * @return Gripper parameters mapped by joint group.
      */
-    GripperParams params() const;
+    std::map<JointGroup, GripperParams> params() const;
 
     /**
-     * @brief [Non-blocking] Current states data of the enabled gripper.
-     * @return GripperStates value copy.
+     * @brief [Non-blocking] Current states data of all enabled grippers.
+     * @return Gripper states data mapped by joint group.
      */
-    GripperStates states() const;
+    std::map<JointGroup, GripperStates> states() const;
 
 private:
     class Impl;
