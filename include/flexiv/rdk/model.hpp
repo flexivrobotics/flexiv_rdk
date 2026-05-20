@@ -14,6 +14,35 @@ namespace flexiv {
 namespace rdk {
 
 /**
+ * @struct IKParams
+ * @brief Per-joint-group IK input parameters for SolveConstrainedIK().
+ */
+struct IKParams
+{
+    /** Cartesian pose to be solved. */
+    std::array<double, kPoseSize> cartesian_pose = {};
+
+    /** Seed joint positions for IK solver. Unit: [rad]. */
+    std::vector<double> seed_q = {};
+
+    /** Whether to only constrain Cartesian position and allow orientation to vary. */
+    bool free_orientation = false;
+};
+
+/**
+ * @struct IKResult
+ * @brief Result from SolveConstrainedIK().
+ */
+struct IKResult
+{
+    /** Whether the IK solution is successful. */
+    bool success = false;
+
+    /** Solved joint positions by active joint group. Unit: \f$ [rad] \f$. */
+    std::map<JointGroup, std::vector<double>> solved_q = {};
+};
+
+/**
  * @class Model
  * @brief Interface to obtain certain model data of the robot, including kinematics and dynamics.
  */
@@ -167,18 +196,16 @@ public:
     size_t SyncKinematicsYAML(const std::string& template_yaml_path);
 
     /**
-     * @brief [Blocking] Check if a Cartesian pose is reachable. If yes, also return an IK solution
-     * of the corresponding joint positions.
-     * @param[in] pose Cartesian pose to be checked.
-     * @param[in] seed_positions Joint positions to be used as the seed for solving IK.
-     * @param[in] free_orientation Only constrain position and allow orientation to move freely.
-     * @return A pair of {is_reachable, ik_solution}.
-     * @throw std::invalid_argument if size of [seed_positions] does not match robot DoF.
+     * @brief [Blocking] Solve constrained IK using one or more active joint groups.
+     * @param[in] ik_params_by_group IK input parameters mapped by active joint group. Joint groups
+     * not included in this map are treated as inactive.
+     * @return Solver result. [solved_q] contains one entry per requested active joint group.
+     * @throw std::invalid_argument if input map is empty, if any joint group is
+     * invalid/non-existent, or if any [seed_q] size does not match DoF of its joint group.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
-    std::pair<bool, std::vector<double>> reachable(const std::array<double, kPoseSize>& pose,
-        const std::vector<double>& seed_positions, bool free_orientation) const;
+    IKResult SolveConstrainedIK(const std::map<JointGroup, IKParams>& ik_params_by_group);
 
     /**
      * @brief [Blocking] Score of the robot's current configuration (posture), calculated from the
