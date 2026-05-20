@@ -34,7 +34,24 @@ constexpr size_t kIOPorts = 16 + 2 * 4;
 constexpr size_t kMaxExtAxes = 6;
 
 /**
- * @brief Joint group selection for robots with one or more arms.
+ * @brief All supported product models of the robot.
+ */
+enum class ProductModel
+{
+    UNKNOWN = 0,
+    Enlight_L,  /// Enlight-L standard version
+    Enlight_LL, /// Enlight-LL: Dual Enlight-L with customizable mounting poses
+    MICO_Core,  /// MICO-Core: Dual Enlight-L with fixed-mounting upper body
+    MICO_Plus,  /// MICO-Plus: MICO-Core with pan-tilt torso
+    MICO_Ultra, /// MICO-Ultra: MICO-Plus with mobile base
+};
+
+/** Map ProductModel enums to strings */
+inline const std::map<ProductModel, std::string> kProductModelNames
+    = {{ProductModel::UNKNOWN, "UNKNOWN"}, {ProductModel::Enlight_L, "Enlight-L"},
+        {ProductModel::Enlight_LL, "Enlight-LL"}, {ProductModel::MICO_Core, "MICO-Core"},
+        {ProductModel::MICO_Plus, "MICO-Plus"}, {ProductModel::MICO_Ultra, "MICO-Ultra"}};
+
  */
 enum class JointGroup
 {
