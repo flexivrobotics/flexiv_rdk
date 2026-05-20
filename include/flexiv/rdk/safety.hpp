@@ -20,22 +20,22 @@ constexpr size_t kSafetyIOPorts = 8;
  */
 struct SafetyLimits
 {
-    /** Lower safety limits of joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1} \f$.
-     * Unit: \f$ [rad] \f$. */
-    std::vector<double> q_min = {};
+    /** Lower safety limits of joint positions for each joint group: \f$ q_{min} \in
+     * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad] \f$. */
+    std::map<JointGroup, std::vector<double>> q_min = {};
 
-    /** Upper safety limits of joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1} \f$.
-     * Unit: \f$ [rad] \f$. */
-    std::vector<double> q_max = {};
+    /** Upper safety limits of joint positions for each joint group: \f$ q_{max} \in
+     * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad] \f$. */
+    std::map<JointGroup, std::vector<double>> q_max = {};
 
-    /** Upper safety limits of joint velocities when the robot is in normal state: \f$
-     * \dot{q}^{normal}_{max} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$. */
-    std::vector<double> dq_max_normal = {};
+    /** Upper safety limits of joint velocities for each joint group when the robot is in normal
+     * state: \f$ \dot{q}^{normal}_{max} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$. */
+    std::map<JointGroup, std::vector<double>> dq_max_normal = {};
 
-    /** Upper safety limits of joint velocities when the robot is in reduced state: \f$
-     * \dot{q}^{reduced}_{max} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
+    /** Upper safety limits of joint velocities for each joint group when the robot is in reduced
+     * state: \f$ \dot{q}^{reduced}_{max} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
      * @see Robot::reduced() */
-    std::vector<double> dq_max_reduced = {};
+    std::map<JointGroup, std::vector<double>> dq_max_reduced = {};
 };
 
 /**
