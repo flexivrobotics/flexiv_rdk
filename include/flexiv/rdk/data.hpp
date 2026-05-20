@@ -169,14 +169,14 @@ struct RobotEvent
  */
 struct RobotInfo
 {
-    /** Robot serial number. */
+    /** Product model of the robot */
+    ProductModel product_model = {};
+
+    /** Serial number of the robot */
     std::string serial_num = {};
 
     /** Robot software version. */
     std::string software_ver = {};
-
-    /** Robot model name, e.g. Rizon4, Rizon10, Moonlight, etc. */
-    std::string model_name = {};
 
     /** Type of license */
     std::string license_type = {};
