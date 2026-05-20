@@ -28,14 +28,14 @@ public:
      * @brief [Blocking] Instantiate the robot control interface. RDK services will be started and
      * establish connection with the target robot.
      * @param[in] robot_sn Serial number of the robot to connect. The accepted formats are:
-     * "Rizon 4s-123456" and "Rizon4s-123456".
+     * "Enlight-L-123456" and "Enlight L-123456". See ProductModel enum for all supported models.
      * @param[in] verbose Enable/disable info and warning prints.
      * @param[in] lite Whether to create a lite instance. See details below. A normal instance must
      * have already connected to the robot for lite instances to function properly.
      * @throw std::invalid_argument if the format of [robot_sn] is invalid.
      * @throw std::runtime_error if the initialization sequence failed.
-     * @throw std::logic_error if the connected robot lacks a valid RDK license, or is incompatible
-     * with this RDK library version, or is an unsupported robot model.
+     * @throw std::logic_error if the connected robot does not have a valid RDK license, or is
+     * incompatible with this RDK library version, or is an unsupported product model.
      * @warning This constructor blocks until the initialization sequence is successfully finished
      * and connection with the robot is established.
      * @par Lite Instance
