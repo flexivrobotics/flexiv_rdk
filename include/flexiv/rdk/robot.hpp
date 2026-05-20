@@ -75,16 +75,10 @@ public:
     Mode mode() const;
 
     /**
-     * @brief [Non-blocking] Current states data of all joint groups of the robot.
-     * @return A map of JointGroup to RobotStates. Only contains joint groups that exist.
+     * @brief [Non-blocking] Current states data of all existing joint groups of the robot.
+     * @return Robot states data mapped by joint group.
      */
     std::map<JointGroup, RobotStates> states() const;
-
-    /**
-     * @brief [Non-blocking] Joint groups that the connected robot has.
-     * @return Existing joint groups ordered by the enum value from low to high.
-     */
-    std::vector<JointGroup> groups() const;
 
     /**
      * @brief [Non-blocking] Whether specific joint groups of the robot have come to a complete
