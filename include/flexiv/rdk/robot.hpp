@@ -867,6 +867,14 @@ public:
      */
     std::array<bool, kIOPorts> digital_inputs() const;
 
+    /**
+     * @brief [Non-blocking] Current reading from all digital output ports, including 16 on the
+     * control box plus 2 inside each wrist connector.
+     * @return A boolean array whose index corresponds to that of the digital output ports.
+     * True: port high; false: port low.
+     */
+    std::array<bool, kIOPorts> digital_outputs() const;
+
 private:
     class Impl;
     std::unique_ptr<Impl> pimpl_;
