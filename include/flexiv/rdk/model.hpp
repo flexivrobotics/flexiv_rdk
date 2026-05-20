@@ -90,13 +90,13 @@ public:
     /**
      * @brief [Non-blocking] Update the configuration (posture) of the locally-stored robot model so
      * that the locally computed functions return results based on the updated configuration.
-     * @param[in] positions Current joint positions of all joint groups combined and matching the
-     * order of joint_names(): \f$ q \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad] \f$.
-     * @param[in] velocities Current joint velocities of all joint groups combined and matching the
-     * order of joint_names(): \f$ \dot{q} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
-     * @throw std::invalid_argument if size of any input vector does not match robot DoF.
+     * @param[in] full_q Current joint positions of the whole robot and matching the order of
+     * joint_names(): \f$ q \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad] \f$.
+     * @param[in] full_dq Current joint velocities of the whole robot and matching the order of
+     * joint_names(): \f$ \dot{q} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
+     * @throw std::invalid_argument if size of any input vector does not match robot full DoF.
      */
-    void Update(const std::vector<double>& positions, const std::vector<double>& velocities);
+    void Update(const std::vector<double>& full_q, const std::vector<double>& full_dq);
 
     //========================================== DYNAMICS ==========================================
     /**
@@ -208,24 +208,25 @@ public:
     IKResult SolveConstrainedIK(const std::map<JointGroup, IKParams>& ik_params_by_group);
 
     /**
-     * @brief [Blocking] Score of the robot's current configuration (posture), calculated from the
-     * manipulability measurements.
-     * @return A pair of {translation_score, orientation_score}. The quality of configuration based
-     * on score is mapped as: poor = [0, 20), medium = [20, 40), good = [40, 100].
+     * @brief [Blocking] Score of each joint group's current configuration (posture), calculated
+     * from the manipulability measurements.
+     * @return Configuration score mapped by joint group as {translation_score,
+     * orientation_score}. The quality of configuration based on the score can be interpreted as:
+     * poor = [0, 20), medium = [20, 40), good = [40, 100].
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      * @warning A poor configuration score means the robot is near or at singularity, which can lead
      * to degraded Cartesian performance. Use configuration with high scores for better
      * manipulability and task results.
      */
-    std::pair<double, double> configuration_score() const;
+    std::map<JointGroup, std::pair<double, double>> configuration_score() const;
 
     //======================================= MULTI-CONTACT ========================================
     /**
      * @brief [Non-blocking] Estimated multi-contact forces applied on each link of applicable joint
      * groups, calculated using the force-torque sensors installed in every joint of the robot.
-     * @return A map of JointGroup to \f$ f_c \in \mathbb{R}^{n \times 1} \f$. Each vector element
-     * is a \f$ \mathbb{R}^{3 \times 1} \f$ force vector w.r.t. the corresponding link frame. Only
+     * @return \f$ f_c \in \mathbb{R}^{n \times 1} \f$ mapped by joint group. Each vector element is
+     * a \f$ \mathbb{R}^{3 \times 1} \f$ force vector w.r.t. the corresponding link frame. Only
      * contains joint groups that are capable of multi-contact estimation.
      * @warning This data is only available on certain robot models. An empty vector will be
      * returned if the connected robot does not support multi-contact estimation.
@@ -235,9 +236,9 @@ public:
     /**
      * @brief [Non-blocking] Estimated multi-contact positions on each link of applicable joint
      * groups, calculated using the force-torque sensors installed in every joint of the robot.
-     * @return A map of JointGroup to \f$ p_c \in \mathbb{R}^{n \times 1} \f$. Each vector element
-     * is a \f$ \mathbb{R}^{3 \times 1} \f$ position vector w.r.t. the corresponding link frame.
-     * Only contains joint groups that are capable of multi-contact estimation.
+     * @return \f$ p_c \in \mathbb{R}^{n \times 1} \f$ mapped by joint group. Each vector element is
+     * a \f$ \mathbb{R}^{3 \times 1} \f$ position vector w.r.t. the corresponding link frame. Only
+     * contains joint groups that are capable of multi-contact estimation.
      * @warning This data is only available on certain robot models. An empty vector will be
      * returned if the connected robot does not support multi-contact estimation.
      */
