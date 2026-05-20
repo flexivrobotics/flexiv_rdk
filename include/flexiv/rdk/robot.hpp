@@ -436,10 +436,9 @@ public:
 
     //==================================== PRIMITIVE EXECUTION =====================================
     /**
-     * @brief [Blocking] Execute a primitive by specifying its name and parameters, which can be
-     * found in the [Flexiv Primitives documentation](https://www.flexiv.com/primitives/).
-     * @param[in] primitive_args A map of JointGroup to PrimitiveArgs, specifying the name and input
-     * parameters of a primitive to run on the corresponding joint group.
+     * @brief [Blocking] Execute primitive(s) on specified joint group(s).
+     * @param[in] primitive_args Primitive arguments mapped by joint group. Only single-arm joint
+     * groups like ARM_1 and ARM_2 are accepted, other groups are ignored.
      * @param[in] block_until_started Whether to wait for the commanded primitive to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the primitive ready, the loading process typically takes no more than 200 ms.
@@ -463,9 +462,9 @@ public:
         const std::map<JointGroup, PrimitiveArgs>& primitive_args, bool block_until_started = true);
 
     /**
-     * @brief [Blocking] States data of the primitive(s) that are currently running on each joint
-     * group.
-     * @return A map of JointGroup to PrimitiveStates. Only contains joint groups that exist.
+     * @brief [Blocking] States data of the primitive(s) that are currently running.
+     * @return Primitive states data mapped by joint group. Only joint groups that are currently
+     * running primitives will be included.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
