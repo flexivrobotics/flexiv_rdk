@@ -106,7 +106,7 @@ enum class Mode
     NRT_SUPER_PRIMITIVE,
 };
 
-/** Map Mode enum to string */
+/** Map Mode enums to strings */
 inline const std::map<Mode, std::string> kModeNames {
     {Mode::UNKNOWN, "UNKNOWN"},
     {Mode::IDLE, "IDLE"},
