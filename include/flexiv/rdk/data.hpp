@@ -505,6 +505,7 @@ using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::C
  * @struct PrimitiveArgs
  * @brief Arguments of a primitive command.
  * @see Robot::ExecutePrimitive().
+ * @see [Flexiv Primitives documentation](https://www.flexiv.com/primitives/)
  */
 struct PrimitiveArgs
 {
@@ -524,7 +525,9 @@ struct PrimitiveArgs
 
     /** Input parameter names and values of the primitive. Use int 1 and 0 to represent booleans.
      * E.g. {{"target", rdk::Coord({0.65, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})},
-     * {"vel", 0.6}, {"zoneRadius", "Z50"}}. */
+     * {"vel", 0.6}, {"zoneRadius", "Z50"}}.
+     * @warning The primitive input parameters may not use SI units, please refer to the Flexiv
+     * Primitives documentation for exact unit definition. */
     std::map<std::string, FlexivDataTypes> input_params = {};
 };
 
