@@ -472,9 +472,10 @@ public:
 
     //==================================== DIRECT JOINT CONTROL ====================================
     /**
-     * @brief [Non-blocking] Continuously stream joint torque commands to the robot.
-     * @param[in] cmds A map of JointGroup to RtJointTorqueCmd, specifying the joint torque commands
-     * for each joint group.
+     * @brief [Non-blocking] Continuously stream joint torque commands of the specified joint
+     * group(s) to the robot. The commands are tracked by a high-performance joint torque
+     * controller.
+     * @param[in] cmds Real-time joint torque commands mapped by joint group.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF, or
      * [friction_comp_scale] is outside the valid range.
      * @throw std::logic_error if the robot is not in the correct control mode.
@@ -487,10 +488,10 @@ public:
 
     /**
      * @brief [Non-blocking] Continuously stream joint position, velocity, and acceleration commands
-     * to the robot. The commands are tracked by either the joint impedance controller or the joint
-     * position controller, depending on the control mode.
-     * @param[in] cmds A map of JointGroup to RtJointPositionCmd, specifying the joint position,
-     * velocity, and acceleration commands for each joint group.
+     * of the specified joint group(s) to the robot. The commands are tracked by either the joint
+     * impedance controller or the joint position controller, depending on the control mode.
+     * @param[in] cmds Real-time joint position-velocity-acceleration commands mapped by joint
+     * group.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
@@ -502,12 +503,12 @@ public:
     void StreamJointPosition(const std::map<JointGroup, RtJointPositionCmd>& cmds);
 
     /**
-     * @brief [Non-blocking] Discretely send joint position and velocity commands to the robot. The
-     * robot's internal motion generator will smoothen the discrete commands, which are tracked by
-     * either the joint impedance controller or the joint position controller, depending on the
-     * control mode.
-     * @param[in] cmds A map of JointGroup to NrtJointPositionCmd, specifying the joint position and
-     * velocity commands for each joint group.
+     * @brief [Non-blocking] Discretely send joint position and velocity commands of the specified
+     * joint group(s) to the robot. An internal motion generator will smoothen the discrete
+     * commands, which are then tracked by either the joint impedance controller or the joint
+     * position controller, depending on the control mode.
+     * @param[in] cmds Non-real-time joint position-velocity-acceleration commands mapped by joint
+     * group.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF, or
      * [dq_max] or [ddq_max] contains any non-positive value.
      * @throw std::logic_error if the robot is not in the correct control mode.
@@ -578,11 +579,12 @@ public:
 
     //================================== DIRECT CARTESIAN CONTROL ==================================
     /**
-     * @brief [Non-blocking] Continuously stream Cartesian motion and/or force commands for the
-     * robot to track using its unified motion-force controller, which allows doing force control in
-     * zero or more Cartesian axes and motion control in the rest axes.
-     * @param[in] cmds A map of JointGroup to RtCartesianCmd, specifying the Cartesian motion and/or
-     * force commands for each joint group.
+     * @brief [Non-blocking] Continuously stream Cartesian motion and/or force commands of the
+     * specified joint group(s) to the robot. The commands are tracked by a unified motion-force
+     * controller that allows force control in zero or more Cartesian axes and motion control in
+     * the other axes.
+     * @param[in] cmds Real-time Cartesian motion/force commands mapped by joint group. Only
+     * single-arm joint groups like ARM_1 and ARM_2 are accepted, other groups are ignored.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE.
@@ -608,12 +610,13 @@ public:
     void StreamCartesianMotionForce(const std::map<JointGroup, RtCartesianCmd>& cmds);
 
     /**
-     * @brief [Non-blocking] Discretely send Cartesian motion and/or force commands for the robot to
-     * track using its unified motion-force controller, which allows doing force control in zero or
-     * more Cartesian axes and motion control in the rest axes. The robot's internal motion
-     * generator will smoothen the discrete commands.
-     * @param[in] cmds A map of JointGroup to NrtCartesianCmd, specifying the Cartesian motion
-     * and/or force commands for each joint group.
+     * @brief [Non-blocking] Discretely send Cartesian motion and/or force commands of the specified
+     * joint group(s) to the robot. An internal motion generator will smoothen the discrete
+     * commands, which are then tracked by a unified motion-force controller that allows force
+     * control in zero or more Cartesian axes and motion control in the other axes. The robot's
+     * internal motion generator will smoothen the discrete commands.
+     * @param[in] cmds Non-real-time Cartesian motion/force commands mapped by joint group. Only
+     * single-arm joint groups like ARM_1 and ARM_2 are accepted, other groups are ignored.
      * @throw std::invalid_argument if any of the last 4 input parameters is not positive.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
@@ -639,8 +642,8 @@ public:
     /**
      * @brief [Non-blocking] Discretely send Cartesian multi-waypoint motion and/or force commands
      * for the robot to track using non-real-time super primitives.
-     * @param[in] cmds A map of JointGroup to NrtCartesianMultiWaypointCmd, specifying a sequence of
-     * Cartesian waypoints and/or force commands for each joint group.
+     * @param[in] cmds Non-real-time Cartesian multi-waypoint commands mapped by joint group. Only
+     * single-arm joint groups like ARM_1 and ARM_2 are accepted, other groups are ignored.
      * @throw std::invalid_argument if any waypoint list is empty or any waypoint's last 4 input
      * parameters is not positive.
      * @throw std::logic_error if the robot is not in the correct control mode.
@@ -658,7 +661,8 @@ public:
     /**
      * @brief [Blocking] Set impedance properties of the robot's Cartesian motion controller
      * used in the Cartesian motion-force control modes.
-     * @param[in] group The joint group to set Cartesian impedance for.
+     * @param[in] group The joint group to set Cartesian impedance for. Only single-arm joint
+     * groups like ARM_1 and ARM_2 are accepted, other groups are ignored.
      * @param[in] K_x Cartesian motion stiffness: \f$ K_x \in \mathbb{R}^{6 \times 1} \f$.
      * Setting motion stiffness of a motion-controlled Cartesian axis to 0 will make this axis
      * free-floating. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear stiffness and \f$
@@ -684,7 +688,8 @@ public:
      * @brief [Blocking] Set maximum contact wrench for the motion control part of the Cartesian
      * motion-force control modes. The controller will regulate its output to maintain contact
      * wrench (force and moment) with the environment under the set values.
-     * @param[in] group The joint group to set maximum contact wrench for.
+     * @param[in] group The joint group to set maximum contact wrench for. Only single-arm joint
+     * groups like ARM_1 and ARM_2 are accepted, other groups are ignored.
      * @param[in] max_wrench Maximum contact wrench (force and moment): \f$ F_{max} \in
      * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ maximum force and
      * \f$ \mathbb{R}^{3 \times 1} \f$ maximum moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$.
@@ -704,7 +709,8 @@ public:
     /**
      * @brief [Blocking] Set reference joint positions for the null-space posture control module
      * used in the Cartesian motion-force control modes.
-     * @param[in] group The joint group to set null-space posture for.
+     * @param[in] group The joint group to set null-space posture for. Only single-arm and external
+     * axis joint group are accepted, other groups are ignored.
      * @param[in] ref_positions Reference joint positions for the null-space posture control:
      * \f$ q_{ns} \in \mathbb{R}^{n \times 1} \f$. Valid range: [RobotInfo::q_min,
      * RobotInfo::q_max]. Unit: \f$ [rad] \f$.
@@ -731,7 +737,8 @@ public:
      * @brief [Blocking] Set weights of the three optimization objectives while computing the
      * robot's null-space posture. Change the weights to optimize robot performance for different
      * use cases.
-     * @param[in] group The joint group to set null-space objectives for.
+     * @param[in] group The joint group to set null-space objectives for. Only single-arm joint
+     * groups like ARM_1 and ARM_2 are accepted, other groups are ignored.
      * @param[in] linear_manipulability Increase this weight to improve the robot's capability to
      * translate freely in Cartesian space, i.e. a broader range of potential translation movements.
      * Valid range: [0.0, 1.0].
@@ -756,7 +763,8 @@ public:
     /**
      * @brief [Blocking] Set Cartesian axes to enable force control while in the Cartesian
      * motion-force control modes. Axes not enabled for force control will be motion-controlled.
-     * @param[in] group The joint group to set force control axes for.
+     * @param[in] group The joint group to set force control axes for. Only single-arm joint
+     * groups like ARM_1 and ARM_2 are accepted, other groups are ignored.
      * @param[in] enabled_axes Flags to enable/disable force control for certain Cartesian axes in
      * the force control reference frame (configured by SetForceControlFrame()). The axis order is
      * \f$ [X, Y, Z, Rx, Ry, Rz] \f$.
@@ -781,7 +789,8 @@ public:
      * @brief [Blocking] Set reference frame for force control while in the Cartesian motion-force
      * control modes. The force control frame is defined by specifying its transformation with
      * regard to the root coordinate.
-     * @param[in] group The joint group to set force control frame for.
+     * @param[in] group The joint group to set force control frame for. Only single-arm joint
+     * groups like ARM_1 and ARM_2 are accepted, other groups are ignored.
      * @param[in] root_coord Reference coordinate of [T_in_root].
      * @param[in] T_in_root Transformation from [root_coord] to the user-defined force control
      * frame: \f$ ^{root}T_{force} \in \mathbb{R}^{7 \times 1} \f$. Consists of \f$ \mathbb{R}^{3
@@ -817,7 +826,8 @@ public:
      * control modes. When enabled, an open-loop force controller will be used to feed forward the
      * target wrench, i.e. passive force control. When disabled, a closed-loop force controller will
      * be used to track the target wrench, i.e. active force control.
-     * @param[in] group The joint group to toggle passive force control for.
+     * @param[in] group The joint group to toggle passive force control for. Only single-arm joint
+     * groups like ARM_1 and ARM_2 are accepted, other groups are ignored.
      * @param[in] is_enabled True: enable; false: disable. By default, passive force control is
      * disabled and active force control is used.
      * @throw std::logic_error if the robot is not in the correct control mode.
@@ -839,7 +849,7 @@ public:
     //======================================== IO CONTROL ========================================
     /**
      * @brief [Blocking] Set one or more digital output ports, including 16 on the control box plus
-     * 2 inside the wrist connector.
+     * 2 inside each wrist connector.
      * @param[in] digital_outputs A map of {port_index, port_value}. For [port_index], the valid
      * range is [0, 17]. For [port_value], true: set port high, false: set port low. For example,
      * {{1, true}, {3, false}, {10, true}}.
@@ -851,7 +861,7 @@ public:
 
     /**
      * @brief [Non-blocking] Current reading from all digital input ports, including 16 on the
-     * control box plus 2 inside the wrist connector.
+     * control box plus 2 inside each wrist connector.
      * @return A boolean array whose index corresponds to that of the digital input ports.
      * True: port high; false: port low.
      */
