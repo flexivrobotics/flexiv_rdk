@@ -18,6 +18,8 @@
 #include <thread>
 #include <atomic>
 
+using namespace flexiv;
+
 namespace {
 /** RT loop period [sec] */
 const double kLoopPeriod = 0.001;
@@ -29,7 +31,7 @@ const double kSwingAmp = 0.1;
 const double kSwingFreq = 0.025; // = 10mm/s linear velocity
 
 /** Current Cartesian-space pose (position + rotation) of robot TCP */
-std::map<flexiv::rdk::JointGroup, std::array<double, flexiv::rdk::kPoseSize>> g_curr_tcp_pose;
+std::map<rdk::JointGroup, std::array<double, rdk::kPoseSize>> g_curr_tcp_pose;
 
 /** Test duration converted from user-specified hours to loop counts */
 uint64_t g_test_duration_loop_counts = 0;
@@ -40,17 +42,17 @@ const unsigned int kLogDurationLoopCounts = 10 * 60 * 1000; // = 10 min/file
 /** Data to be logged in low-priority thread */
 struct LogData
 {
-    std::map<flexiv::rdk::JointGroup, std::array<double, flexiv::rdk::kPoseSize>> tcp_pose;
-    std::map<flexiv::rdk::JointGroup, std::array<double, flexiv::rdk::kCartDoF>> tcp_force;
+    std::map<rdk::JointGroup, std::array<double, rdk::kPoseSize>> tcp_pose;
+    std::map<rdk::JointGroup, std::array<double, rdk::kCartDoF>> tcp_force;
 } g_log_data;
 
 /** Atomic signal to stop the test */
 std::atomic<bool> g_stop = {false};
 }
 
-void HighPriorityTask(flexiv::rdk::Robot& robot,
-    const std::vector<flexiv::rdk::JointGroup>& joint_groups,
-    const std::map<flexiv::rdk::JointGroup, std::array<double, flexiv::rdk::kPoseSize>>& init_poses)
+void HighPriorityTask(rdk::Robot& robot,
+    const std::map<rdk::JointGroup, std::string>& single_arm_groups,
+    const std::map<rdk::JointGroup, std::array<double, rdk::kPoseSize>>& all_init_poses)
 {
     // Local periodic loop counter
     static uint64_t loop_counter = 0;
@@ -63,13 +65,13 @@ void HighPriorityTask(flexiv::rdk::Robot& robot,
         }
 
         // Swing along Z direction
-        std::map<flexiv::rdk::JointGroup, flexiv::rdk::RtCartesianCmd> rt_cmds;
-        for (const auto& group : joint_groups) {
+        std::map<rdk::JointGroup, rdk::RtCartesianCmd> rt_cmds;
+        for (const auto& [group, _] : single_arm_groups) {
             auto target_pose = g_curr_tcp_pose.at(group);
-            target_pose[2] = init_poses.at(group)[2]
+            target_pose[2] = all_init_poses.at(group)[2]
                              + kSwingAmp * sin(2 * M_PI * kSwingFreq * loop_counter * kLoopPeriod);
             g_curr_tcp_pose[group] = target_pose;
-            rt_cmds[group] = flexiv::rdk::RtCartesianCmd(target_pose);
+            rt_cmds[group] = rdk::RtCartesianCmd(target_pose);
         }
         robot.StreamCartesianMotionForce(rt_cmds);
 
@@ -141,7 +143,7 @@ void LowPriorityTask()
             // Loop counter x1, then grouped TCP pose x7 and TCP wrench x6
             csv_file << loop_counter << ",";
             for (const auto& [group, pose] : g_log_data.tcp_pose) {
-                csv_file << flexiv::rdk::kJointGroupNames.at(group) << ",";
+                csv_file << rdk::kJointGroupNames.at(group) << ",";
                 for (const auto& i : pose) {
                     csv_file << i << ",";
                 }
@@ -182,7 +184,7 @@ int main(int argc, char* argv[])
 {
     // Parse Parameters
     //==============================================================================================
-    if (argc < 3 || flexiv::rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
+    if (argc < 3 || rdk::utility::ProgramArgsExistAny(argc, argv, {"-h", "--help"})) {
         PrintHelp();
         return 1;
     }
@@ -200,7 +202,7 @@ int main(int argc, char* argv[])
         // RDK Initialization
         //==========================================================================================
         // Instantiate robot interface
-        flexiv::rdk::Robot robot(robot_sn);
+        rdk::Robot robot(robot_sn);
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
@@ -223,43 +225,41 @@ int main(int argc, char* argv[])
         }
         spdlog::info("Robot is now operational");
 
-        // Bring Robot To Home
+        // Move robot to home pose
         //==========================================================================================
-        // All available joint groups of the robot
-        const auto joint_groups = robot.groups();
+        // Direct Cartesian control can only be executed by single-arm joint groups
+        const auto& single_arm_groups = robot.info().single_arm_groups;
+        if (single_arm_groups.empty()) {
+            throw std::runtime_error("No single-arm joint group found on the connected robot");
+        }
 
-        robot.SwitchMode(flexiv::rdk::Mode::NRT_PLAN_EXECUTION);
-        robot.ExecutePlan("PLAN-Home");
-
-        // Wait fot the plan to finish
-        do {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-        } while (robot.busy());
+        robot.Home();
 
         // Switch mode after robot is at home
-        robot.SwitchMode(flexiv::rdk::Mode::RT_CARTESIAN_MOTION_FORCE);
+        robot.SwitchMode(rdk::Mode::RT_CARTESIAN_MOTION_FORCE);
 
-        for (const auto& group : joint_groups) {
-            robot.SetForceControlAxis(group,
-                std::array<bool, flexiv::rdk::kCartDoF> {false, false, false, false, false, false});
+        for (const auto& [group, _] : single_arm_groups) {
+            robot.SetForceControlAxis(
+                group, std::array<bool, rdk::kCartDoF> {false, false, false, false, false, false});
         }
 
         // Set initial pose to current TCP pose
-        std::map<flexiv::rdk::JointGroup, std::array<double, flexiv::rdk::kPoseSize>> init_poses;
-        for (const auto& [group, states] : robot.states()) {
-            init_poses[group] = states.tcp_pose;
-            g_curr_tcp_pose[group] = states.tcp_pose;
+        std::map<rdk::JointGroup, std::array<double, rdk::kPoseSize>> all_init_pose;
+        const auto robot_states = robot.states();
+        for (const auto& [group, _] : single_arm_groups) {
+            all_init_pose[group] = robot_states.at(group).tcp_pose;
+            g_curr_tcp_pose[group] = robot_states.at(group).tcp_pose;
             spdlog::info("[{}] Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
-                             + flexiv::rdk::utility::Arr2Str(init_poses.at(group)),
-                flexiv::rdk::kJointGroupNames.at(group));
+                             + rdk::utility::Arr2Str(all_init_pose.at(group)),
+                rdk::kJointGroupNames.at(group));
         }
 
         // Periodic Tasks
         //==========================================================================================
-        flexiv::rdk::Scheduler scheduler;
+        rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(std::bind(HighPriorityTask, std::ref(robot), std::cref(joint_groups),
-                              std::cref(init_poses)),
+        scheduler.AddTask(std::bind(HighPriorityTask, std::ref(robot), std::cref(single_arm_groups),
+                              std::cref(all_init_pose)),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks
         scheduler.Start();

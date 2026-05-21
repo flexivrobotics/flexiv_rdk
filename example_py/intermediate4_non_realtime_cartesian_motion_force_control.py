@@ -16,7 +16,7 @@ import argparse
 import spdlog  # pip install spdlog
 import numpy as np  # pip install numpy
 import flexivrdk  # pip install flexivrdk
-
+import utility
 
 # Global constants
 # ==================================================================================================
@@ -124,23 +124,21 @@ def main():
 
         # Move robot to home pose
         logger.info("Moving to home pose")
-        robot.SwitchMode(mode.NRT_PLAN_EXECUTION)
-        robot.ExecutePlan("PLAN-Home")
-        # Wait for the plan to finish
-        while robot.busy():
-            time.sleep(1)
+        robot.Home()
 
         # Zero Force-torque Sensor
         # =========================================================================================
-        # All available joint groups of the robot
-        joint_groups = robot.groups()
+        # Direct Cartesian control can only be executed by single-arm joint groups
+        single_arm_groups = robot.info().single_arm_groups
+        if not single_arm_groups:
+            raise RuntimeError("No single-arm joint group found on the connected robot")
 
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
         # IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
         robot.ExecutePrimitive(
             {
                 group: flexivrdk.PrimitiveArgs("ZeroFTSensor", dict())
-                for group in joint_groups
+                for group in single_arm_groups
             }
         )
 
@@ -151,9 +149,8 @@ def main():
         )
 
         # Wait for primitive to finish
-        while not all(
-            bool(state.names_and_values["terminated"])
-            for state in robot.primitive_states().values()
+        while not utility.primitive_state_true_for_groups(
+            robot.primitive_states(), single_arm_groups, "terminated"
         ):
             time.sleep(1)
         logger.info("Sensor zeroing complete")
@@ -167,8 +164,8 @@ def main():
 
         # Set initial poses to current TCP poses
         all_init_pose = {}
-        for group, states in robot.states().items():
-            all_init_pose[group] = states.tcp_pose.copy()
+        for group in single_arm_groups:
+            all_init_pose[group] = robot.states()[group].tcp_pose.copy()
             logger.info(
                 f"[{flexivrdk.kJointGroupNames[group]}] Initial TCP pose [position 3x1, rotation (quaternion) 4x1]: {all_init_pose[group]}"
             )
@@ -177,7 +174,7 @@ def main():
         robot.SwitchMode(mode.NRT_CARTESIAN_MOTION_FORCE)
 
         # Search for contact with max contact wrench set to a small value for making soft contact
-        for group in joint_groups:
+        for group in single_arm_groups:
             robot.SetMaxContactWrench(group, MAX_WRENCH_FOR_CONTACT_SEARCH)
 
         # Set target point along -Z direction and expect contact to happen during the travel
@@ -218,12 +215,12 @@ def main():
 
         # Set force control reference frame based on program argument. See function doc for more
         # details
-        for group in joint_groups:
+        for group in single_arm_groups:
             robot.SetForceControlFrame(group, force_ctrl_frame)
 
         # Set which Cartesian axis(s) to activate for force control. See function doc for more
         # details. Here we only active Z axis
-        for group in joint_groups:
+        for group in single_arm_groups:
             robot.SetForceControlAxis(group, [False, False, True, False, False, False])
 
         # Uncomment the following line to enable passive force control, otherwise active force
@@ -239,14 +236,14 @@ def main():
         # is activated (i.e. motion control disabled in Z axis) and the motion force control mode
         # is entered, this way the contact force along Z axis is explicitly regulated and will not
         # spike after the max contact wrench regulation for motion control is disabled
-        for group in joint_groups:
+        for group in single_arm_groups:
             robot.SetMaxContactWrench(group, [float("inf")] * 6)
 
         # Update initial poses to current TCP poses
-        for group, pose in all_init_pose.items():
-            pose = robot.states()[group].tcp_pose.copy()
+        for group in single_arm_groups:
+            all_init_pose[group] = robot.states()[group].tcp_pose.copy()
             logger.info(
-                f"[{flexivrdk.kJointGroupNames[group]}] Initial TCP pose [position 3x1, rotation (quaternion) 4x1]: {pose}"
+                f"[{flexivrdk.kJointGroupNames[group]}] Initial TCP pose [position 3x1, rotation (quaternion) 4x1]: {all_init_pose[group]}"
             )
 
         # Periodic Task

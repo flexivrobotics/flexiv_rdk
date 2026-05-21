@@ -30,20 +30,6 @@ struct GroundTruth
 };
 }
 
-namespace {
-std::vector<double> CombineStates(
-    const std::map<flexiv::rdk::JointGroup, flexiv::rdk::RobotStates>& all_states, bool position)
-{
-    std::vector<double> combined;
-    for (const auto& [group, states] : all_states) {
-        (void)group;
-        const auto& src = position ? states.q : states.dtheta;
-        combined.insert(combined.end(), src.begin(), src.end());
-    }
-    return combined;
-}
-}
-
 /** Step the dynamics engine once */
 void StepDynamics(flexiv::rdk::Robot& robot, flexiv::rdk::Model& model, const GroundTruth& ref)
 {
@@ -51,8 +37,9 @@ void StepDynamics(flexiv::rdk::Robot& robot, flexiv::rdk::Model& model, const Gr
     auto tic = std::chrono::high_resolution_clock::now();
 
     // Update robot model in dynamics engine
-    const auto all_states = robot.states();
-    model.Update(CombineStates(all_states, true), CombineStates(all_states, false));
+    const auto robot_states = robot.states();
+    model.Update(robot_states.at(flexiv::rdk::JointGroup::ALL).q,
+        robot_states.at(flexiv::rdk::JointGroup::ALL).dtheta);
 
     // Get J, M, G from dynamic engine
     Eigen::MatrixXd J = model.J("flange");
@@ -137,20 +124,9 @@ int main(int argc, char* argv[])
         }
         spdlog::info("Robot is now operational");
 
-        // Set mode after robot is operational
-        robot.SwitchMode(flexiv::rdk::Mode::NRT_PLAN_EXECUTION);
-
-        // Bring Robot To Home
+        // Move robot to home pose
         //==========================================================================================
-        robot.ExecutePlan("PLAN-Home");
-
-        // Wait for the execution to finish
-        do {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-        } while (robot.busy());
-
-        // Put mode back to IDLE
-        robot.SwitchMode(flexiv::rdk::Mode::IDLE);
+        robot.Home();
 
         // Test Dynamics Engine without Tool
         //==========================================================================================
@@ -211,6 +187,12 @@ int main(int argc, char* argv[])
         // Instantiate tool interface
         flexiv::rdk::Tool tool(robot);
 
+        // Tools can only be assigned to single-arm joint groups
+        const auto& single_arm_groups = robot.info().single_arm_groups;
+        if (single_arm_groups.empty()) {
+            throw std::runtime_error("No single-arm joint group found on the connected robot");
+        }
+
         // Set name and parameters for the test tool
         std::string tool_name = "DynamicsTestTool";
         flexiv::rdk::ToolParams tool_params;
@@ -223,7 +205,9 @@ int main(int argc, char* argv[])
         if (tool.exist(tool_name)) {
             spdlog::warn("Tool with the same name [{}] already exists, removing it now", tool_name);
             // Switch to other tool or no tool (Flange) before removing the current tool
-            tool.Switch("Flange");
+            for (const auto& [group, _] : single_arm_groups) {
+                tool.Switch(group, "Flange");
+            }
             tool.Remove(tool_name);
         }
 
@@ -233,10 +217,15 @@ int main(int argc, char* argv[])
 
         // Switch to the newly added test tool, i.e. set it as the active tool
         spdlog::info("Switching to test tool [{}]", tool_name);
-        tool.Switch(tool_name);
+        for (const auto& [group, _] : single_arm_groups) {
+            tool.Switch(group, tool_name);
+        }
 
-        // Get and print the current active tool, should be the test tool
-        spdlog::info("Current active tool: {}", tool.name());
+        // Get and print the current active tool for each joint group, should be the test tool
+        for (const auto& [group, _] : single_arm_groups) {
+            spdlog::info("[{}] Current active tool: {}",
+                flexiv::rdk::kJointGroupNames.at(group), tool.name(group));
+        }
 
         // Reload robot + tool model using the latest data synced from the connected robot
         model.Reload();
@@ -249,7 +238,9 @@ int main(int argc, char* argv[])
         }
 
         // Switch to other tool or no tool (Flange) before removing the current tool
-        tool.Switch("Flange");
+        for (const auto& [group, _] : single_arm_groups) {
+            tool.Switch(group, "Flange");
+        }
 
         // Clean up by removing the test tool
         spdlog::info("Removing tool [{}]", tool_name);

@@ -13,7 +13,7 @@ import time
 import argparse
 import spdlog  # pip install spdlog
 import flexivrdk  # pip install flexivrdk
-from utility import quat2eulerZYX
+import utility
 
 
 def main():
@@ -65,28 +65,18 @@ def main():
 
         # Execute Primitives
         # ==========================================================================================
-        # All available joint groups of the robot
-        joint_groups = robot.groups()
+        # Primitives can only be executed on single-arm joint groups
+        single_arm_groups = robot.info().single_arm_groups
+        if not single_arm_groups:
+            raise RuntimeError("No single-arm joint group found on the connected robot")
+
+        # (1) Move robot to home pose
+        # ------------------------------------------------------------------------------------------
+        logger.info("Moving to home pose")
+        robot.Home()
 
         # Switch to primitive execution mode
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
-
-        # (1) Go to home pose
-        # ------------------------------------------------------------------------------------------
-        # All parameters of the "Home" primitive are optional, thus we can skip the parameters and
-        # the default values will be used
-        logger.info("Executing primitive: Home")
-
-        # Send command to robot
-        robot.ExecutePrimitive(
-            {group: flexivrdk.PrimitiveArgs("Home", dict()) for group in joint_groups}
-        )
-
-        while not all(
-            bool(state.names_and_values["reachedTarget"])
-            for state in robot.primitive_states().values()
-        ):
-            time.sleep(1)
 
         # (2) Move robot joints to target positions
         # ------------------------------------------------------------------------------------------
@@ -118,19 +108,26 @@ def main():
                         ],
                     },
                 )
-                for group in joint_groups
+                for group in single_arm_groups
             }
         )
         # Most primitives won't exit by themselves and require users to explicitly trigger
         # transitions based on specific primitive states. Here we check if the primitive state
         # [reachedTarget] becomes true and trigger the transition manually by sending a new
         # primitive command.
-        while not all(
-            bool(state.names_and_values["reachedTarget"])
-            for state in robot.primitive_states().values()
-        ):
+        while True:
+            primitive_states = robot.primitive_states()
+            if utility.primitive_state_true_for_groups(
+                primitive_states, single_arm_groups, "reachedTarget"
+            ):
+                break
             # Print current primitive states
-            print(robot.primitive_states())
+            logger.info("Current primitive states:")
+            for group, pt_states in primitive_states.items():
+                print(f"{flexivrdk.kJointGroupNames[group]}:")
+                print(f"primitiveName: {pt_states.pt_name}")
+                for name, value in pt_states.names_and_values.items():
+                    print(f"{name}: {value}")
             time.sleep(1)
 
         # (3) Move robot TCP to a target pose in world (base) frame
@@ -170,13 +167,12 @@ def main():
                         "zoneRadius": "Z50",
                     },
                 )
-                for group in joint_groups
+                for group in single_arm_groups
             }
         )
         # Wait for reached target
-        while not all(
-            bool(state.names_and_values["reachedTarget"])
-            for state in robot.primitive_states().values()
+        while not utility.primitive_state_true_for_groups(
+            robot.primitive_states(), single_arm_groups, "reachedTarget"
         ):
             time.sleep(1)
 
@@ -190,7 +186,7 @@ def main():
         # extrinsic rotation
         target_quat = [0.9185587, 0.1767767, 0.3061862, 0.1767767]
         # ZYX = [30, 30, 30] degrees
-        eulerZYX_deg = quat2eulerZYX(target_quat, degree=True)
+        eulerZYX_deg = utility.quat2eulerZYX(target_quat, degree=True)
 
         # Send command to robot. This motion will hold current TCP position and only do rotation
         robot.ExecutePrimitive(
@@ -204,14 +200,13 @@ def main():
                         "vel": 0.2,
                     },
                 )
-                for group in joint_groups
+                for group in single_arm_groups
             }
         )
 
         # Wait for reached target
-        while not all(
-            bool(state.names_and_values["reachedTarget"])
-            for state in robot.primitive_states().values()
+        while not utility.primitive_state_true_for_groups(
+            robot.primitive_states(), single_arm_groups, "reachedTarget"
         ):
             time.sleep(1)
 

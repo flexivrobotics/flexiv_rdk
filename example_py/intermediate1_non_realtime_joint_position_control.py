@@ -77,11 +77,7 @@ def main():
 
         # Move robot to home pose
         logger.info("Moving to home pose")
-        robot.SwitchMode(mode.NRT_PLAN_EXECUTION)
-        robot.ExecutePlan("PLAN-Home")
-        # Wait for the plan to finish
-        while robot.busy():
-            time.sleep(1)
+        robot.Home()
 
         # Non-real-time Joint Position Control
         # ==========================================================================================

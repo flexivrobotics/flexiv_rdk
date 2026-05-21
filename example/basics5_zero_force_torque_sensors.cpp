@@ -81,13 +81,16 @@ int main(int argc, char* argv[])
                 rdk::kJointGroupNames.at(group), rdk::utility::Arr2Str(states.tcp_wrench));
         }
 
-        // All available joint groups of the robot
-        const auto joint_groups = robot.groups();
+        // Primitives can only be executed on single-arm joint groups
+        const auto& single_arm_groups = robot.info().single_arm_groups;
+        if (single_arm_groups.empty()) {
+            throw std::runtime_error("No single-arm joint group found on the connected robot");
+        }
 
         // Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
         robot.SwitchMode(rdk::Mode::NRT_PRIMITIVE_EXECUTION);
         std::map<rdk::JointGroup, rdk::PrimitiveArgs> pt_args;
-        for (const auto& group : joint_groups) {
+        for (const auto& [group, _] : single_arm_groups) {
             pt_args[group] = rdk::PrimitiveArgs("ZeroFTSensor", {});
         }
         robot.ExecutePrimitive(pt_args);
@@ -98,16 +101,14 @@ int main(int argc, char* argv[])
             "Zeroing force/torque sensors, make sure nothing is in contact with the robot");
 
         // Wait for primitive to finish
-        while (!std::all_of(joint_groups.begin(), joint_groups.end(), [&robot](const auto& group) {
-            return std::get<int>(
-                robot.primitive_states().at(group).names_and_values.at("terminated"));
-        })) {
+        while (!rdk::utility::PrimitiveStateTrueForGroups(
+            robot.primitive_states(), single_arm_groups, "terminated")) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         spdlog::info("Sensor zeroing complete");
 
         // Get and print the current TCP force/moment readings
-        for (const auto& group : joint_groups) {
+        for (const auto& [group, _] : single_arm_groups) {
             spdlog::info(
                 "[{}] TCP force and moment reading in world frame AFTER sensor zeroing: {} N-Nm",
                 rdk::kJointGroupNames.at(group),

@@ -15,13 +15,6 @@ import spdlog  # pip install spdlog
 import flexivrdk  # pip install flexivrdk
 
 
-def combine_states(all_states, position):
-    combined = []
-    for _, states in all_states.items():
-        combined.extend(states.q if position else states.dtheta)
-    return combined
-
-
 def main():
     # Program Setup
     # ==============================================================================================
@@ -71,11 +64,7 @@ def main():
 
         # Move robot to home pose
         logger.info("Moving to home pose")
-        robot.SwitchMode(mode.NRT_PLAN_EXECUTION)
-        robot.ExecutePlan("PLAN-Home")
-        # Wait for the plan to finish
-        while robot.busy():
-            time.sleep(1)
+        robot.Home()
 
         # Robot Dynamics
         # ==========================================================================================
@@ -85,9 +74,10 @@ def main():
         # Step dynamics engine 5 times
         for i in range(5):
             # Update robot model in dynamics engine
-            all_states = robot.states()
+            robot_states = robot.states()
             model.Update(
-                combine_states(all_states, True), combine_states(all_states, False)
+                robot_states[flexivrdk.JointGroup.ALL].q,
+                robot_states[flexivrdk.JointGroup.ALL].dtheta,
             )
 
             # Compute gravity vector
@@ -108,13 +98,30 @@ def main():
             print(J, flush=True)
             print()
 
-        # Check reachability of a Cartesian pose based on current pose
-        all_states = robot.states()
-        pose_to_check = next(iter(all_states.values())).tcp_pose.copy()
-        pose_to_check[0] += 0.1
-        logger.info(f"Checking reachability of Cartesian pose {pose_to_check}")
-        result = model.reachable(pose_to_check, combine_states(all_states, True), True)
-        logger.info(f"Got a result: reachable = {result[0]}, IK solution = {result[1]}")
+        # Check IK feasibility for a nearby Cartesian pose on all available single-arm joint groups
+        single_arm_groups = robot.info().single_arm_groups
+        if not single_arm_groups:
+            raise RuntimeError("No single-arm joint group found on the connected robot")
+
+        robot_states = robot.states()
+        ik_params_by_group = {}
+        for group in single_arm_groups:
+            pose_to_check = robot_states[group].tcp_pose.copy()
+            pose_to_check[0] += 0.1
+            logger.info(
+                f"[{flexivrdk.kJointGroupNames[group]}] Checking IK feasibility of Cartesian pose {pose_to_check}"
+            )
+            ik_params = flexivrdk.IKParams()
+            ik_params.cartesian_pose = pose_to_check
+            ik_params.seed_q = robot_states[group].q.copy()
+            ik_params.free_orientation = False
+            ik_params_by_group[group] = ik_params
+
+        # Print result
+        result = model.SolveConstrainedIK(ik_params_by_group)
+        logger.info(f"IK result success = {result.success}")
+        for group, q in result.solved_q.items():
+            logger.info(f"[{flexivrdk.kJointGroupNames[group]}] solved_q = {q}")
 
     except Exception as e:
         logger.error(str(e))

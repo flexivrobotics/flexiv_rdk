@@ -15,6 +15,7 @@ import argparse
 import spdlog  # pip install spdlog
 import numpy as np  # pip install numpy
 import flexivrdk  # pip install flexivrdk
+import utility
 
 # Global constants
 # ==================================================================================================
@@ -110,23 +111,21 @@ def main():
 
         # Move robot to home pose
         logger.info("Moving to home pose")
-        robot.SwitchMode(mode.NRT_PLAN_EXECUTION)
-        robot.ExecutePlan("PLAN-Home")
-        # Wait for the plan to finish
-        while robot.busy():
-            time.sleep(1)
+        robot.Home()
 
         # Zero Force-torque Sensor
         # =========================================================================================
-        # All available joint groups of the robot
-        joint_groups = robot.groups()
+        # Direct Cartesian control can only be executed by single-arm joint groups
+        single_arm_groups = robot.info().single_arm_groups
+        if not single_arm_groups:
+            raise RuntimeError("No single-arm joint group found on the connected robot")
 
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
         # IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
         robot.ExecutePrimitive(
             {
                 group: flexivrdk.PrimitiveArgs("ZeroFTSensor", dict())
-                for group in joint_groups
+                for group in single_arm_groups
             }
         )
 
@@ -137,9 +136,8 @@ def main():
         )
 
         # Wait for primitive to finish
-        while not all(
-            bool(state.names_and_values["terminated"])
-            for state in robot.primitive_states().values()
+        while not utility.primitive_state_true_for_groups(
+            robot.primitive_states(), single_arm_groups, "terminated"
         ):
             time.sleep(1)
         logger.info("Sensor zeroing complete")
@@ -158,15 +156,16 @@ def main():
         robot.SwitchMode(mode.NRT_CARTESIAN_MOTION_FORCE)
 
         # Set all Cartesian axis(s) to motion control
-        for group in joint_groups:
+        for group in single_arm_groups:
             robot.SetForceControlAxis(group, [False, False, False, False, False, False])
 
         # Save initial poses and joint positions
         all_init_pose = {}
         all_init_q = {}
-        for group, states in robot.states().items():
-            all_init_pose[group] = states.tcp_pose.copy()
-            all_init_q[group] = states.q.copy()
+        robot_states = robot.states()
+        for group in single_arm_groups:
+            all_init_pose[group] = robot_states[group].tcp_pose.copy()
+            all_init_q[group] = robot_states[group].q.copy()
 
         # Periodic Task
         # =========================================================================================
@@ -208,28 +207,31 @@ def main():
             # Online change reference joint positions at 3 seconds
             if time_elapsed % 20.0 == 3.0:
                 ref_q = [0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658]
-                for group in joint_groups:
+                for group in single_arm_groups:
                     robot.SetNullSpacePosture(group, ref_q)
                 logger.info(f"Reference joint positions set to: {ref_q}")
             # Online change stiffness to half of nominal at 6 seconds
             elif time_elapsed % 20.0 == 6.0:
-                new_K = np.multiply(robot.info().K_x_nom, 0.5).tolist()
-                for group in joint_groups:
+                for group in single_arm_groups:
+                    new_K = np.multiply(robot.info().K_x_nom[group], 0.5).tolist()
                     robot.SetCartesianImpedance(group, new_K)
-                logger.info(f"Cartesian stiffness set to: {new_K}")
+                    logger.info(
+                        f"[{flexivrdk.kJointGroupNames[group]}] Cartesian stiffness set to: {new_K}"
+                    )
             # Online change to another reference joint positions at 9 seconds
             elif time_elapsed % 20.0 == 9.0:
                 ref_q = [-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658]
-                for group in joint_groups:
+                for group in single_arm_groups:
                     robot.SetNullSpacePosture(group, ref_q)
                 logger.info(f"Reference joint positions set to: {ref_q}")
             # Online reset stiffness to nominal at 12 seconds
             elif time_elapsed % 20.0 == 12.0:
-                for group in joint_groups:
-                    robot.SetCartesianImpedance(group, robot.info().K_x_nom)
-                logger.info(
-                    f"Cartesian stiffness reset to nominal: {robot.info().K_x_nom}"
-                )
+                for group in single_arm_groups:
+                    nominal_K = robot.info().K_x_nom[group]
+                    robot.SetCartesianImpedance(group, nominal_K)
+                    logger.info(
+                        f"[{flexivrdk.kJointGroupNames[group]}] Cartesian stiffness reset to nominal: {nominal_K}"
+                    )
             # Online reset reference joint positions to nominal at 14 seconds
             elif time_elapsed % 20.0 == 14.0:
                 for group, init_q in all_init_q.items():
@@ -238,12 +240,12 @@ def main():
             # Online enable max contact wrench regulation at 16 seconds
             elif time_elapsed % 20.0 == 16.0:
                 max_wrench = [10.0, 10.0, 10.0, 2.0, 2.0, 2.0]
-                for group in joint_groups:
+                for group in single_arm_groups:
                     robot.SetMaxContactWrench(group, max_wrench)
                 logger.info(f"Max contact wrench set to: {max_wrench}")
             # Disable max contact wrench regulation at 19 seconds
             elif time_elapsed % 20.0 == 19.0:
-                for group in joint_groups:
+                for group in single_arm_groups:
                     robot.SetMaxContactWrench(group, [float("inf")] * 6)
                 logger.info("Max contact wrench regulation is disabled")
 

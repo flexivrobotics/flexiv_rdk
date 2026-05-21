@@ -56,7 +56,8 @@ void PrintHelp()
 }
 
 /** @brief Callback function for realtime periodic task */
-void PeriodicTask(rdk::Robot& robot, const std::vector<rdk::JointGroup>& joint_groups,
+void PeriodicTask(rdk::Robot& robot,
+    const std::map<rdk::JointGroup, std::string>& single_arm_groups,
     const std::map<rdk::JointGroup, std::array<double, rdk::kPoseSize>>& all_init_pose,
     const std::map<rdk::JointGroup, std::vector<double>>& all_init_q, bool enable_hold,
     bool enable_collision)
@@ -96,62 +97,67 @@ void PeriodicTask(rdk::Robot& robot, const std::vector<rdk::JointGroup>& joint_g
             case (3 * kLoopFreq): {
                 const std::vector<double> ref_q
                     = {0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658};
-                for (const auto& group : joint_groups) {
+                for (const auto& [group, _] : single_arm_groups) {
                     robot.SetNullSpacePosture(group, ref_q);
                 }
                 spdlog::info("Reference joint positions updated for all groups");
             } break;
             // Online change stiffness to half of nominal at 6 seconds
             case (6 * kLoopFreq): {
-                auto new_K = robot.info().K_x_nom;
-                for (auto& v : new_K) {
-                    v *= 0.5;
-                }
-                for (const auto& group : joint_groups) {
+                for (const auto& [group, _] : single_arm_groups) {
+                    auto new_K = robot.info().K_x_nom.at(group);
+                    for (auto& v : new_K) {
+                        v *= 0.5;
+                    }
                     robot.SetCartesianImpedance(group, new_K);
+                    spdlog::info("[{}] Cartesian stiffness set to: [{}]",
+                        rdk::kJointGroupNames.at(group), rdk::utility::Arr2Str(new_K));
                 }
-                spdlog::info("Cartesian stiffness set to: [{}]", rdk::utility::Arr2Str(new_K));
             } break;
             // Online change to another reference joint positions at 9 seconds
             case (9 * kLoopFreq): {
                 const std::vector<double> ref_q
                     = {-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658};
-                for (const auto& group : joint_groups) {
+                for (const auto& [group, _] : single_arm_groups) {
                     robot.SetNullSpacePosture(group, ref_q);
                 }
                 spdlog::info("Reference joint positions updated for all groups");
             } break;
             // Online reset stiffness to nominal at 12 seconds
             case (12 * kLoopFreq): {
-                for (const auto& group : joint_groups) {
-                    robot.SetCartesianImpedance(group, robot.info().K_x_nom);
+                for (const auto& [group, _] : single_arm_groups) {
+                    const auto& nominal_K = robot.info().K_x_nom.at(group);
+                    robot.SetCartesianImpedance(group, nominal_K);
+                    spdlog::info("[{}] Cartesian stiffness reset to nominal: [{}]",
+                        rdk::kJointGroupNames.at(group), rdk::utility::Arr2Str(nominal_K));
                 }
-                spdlog::info("Cartesian stiffness reset to nominal: [{}]",
-                    rdk::utility::Arr2Str(robot.info().K_x_nom));
             } break;
             // Online reset reference joint positions to nominal at 14 seconds
             case (14 * kLoopFreq): {
                 for (const auto& [group, init_q] : all_init_q) {
                     robot.SetNullSpacePosture(group, init_q);
+                    spdlog::info("[{}] Reference joint positions reset to initial: [{}]",
+                        rdk::kJointGroupNames.at(group), rdk::utility::Vec2Str(init_q));
                 }
-                spdlog::info("Reference joint positions are reset");
             } break;
             // Online enable max contact wrench regulation at 16 seconds
             case (16 * kLoopFreq): {
                 std::array<double, rdk::kCartDoF> max_wrench = {10.0, 10.0, 10.0, 2.0, 2.0, 2.0};
-                for (const auto& group : joint_groups) {
+                for (const auto& [group, _] : single_arm_groups) {
                     robot.SetMaxContactWrench(group, max_wrench);
+                    spdlog::info("[{}] Max contact wrench set to: {}",
+                        rdk::kJointGroupNames.at(group), rdk::utility::Arr2Str(max_wrench));
                 }
-                spdlog::info("Max contact wrench set to: {}", rdk::utility::Arr2Str(max_wrench));
             } break;
             // Disable max contact wrench regulation at 19 seconds
             case (19 * kLoopFreq): {
                 std::array<double, rdk::kCartDoF> inf;
                 inf.fill(std::numeric_limits<double>::infinity());
-                for (const auto& group : joint_groups) {
+                for (const auto& [group, _] : single_arm_groups) {
                     robot.SetMaxContactWrench(group, inf);
+                    spdlog::info("[{}] Max contact wrench regulation is disabled",
+                        rdk::kJointGroupNames.at(group));
                 }
-                spdlog::info("Max contact wrench regulation is disabled");
             } break;
             default:
                 break;
@@ -257,22 +263,20 @@ int main(int argc, char* argv[])
 
         // Move robot to home pose
         spdlog::info("Moving to home pose");
-        robot.SwitchMode(rdk::Mode::NRT_PLAN_EXECUTION);
-        robot.ExecutePlan("PLAN-Home");
-        // Wait for the plan to finish
-        while (robot.busy()) {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-        }
+        robot.Home();
 
         // Zero Force-torque Sensor
         // =========================================================================================
-        // All available joint groups of the robot
-        const auto joint_groups = robot.groups();
+        // Direct Cartesian control can only be executed by single-arm joint groups
+        const auto& single_arm_groups = robot.info().single_arm_groups;
+        if (single_arm_groups.empty()) {
+            throw std::runtime_error("No single-arm joint group found on the connected robot");
+        }
 
         robot.SwitchMode(rdk::Mode::NRT_PRIMITIVE_EXECUTION);
         // IMPORTANT: must zero force/torque sensor offset for accurate force/torque measurement
         std::map<rdk::JointGroup, rdk::PrimitiveArgs> pt_args;
-        for (const auto& group : joint_groups) {
+        for (const auto& [group, _] : single_arm_groups) {
             pt_args[group] = rdk::PrimitiveArgs("ZeroFTSensor", {});
         }
         robot.ExecutePrimitive(pt_args);
@@ -283,10 +287,8 @@ int main(int argc, char* argv[])
             "Zeroing force/torque sensors, make sure nothing is in contact with the robot");
 
         // Wait for primitive to finish
-        while (!std::all_of(joint_groups.begin(), joint_groups.end(), [&robot](const auto& group) {
-            return std::get<int>(
-                robot.primitive_states().at(group).names_and_values.at("terminated"));
-        })) {
+        while (!rdk::utility::PrimitiveStateTrueForGroups(
+            robot.primitive_states(), single_arm_groups, "terminated")) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         spdlog::info("Sensor zeroing complete");
@@ -305,7 +307,7 @@ int main(int argc, char* argv[])
         robot.SwitchMode(rdk::Mode::RT_CARTESIAN_MOTION_FORCE);
 
         // Set all Cartesian axis(s) to motion control
-        for (const auto& group : joint_groups) {
+        for (const auto& [group, _] : single_arm_groups) {
             robot.SetForceControlAxis(
                 group, std::array<bool, rdk::kCartDoF> {false, false, false, false, false, false});
         }
@@ -313,16 +315,17 @@ int main(int argc, char* argv[])
         // Save initial poses and joint positions
         std::map<rdk::JointGroup, std::array<double, rdk::kPoseSize>> all_init_pose;
         std::map<rdk::JointGroup, std::vector<double>> all_init_q;
-        for (const auto& [group, states] : robot.states()) {
-            all_init_pose[group] = states.tcp_pose;
-            all_init_q[group] = states.q;
+        const auto robot_states = robot.states();
+        for (const auto& [group, _] : single_arm_groups) {
+            all_init_pose[group] = robot_states.at(group).tcp_pose;
+            all_init_q[group] = robot_states.at(group).q;
         }
 
         // Create real-time scheduler to run periodic tasks
         rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
         scheduler.AddTask(
-            std::bind(PeriodicTask, std::ref(robot), std::cref(joint_groups),
+            std::bind(PeriodicTask, std::ref(robot), std::cref(single_arm_groups),
                 std::cref(all_init_pose), std::cref(all_init_q), enable_hold, enable_collision),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks

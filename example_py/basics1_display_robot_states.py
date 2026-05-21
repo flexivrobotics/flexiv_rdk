@@ -24,9 +24,7 @@ def print_robot_states(robot, logger, stop_event):
 
     while not stop_event.is_set():
         # Print available joint groups
-        joint_groups_str = " ".join(
-            [f"[{flexivrdk.kJointGroupNames[group]}]" for group in robot.groups()]
-        )
+        joint_groups_str = " ".join([f"[{name}]" for name in robot.info().all_groups.values()])
         logger.info(f"Available joint groups: {joint_groups_str}")
 
         # Print all robot states in JSON format using the built-in __str__ overloading

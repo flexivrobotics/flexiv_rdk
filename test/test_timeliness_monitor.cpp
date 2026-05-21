@@ -27,7 +27,7 @@ std::atomic<bool> g_stop_sched = {false};
 
 // callback function for realtime periodic task
 void PeriodicTask(flexiv::rdk::Robot& robot,
-    const std::vector<flexiv::rdk::JointGroup>& joint_groups,
+    const std::map<flexiv::rdk::JointGroup, std::string>& single_arm_groups,
     const std::map<flexiv::rdk::JointGroup, std::vector<double>>& all_init_pos)
 {
     // Loop counter
@@ -41,7 +41,7 @@ void PeriodicTask(flexiv::rdk::Robot& robot,
         }
         // Hold position
         std::map<flexiv::rdk::JointGroup, flexiv::rdk::RtJointPositionCmd> rt_cmds;
-        for (const auto& group : joint_groups) {
+        for (const auto& [group, _] : single_arm_groups) {
             const auto& init_pos = all_init_pos.at(group);
             std::vector<double> target_vel(init_pos.size());
             std::vector<double> target_acc(init_pos.size());
@@ -117,13 +117,17 @@ int main(int argc, char* argv[])
         // set mode after robot is operational
         robot.SwitchMode(flexiv::rdk::Mode::RT_JOINT_POSITION);
 
-        // All available joint groups of the robot
-        const auto joint_groups = robot.groups();
+        // Direct joint control can only be executed by single-arm joint groups
+        const auto& single_arm_groups = robot.info().single_arm_groups;
+        if (single_arm_groups.empty()) {
+            throw std::runtime_error("No single-arm joint group found on the connected robot");
+        }
 
         // Set initial joint positions
         std::map<flexiv::rdk::JointGroup, std::vector<double>> all_init_pos;
-        for (const auto& [group, states] : robot.states()) {
-            all_init_pos[group] = states.q;
+        const auto robot_states = robot.states();
+        for (const auto& [group, _] : single_arm_groups) {
+            all_init_pos[group] = robot_states.at(group).q;
             spdlog::info("[{}] Initial joint positions: {}",
                 flexiv::rdk::kJointGroupNames.at(group),
                 flexiv::rdk::utility::Vec2Str(all_init_pos.at(group)));
@@ -134,7 +138,7 @@ int main(int argc, char* argv[])
         //==========================================================================================
         flexiv::rdk::Scheduler scheduler;
         // Add periodic task with 1ms interval and highest applicable priority
-        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::cref(joint_groups),
+        scheduler.AddTask(std::bind(PeriodicTask, std::ref(robot), std::cref(single_arm_groups),
                               std::cref(all_init_pos)),
             "HP periodic", 1, scheduler.max_priority());
         // Start all added tasks

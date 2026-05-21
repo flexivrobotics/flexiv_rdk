@@ -72,6 +72,11 @@ def main():
         # Instantiate tool interface
         tool = flexivrdk.Tool(robot)
 
+        # Tools can only be assigned to single-arm joint groups
+        single_arm_groups = robot.info().single_arm_groups
+        if not single_arm_groups:
+            raise RuntimeError("No single-arm joint group found on the connected robot")
+
         # Get and print a list of already configured tools currently in the robot's tools pool
         logger.info("All configured tools:")
         tool_list = tool.list()
@@ -80,7 +85,10 @@ def main():
         print()
 
         # Get and print the current active tool
-        logger.info(f"Current active tool: [{tool.name()}]")
+        for group in single_arm_groups:
+            logger.info(
+                f"[{flexivrdk.kJointGroupNames[group]}] Current active tool: [{tool.name(group)}]"
+            )
 
         # Set name and parameters for a new tool
         new_tool_name = "ExampleTool1"
@@ -105,7 +113,8 @@ def main():
                 f"Tool with the same name [{new_tool_name}] already exists, removing it now"
             )
             # Switch to other tool or no tool (Flange) before removing the current tool
-            tool.Switch("Flange")
+            for group in single_arm_groups:
+                tool.Switch(group, "Flange")
             tool.Remove(new_tool_name)
 
         # Add the new tool
@@ -121,13 +130,18 @@ def main():
 
         # Switch to the newly added tool, i.e. set it as the active tool
         logger.info(f"Switching to tool [{new_tool_name}]")
-        tool.Switch(new_tool_name)
+        for group in single_arm_groups:
+            tool.Switch(group, new_tool_name)
 
         # Get and print the current active tool again, should be the new tool
-        logger.info(f"Current active tool: [{tool.name()}]")
+        for group in single_arm_groups:
+            logger.info(
+                f"[{flexivrdk.kJointGroupNames[group]}] Current active tool: [{tool.name(group)}]"
+            )
 
         # Switch to other tool or no tool (Flange) before removing the current tool
-        tool.Switch("Flange")
+        for group in single_arm_groups:
+            tool.Switch(group, "Flange")
 
         # Clean up by removing the new tool
         time.sleep(2)

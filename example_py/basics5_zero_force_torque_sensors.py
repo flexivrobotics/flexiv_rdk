@@ -13,6 +13,7 @@ import time
 import argparse
 import spdlog  # pip install spdlog
 import flexivrdk  # pip install flexivrdk
+import utility
 
 
 def main():
@@ -70,12 +71,17 @@ def main():
                 f"[{flexivrdk.kJointGroupNames[group]}] TCP force and moment reading in world frame BEFORE sensor zeroing: {states.tcp_wrench} N-Nm"
             )
 
+        # Primitives can only be executed on single-arm joint groups
+        single_arm_groups = robot.info().single_arm_groups
+        if not single_arm_groups:
+            raise RuntimeError("No single-arm joint group found on the connected robot")
+
         # Run the "ZeroFTSensor" primitive to automatically zero force and torque sensors
         robot.SwitchMode(mode.NRT_PRIMITIVE_EXECUTION)
         robot.ExecutePrimitive(
             {
                 group: flexivrdk.PrimitiveArgs("ZeroFTSensor", dict())
-                for group in robot.groups()
+                for group in single_arm_groups
             }
         )
 
@@ -86,9 +92,8 @@ def main():
         )
 
         # Wait for primitive to finish
-        while not all(
-            bool(state.names_and_values["terminated"])
-            for state in robot.primitive_states().values()
+        while not utility.primitive_state_true_for_groups(
+            robot.primitive_states(), single_arm_groups, "terminated"
         ):
             time.sleep(1)
         logger.info("Sensor zeroing complete")

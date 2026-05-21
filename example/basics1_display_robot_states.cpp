@@ -32,8 +32,8 @@ void PrintRobotStates(rdk::Robot& robot)
     while (true) {
         // Print Available joint groups
         std::string joint_groups_str;
-        for (const auto& group : robot.groups()) {
-            joint_groups_str += "[" + rdk::kJointGroupNames.at(group) + "] ";
+        for (const auto& [_, name] : robot.info().all_groups) {
+            joint_groups_str += "[" + name + "] ";
         }
         spdlog::info("Available joint groups: {}", joint_groups_str);
 

@@ -9,6 +9,7 @@ __copyright__ = "Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved."
 __author__ = "Flexiv"
 
 import time
+import sys
 import argparse
 import threading
 import spdlog  # pip install spdlog
@@ -23,9 +24,12 @@ def print_gripper_states(gripper, logger, stop_event):
     while not stop_event.is_set():
         # Print all gripper states, round all float values to 2 decimals
         logger.info("Current gripper states:")
-        print(f"width: {round(gripper.states().width, 2)}")
-        print(f"force: {round(gripper.states().force, 2)}")
-        print(f"is_moving: {gripper.states().is_moving}")
+        gripper_states = gripper.states()
+        for group, states in gripper_states.items():
+            print(f"[{flexivrdk.kJointGroupNames[group]}]")
+            print(f"width: {round(states.width, 2)}")
+            print(f"force: {round(states.force, 2)}")
+            print(f"is_moving: {states.is_moving}")
         print("", flush=True)
         time.sleep(1)
 
@@ -43,8 +47,12 @@ def main():
         help="Serial number of the robot to connect. Remove any space, e.g. Rizon4s-123456",
     )
     argparser.add_argument(
-        "gripper_name",
-        help="Full name of the gripper to be controlled, can be found in Flexiv Elements -> Settings -> Device",
+        "gripper_device_name",
+        help="Full name of the device representing the gripper, can be found in Flexiv Elements->Settings->Device",
+    )
+    argparser.add_argument(
+        "gripper_tool_name",
+        help="Full name of the tool representing the gripper, can be found in Flexiv Elements->Settings->Tool",
     )
     args = argparser.parse_args()
 
@@ -93,25 +101,39 @@ def main():
         # tool attribute tells the robot to account for its mass properties and TCP location.
         tool = flexivrdk.Tool(robot)
 
+        # Grippers can only be assigned to single-arm joint groups
+        single_arm_groups = robot.info().single_arm_groups
+        if not single_arm_groups:
+            raise RuntimeError("No single-arm joint group found on the connected robot")
+
         # Enable the specified gripper as a device. This is equivalent to enabling the specified
         # gripper in Flexiv Elements -> Settings -> Device
-        logger.info(f"Enabling gripper [{args.gripper_name}]")
-        gripper.Enable(args.gripper_name)
+        logger.info(
+            f"Enabling gripper device [{args.gripper_device_name}] for all available single-arm joint groups"
+        )
+        for group in single_arm_groups:
+            gripper.Enable(group, args.gripper_device_name)
 
         # Print parameters of the enabled gripper
         logger.info("Gripper params:")
-        print(f"name: {gripper.params().name}")
-        print(f"min_width: {round(gripper.params().min_width, 3)}")
-        print(f"max_width: {round(gripper.params().max_width, 3)}")
-        print(f"min_force: {round(gripper.params().min_force, 3)}")
-        print(f"max_force: {round(gripper.params().max_force, 3)}")
-        print(f"min_vel: {round(gripper.params().min_vel, 3)}")
-        print(f"max_vel: {round(gripper.params().max_vel, 3)}")
-        print("", flush=True)
+        gripper_params = gripper.params()
+        for group, params in gripper_params.items():
+            print(f"[{flexivrdk.kJointGroupNames[group]}]")
+            print(f"name: {params.name}")
+            print(f"min_width: {round(params.min_width, 2)}")
+            print(f"max_width: {round(params.max_width, 2)}")
+            print(f"min_force: {round(params.min_force, 2)}")
+            print(f"max_force: {round(params.max_force, 2)}")
+            print(f"min_vel: {round(params.min_vel, 2)}")
+            print(f"max_vel: {round(params.max_vel, 2)}")
+            print("", flush=True)
 
         # Switch robot tool to gripper so the gravity compensation and TCP location is updated
-        logger.info(f"Switching robot tool to [{args.gripper_name}]")
-        tool.Switch(args.gripper_name)
+        logger.info(
+            f"Switching robot tool to [{args.gripper_tool_name}] for all available single-arm joint groups"
+        )
+        for group in single_arm_groups:
+            tool.Switch(group, args.gripper_tool_name)
 
         # User needs to determine if this gripper requires manual initialization
         logger.info(
@@ -144,38 +166,52 @@ def main():
 
         # Position control
         logger.info("Closing gripper")
-        gripper.Move(0.01, 0.1, 20)
+        for group, params in gripper_params.items():
+            gripper.Move(group, params.min_width, params.max_vel, 20)
         time.sleep(2)
         logger.info("Opening gripper")
-        gripper.Move(0.09, 0.1, 20)
+        for group, params in gripper_params.items():
+            gripper.Move(group, params.max_width, params.max_vel, 20)
         time.sleep(2)
 
         # Stop
         logger.info("Closing gripper")
-        gripper.Move(0.01, 0.1, 20)
+        for group, params in gripper_params.items():
+            gripper.Move(group, params.min_width, params.max_vel, 20)
         time.sleep(0.5)
         logger.info("Stopping gripper")
-        gripper.Stop()
+        for group in gripper_params:
+            gripper.Stop(group)
         time.sleep(2)
         logger.info("Closing gripper")
-        gripper.Move(0.01, 0.1, 20)
+        for group, params in gripper_params.items():
+            gripper.Move(group, params.min_width, params.max_vel, 20)
         time.sleep(2)
         logger.info("Opening gripper")
-        gripper.Move(0.09, 0.1, 20)
+        for group, params in gripper_params.items():
+            gripper.Move(group, params.max_width, params.max_vel, 20)
         time.sleep(0.5)
         logger.info("Stopping gripper")
-        gripper.Stop()
+        for group in gripper_params:
+            gripper.Stop(group)
         time.sleep(2)
 
         # Force control, if available (sensed force is not zero)
-        if abs(gripper.states().force) > sys.float_info.epsilon:
+        gripper_states = gripper.states()
+        has_force_control = any(
+            abs(states.force) > sys.float_info.epsilon
+            for states in gripper_states.values()
+        )
+        if has_force_control:
             logger.info("Gripper running zero force control")
-            gripper.Grasp(0)
+            for group in gripper_states:
+                gripper.Grasp(group, 0)
             # Exit after 10 seconds
             time.sleep(10)
 
         # Finished
-        gripper.Stop()
+        for group in gripper_states:
+            gripper.Stop(group)
 
         # Stop all threads
         logger.info("Stopping print thread")

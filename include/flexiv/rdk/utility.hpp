@@ -58,10 +58,27 @@ inline bool PrimitiveStateTrueForGroups(
     const std::map<JointGroup, PrimitiveStates>& primitive_states,
     const std::map<JointGroup, std::string>& groups, const std::string& state_name)
 {
-    return std::all_of(groups.begin(), groups.end(), [&](const auto& kv) {
-        return PrimitiveStateTrueForGroups(
-            primitive_states, std::vector<JointGroup> {kv.first}, state_name);
-    });
+    for (const auto& [group, _] : groups) {
+        const auto group_it = primitive_states.find(group);
+        if (group_it == primitive_states.end()) {
+            return false;
+        }
+
+        const auto state_it = group_it->second.names_and_values.find(state_name);
+        if (state_it == group_it->second.names_and_values.end()) {
+            return false;
+        }
+
+        if (!std::holds_alternative<int>(state_it->second)) {
+            return false;
+        }
+
+        if (std::get<int>(state_it->second) == 0) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /**

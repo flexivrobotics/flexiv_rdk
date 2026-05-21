@@ -83,6 +83,12 @@ int main(int argc, char* argv[])
         // Instantiate tool interface
         rdk::Tool tool(robot);
 
+        // Tools can only be assigned to single-arm joint groups
+        const auto& single_arm_groups = robot.info().single_arm_groups;
+        if (single_arm_groups.empty()) {
+            throw std::runtime_error("No single-arm joint group found on the connected robot");
+        }
+
         // Get and print a list of already configured tools currently in the robot's tools pool
         spdlog::info("All configured tools:");
         auto tool_list = tool.list();
@@ -92,7 +98,10 @@ int main(int argc, char* argv[])
         std::cout << std::endl;
 
         // Get and print the current active tool
-        spdlog::info("Current active tool: {}", tool.name());
+        for (const auto& [group, _] : single_arm_groups) {
+            spdlog::info(
+                "[{}] Current active tool: {}", rdk::kJointGroupNames.at(group), tool.name(group));
+        }
 
         // Set name and parameters for a new tool
         std::string new_tool_name = "ExampleTool1";
@@ -108,7 +117,9 @@ int main(int argc, char* argv[])
             spdlog::warn(
                 "Tool with the same name [{}] already exists, removing it now", new_tool_name);
             // Switch to other tool or no tool (Flange) before removing the current tool
-            tool.Switch("Flange");
+            for (const auto& [group, _] : single_arm_groups) {
+                tool.Switch(group, "Flange");
+            }
             tool.Remove(new_tool_name);
         }
 
@@ -126,13 +137,20 @@ int main(int argc, char* argv[])
 
         // Switch to the newly added tool, i.e. set it as the active tool
         spdlog::info("Switching to tool [{}]", new_tool_name);
-        tool.Switch(new_tool_name);
+        for (const auto& [group, _] : single_arm_groups) {
+            tool.Switch(group, new_tool_name);
+        }
 
         // Get and print the current active tool again, should be the new tool
-        spdlog::info("Current active tool: {}", tool.name());
+        for (const auto& [group, _] : single_arm_groups) {
+            spdlog::info(
+                "[{}] Current active tool: {}", rdk::kJointGroupNames.at(group), tool.name(group));
+        }
 
         // Switch to other tool or no tool (Flange) before removing the current tool
-        tool.Switch("Flange");
+        for (const auto& [group, _] : single_arm_groups) {
+            tool.Switch(group, "Flange");
+        }
 
         // Clean up by removing the new tool
         std::this_thread::sleep_for(std::chrono::seconds(2));
