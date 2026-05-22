@@ -203,8 +203,7 @@ int main(int argc, char* argv[])
             "Zeroing force/torque sensors, make sure nothing is in contact with the robot");
 
         // Wait for primitive to finish
-        while (!rdk::utility::PrimitiveStateTrueForGroups(
-            robot.primitive_states(), single_arm_groups, "terminated")) {
+        while (!rdk::utility::PrimitiveStateTrueForGroups(robot.primitive_states(), "terminated")) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         spdlog::info("Sensor zeroing complete");
@@ -221,9 +220,8 @@ int main(int argc, char* argv[])
         const auto robot_states = robot.states();
         for (const auto& [group, _] : single_arm_groups) {
             all_init_pose[group] = robot_states.at(group).tcp_pose;
-            spdlog::info("[{}] Initial TCP pose [position 3x1, rotation (quaternion) 4x1]: "
-                             + rdk::utility::Arr2Str(all_init_pose.at(group)),
-                rdk::kJointGroupNames.at(group));
+            spdlog::info("[{}] Initial TCP pose [position 3x1, rotation (quaternion) 4x1]: {}",
+                rdk::kJointGroupNames.at(group), rdk::utility::Arr2Str(all_init_pose.at(group)));
         }
 
         // Use non-real-time mode to make the robot go to a set point with its own motion generator

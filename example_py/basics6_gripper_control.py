@@ -148,7 +148,8 @@ def main():
         if choice == 1:
             logger.info("Skipped manual initialization")
         elif choice == 2:
-            gripper.Init()
+            for group in single_arm_groups:
+                gripper.Init(group)
             # User determines if the manual initialization is finished
             logger.info(
                 "Triggered manual initialization, press Enter when the initialization is finished to continue"

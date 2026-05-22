@@ -118,7 +118,7 @@ def main():
         while True:
             primitive_states = robot.primitive_states()
             if utility.primitive_state_true_for_groups(
-                primitive_states, single_arm_groups, "reachedTarget"
+                primitive_states, "reachedTarget"
             ):
                 break
             # Print current primitive states
@@ -172,7 +172,7 @@ def main():
         )
         # Wait for reached target
         while not utility.primitive_state_true_for_groups(
-            robot.primitive_states(), single_arm_groups, "reachedTarget"
+            robot.primitive_states(), "reachedTarget"
         ):
             time.sleep(1)
 
@@ -206,7 +206,7 @@ def main():
 
         # Wait for reached target
         while not utility.primitive_state_true_for_groups(
-            robot.primitive_states(), single_arm_groups, "reachedTarget"
+            robot.primitive_states(), "reachedTarget"
         ):
             time.sleep(1)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""basics9_global_variables.py
+"""basics8_global_variables.py
 
 This tutorial shows how to get and set global variables.
 """

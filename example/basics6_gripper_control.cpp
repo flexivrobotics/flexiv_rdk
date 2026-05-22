@@ -150,7 +150,9 @@ int main(int argc, char* argv[])
         if (choice == 1) {
             spdlog::info("Skipped manual initialization");
         } else if (choice == 2) {
-            gripper.Init();
+            for (const auto& [group, _] : single_arm_groups) {
+                gripper.Init(group);
+            }
             // User determines if the manual initialization is finished
             spdlog::info(
                 "Triggered manual initialization, press Enter when the initialization is finished "

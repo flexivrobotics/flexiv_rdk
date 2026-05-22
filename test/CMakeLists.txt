@@ -37,8 +37,8 @@ foreach(test ${TEST_LIST})
   add_executable(${test} ${test}.cpp)
   target_link_libraries(${test} flexiv::flexiv_rdk)
 
-  # C++17 required
+  # C++20 required
   set_target_properties(${test} PROPERTIES
-    CXX_STANDARD 17
+    CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON)
 endforeach()

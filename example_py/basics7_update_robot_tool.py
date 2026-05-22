@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""basics8_update_robot_tool.py
+"""basics7_update_robot_tool.py
 
 This tutorial shows how to online update and interact with the robot tools. All changes made to
 the robot tool system will take effect immediately without needing to reboot. However, the robot

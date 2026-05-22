@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
         while (true) {
             const auto primitive_states = robot.primitive_states();
             if (rdk::utility::PrimitiveStateTrueForGroups(
-                    primitive_states, single_arm_groups, "reachedTarget")) {
+                    primitive_states, "reachedTarget")) {
                 break;
             }
 
@@ -165,8 +165,7 @@ int main(int argc, char* argv[])
         robot.ExecutePrimitive(pt_args);
 
         // Wait for reached target
-        while (!rdk::utility::PrimitiveStateTrueForGroups(
-            robot.primitive_states(), single_arm_groups, "reachedTarget")) {
+        while (!rdk::utility::PrimitiveStateTrueForGroups(robot.primitive_states(), "reachedTarget")) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -192,8 +191,7 @@ int main(int argc, char* argv[])
         }
         robot.ExecutePrimitive(pt_args);
         // Wait for reached target
-        while (!rdk::utility::PrimitiveStateTrueForGroups(
-            robot.primitive_states(), single_arm_groups, "reachedTarget")) {
+        while (!rdk::utility::PrimitiveStateTrueForGroups(robot.primitive_states(), "reachedTarget")) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 

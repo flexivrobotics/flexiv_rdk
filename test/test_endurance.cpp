@@ -249,9 +249,8 @@ int main(int argc, char* argv[])
         for (const auto& [group, _] : single_arm_groups) {
             all_init_pose[group] = robot_states.at(group).tcp_pose;
             g_curr_tcp_pose[group] = robot_states.at(group).tcp_pose;
-            spdlog::info("[{}] Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
-                             + rdk::utility::Arr2Str(all_init_pose.at(group)),
-                rdk::kJointGroupNames.at(group));
+            spdlog::info("[{}] Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: {}",
+                rdk::kJointGroupNames.at(group), rdk::utility::Arr2Str(all_init_pose.at(group)));
         }
 
         // Periodic Tasks

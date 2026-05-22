@@ -5,7 +5,7 @@
 Utility methods.
 
 Import this module as `import utility` and use functions through the module namespace,
-for example `utility.quat2eulerZYX(...)`.
+for example `utility.quat2eulerZYX(...)` and `utility.primitive_state_true_for_groups(...)`.
 """
 
 __copyright__ = "Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved."
@@ -48,40 +48,27 @@ def quat2eulerZYX(quat, degree=False):
     return eulerZYX
 
 
-def primitive_state_true_for_groups(primitive_states, groups, state_name=None):
+def primitive_state_true_for_groups(primitive_states, state_name):
     """
-    Check whether one primitive state is true for all specified groups.
+    Check whether one primitive state is true for all groups included in primitive_states.
 
     Parameters
     ----------
     primitive_states : dict
         Primitive states keyed by joint group.
-    groups : iterable or dict
-        If state_name is provided, this is an iterable of joint groups. If state_name is None,
-        this must be a dict mapping each joint group to its transition key.
-    state_name : str or None
-        Primitive state name to check for all specified groups. Leave as None to use a per-group
-        transition-key dict from groups.
+    state_name : str
+        Primitive state name to check, e.g. "reachedTarget".
 
     Returns
     ----------
     bool
-        True if all specified groups contain the requested primitive state and its value is true.
+        True if all included groups contain the requested primitive state and its value is true.
     """
 
-    if state_name is None:
-        return all(
-            group in primitive_states
-            and transition_key in primitive_states[group].names_and_values
-            and bool(primitive_states[group].names_and_values[transition_key])
-            for group, transition_key in groups.items()
-        )
-
     return all(
-        group in primitive_states
-        and state_name in primitive_states[group].names_and_values
-        and bool(primitive_states[group].names_and_values[state_name])
-        for group in groups
+        state_name in primitive_state.names_and_values
+        and bool(primitive_state.names_and_values[state_name])
+        for primitive_state in primitive_states.values()
     )
 
 
