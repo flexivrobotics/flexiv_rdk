@@ -22,24 +22,18 @@ inline bool IsSingleArmGroup(JointGroup group)
 }
 
 /**
- * @brief Check whether one primitive state is true for all specified groups.
+ * @brief Check whether one primitive state is true for all groups included in
+ * [primitive_states].
  * @param[in] primitive_states Primitive states keyed by joint group.
- * @param[in] groups Joint groups to be checked.
  * @param[in] state_name Primitive state name to check, e.g. "reachedTarget".
- * @return True if all specified groups contain the state and its integer value is non-zero.
+ * @return True if all included groups contain the state and its integer value is non-zero.
  */
 inline bool PrimitiveStateTrueForGroups(
-    const std::map<JointGroup, PrimitiveStates>& primitive_states,
-    const std::vector<JointGroup>& groups, const std::string& state_name)
+    const std::map<JointGroup, PrimitiveStates>& primitive_states, const std::string& state_name)
 {
-    return std::all_of(groups.begin(), groups.end(), [&](JointGroup group) {
-        const auto group_it = primitive_states.find(group);
-        if (group_it == primitive_states.end()) {
-            return false;
-        }
-
-        const auto state_it = group_it->second.names_and_values.find(state_name);
-        if (state_it == group_it->second.names_and_values.end()) {
+    return std::all_of(primitive_states.begin(), primitive_states.end(), [&](const auto& entry) {
+        const auto state_it = entry.second.names_and_values.find(state_name);
+        if (state_it == entry.second.names_and_values.end()) {
             return false;
         }
 
@@ -49,36 +43,6 @@ inline bool PrimitiveStateTrueForGroups(
 
         return std::get<int>(state_it->second) != 0;
     });
-}
-
-/**
- * @brief Overload of PrimitiveStateTrueForGroups that accepts a map of joint groups.
- */
-inline bool PrimitiveStateTrueForGroups(
-    const std::map<JointGroup, PrimitiveStates>& primitive_states,
-    const std::map<JointGroup, std::string>& groups, const std::string& state_name)
-{
-    for (const auto& [group, _] : groups) {
-        const auto group_it = primitive_states.find(group);
-        if (group_it == primitive_states.end()) {
-            return false;
-        }
-
-        const auto state_it = group_it->second.names_and_values.find(state_name);
-        if (state_it == group_it->second.names_and_values.end()) {
-            return false;
-        }
-
-        if (!std::holds_alternative<int>(state_it->second)) {
-            return false;
-        }
-
-        if (std::get<int>(state_it->second) == 0) {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 /**
