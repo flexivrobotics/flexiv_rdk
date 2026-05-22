@@ -50,24 +50,39 @@ def quat2eulerZYX(quat, degree=False):
 
 def primitive_state_true_for_groups(primitive_states, state_name):
     """
-    Check whether one primitive state is true for all groups included in primitive_states.
+    Check whether primitive states are true for all groups included in primitive_states.
 
     Parameters
     ----------
     primitive_states : dict
         Primitive states keyed by joint group.
-    state_name : str
-        Primitive state name to check, e.g. "reachedTarget".
+    state_name : str or dict
+        Primitive state name to check for all groups, or per-group state names keyed by joint
+        group, e.g. "reachedTarget" or {group: "terminated"}.
 
     Returns
     ----------
     bool
-        True if all included groups contain the requested primitive state and its value is true.
+        True if all included groups contain the requested primitive state and its integer value is
+        non-zero.
     """
 
+    def primitive_state_true(primitive_state, requested_state_name):
+        if requested_state_name not in primitive_state.names_and_values:
+            return False
+
+        value = primitive_state.names_and_values[requested_state_name]
+        return isinstance(value, int) and value != 0
+
+    if isinstance(state_name, dict):
+        return all(
+            group in state_name
+            and primitive_state_true(primitive_state, state_name[group])
+            for group, primitive_state in primitive_states.items()
+        )
+
     return all(
-        state_name in primitive_state.names_and_values
-        and bool(primitive_state.names_and_values[state_name])
+        primitive_state_true(primitive_state, state_name)
         for primitive_state in primitive_states.values()
     )
 
