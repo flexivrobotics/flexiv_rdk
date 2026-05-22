@@ -66,7 +66,7 @@ def wait_until_operational(robot, dt=1.0, timeout_s=120.0):
         time.sleep(dt)
 
 
-def wait_primitive_transition(robot, transition_keys_by_group, dt=0.2, timeout_s=300.0):
+def wait_primitive_transition(robot, transition_keys_by_group, dt=0.2, timeout_s=60.0):
     """Block until primitive_states() for all groups satisfy their transition key.
 
     Use the primitive's default transition key unless a custom transition condition
