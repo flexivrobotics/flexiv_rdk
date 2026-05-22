@@ -109,18 +109,17 @@ public:
     void Disable(JointGroup group);
 
     /**
-     * @brief [Blocking] Manually trigger the initialization of the enabled gripper(s) used by the
-     * specified joint group(s). This step is not needed for grippers that automatically initialize
+     * @brief [Blocking] Manually trigger the initialization of the enabled gripper used by the
+     * specified joint group. This step is not needed for grippers that automatically initialize
      * upon power-on.
-     * @param[in] groups Joint group(s) whose gripper(s) to be initialized. Initialize all enabled
-     * grippers if left empty.
-     * @throw std::logic_error if no gripper is enabled for any of the specified joint group(s).
+     * @param[in] group Joint group whose gripper is to be initialized.
+     * @throw std::logic_error if no gripper is enabled for the specified joint group.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      * @warning This function does not wait for the initialization sequence to finish, the user may
      * need to implement wait after calling this function before commanding the gripper.
      */
-    void Init(const std::vector<JointGroup>& groups = {});
+    void Init(JointGroup group);
 
     /**
      * @brief [Blocking] Command the gripper used by the specified joint group to grasp with direct
