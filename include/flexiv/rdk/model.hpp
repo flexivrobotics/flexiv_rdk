@@ -197,10 +197,11 @@ public:
     /**
      * @brief [Blocking] Solve constrained IK using one or more active joint groups.
      * @param[in] ik_params_by_group IK input parameters mapped by active joint group. Joint groups
-     * not included in this map are treated as inactive.
+     * not included in this map are treated as inactive. Only single-arm joint groups like ARM_1 and
+     * ARM_2 are accepted.
      * @return Solver result. [solved_q] contains one entry per requested active joint group.
-     * @throw std::invalid_argument if input map is empty, if any joint group is
-     * invalid/non-existent, or if any [seed_q] size does not match DoF of its joint group.
+     * @throw std::invalid_argument if input map is empty, if any joint group is not an existing
+     * single-arm joint group, or if any [seed_q] size does not match DoF of its joint group.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */

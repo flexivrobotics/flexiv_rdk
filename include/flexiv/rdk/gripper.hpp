@@ -86,10 +86,11 @@ public:
 
     /**
      * @brief [Blocking] Enable the specified gripper as a device used by the specified joint group.
-     * @param[in] group Joint group that uses this gripper. Only single-arm joint groups like
-     * ARM_1 and ARM_2 are accepted, other groups are ignored.
+     * @param[in] group Joint group that uses this gripper. Only existing single-arm joint groups
+     * like ARM_1 and ARM_2 are accepted.
      * @param[in] name Name of the gripper to enable.
-     * @throw std::invalid_argument if the specified gripper does not exist.
+     * @throw std::invalid_argument if [group] is not an existing single-arm joint group in the
+     * connected robot, or if the specified gripper does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot or failed
      * to sync gripper parameters.
      * @note This function blocks until the request is successfully delivered.

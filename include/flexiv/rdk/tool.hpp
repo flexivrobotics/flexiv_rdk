@@ -58,10 +58,11 @@ public:
 
     /**
      * @brief [Blocking] Name of the active tool currently used by the specified joint group.
-     * @param[in] group Joint group to get tool name for. Only single-arm joint groups like ARM_1
-     * and ARM_2 are allowed.
+     * @param[in] group Joint group to get tool name for. Only existing single-arm joint groups
+     * like ARM_1 and ARM_2 are accepted.
      * @return Name of the active tool. Return "Flange" if there's no active tool.
-     * @throw std::invalid_argument if [group] contains non-single-arm joint groups.
+     * @throw std::invalid_argument if [group] is not an existing single-arm joint group in the
+     * connected robot.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
@@ -78,10 +79,11 @@ public:
 
     /**
      * @brief [Blocking] Parameters of the active tool currently used by the specified joint group.
-     * @param[in] group Joint group to get tool parameters for. Only single-arm joint groups like
-     * ARM_1 and ARM_2 are allowed.
+     * @param[in] group Joint group to get tool parameters for. Only existing single-arm joint
+     * groups like ARM_1 and ARM_2 are accepted.
      * @return ToolParams data struct.
-     * @throw std::invalid_argument if [group] contains non-single-arm joint groups.
+     * @throw std::invalid_argument if [group] is not an existing single-arm joint group in the
+     * connected robot.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
@@ -112,10 +114,11 @@ public:
     /**
      * @brief [Blocking] Switch active tool for the specified joint group. All following operations
      * will default to use this tool.
-     * @param[in] group Joint group to switch active tool for. Only single-arm joint groups like
-     * ARM_1 and ARM_2 are allowed.
+     * @param[in] group Joint group to switch active tool for. Only existing single-arm joint
+     * groups like ARM_1 and ARM_2 are accepted.
      * @param[in] name Name of the tool to switch to, must be an existing one.
-     * @throw std::invalid_argument if [group] contains non-single-arm joint groups.
+     * @throw std::invalid_argument if [group] is not an existing single-arm joint group in the
+     * connected robot.
      * @throw std::invalid_argument if the specified tool does not exist.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
