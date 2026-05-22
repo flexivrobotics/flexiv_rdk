@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.22.1)
 project(flexiv_rdk-examples)
 
+# CMake >= 3.30 warns for FindBoost behavior unless CMP0167 is explicitly set.
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 OLD)
+endif()
+
 # Show verbose build info
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 

@@ -5,6 +5,11 @@ cmake_minimum_required(VERSION 3.22.1)
 # ===================================================================
 project(flexiv_rdk VERSION 2.1 LANGUAGES CXX)
 
+# CMake >= 3.30 warns for FindBoost behavior unless CMP0167 is explicitly set.
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 OLD)
+endif()
+
 # Configure build type
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "CMake build type" FORCE)
@@ -40,7 +45,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
   elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64le")
     set(RDK_LIB "libflexiv_rdk.aarch64-qnx.a")
   else()
-    message(FATAL_ERROR "Linux with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
+    message(FATAL_ERROR "QNX with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
   endif()
 else()
   message(FATAL_ERROR "${CMAKE_SYSTEM_NAME} is currently not supported.")
