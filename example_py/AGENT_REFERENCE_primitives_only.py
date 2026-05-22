@@ -72,22 +72,11 @@ def wait_primitive_transition(robot, transition_keys_by_group, dt=0.2, timeout_s
     Use the primitive's default transition key unless a custom transition condition
     is intended. Check primitive docs to confirm available primitive state keys.
     """
-    joint_groups = list(transition_keys_by_group.keys())
     t0 = time.time()
     while True:
-        all_primitive_states = robot.primitive_states()
-
-        missing_groups = [
-            group for group in joint_groups if group not in all_primitive_states
-        ]
-        if missing_groups:
-            raise RuntimeError(
-                f"Missing primitive state(s) for group(s): "
-                f"{[flexivrdk.kJointGroupNames[g] for g in missing_groups]}"
-            )
-
         if utility.primitive_state_true_for_groups(
-            all_primitive_states, transition_keys_by_group
+            robot.primitive_states(),
+            transition_keys_by_group,
         ):
             return
 
