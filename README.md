@@ -1,6 +1,7 @@
 # Flexiv RDK
 
-![CMake Badge](https://github.com/flexivrobotics/flexiv_rdk/actions/workflows/cmake.yml/badge.svg)
+![Cpp Badge](https://github.com/flexivrobotics/flexiv_rdk/actions/workflows/cpp.yml/badge.svg)
+![Python Badge](https://github.com/flexivrobotics/flexiv_rdk/actions/workflows/python.yml/badge.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
 Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Software Platform, is a powerful development toolkit that enables the users to create complex and customized robotic applications using APIs that provide both low-level real-time (RT) and high-level non-real-time (NRT) access to Flexiv robots.
