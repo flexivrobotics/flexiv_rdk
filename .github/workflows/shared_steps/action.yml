@@ -1,42 +1,13 @@
-name: "Shared Build Steps"
+name: "Shared Check Steps for C++"
 runs:
   using: "composite"
   # Note: working directory will be reset to the repo root for each new step
   steps:
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: '3.12'
-
     # Use a fixed CMake version
     - name: Set up CMake
       uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: '3.28.3'
-
-    - name: Install latest flexivrdk
-      shell: bash
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install flexivrdk
-
-    - name: Byte-compile Python examples
-      shell: bash
-      run: |
-        python - <<'PY'
-        from pathlib import Path
-        import py_compile
-
-        root = Path('example_py')
-        files = sorted(
-            path for path in root.glob('*.py')
-            if path.name.startswith('basics') or path.name.startswith('intermediate')
-        )
-
-        for path in files:
-            py_compile.compile(str(path), doraise=True)
-            print(f'py_compile OK: {path}')
-        PY
 
     # Build and install all dependencies to RDK installation directory.
     - name: Build and install dependencies
