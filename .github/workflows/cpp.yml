@@ -1,4 +1,4 @@
-name: CMake
+name: Cpp
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
     # Use shared steps
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/workflows/shared_steps
+      - uses: ./.github/workflows/shared_cpp_steps
 
   build-ubuntu-22:
     # GitHub-hosted Ubuntu 22.04 runner
@@ -27,7 +27,7 @@ jobs:
     # Use shared steps
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/workflows/shared_steps
+      - uses: ./.github/workflows/shared_cpp_steps
 
   build-macos-14:
     # GitHub-hosted macOS 14 runner with M1 chip
@@ -35,7 +35,7 @@ jobs:
     # Use shared steps
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/workflows/shared_steps
+      - uses: ./.github/workflows/shared_cpp_steps
 
   build-windows-2022:
     # GitHub-hosted Windows 2022 runner
@@ -43,4 +43,4 @@ jobs:
     # Use shared steps
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/workflows/shared_steps
+      - uses: ./.github/workflows/shared_cpp_steps
