@@ -98,7 +98,7 @@ void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
         // Reset stiffness to nominal values after another 5 seconds
         if (loop_counter == 10000) {
             for (const auto& [group, _] : single_arm_groups) {
-                const auto& nominal_Kq = robot.info().K_q_nom.at(group);
+                const auto nominal_Kq = robot.info().K_q_nom.at(group);
                 robot.SetJointImpedance(group, nominal_Kq);
                 spdlog::info("[{}] Joint stiffness reset to nominal: [{}]",
                     rdk::kJointGroupNames.at(group), rdk::utility::Vec2Str(nominal_Kq));

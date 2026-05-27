@@ -126,7 +126,7 @@ void PeriodicTask(rdk::Robot& robot,
             // Online reset stiffness to nominal at 12 seconds
             case (12 * kLoopFreq): {
                 for (const auto& [group, _] : single_arm_groups) {
-                    const auto& nominal_K = robot.info().K_x_nom.at(group);
+                    const auto nominal_K = robot.info().K_x_nom.at(group);
                     robot.SetCartesianImpedance(group, nominal_K);
                     spdlog::info("[{}] Cartesian stiffness reset to nominal: [{}]",
                         rdk::kJointGroupNames.at(group), rdk::utility::Arr2Str(nominal_K));
