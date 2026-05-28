@@ -168,18 +168,16 @@ To run an example C++ program compiled during the previous step:
 
 On Linux and macOS:
 
-    LD_LIBRARY_PATH=~/rdk_install/lib ./<example-name> <robot-sn>
+    ./<example-name> <robot-sn>
 
 On Windows (Command Prompt):
 
-    set PATH=%USERPROFILE%\rdk_install\bin;%PATH%
     Release\<example-name>.exe <robot-sn>
 
 Note:
 
 1. Replace `<robot-sn>` with the actual serial number of the robot, for example `Rizon4-123456`.
-2. `LD_LIBRARY_PATH` or `PATH` is used to specify where the shared libraries of the dependencies are installed.
-3. Root privilege is required if the real-time scheduler API `flexiv::rdk::Scheduler` is used in the program.
+2. Root privilege is required if the real-time scheduler API `flexiv::rdk::Scheduler` is used in the program.
 
 ## API Documentation
 

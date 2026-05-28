@@ -1,5 +1,6 @@
 .vscode
 .vs
+.venv
 .DS_Store
 *.a
 *.so
