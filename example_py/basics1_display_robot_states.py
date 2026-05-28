@@ -24,7 +24,9 @@ def print_robot_states(robot, logger, stop_event):
 
     while not stop_event.is_set():
         # Print available joint groups
-        joint_groups_str = " ".join([f"[{name}]" for name in robot.info().all_groups.values()])
+        joint_groups_str = " ".join(
+            [f"[{name}]" for name in robot.info().all_groups.values()]
+        )
         logger.info(f"Available joint groups: {joint_groups_str}")
 
         # Print all robot states in JSON format using the built-in __str__ overloading
@@ -54,9 +56,11 @@ def print_robot_states(robot, logger, stop_event):
             print("}", flush=True)
             # fmt: on
 
-        # Print digital inputs
+        # Print digital inputs and outputs
         logger.info("Digital inputs:")
         print(robot.digital_inputs())
+        logger.info("Digital outputs:")
+        print(robot.digital_outputs())
         time.sleep(1)
 
 

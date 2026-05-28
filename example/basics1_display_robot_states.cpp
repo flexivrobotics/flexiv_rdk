@@ -43,9 +43,11 @@ void PrintRobotStates(rdk::Robot& robot)
             std::cout << states << std::endl;
         }
 
-        // Print digital inputs
+        // Print digital inputs and outputs
         spdlog::info("Digital inputs:");
         std::cout << rdk::utility::Arr2Str(robot.digital_inputs()) << std::endl;
+        spdlog::info("Digital outputs:");
+        std::cout << rdk::utility::Arr2Str(robot.digital_outputs()) << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
