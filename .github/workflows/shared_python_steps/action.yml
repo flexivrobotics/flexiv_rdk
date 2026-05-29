@@ -34,3 +34,8 @@ runs:
             py_compile.compile(str(path), doraise=True)
             print(f'py_compile OK: {path}')
         PY
+
+    - name: Run unit tests
+      shell: bash
+      run: |
+        python test/test_robot_constructor.py -v
