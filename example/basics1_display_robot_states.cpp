@@ -1,7 +1,7 @@
 /**
  * @example basics1_display_robot_states.cpp
  * This tutorial does the very first thing: check connection with the robot server and print
- * received robot states.
+ * received robot states and actions.
  * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -26,13 +26,17 @@ void PrintHelp()
     // clang-format on
 }
 
-/** @brief Print robot states data @ 1Hz */
+/** @brief Print robot states and actions data @ 1Hz */
 void PrintRobotStates(rdk::Robot& robot)
 {
     while (true) {
         // Print all robot states in JSON format using the built-in ostream operator overloading
         spdlog::info("Current robot states:");
         std::cout << robot.states() << std::endl;
+
+        // Print all robot actions in JSON format using the built-in ostream operator overloading
+        spdlog::info("Current robot actions:");
+        std::cout << robot.actions() << std::endl;
 
         // Print digital inputs
         spdlog::info("Current digital inputs:");
@@ -56,7 +60,7 @@ int main(int argc, char* argv[])
     // Print description
     spdlog::info(
         ">>> Tutorial description <<<\nThis tutorial does the very first thing: check connection "
-        "with the robot server and print received robot states.\n");
+        "with the robot server and print received robot states and actions.\n");
 
     try {
         // RDK Initialization
