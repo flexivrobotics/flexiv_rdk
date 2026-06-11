@@ -216,14 +216,6 @@ struct RobotStates
     std::vector<double> tau = {};
 
     /**
-     * Desired joint torques of the full system: \f$ \tau_d \in \mathbb{R}^{n \times 1} \f$.
-     * Compensation of nonlinear dynamics (gravity, centrifugal, and Coriolis) is excluded. Unit:
-     * \f$ [Nm] \f$.
-     * @note If a joint has no torque control capability, the corresponding value will be 0.
-     */
-    std::vector<double> tau_des = {};
-
-    /**
      * Numerical derivative of measured joint torques of the full system: \f$ \dot{\tau} \in
      * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm/s] \f$.
      * @note If a joint has no torque measurement, the corresponding value will be 0.
