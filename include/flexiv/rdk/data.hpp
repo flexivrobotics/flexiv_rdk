@@ -310,6 +310,58 @@ struct RobotStates
 };
 
 /**
+ * @struct RobotActions
+ * @brief Robot actions data in joint and Cartesian space.
+ * @see Robot::actions().
+ * @note If external axes exist, the joint-space actions will contain external axes data at the
+ * front of the vectors.
+ */
+struct RobotActions
+{
+    /**
+     * Desired joint positions of the full system using link-side encoder: \f$ q_d \in \mathbb{R}^{n
+     * \times 1} \f$. Unit: \f$ [rad] or [m] \f$.
+     */
+    std::vector<double> q_d = {};
+
+    /**
+     * Desired joint velocities of the full system using link-side encoder: \f$ \dot{q}_d \in
+     * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] or [m/s] \f$.
+     */
+    std::vector<double> dq_d = {};
+
+    /**
+     * Desired joint torques of the full system: \f$ \tau_d \in \mathbb{R}^{n \times 1} \f$.
+     * Compensation of nonlinear dynamics (gravity, centrifugal, and Coriolis) is excluded. Unit:
+     * \f$ [Nm] \f$.
+     * @note If a joint has no torque control capability, the corresponding value will be 0.
+     */
+    std::vector<double> tau_d = {};
+
+    /**
+     * Desired TCP pose w.r.t. world frame: \f$ {^{O}T_{TCP}}_d \in \mathbb{R}^{7 \times 1} \f$.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
+     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$.
+     */
+    std::array<double, kPoseSize> tcp_pose_d = {};
+
+    /**
+     * Desired TCP velocity w.r.t. world frame: \f$ {^{O}\dot{X}}_d \in \mathbb{R}^{6 \times 1} \f$.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear velocity and \f$ \mathbb{R}^{3 \times 1}
+     * \f$ angular velocity: \f$ [v_x, v_y, v_z, \omega_x, \omega_y, \omega_z]^T \f$. Unit: \f$
+     * [m/s]:[rad/s] \f$.
+     */
+    std::array<double, kCartDoF> tcp_vel_d = {};
+
+    /**
+     * Desired wrench applied on TCP w.r.t. force control frame: \f$ ^{O}F_d \in \mathbb{R}^{6
+     * \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$ \mathbb{R}^{3 \times
+     * 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$. Unit: \f$ [N]:[Nm] \f$.
+     */
+    std::array<double, kCartDoF> ext_wrench_d = {};
+};
+
+/**
  * @struct PlanInfo
  * @brief Information of the on-going primitive/plan.
  * @see Robot::plan_info().
@@ -466,6 +518,14 @@ std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
  * @return Updated ostream instance.
  */
 std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states);
+
+/**
+ * @brief Operator overloading to out stream all members of RobotActions in JSON format.
+ * @param[in] ostream Ostream instance.
+ * @param[in] robot_actions RobotActions data structure to out stream.
+ * @return Updated ostream instance.
+ */
+std::ostream& operator<<(std::ostream& ostream, const RobotActions& robot_actions);
 
 /**
  * @brief Operator overloading to out stream all members of PlanInfo in JSON format.
