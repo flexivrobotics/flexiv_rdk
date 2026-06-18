@@ -224,7 +224,7 @@ public:
     /**
      * @brief [Blocking] Switch the robot to a new control mode and wait for the mode transition
      * to finish.
-     * @param[in] mode Mode enum.
+     * @param[in] mode Control mode to switch to.
      * @throw std::invalid_argument if the requested mode is invalid or unlicensed.
      * @throw std::logic_error if robot is in an unknown control mode or is not operational.
      * @throw std::runtime_error if failed to transit the robot into the specified control mode
@@ -452,9 +452,11 @@ public:
      * @brief [Non-blocking] Continuously stream joint torque commands of the specified joint
      * group(s) to the robot. The commands are tracked by a high-performance joint torque
      * controller.
-     * @param[in] cmds Real-time joint torque commands mapped by joint group.
-     * @throw std::invalid_argument if size of any input vector does not match robot DoF, or
-     * [friction_comp_scale] is outside the valid range.
+     * @param[in] cmds Real-time joint torque commands mapped by joint group. Only existing
+     * single-arm joint groups and external axis joint groups are accepted.
+     * @throw std::invalid_argument if [cmds] contains a joint group that is not an existing
+     * single-arm or external axis joint group in the connected robot, if size of any input vector
+     * does not match robot DoF, or [friction_comp_scale] is outside the valid range.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: RT_JOINT_TORQUE.
@@ -468,8 +470,10 @@ public:
      * of the specified joint group(s) to the robot. The commands are tracked by either the joint
      * impedance controller or the joint position controller, depending on the control mode.
      * @param[in] cmds Real-time joint position-velocity-acceleration commands mapped by joint
-     * group.
-     * @throw std::invalid_argument if size of any input vector does not match robot DoF.
+     * group. Only existing single-arm joint groups and external axis joint groups are accepted.
+     * @throw std::invalid_argument if [cmds] contains a joint group that is not an existing
+     * single-arm or external axis joint group in the connected robot, or if size of any input
+     * vector does not match robot DoF.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, RT_JOINT_POSITION.
@@ -485,9 +489,10 @@ public:
      * commands, which are then tracked by either the joint impedance controller or the joint
      * position controller, depending on the control mode.
      * @param[in] cmds Non-real-time joint position-velocity-acceleration commands mapped by joint
-     * group.
-     * @throw std::invalid_argument if size of any input vector does not match robot DoF, or
-     * [dq_max] or [ddq_max] contains any non-positive value.
+     * group. Only existing single-arm joint groups and external axis joint groups are accepted.
+     * @throw std::invalid_argument if [cmds] contains a joint group that is not an existing
+     * single-arm or external axis joint group in the connected robot, if size of any input vector
+     * does not match robot DoF, or [dq_max] or [ddq_max] contains any non-positive value.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: NRT_JOINT_IMPEDANCE, NRT_JOINT_POSITION.
@@ -501,15 +506,16 @@ public:
     /**
      * @brief [Blocking] Set impedance properties of the robot's joint motion controller used in
      * the joint impedance control modes.
-     * @param[in] group The joint group to set impedance properties for.
+     * @param[in] group The joint group to set impedance properties for. Only existing single-arm
+     * joint groups and external axis joint groups are accepted.
      * @param[in] K_q Joint motion stiffness: \f$ K_q \in \mathbb{R}^{n \times 1} \f$.
      * Setting motion stiffness of a joint axis to 0 will make this axis free-floating. Valid range:
      * [0, RobotInfo::K_q_nom]. Unit: \f$ [Nm/rad] \f$.
      * @param[in] Z_q Joint motion damping ratio: \f$ Z_q \in \mathbb{R}^{n \times 1} \f$.
      * Valid range: [0.3, 0.8]. The default value 0.7 will be used if left empty.
-     * @throw std::invalid_argument if [group] does not exist on the connected robot, if [K_q] or
-     * [Z_q] contains any value outside the valid range, or if size of any input vector does not
-     * match robot DoF.
+     * @throw std::invalid_argument if [group] is not an existing single-arm or external axis joint
+     * group in the connected robot, if [K_q] or [Z_q] contains any value outside the valid range,
+     * or if size of any input vector does not match robot DoF.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
@@ -524,12 +530,13 @@ public:
      * @brief [Blocking] Set maximum contact torques for the robot's joint motion controller used in
      * the joint impedance control modes. The controller will regulate its output to maintain
      * contact torques with the environment under the set values.
-     * @param[in] group The joint group to set maximum contact torques for.
+     * @param[in] group The joint group to set maximum contact torques for. Only existing single-arm
+     * joint groups and external axis joint groups are accepted.
      * @param[in] max_torques Maximum contact torques: \f$ tau_q \in \mathbb{R}^{n \times 1} \f$.
      * Valid range: [0, RobotInfo::tau_max]. Unit: \f$ [Nm] \f$.
-     * @throw std::invalid_argument if [group] does not exist on the connected robot, if
-     * [max_torques] contains any value outside the valid range, or if its size does not match
-     * robot DoF.
+     * @throw std::invalid_argument if [group] is not an existing single-arm or external axis joint
+     * group in the connected robot, if [max_torques] contains any value outside the valid range, or
+     * if its size does not match robot DoF.
      * @throw std::logic_error if the robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
@@ -540,12 +547,13 @@ public:
     /**
      * @brief [Blocking] Set inertia shaping scales for the robot's joint motion controller used in
      * the joint impedance control modes.
-     * @param[in] group The joint group to set inertia shaping scales for.
+     * @param[in] group The joint group to set inertia shaping scales for. Only existing single-arm
+     * joint groups and external axis joint groups are accepted.
      * @param[in] inertia_scales Inertia shaping scales: \f$ \sigma_q \in \mathbb{R}^{n \times 1}
      * \f$. Valid range: [0.75, 1.0]. The nominal (safe) value is 1.0, which means no shaping.
-     * @throw std::invalid_argument if [group] does not exist on the connected robot, if
-     * [inertia_scales] contains any value outside the valid range, or if its size does not match
-     * robot DoF.
+     * @throw std::invalid_argument if [group] is not an existing single-arm or external axis joint
+     * group in the connected robot, if [inertia_scales] contains any value outside the valid range,
+     * or if its size does not match robot DoF.
      * @throw std::logic_error if the robot is not in an applicable control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, NRT_JOINT_IMPEDANCE.
