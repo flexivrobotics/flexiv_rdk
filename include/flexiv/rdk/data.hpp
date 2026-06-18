@@ -88,7 +88,7 @@ enum class OperationalStatus
     READY,              ///< Ready to be operated.
     BOOTING,            ///< System still booting, please wait.
     ESTOP_NOT_RELEASED, ///< E-Stop is not released.
-    NOT_ENABLED,        ///< Not enabled, call Enable() to send the signal.
+    NOT_SERVO_ON,       ///< Not servo on, call ServoOn() to send the signal.
     RELEASING_BRAKE,    ///< Brake release in progress, please wait.
     MINOR_FAULT,        ///< Minor fault occurred, call ClearFault() to try clearing it.
     CRITICAL_FAULT,     ///< Critical fault occurred, call ClearFault() to try clearing it.
@@ -104,7 +104,7 @@ inline const std::map<OperationalStatus, std::string> kOpStatusNames {
     {OperationalStatus::READY, "Ready"},
     {OperationalStatus::BOOTING, "System booting"},
     {OperationalStatus::ESTOP_NOT_RELEASED, "E-Stop not released"},
-    {OperationalStatus::NOT_ENABLED, "Not enabled"},
+    {OperationalStatus::NOT_SERVO_ON, "Not servo on"},
     {OperationalStatus::RELEASING_BRAKE, "Releasing brakes"},
     {OperationalStatus::MINOR_FAULT, "Minor fault occurred"},
     {OperationalStatus::CRITICAL_FAULT, "Critical fault occurred"},
