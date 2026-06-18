@@ -360,6 +360,60 @@ struct RobotStates
 };
 
 /**
+ * @struct RobotActions
+ * @brief Robot actions data in joint and Cartesian space for a joint group.
+ */
+struct RobotActions
+{
+    /** Current time since epoch of the robot system. The pair consists of {seconds since epoch,
+     * nanoseconds since last full second} */
+    std::pair<int, int> timestamp = {};
+
+    /**
+     * Desired joint positions: \f$ q_d \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad] or [m] \f$.
+     */
+    std::vector<double> q_d = {};
+
+    /**
+     * Desired joint velocities: \f$ \dot{q}_d \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] or
+     * [m/s] \f$.
+     */
+    std::vector<double> dq_d = {};
+
+    /**
+     * Desired joint torques excluding the compensation of nonlinear dynamics: \f$ \tau_d \in
+     * \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm] \f$.
+     * @note Nonlinear dynamics include: gravity, centrifugal, and Coriolis. If the robot is static,
+     * tau_d will be zeros.
+     * @note If a joint has no torque control capability, the corresponding value will be 0.
+     */
+    std::vector<double> tau_d = {};
+
+    /**
+     * Desired TCP pose w.r.t. world frame: \f$ {^{O}T_{TCP}}_d \in \mathbb{R}^{7 \times 1} \f$.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
+     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]~[] \f$.
+     */
+    std::array<double, kPoseSize> tcp_pose_d = {};
+
+    /**
+     * Desired TCP twist w.r.t. world frame: \f$ {^{O}\dot{X}}_d \in \mathbb{R}^{6 \times 1} \f$.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear velocity and \f$ \mathbb{R}^{3 \times 1}
+     * \f$ angular velocity: \f$ [v_x, v_y, v_z, \omega_x, \omega_y, \omega_z]^T \f$. Unit: \f$
+     * [m/s]:[rad/s] \f$.
+     */
+    std::array<double, kCartDoF> tcp_twist_d = {};
+
+    /**
+     * Desired TCP wrench w.r.t. the current force control frame: \f$ {^{ctrl}F_{ext}}_d \in
+     * \mathbb{R}^{6 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ force and \f$
+     * \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T \f$. Unit: \f$
+     * [N]:[Nm] \f$.
+     */
+    std::array<double, kCartDoF> tcp_wrench_d = {};
+};
+
+/**
  * @struct PlanInfo
  * @brief Information of the on-going primitive/plan.
  * @see Robot::plan_info().
