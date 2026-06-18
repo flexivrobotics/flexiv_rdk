@@ -87,6 +87,12 @@ public:
     RobotStates states() const;
 
     /**
+     * @brief [Non-blocking] Current actions data of the robot.
+     * @return Value copy of RobotActions struct.
+     */
+    RobotActions actions() const;
+
+    /**
      * @brief [Non-blocking] Whether the robot has come to a complete stop.
      * @return True: stopped; false: still moving.
      */

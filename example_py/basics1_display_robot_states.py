@@ -3,7 +3,7 @@
 """basics1_display_robot_states.py
 
 This tutorial does the very first thing: check connection with the robot server and print
-received robot states.
+received robot states and actions.
 """
 
 __copyright__ = "Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved."
@@ -18,32 +18,48 @@ import flexivrdk  # pip install flexivrdk
 
 def print_robot_states(robot, logger, stop_event):
     """
-    Print robot states data @ 1Hz.
+    Print robot states and actions data @ 1Hz.
 
     """
 
     while not stop_event.is_set():
         # Print all robot states, round all float values to 2 decimals
+        states = robot.states()
         logger.info("Current robot states:")
         # fmt: off
         print("{")
-        print(f"q: {['%.2f' % i for i in robot.states().q]}",)
-        print(f"theta: {['%.2f' % i for i in robot.states().theta]}")
-        print(f"dq: {['%.2f' % i for i in robot.states().dq]}")
-        print(f"dtheta: {['%.2f' % i for i in robot.states().dtheta]}")
-        print(f"tau: {['%.2f' % i for i in robot.states().tau]}")
-        print(f"tau_des: {['%.2f' % i for i in robot.states().tau_des]}")
-        print(f"tau_dot: {['%.2f' % i for i in robot.states().tau_dot]}")
-        print(f"tau_ext: {['%.2f' % i for i in robot.states().tau_ext]}")
-        print(f"tcp_pose: {['%.2f' % i for i in robot.states().tcp_pose]}")
-        print(f"tcp_velocity: {['%.2f' % i for i in robot.states().tcp_vel]}")
-        print(f"flange_pose: {['%.2f' % i for i in robot.states().flange_pose]}")
-        print(f"ft_sensor_raw: {['%.2f' % i for i in robot.states().ft_sensor_raw]}")
-        print(f"ext_wrench_in_tcp: {['%.2f' % i for i in robot.states().ext_wrench_in_tcp]}")
-        print(f"ext_wrench_in_world: {['%.2f' % i for i in robot.states().ext_wrench_in_world]}")
-        print(f"ext_wrench_in_tcp_raw: {['%.2f' % i for i in robot.states().ext_wrench_in_tcp_raw]}")
-        print(f"ext_wrench_in_world_raw: {['%.2f' % i for i in robot.states().ext_wrench_in_world_raw]}")
+        print(f"q: {['%.2f' % i for i in states.q]}",)
+        print(f"theta: {['%.2f' % i for i in states.theta]}")
+        print(f"dq: {['%.2f' % i for i in states.dq]}")
+        print(f"dtheta: {['%.2f' % i for i in states.dtheta]}")
+        print(f"tau: {['%.2f' % i for i in states.tau]}")
+        print(f"tau_dot: {['%.2f' % i for i in states.tau_dot]}")
+        print(f"tau_ext: {['%.2f' % i for i in states.tau_ext]}")
+        print(f"tcp_pose: {['%.2f' % i for i in states.tcp_pose]}")
+        print(f"tcp_velocity: {['%.2f' % i for i in states.tcp_vel]}")
+        print(f"flange_pose: {['%.2f' % i for i in states.flange_pose]}")
+        print(f"ft_sensor_raw: {['%.2f' % i for i in states.ft_sensor_raw]}")
+        print(f"ext_wrench_in_tcp: {['%.2f' % i for i in states.ext_wrench_in_tcp]}")
+        print(f"ext_wrench_in_world: {['%.2f' % i for i in states.ext_wrench_in_world]}")
+        print(f"ext_wrench_in_tcp_raw: {['%.2f' % i for i in states.ext_wrench_in_tcp_raw]}")
+        print(f"ext_wrench_in_world_raw: {['%.2f' % i for i in states.ext_wrench_in_world_raw]}")
         print("}", flush= True)
+        # fmt: on
+
+        # Cache a local copy to avoid repeated RobotActions copies / API calls
+        actions = robot.actions()
+
+        # Print all robot actions, round all float values to 2 decimals
+        logger.info("Current robot actions:")
+        # fmt: off
+        print("{")
+        print(f"q_d: {['%.2f' % i for i in actions.q_d]}")
+        print(f"dq_d: {['%.2f' % i for i in actions.dq_d]}")
+        print(f"tau_d: {['%.2f' % i for i in actions.tau_d]}")
+        print(f"tcp_pose_d: {['%.2f' % i for i in actions.tcp_pose_d]}")
+        print(f"tcp_velocity_d: {['%.2f' % i for i in actions.tcp_vel_d]}")
+        print(f"ext_wrench_d: {['%.2f' % i for i in actions.ext_wrench_d]}")
+        print("}", flush=True)
         # fmt: on
 
         # Print digital inputs
@@ -73,7 +89,7 @@ def main():
     # Print description
     logger.info(
         ">>> Tutorial description <<<\nThis tutorial does the very first thing: check connection "
-        "with the robot server and print received robot states.\n"
+        "with the robot server and print received robot states and actions.\n"
     )
 
     try:
