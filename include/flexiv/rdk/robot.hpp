@@ -163,10 +163,11 @@ public:
     bool estop_released() const;
 
     /**
-     * @brief [Non-blocking] Whether the enabling button is pressed.
-     * @return True: pressed; false: released.
+     * @brief [Non-blocking] Whether the 3-position enabling device (e.g. enabling button on the
+     * motion bar) is in the ON position (the middle position).
+     * @return True: ON; false: OFF.
      */
-    bool enabling_button_pressed() const;
+    bool enabling_device_on() const;
 
     /**
      * @brief [Non-blocking] Whether the timeliness failure limit has been reached within a
