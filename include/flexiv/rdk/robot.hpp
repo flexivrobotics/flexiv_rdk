@@ -188,13 +188,13 @@ public:
 
     //======================================= SYSTEM CONTROL =======================================
     /**
-     * @brief [Blocking] Enable the robot. If E-stop is released and there's no fault, the robot
+     * @brief [Blocking] Servo on the robot. If E-stop is released and there's no fault, the robot
      * will release brakes, and becomes operational a few seconds later.
      * @throw std::logic_error if the robot is not connected or E-stop is not released.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      */
-    void Enable();
+    void ServoOn();
 
     /**
      * @brief [Blocking] Move the specified joint groups to the home posture using Home primitive.
