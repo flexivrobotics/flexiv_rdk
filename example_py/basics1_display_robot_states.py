@@ -45,17 +45,20 @@ def print_robot_states(robot, logger, stop_event):
         print("}", flush= True)
         # fmt: on
 
+        # Cache a local copy to avoid repeated RobotActions copies / API calls
+        actions = robot.actions()
+
         # Print all robot actions, round all float values to 2 decimals
         logger.info("Current robot actions:")
         # fmt: off
         print("{")
-        print(f"q_d: {['%.2f' % i for i in robot.actions().q_d]}")
-        print(f"dq_d: {['%.2f' % i for i in robot.actions().dq_d]}")
-        print(f"tau_d: {['%.2f' % i for i in robot.actions().tau_d]}")
-        print(f"tcp_pose_d: {['%.2f' % i for i in robot.actions().tcp_pose_d]}")
-        print(f"tcp_velocity_d: {['%.2f' % i for i in robot.actions().tcp_vel_d]}")
-        print(f"ext_wrench_d: {['%.2f' % i for i in robot.actions().ext_wrench_d]}")
-        print("}", flush= True)
+        print(f"q_d: {['%.2f' % i for i in actions.q_d]}")
+        print(f"dq_d: {['%.2f' % i for i in actions.dq_d]}")
+        print(f"tau_d: {['%.2f' % i for i in actions.tau_d]}")
+        print(f"tcp_pose_d: {['%.2f' % i for i in actions.tcp_pose_d]}")
+        print(f"tcp_velocity_d: {['%.2f' % i for i in actions.tcp_vel_d]}")
+        print(f"ext_wrench_d: {['%.2f' % i for i in actions.ext_wrench_d]}")
+        print("}", flush=True)
         # fmt: on
 
         # Print digital inputs
