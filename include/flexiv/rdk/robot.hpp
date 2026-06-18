@@ -76,8 +76,16 @@ public:
     /**
      * @brief [Non-blocking] Current states data of all existing joint groups of the robot.
      * @return Robot states data mapped by joint group.
+     * @warning Cartesian states of non-single-arm joint groups are not populated.
      */
     std::map<JointGroup, RobotStates> states() const;
+
+    /**
+     * @brief [Non-blocking] Current actions data of all existing joint groups of the robot.
+     * @return Robot actions data mapped by joint group.
+     * @warning Cartesian actions of non-single-arm joint groups are not populated.
+     */
+    std::map<JointGroup, RobotActions> actions() const;
 
     /**
      * @brief [Non-blocking] Whether specific joint groups of the robot have come to a complete
