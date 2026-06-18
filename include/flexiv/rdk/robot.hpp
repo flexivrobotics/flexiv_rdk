@@ -157,7 +157,7 @@ public:
     bool recovery() const;
 
     /**
-     * @brief [Non-blocking] Whether the emergency stop (E-stop) is released.
+     * @brief [Non-blocking] Whether all connected emergency stops (E-stops) are released.
      * @return True: released; false: pressed.
      */
     bool estop_released() const;
