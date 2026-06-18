@@ -537,6 +537,18 @@ struct Coord
     std::string str() const;
 };
 
+/**
+ * @brief Modes for synchronous motions.
+ * @see PrimitiveArgs::sync_motion_mode
+ */
+enum class SyncMotionMode
+{
+    DISABLE = 0,    ///< Don't sync with any target
+    ARM1_TCP = 1,   ///< Sync with arm1 tcp
+    ARM2_TCP = 2,   ///< sync with arm2 tcp
+    POSITIONER = 3, ///< sync with positioner
+};
+
 /** Alias of the variant that holds all possible types of data exchanged with Flexiv robots */
 using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::Coord,
     std::vector<int>, std::vector<double>, std::vector<std::string>, std::vector<rdk::JPos>,
