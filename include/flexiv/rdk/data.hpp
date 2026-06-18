@@ -607,7 +607,7 @@ struct PrimitiveStates
     /** Name of the currently running primitive */
     std::string pt_name = {};
 
-    /** Names and corresponding values of the primitive's states. Booleans are represented by int 1
+    /** Names and corresponding values of this primitive's states. Booleans are represented by int 1
      * and 0. For example:
      * {{"reachedTarget", 1}, {"timePeriod", 5.6}, {"forceOffset", {0.1, 0.2, -1.3}}}.
      */
@@ -747,20 +747,20 @@ struct RtCartesianCmd
     std::array<double, kPoseSize> pose_d = {};
 
     /** Target TCP wrench in the force control reference frame (configured by
-     * SetForceControlFrame()): \f$ ^{0}F_d \in \mathbb{R}^{6 \times 1} \f$. The robot will track
+     * SetForceControlFrame()): \f$ ^{O}F_d \in \mathbb{R}^{6 \times 1} \f$. The robot will track
      * the target wrench using an explicit force controller. Consists of \f$ \mathbb{R}^{3 \times 1}
      * \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T
      * \f$. Unit: \f$ [N]:[Nm] \f$ */
     std::array<double, kCartDoF> wrench_d = {};
 
-    /** Target TCP twist in world frame: \f$ ^{0}\dot{x}_d \in \mathbb{R}^{6 \times 1} \f$.
+    /** Target TCP twist in world frame: \f$ ^{O}\dot{x}_d \in \mathbb{R}^{6 \times 1} \f$.
      * Providing properly calculated target twist can improve the robot's overall tracking
      * performance at the cost of reduced robustness. Leaving this input 0 can maximize robustness
      * at the cost of reduced tracking performance. Consists of \f$ \mathbb{R}^{3 \times 1} \f$
      * linear and \f$ \mathbb{R}^{3 \times 1} \f$ angular velocity. Unit: \f$ [m/s]:[rad/s] \f$ */
     std::array<double, kCartDoF> twist_d = {};
 
-    /** Target TCP acceleration in world frame: \f$ ^{0}\ddot{x}_d \in \mathbb{R}^{6 \times 1} \f$.
+    /** Target TCP acceleration in world frame: \f$ ^{O}\ddot{x}_d \in \mathbb{R}^{6 \times 1} \f$.
      * Feeding forward target acceleration can improve the robot's tracking performance for highly
      * dynamic motions, but it's also okay to leave this input 0. Consists of \f$ \mathbb{R}^{3
      * \times 1} \f$ linear and \f$ \mathbb{R}^{3 \times 1} \f$ angular acceleration. Unit: \f$
@@ -799,13 +799,13 @@ struct NrtCartesianCmd
     std::array<double, kPoseSize> pose_d = {};
 
     /** Target TCP wrench in the force control reference frame (configured by
-     * SetForceControlFrame()): \f$ ^{0}F_d \in \mathbb{R}^{6 \times 1} \f$. The robot will track
+     * SetForceControlFrame()): \f$ ^{O}F_d \in \mathbb{R}^{6 \times 1} \f$. The robot will track
      * the target wrench using an explicit force controller. Consists of \f$ \mathbb{R}^{3 \times 1}
      * \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T
      * \f$. Unit: \f$ [N]:[Nm] \f$ */
     std::array<double, kCartDoF> wrench_d = {};
 
-    /** Target TCP twist in world frame: \f$ ^{0}\dot{x}_d \in \mathbb{R}^{6 \times 1} \f$.
+    /** Target TCP twist in world frame: \f$ ^{O}\dot{x}_d \in \mathbb{R}^{6 \times 1} \f$.
      * Providing properly calculated target twist can improve the robot's overall tracking
      * performance at the cost of reduced robustness. Leaving this input 0 can maximize robustness
      * at the cost of reduced tracking performance. Consists of \f$ \mathbb{R}^{3 \times 1} \f$
@@ -874,6 +874,14 @@ std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
  * @return Updated ostream instance.
  */
 std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states);
+
+/**
+ * @brief Operator overloading to out stream all members of RobotActions in JSON format.
+ * @param[in] ostream Ostream instance.
+ * @param[in] robot_actions RobotActions data structure to out stream.
+ * @return Updated ostream instance.
+ */
+std::ostream& operator<<(std::ostream& ostream, const RobotActions& robot_actions);
 
 /**
  * @brief Operator overloading to out stream all members of PlanInfo in JSON format.

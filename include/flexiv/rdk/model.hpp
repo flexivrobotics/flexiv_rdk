@@ -102,7 +102,7 @@ public:
      * @brief [Non-blocking] Compute the time derivative of Jacobian matrix at the specified frame
      * w.r.t. world frame.
      * @param[in] link_name Name of the link whose frame is the specified one.
-     * @return Time derivative of the Jacobian matrix: \f$ ^{0}\dot{J_i} \in \mathbb{R}^{m \times n}
+     * @return Time derivative of the Jacobian matrix: \f$ ^{O}\dot{J_i} \in \mathbb{R}^{m \times n}
      * \f$.
      * @throw std::invalid_argument if [link_name] does not exist.
      * @note Call Update() before this function.
@@ -147,7 +147,7 @@ public:
     /**
      * @brief [Non-blocking] Compute the Jacobian matrix at the specified frame w.r.t. world frame.
      * @param[in] link_name Name of the link whose frame is the specified one.
-     * @return Jacobian matrix: \f$ ^{0}J_i \in \mathbb{R}^{m \times n} \f$.
+     * @return Jacobian matrix: \f$ ^{O}J_i \in \mathbb{R}^{m \times n} \f$.
      * @throw std::invalid_argument if [link_name] does not exist.
      * @note Call Update() before this function.
      * @see link_names().
@@ -158,7 +158,7 @@ public:
      * @brief [Non-blocking] Compute the transformation matrix of the specified frame w.r.t. world
      * frame.
      * @param[in] link_name Name of the link whose frame is the specified one.
-     * @return Transformation matrix: \f$ ^{0}T_i \in \mathbb{R}^{4 \times 4} \f$.
+     * @return Transformation matrix: \f$ ^{O}T_i \in \mathbb{R}^{4 \times 4} \f$.
      * @throw std::invalid_argument if [link_name] does not exist.
      * @note Call Update() before this function.
      * @see link_names().
