@@ -576,12 +576,25 @@ struct PrimitiveArgs
     /** Name of the primitive to execute. For example, "Home", "MoveL", "ZeroFTSensor", etc. */
     std::string pt_name = {};
 
-    /** Input parameter names and values of the primitive. Use int 1 and 0 to represent booleans.
+    /** Input parameter names and values of this primitive. Use int 1 and 0 to represent booleans.
      * E.g. {{"target", rdk::Coord({0.65, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})},
      * {"vel", 0.6}, {"zoneRadius", "Z50"}}.
      * @warning The primitive input parameters may not use SI units, please refer to the Flexiv
      * Primitives documentation for exact unit definition. */
     std::map<std::string, FlexivDataTypes> input_params = {};
+
+    /** True: The external axis motion is actively controlled by this primitive. When this primitive
+     * is executed, the external axis will move to the position defined in target points or
+     * waypoints. False: The external axis motion is not actively controlled by this primitive.
+     * @note This setting is only effective when the external axis exists. */
+    bool external_axis_control = true;
+
+    /** Mode for synchronous motions between the TCP of this primitive and the selected arm or
+     * positioner. Once configured, the motion of the TCP will be automatically adjusted in
+     * accordance with the movement of the selected arm or positioner.
+     * @note Only certain primitives support this feature, this setting will be ignored if this
+     * primitive does not support it. */
+    SyncMotionMode sync_motion_mode = SyncMotionMode::DISABLE;
 };
 
 /**
