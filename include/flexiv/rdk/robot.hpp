@@ -573,8 +573,8 @@ public:
      * the other axes.
      * @param[in] cmds Real-time Cartesian motion/force commands mapped by joint group. Only
      * existing single-arm joint groups like ARM_1 and ARM_2 are accepted.
-     * @throw std::invalid_argument if [cmds] contains joint groups that are not existing
-     * single-arm joint groups in the connected robot.
+     * @throw std::invalid_argument if [cmds] contains a joint group that is not an existing
+     * single-arm joint group in the connected robot.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE.
@@ -607,8 +607,8 @@ public:
      * internal motion generator will smoothen the discrete commands.
      * @param[in] cmds Non-real-time Cartesian motion/force commands mapped by joint group. Only
      * existing single-arm joint groups like ARM_1 and ARM_2 are accepted.
-     * @throw std::invalid_argument if [cmds] contains joint groups that are not existing
-     * single-arm joint groups in the connected robot, or if any of the last 4 input parameters is
+     * @throw std::invalid_argument if [cmds] contains a joint group that is not an existing
+     * single-arm joint group in the connected robot, or if any of the last 4 input parameters is
      * not positive.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
@@ -636,8 +636,8 @@ public:
      * for the robot to track using non-real-time super primitives.
      * @param[in] cmds Non-real-time Cartesian multi-waypoint commands mapped by joint group. Only
      * existing single-arm joint groups like ARM_1 and ARM_2 are accepted.
-     * @throw std::invalid_argument if [cmds] contains joint groups that are not existing
-     * single-arm joint groups in the connected robot, or if any waypoint list is empty or any
+     * @throw std::invalid_argument if [cmds] contains a joint group that is not an existing
+     * single-arm joint group in the connected robot, or if any waypoint list is empty or any
      * waypoint's last 4 input parameters is not positive.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
@@ -863,7 +863,7 @@ public:
 
     /**
      * @brief [Non-blocking] Current reading from all digital input ports, including 16 on the
-     * control box plus 2 inside each wrist connector.
+     * control box plus 2 in each wrist connector.
      * @return A boolean array whose index corresponds to that of the digital input ports.
      * True: port high; false: port low.
      */
@@ -871,7 +871,7 @@ public:
 
     /**
      * @brief [Non-blocking] Current reading from all digital output ports, including 16 on the
-     * control box plus 2 inside each wrist connector.
+     * control box plus 2 in each wrist connector.
      * @return A boolean array whose index corresponds to that of the digital output ports.
      * True: port high; false: port low.
      */
