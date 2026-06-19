@@ -112,9 +112,9 @@ def main():
                 return 1
             logger.info("Fault on the connected robot is cleared")
 
-        # Enable the robot, make sure the E-stop is released before enabling
-        logger.info("Enabling robot ...")
-        robot.Enable()
+        # Servo on the robot, make sure the E-stop is released
+        logger.info("Servo on the robot ...")
+        robot.ServoOn()
 
         # Wait for the robot to become operational
         while not robot.operational():
@@ -149,7 +149,9 @@ def main():
         )
 
         # Wait for primitive to finish
-        while not utility.primitive_state_true_for_groups(robot.primitive_states(), "terminated"):
+        while not utility.primitive_state_true_for_groups(
+            robot.primitive_states(), "terminated"
+        ):
             time.sleep(1)
         logger.info("Sensor zeroing complete")
 
@@ -223,7 +225,8 @@ def main():
 
         # Uncomment the following line to enable passive force control, otherwise active force
         # control is used by default. See function doc for more details
-        # robot.setPassiveForceControl(True)
+        # for group in single_arm_groups:
+        #     robot.SetPassiveForceControl(group, True)
 
         # NOTE: motion control always uses robot world frame, while force control can use
         # either world or TCP frame as reference frame

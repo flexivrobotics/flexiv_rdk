@@ -54,9 +54,9 @@ def main():
                 return 1
             logger.info("Fault on the connected robot is cleared")
 
-        # Enable the robot, make sure the E-stop is released before enabling
-        logger.info("Enabling robot ...")
-        robot.Enable()
+        # Servo on the robot, make sure the E-stop is released
+        logger.info("Servo on the robot ...")
+        robot.ServoOn()
 
         # Wait for the robot to become operational
         while not robot.operational():
