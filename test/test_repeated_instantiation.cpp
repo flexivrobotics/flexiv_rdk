@@ -19,7 +19,7 @@ void PrintHelp()
 {
     // clang-format off
     std::cout << "Required arguments: [robot_sn] [test_cycles]" << std::endl;
-    std::cout << "    robot_sn: Serial number of the robot to connect. Remove any space, e.g. Rizon4s-123456" << std::endl;
+    std::cout << "    robot_sn: Serial number of the robot to connect. Remove any space, e.g. Enlight-L-123456" << std::endl;
     std::cout << "    test_cycles: Number of cycles to repeat the instantiation" << std::endl;
     std::cout << "Optional arguments: None" << std::endl;
     std::cout << std::endl;
@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
         PrintHelp();
         return 1;
     }
-    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
+    // Serial number of the robot to connect to
     std::string robot_sn = argv[1];
 
     // Number of cycles
@@ -48,9 +48,9 @@ int main(int argc, char* argv[])
             // Instantiate robot interface
             rdk::Robot robot(robot_sn);
 
-            // Enable the robot, make sure the E-stop is released before enabling
-            spdlog::info("Enabling robot ...");
-            robot.Enable();
+            // Servo on the robot, make sure the E-stop is released
+            spdlog::info("Servo on the robot ...");
+            robot.ServoOn();
 
             // Wait for the robot to become operational
             while (!robot.operational()) {

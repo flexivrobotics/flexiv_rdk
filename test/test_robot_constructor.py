@@ -15,7 +15,7 @@ class RobotConstructorTest(unittest.TestCase):
 
     def test_invalid_format(self):
         self.assert_robot_constructor_failure(
-            "Rizon412345", ValueError, "serial number is invalid"
+            "Enlight412345", ValueError, "serial number is invalid"
         )
 
     def test_unsupported_model(self):
