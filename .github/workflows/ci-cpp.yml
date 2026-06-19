@@ -1,0 +1,31 @@
+name: Cpp
+
+on:
+  push:
+    branches: [main, "v*.x"]
+  pull_request:
+    branches: [main, "v*.x"]
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  ci-cpp:
+    name: C++ Check @ ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-22.04
+          - ubuntu-22.04-arm
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - macos-14
+          - windows-2025
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/workflows/shared_cpp_steps
