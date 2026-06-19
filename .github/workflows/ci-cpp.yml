@@ -14,7 +14,7 @@ env:
 
 jobs:
   ci-cpp:
-    name: C++ Check @ ${{ matrix.os }}
+    name: CI-Cpp @ ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -25,7 +25,7 @@ jobs:
           - ubuntu-24.04
           - ubuntu-24.04-arm
           - macos-14
-          - windows-2025
+          - windows-2022
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/workflows/shared_cpp_steps
