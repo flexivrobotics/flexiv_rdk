@@ -19,7 +19,7 @@ Key patterns shown:
     - Fault clear, enable, wait operational, mode switch (essential setup).
     - exec_prim() wrapper accepts group-indexed PrimitiveArgs for per-group primitives.
     - Transition keys must be looked up per primitive from Flexiv primitive documentation:
-        https://primitive.flexiv.com/primitives/en/3.11/rizon4/index.html
+        https://www.flexiv.com/software/primitives
     - Reading tcp_pose from each joint group to extract live orientation.
     - Converting quaternion to Euler ZYX degrees using utility.quat2eulerZYX for MoveL orientation.
     - ZeroFTSensor is executed for all selected groups with explicit completion checks.
@@ -99,7 +99,7 @@ def exec_prim(robot, primitive_args_by_group, transition_keys_by_group):
             Dict[JointGroup, str] where each value is the transition key for that group.
             This can be the primitive's default key or another primitive state key.
             Look up primitive states from:
-            https://primitive.flexiv.com/primitives/en/3.11/rizon4/index.html
+            https://www.flexiv.com/software/primitives
 
         Note:
         This helper waits on primitive_states() only. If transition depends on
