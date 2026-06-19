@@ -43,6 +43,12 @@ void PrintRobotStates(rdk::Robot& robot)
             std::cout << states << std::endl;
         }
 
+        // Print all robot actions in JSON format using the built-in ostream operator overloading
+        for (const auto& [group, actions] : robot.actions()) {
+            spdlog::info("[{}] robot actions:", rdk::kJointGroupNames.at(group));
+            std::cout << actions << std::endl;
+        }
+
         // Print digital inputs and outputs
         spdlog::info("Digital inputs:");
         std::cout << rdk::utility::Arr2Str(robot.digital_inputs()) << std::endl;
@@ -86,9 +92,9 @@ int main(int argc, char* argv[])
             spdlog::info("Fault on the connected robot is cleared");
         }
 
-        // Enable the robot, make sure the E-stop is released before enabling
-        spdlog::info("Enabling robot ...");
-        robot.Enable();
+        // Servo on the robot, make sure the E-stop is released
+        spdlog::info("Servo on the robot ...");
+        robot.ServoOn();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
