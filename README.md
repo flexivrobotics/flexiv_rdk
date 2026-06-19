@@ -35,7 +35,8 @@ On all supported platforms, the Python package of RDK and its dependencies for a
 
     python3.x -m pip install numpy spdlog flexivrdk
 
-Note: replace `3.x` with a specific Python version.
+> [!NOTE]
+> Replace `3.x` with a specific Python version.
 
 ### Use the installed Python package
 
@@ -119,7 +120,8 @@ The following steps are mostly the same on all supported platforms, with some va
        source <qnx-sdp-dir>/qnxsdp-env.sh
        bash build_and_install_dependencies.sh ~/rdk_install $(nproc) <path-to-qnx-toolchain-file>
 
-   Note: the QNX toolchain files are located under `flexiv_rdk/cmake` directory, with one for x86_64 target and one for aarch64 target.
+   > [!NOTE]
+   > The QNX toolchain files are located under `flexiv_rdk/cmake` directory, with one for x86_64 target and one for aarch64 target.
 
 3. In the same Terminal, configure the `flexiv_rdk` CMake project:
 
@@ -134,7 +136,8 @@ The following steps are mostly the same on all supported platforms, with some va
 
        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install -DCMAKE_TOOLCHAIN_FILE=<path-to-qnx-toolchain-file>
 
-   Note: `-D` followed by `CMAKE_INSTALL_PREFIX` sets the absolute path of the installation directory, which should be the one chosen in step 1.
+   > [!NOTE]
+   > `-D` followed by `CMAKE_INSTALL_PREFIX` sets the absolute path of the installation directory, which should be the one chosen in step 1.
 
 4. Install `flexiv_rdk` C++ library to `CMAKE_INSTALL_PREFIX` path, which may or may not be globally discoverable by CMake depending on the location:
 
@@ -158,14 +161,17 @@ On QNX:
     cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install -DCMAKE_TOOLCHAIN_FILE=<path-to-qnx-toolchain-file>
     cmake --build . --config Release -j 4
 
-Note: `-D` followed by `CMAKE_PREFIX_PATH` tells the user project's CMake where to find the installed C++ library. This argument can be skipped if the RDK library and its dependencies are installed to a globally discoverable location.
+> [!NOTE]
+> `-D` followed by `CMAKE_PREFIX_PATH` tells the user project's CMake where to find the installed C++ library. This argument can be skipped if the RDK library and its dependencies are installed to a globally discoverable location.
 
 ### Run example C++ programs
 
-The steps to run an example C++ program compiled during the previous step vary by OS. Note:
+The steps to run an example C++ program compiled during the previous step vary by OS. 
 
-1. Replace `<robot-sn>` with the actual serial number of the robot, for example `Enlight-L-123456`.
-2. Root privilege is required if the real-time scheduler API `flexiv::rdk::Scheduler` is used in the program.
+> [!NOTE]
+> - Replace `<example-name>` with the actual example program to be executed.
+> - Replace `<robot-sn>` with the actual serial number of the robot, for example `Enlight-L-123456`.
+> - Root privilege is required if the real-time scheduler API `flexiv::rdk::Scheduler` is used in the program.
 
 #### Linux and macOS
 
@@ -183,6 +189,9 @@ Windows does not support RPATH, so the install location of the dependencies' sha
     Release\<example-name>.exe <robot-sn>
 
 Alternatively, add the `bin` folder to the system or user `PATH` environment variable to make this change permanent instead of per-session.
+
+> [!WARNING]
+> If the `bin` folder is not on `PATH`, the program will exit immediately with no error message on Command Prompt, because Windows terminates the process with exit code `0xC0000135` (`STATUS_DLL_NOT_FOUND`) before any output is produced. Run `echo %ERRORLEVEL%` right after to confirm this is the cause (it prints `-1073741515` on failure, `0` on success).
 
 #### Windows - bash emulator (such as Git Bash)
 
