@@ -162,22 +162,35 @@ Note: `-D` followed by `CMAKE_PREFIX_PATH` tells the user project's CMake where 
 
 ### Run example C++ programs
 
-To run an example C++ program compiled during the previous step:
-
-    cd flexiv_rdk/example/build
-
-On Linux and macOS:
-
-    ./<example-name> <robot-sn>
-
-On Windows (Command Prompt):
-
-    Release\<example-name>.exe <robot-sn>
-
-Note:
+The steps to run an example C++ program compiled during the previous step vary by OS. Note:
 
 1. Replace `<robot-sn>` with the actual serial number of the robot, for example `Enlight-L-123456`.
 2. Root privilege is required if the real-time scheduler API `flexiv::rdk::Scheduler` is used in the program.
+
+#### Linux and macOS
+
+On UNIX systems, the install location of the dependencies' shared libraries is baked into the executable as an RPATH, so they are found automatically at runtime with no extra setup:
+
+    cd flexiv_rdk/example/build
+    ./<example-name> <robot-sn>
+
+#### Windows - Command Prompt
+
+Windows does not support RPATH, so the install location of the dependencies' shared libraries must be explicitly specified by adding the `bin` folder under the installation directory to `PATH` for the current session, before executing the example programs:
+
+    cd flexiv_rdk\example\build
+    set PATH=%USERPROFILE%\rdk_install\bin;%PATH%
+    Release\<example-name>.exe <robot-sn>
+
+Alternatively, add the `bin` folder to the system or user `PATH` environment variable to make this change permanent instead of per-session.
+
+#### Windows - bash emulator (such as Git Bash)
+
+The same rule applies in a bash emulator, but using bash syntax to set `PATH` for the current session (note the use of `/` as path separator and `:` to delimit entries):
+
+    cd flexiv_rdk/example/build
+    export PATH="$USERPROFILE/rdk_install/bin:$PATH"
+    ./Release/<example-name>.exe <robot-sn>
 
 ## API Documentation
 
