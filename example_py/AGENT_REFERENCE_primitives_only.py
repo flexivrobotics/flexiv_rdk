@@ -128,7 +128,7 @@ def prepare_robot(robot_sn, logger):
         logger.info("Fault cleared")
 
     logger.info("Enabling robot")
-    robot.Enable()
+    robot.ServoOn()
     wait_until_operational(robot)
     logger.info("Robot is operational")
 

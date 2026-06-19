@@ -28,7 +28,7 @@ Use these sources for API behavior details and argument meaning when in doubt.
   1. Parse `robot_sn` argument.
   2. `robot = flexivrdk.Robot(robot_sn)`.
   3. If `robot.fault()`: call `robot.ClearFault()` and handle failure.
-  4. `robot.Enable()` and wait until `robot.operational()`.
+  4. `robot.ServoOn()` and wait until `robot.operational()`.
   5. Get applicable joint groups from `robot.info()`:
      - for primitive execution, use `single_arm_groups = robot.info().single_arm_groups`
      - for inspection/logging of all groups, use `robot.info().all_groups`
@@ -183,7 +183,7 @@ def main():
             if not robot.ClearFault():
                 raise RuntimeError("Cannot clear fault")
 
-        robot.Enable()
+        robot.ServoOn()
         while not robot.operational():
             time.sleep(1)
 
