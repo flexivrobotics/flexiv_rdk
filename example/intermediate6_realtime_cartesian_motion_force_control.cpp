@@ -52,7 +52,7 @@ void PrintHelp()
 {
     // clang-format off
     std::cout << "Required arguments: [robot_sn]" << std::endl;
-    std::cout << "    robot_sn: Serial number of the robot to connect. Remove any space, e.g. Rizon4s-123456" << std::endl;
+    std::cout << "    robot_sn: Serial number of the robot to connect. Remove any space, e.g. Enlight-L-123456" << std::endl;
     std::cout << "Optional arguments: [--TCP] [--polish]" << std::endl;
     std::cout << "    --TCP: use TCP frame as reference frame for force control, otherwise use world frame" << std::endl;
     std::cout << "    --polish: run a simple polish motion along XY plane in world frame, otherwise hold robot motion in non-force-control axes"
@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
         PrintHelp();
         return 1;
     }
-    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
+    // Serial number of the robot to connect to
     std::string robot_sn = argv[1];
 
     // Print description

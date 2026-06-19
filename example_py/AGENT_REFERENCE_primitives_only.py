@@ -163,7 +163,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "robot_sn",
-        help="Serial number of the robot to connect. Remove spaces, e.g. Rizon4s-123456",
+        help="Serial number of the robot to connect. Remove spaces, e.g. Enlight-L-123456",
     )
     args = parser.parse_args()
 

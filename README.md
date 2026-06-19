@@ -43,9 +43,9 @@ After the `flexivrdk` Python package is installed, it can be imported from any P
 
     python3.x
     import flexivrdk
-    robot = flexivrdk.Robot("Rizon4-123456")
+    robot = flexivrdk.Robot("Enlight-L-123456")
 
-The program will start searching for a robot with serial number `Rizon4-123456`, and will exit after a couple of seconds if the specified robot is not found in the local network.
+The program will start searching for a robot with serial number `Enlight-L-123456`, and will exit after a couple of seconds if the specified robot is not found in the local network.
 
 ### Run example Python scripts
 
@@ -56,7 +56,7 @@ To run an example Python script in this repo:
 
 For example:
 
-    python3.10 ./basics1_display_robot_states.py Rizon4-123456
+    python3.10 ./basics1_display_robot_states.py Enlight-L-123456
 
 ## Quick Start - C++
 
@@ -176,7 +176,7 @@ On Windows (Command Prompt):
 
 Note:
 
-1. Replace `<robot-sn>` with the actual serial number of the robot, for example `Rizon4-123456`.
+1. Replace `<robot-sn>` with the actual serial number of the robot, for example `Enlight-L-123456`.
 2. Root privilege is required if the real-time scheduler API `flexiv::rdk::Scheduler` is used in the program.
 
 ## API Documentation

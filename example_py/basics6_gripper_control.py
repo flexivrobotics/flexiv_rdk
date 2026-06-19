@@ -44,7 +44,7 @@ def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument(
         "robot_sn",
-        help="Serial number of the robot to connect. Remove any space, e.g. Rizon4s-123456",
+        help="Serial number of the robot to connect. Remove any space, e.g. Enlight-L-123456",
     )
     argparser.add_argument(
         "gripper_device_name",

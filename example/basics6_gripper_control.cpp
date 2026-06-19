@@ -29,7 +29,7 @@ void PrintHelp()
 {
     // clang-format off
     std::cout << "Required arguments: [robot_sn] [gripper_device_name] [gripper_tool_name]" << std::endl;
-    std::cout << "    robot_sn: Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456" << std::endl;
+    std::cout << "    robot_sn: Serial number of the robot to connect to. Remove any space, for example: Enlight-L-123456" << std::endl;
     std::cout << "    gripper_device_name: Full name of the device representing the gripper, can be found in Flexiv Elements->Settings->Device" << std::endl;
     std::cout << "    gripper_tool_name: Full name of the tool representing the gripper, can be found in Flexiv Elements->Settings->Tool" << std::endl;
     std::cout << "Optional arguments: None" << std::endl;
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
         PrintHelp();
         return 1;
     }
-    // Serial number of the robot to connect to. Remove any space, for example: Rizon4s-123456
+    // Serial number of the robot to connect to
     std::string robot_sn = argv[1];
     std::string gripper_device_name = argv[2];
     std::string gripper_tool_name = argv[3];
