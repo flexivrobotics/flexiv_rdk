@@ -123,10 +123,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   RBDyn::Parsers
 )
 
-# C++20 required
-set_target_properties(${PROJECT_NAME} PROPERTIES 
-  CXX_STANDARD 20
-  CXX_STANDARD_REQUIRED ON)
+# C++20 required (PUBLIC so the standard propagates to consumers)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
 # Use moderate compiler warning option
 if(CMAKE_HOST_UNIX)
