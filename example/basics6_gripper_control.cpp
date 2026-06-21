@@ -180,19 +180,19 @@ int main(int argc, char* argv[])
         // Position control
         spdlog::info("Closing gripper");
         for (const auto& [group, params] : gripper_params) {
-            gripper.Move(group, params.min_width, params.max_vel, 20);
+            gripper.Move(group, params.min_width, params.max_vel, 0.25 * params.max_force);
         }
         std::this_thread::sleep_for(std::chrono::seconds(2));
         spdlog::info("Opening gripper");
         for (const auto& [group, params] : gripper_params) {
-            gripper.Move(group, params.max_width, params.max_vel, 20);
+            gripper.Move(group, params.max_width, params.max_vel, 0.25 * params.max_force);
         }
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         // Stop
         spdlog::info("Closing gripper");
         for (const auto& [group, params] : gripper_params) {
-            gripper.Move(group, params.min_width, params.max_vel, 20);
+            gripper.Move(group, params.min_width, params.max_vel, 0.25 * params.max_force);
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         spdlog::info("Stopping gripper");
@@ -202,12 +202,12 @@ int main(int argc, char* argv[])
         std::this_thread::sleep_for(std::chrono::seconds(2));
         spdlog::info("Closing gripper");
         for (const auto& [group, params] : gripper_params) {
-            gripper.Move(group, params.min_width, params.max_vel, 20);
+            gripper.Move(group, params.min_width, params.max_vel, 0.25 * params.max_force);
         }
         std::this_thread::sleep_for(std::chrono::seconds(2));
         spdlog::info("Opening gripper");
         for (const auto& [group, params] : gripper_params) {
-            gripper.Move(group, params.max_width, params.max_vel, 20);
+            gripper.Move(group, params.max_width, params.max_vel, 0.25 * params.max_force);
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         spdlog::info("Stopping gripper");
