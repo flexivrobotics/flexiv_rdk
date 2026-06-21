@@ -164,8 +164,18 @@ int main(int argc, char* argv[])
             return 1;
         }
 
-        // Start a separate thread to print gripper states
+        // Start a separate thread to print gripper states. Use a scope guard so the thread is
+        // always signaled and joined when leaving this scope, including via an exception thrown by
+        // gripper.Move() etc. Otherwise the std::thread destructor would run while still joinable
+        // and call std::terminate(), aborting before the exception reaches the catch block below.
         std::thread print_thread(PrintGripperStates, std::ref(gripper));
+        auto join_print_thread = [&]() {
+            g_finished = true;
+            if (print_thread.joinable()) {
+                print_thread.join();
+            }
+        };
+        std::shared_ptr<void> print_thread_guard(nullptr, [&](void*) { join_print_thread(); });
 
         // Position control
         spdlog::info("Closing gripper");
@@ -228,9 +238,8 @@ int main(int argc, char* argv[])
         for (const auto& [group, _] : gripper_states) {
             gripper.Stop(group);
         }
-        g_finished = true;
         spdlog::info("Program finished");
-        print_thread.join();
+        // The print thread is signaled and joined by the scope guard above.
 
     } catch (const std::exception& e) {
         spdlog::error(e.what());
