@@ -85,10 +85,16 @@ def main():
         # Switch to non-real-time joint impedance control mode
         robot.SwitchMode(mode.NRT_JOINT_IMPEDANCE)
 
-        # Direct joint control can only be executed by single-arm joint groups
+        # Direct joint control can be executed by single-arm joint groups and the external axis
         single_arm_groups = robot.info().single_arm_groups
         if not single_arm_groups:
             raise RuntimeError("No single-arm joint group found on the connected robot")
+        # The external axis joint group (if it exists) also supports direct joint control
+        exe_groups = dict(single_arm_groups)
+        if flexivrdk.JointGroup.EXT_AXIS in robot.info().all_groups:
+            exe_groups[flexivrdk.JointGroup.EXT_AXIS] = robot.info().all_groups[
+                flexivrdk.JointGroup.EXT_AXIS
+            ]
 
         period = 1.0 / frequency
         loop_counter = 0
@@ -99,7 +105,7 @@ def main():
         # Use current robot joint positions as initial positions
         all_init_pos = {}
         robot_states = robot.states()
-        for group in single_arm_groups:
+        for group in exe_groups:
             all_init_pos[group] = robot_states[group].q.copy()
             logger.info(
                 f"[{flexivrdk.kJointGroupNames[group]}] Initial joint positions: {all_init_pos[group]}"

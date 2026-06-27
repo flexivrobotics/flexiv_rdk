@@ -77,7 +77,7 @@ def main():
             robot_states = robot.states()
             model.Update(
                 robot_states[flexivrdk.JointGroup.ALL].q,
-                robot_states[flexivrdk.JointGroup.ALL].dtheta,
+                robot_states[flexivrdk.JointGroup.ALL].dq,
             )
 
             # Compute gravity vector

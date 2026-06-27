@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
             // Update robot model in dynamics engine
             const auto robot_states = robot.states();
             model.Update(robot_states.at(rdk::JointGroup::ALL).q,
-                robot_states.at(rdk::JointGroup::ALL).dtheta);
+                robot_states.at(rdk::JointGroup::ALL).dq);
 
             // Compute gravity vector
             auto g = model.g();
