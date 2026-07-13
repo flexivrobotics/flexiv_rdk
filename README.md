@@ -21,7 +21,7 @@ For AI-assisted code generation in this repository, see [llms.txt](llms.txt).
 | Linux (Ubuntu 22.04+) | x86_64, aarch64 | GCC   v11.4+         | 3.10, 3.12, 3.14       |
 | macOS 12+             | arm64           | Clang v14.0+         | 3.10, 3.12             |
 | Windows 10+           | x86_64          | MSVC  v14.2+         | 3.10, 3.12             |
-| QNX 8.0.3+            | x86_64, aarch64 | QCC   v12.2+         | Not supported          |
+| QNX 8.0.3+            | x86_64, aarch64 | *Coming soon*        | Not supported          |
 
 ## Important Notice
 
@@ -94,14 +94,6 @@ For example:
 2. Install CMake: Download `cmake-3.x.x-windows-x86_64.msi` from [CMake download page](https://cmake.org/download/) and install the msi file. The minimum required version is 3.22.1. **Add CMake to system PATH** when prompted, so that `cmake` and `cmake-gui` command can be used from Command Prompt or a bash emulator.
 3. Install bash emulator: Download and install [Git for Windows](https://git-scm.com/install/windows), which comes with a bash emulator Git Bash. The following steps are to be carried out in this bash emulator.
 
-#### QNX
-
-1. Prepare a host computer with Ubuntu 22.04 or higher.
-2. Download and install [QNX SDP 8.0.3](https://blackberry.qnx.com/en/products/foundation-software/qnx-software-development-platform) to the host computer. You'll need a trial or commercial license.
-3. Install CMake on the host computer using package manager:
-
-       sudo apt install cmake
-
 ### Install the C++ library
 
 The following steps are mostly the same on all supported platforms, with some variations.
@@ -110,31 +102,13 @@ The following steps are mostly the same on all supported platforms, with some va
 2. In a new Terminal, run the provided script to compile and install all dependencies to the installation directory chosen in step 1:
 
        cd flexiv_rdk/thirdparty
-
-   On non-QNX:
-
        bash build_and_install_dependencies.sh ~/rdk_install
-
-   On QNX:
-
-       source <qnx-sdp-dir>/qnxsdp-env.sh
-       bash build_and_install_dependencies.sh ~/rdk_install $(nproc) <path-to-qnx-toolchain-file>
-
-   > [!NOTE]
-   > The QNX toolchain files are located under `flexiv_rdk/cmake` directory, with one for x86_64 target and one for aarch64 target.
 
 3. In the same Terminal, configure the `flexiv_rdk` CMake project:
 
        cd flexiv_rdk
        mkdir build && cd build
-
-   On non-QNX:
-
        cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
-
-   On QNX:
-
-       cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install -DCMAKE_TOOLCHAIN_FILE=<path-to-qnx-toolchain-file>
 
    > [!NOTE]
    > `-D` followed by `CMAKE_INSTALL_PREFIX` sets the absolute path of the installation directory, which should be the one chosen in step 1.
@@ -150,15 +124,7 @@ After the library is installed as `flexiv_rdk` CMake target, it can be linked fr
 
     cd flexiv_rdk/example
     mkdir build && cd build
-
-On non-QNX:
-
     cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install
-    cmake --build . --config Release -j 4
-
-On QNX:
-
-    cmake .. -DCMAKE_PREFIX_PATH=~/rdk_install -DCMAKE_TOOLCHAIN_FILE=<path-to-qnx-toolchain-file>
     cmake --build . --config Release -j 4
 
 > [!NOTE]
@@ -175,14 +141,14 @@ The steps to run an example C++ program compiled during the previous step vary b
 
 #### Linux and macOS
 
-On UNIX systems, the install location of the dependencies' shared libraries is baked into the executable as an RPATH, so they are found automatically at runtime with no extra setup:
+On UNIX systems, the install location of the RDK shared library is baked into the executable as an RPATH, so it is found automatically at runtime with no extra setup (the RDK's thirdparty dependencies are embedded inside it, so there are no other shared libraries to locate):
 
     cd flexiv_rdk/example/build
     ./<example-name> <robot-sn>
 
 #### Windows - Command Prompt
 
-Windows does not support RPATH, so the install location of the dependencies' shared libraries must be explicitly specified by adding the `bin` folder under the installation directory to `PATH` for the current session, before executing the example programs:
+Windows does not support RPATH, so the RDK DLL (which has the thirdparty dependencies embedded inside it) must be locatable at runtime by adding the `bin` folder under the installation directory to `PATH` for the current session, before executing the example programs:
 
     cd flexiv_rdk\example\build
     set PATH=%USERPROFILE%\rdk_install\bin;%PATH%

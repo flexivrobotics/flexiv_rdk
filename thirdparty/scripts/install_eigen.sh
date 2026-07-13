@@ -16,11 +16,7 @@ else
   git checkout $ver_tag
 fi
 
-# Apply patch if building for QNX
 git reset --hard
-if [ -n "$QNX_TARGET" ]; then
-  git apply $script_dir/../patches/eigen_qnx802.patch
-fi
 
 # Configure CMake
 mkdir -p build && cd build

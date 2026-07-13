@@ -103,17 +103,9 @@ macro(FlexivInstallLibrary)
                 DESTINATION ${CMAKE_INSTALL_BINDIR}
                 RENAME ${_rdk_runtime_lib})
     else()
-        # Single artifact: SHARED (.so/.dylib) for the self-contained packaging,
-        # STATIC (.a) otherwise. Pick the prefix/suffix matching the target type.
-        get_target_property(_rdk_target_type ${PROJECT_NAME} TYPE)
-        if(_rdk_target_type STREQUAL "SHARED_LIBRARY")
-            set(_rdk_lib_prefix ${CMAKE_SHARED_LIBRARY_PREFIX})
-            set(_rdk_lib_suffix ${CMAKE_SHARED_LIBRARY_SUFFIX})
-        else()
-            set(_rdk_lib_prefix ${CMAKE_STATIC_LIBRARY_PREFIX})
-            set(_rdk_lib_suffix ${CMAKE_STATIC_LIBRARY_SUFFIX})
-        endif()
-        set(_rdk_installed_lib "${_rdk_lib_prefix}${PROJECT_NAME}${_rdk_lib_suffix}")
+        # Single shared-library artifact (.so on Linux, .dylib on macOS).
+        set(_rdk_installed_lib
+            "${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}")
         install(CODE
                 "file(REMOVE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${_rdk_installed_lib})")
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
