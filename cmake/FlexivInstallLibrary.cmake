@@ -83,24 +83,44 @@ macro(FlexivInstallLibrary)
             )
 
     # Replace the dummy library built above with the actual prebuilt library
-    # that was downloaded. Use the prefix/suffix matching the real target type
-    # (SHARED for the self-contained packaging, STATIC otherwise) so the file
-    # name matches what the exported target expects.
-    get_target_property(_rdk_target_type ${PROJECT_NAME} TYPE)
-    if(_rdk_target_type STREQUAL "SHARED_LIBRARY")
-        set(_rdk_lib_prefix ${CMAKE_SHARED_LIBRARY_PREFIX})
-        set(_rdk_lib_suffix ${CMAKE_SHARED_LIBRARY_SUFFIX})
+    # that was downloaded.
+    if(WIN32)
+        # A DLL target produces two files: the import library (.lib, link time,
+        # installed to lib/) and the runtime DLL (.dll, installed to bin/).
+        # Replace both with the downloaded artifacts.
+        set(_rdk_import_lib
+            "${CMAKE_IMPORT_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_IMPORT_LIBRARY_SUFFIX}")
+        set(_rdk_runtime_lib
+            "${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+        install(CODE
+                "file(REMOVE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${_rdk_import_lib})")
+        install(CODE
+                "file(REMOVE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${_rdk_runtime_lib})")
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                RENAME ${_rdk_import_lib})
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RDK_RUNTIME_LIB}
+                DESTINATION ${CMAKE_INSTALL_BINDIR}
+                RENAME ${_rdk_runtime_lib})
     else()
-        set(_rdk_lib_prefix ${CMAKE_STATIC_LIBRARY_PREFIX})
-        set(_rdk_lib_suffix ${CMAKE_STATIC_LIBRARY_SUFFIX})
+        # Single artifact: SHARED (.so/.dylib) for the self-contained packaging,
+        # STATIC (.a) otherwise. Pick the prefix/suffix matching the target type.
+        get_target_property(_rdk_target_type ${PROJECT_NAME} TYPE)
+        if(_rdk_target_type STREQUAL "SHARED_LIBRARY")
+            set(_rdk_lib_prefix ${CMAKE_SHARED_LIBRARY_PREFIX})
+            set(_rdk_lib_suffix ${CMAKE_SHARED_LIBRARY_SUFFIX})
+        else()
+            set(_rdk_lib_prefix ${CMAKE_STATIC_LIBRARY_PREFIX})
+            set(_rdk_lib_suffix ${CMAKE_STATIC_LIBRARY_SUFFIX})
+        endif()
+        set(_rdk_installed_lib "${_rdk_lib_prefix}${PROJECT_NAME}${_rdk_lib_suffix}")
+        install(CODE
+                "file(REMOVE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${_rdk_installed_lib})")
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                RENAME ${_rdk_installed_lib}
+                )
     endif()
-    set(_rdk_installed_lib "${_rdk_lib_prefix}${PROJECT_NAME}${_rdk_lib_suffix}")
-    install(CODE
-            "file(REMOVE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${_rdk_installed_lib})")
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            RENAME ${_rdk_installed_lib}
-            )
 
     # Use the CPack Package Generator
     set(CPACK_PACKAGE_VENDOR "Flexiv")

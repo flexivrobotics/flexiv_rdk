@@ -23,11 +23,18 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "RelWithD
 # Consumers therefore only need Eigen3 (+ Threads); the other dependencies are
 # invisible and cannot collide with the consumer's own copies.
 #
-# On Windows and QNX the RDK is still shipped as a static library, so the full
-# dependency set must still be resolved. RDK_SELF_CONTAINED gates that below.
+# On QNX the RDK is still shipped as a static library, so the full dependency
+# set must still be resolved. RDK_SELF_CONTAINED gates that below.
+#
+# On Windows the self-contained library is a DLL. Linking a DLL needs two files:
+# the import library (.lib, at link time) and the DLL itself (.dll, at runtime).
+# RDK_RUNTIME_LIB names the .dll; RDK_LIB names the .lib. On all other platforms
+# RDK_LIB is the single self-contained/static artifact and RDK_RUNTIME_LIB is
+# empty.
 message(STATUS "OS: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "Processor: ${CMAKE_SYSTEM_PROCESSOR}")
 set(RDK_SELF_CONTAINED FALSE)
+set(RDK_RUNTIME_LIB "")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(RDK_SELF_CONTAINED TRUE)
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
@@ -45,8 +52,10 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     message(FATAL_ERROR "macOS with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
   endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  set(RDK_SELF_CONTAINED TRUE)
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "AMD64")
     set(RDK_LIB "flexiv_rdk.win_amd64.lib")
+    set(RDK_RUNTIME_LIB "flexiv_rdk.win_amd64.dll")
   else()
     message(FATAL_ERROR "Windows with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
   endif()
@@ -62,22 +71,29 @@ else()
   message(FATAL_ERROR "${CMAKE_SYSTEM_NAME} is currently not supported.")
 endif()
 
-# Parse expected hash of the library file
-file(READ ${CMAKE_CURRENT_SOURCE_DIR}/lib/${RDK_LIB}.sha256 EXPECTED_HASH)
+# Download a release asset by file name, verifying its SHA256 against the
+# checked-in <name>.sha256 placeholder.
+function(rdk_download_release_asset asset_name)
+  file(READ ${CMAKE_CURRENT_SOURCE_DIR}/lib/${asset_name}.sha256 expected_hash)
+  set(asset_url https://github.com/flexivrobotics/flexiv_rdk/releases/download/v${PROJECT_VERSION}/${asset_name})
+  message(STATUS "Downloading ${asset_url} ...")
+  file(DOWNLOAD ${asset_url} ${CMAKE_CURRENT_BINARY_DIR}/${asset_name}
+       SHOW_PROGRESS
+       TLS_VERIFY ON
+       EXPECTED_HASH SHA256=${expected_hash}
+       STATUS status)
+  list(GET status 0 code)
+  if(NOT code EQUAL 0)
+    message(FATAL_ERROR "Download failed: ${status}")
+  endif()
+  message(STATUS "Download finished: ${asset_name}")
+endfunction()
 
-# Download the library file from GitHub 
-set(RDK_LIB_URL https://github.com/flexivrobotics/flexiv_rdk/releases/download/v${PROJECT_VERSION}/${RDK_LIB})
-message(STATUS "Downloading ${RDK_LIB_URL} ...")
-file(DOWNLOAD ${RDK_LIB_URL} ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
-     SHOW_PROGRESS
-     TLS_VERIFY ON
-     EXPECTED_HASH SHA256=${EXPECTED_HASH}
-     STATUS status)
-list(GET status 0 code)
-if(code EQUAL 0)
-  message(STATUS "Download finished")
-else()
-  message(FATAL_ERROR "Download failed: ${status}")
+# The link-time artifact (import .lib on Windows, the .so/.dylib/.a elsewhere).
+rdk_download_release_asset(${RDK_LIB})
+# On Windows also fetch the runtime DLL that the import library refers to.
+if(RDK_RUNTIME_LIB)
+  rdk_download_release_asset(${RDK_RUNTIME_LIB})
 endif()
 
 # ===================================================================
