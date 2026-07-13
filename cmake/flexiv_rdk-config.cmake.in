@@ -1,10 +1,6 @@
 include(CMakeFindDependencyMacro)
 
-# Find dependencies. Only Eigen3 + Threads are needed: Eigen is header-only and
-# leaks through the public flexiv::rdk API (so it must stay ABI-compatible with
-# the version the library was built against). The remaining dependencies are
-# embedded and symbol-hidden inside the RDK, so consumers neither find nor link
-# them.
+# Find dependencies
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_dependency(Threads REQUIRED)
 find_dependency(Eigen3 3.4.0 REQUIRED)

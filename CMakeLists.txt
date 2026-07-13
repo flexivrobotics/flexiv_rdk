@@ -16,21 +16,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "RelWithDebInfo" "MinSizeRel")
 
-# Select the prebuilt library for this platform.
-#
-# On Linux and macOS the RDK is shipped as a self-contained SHARED library that
-# statically embeds and symbol-hides all thirdparty dependencies except Eigen.
-# Consumers therefore only need Eigen3 (+ Threads); the other dependencies are
-# invisible and cannot collide with the consumer's own copies.
-#
-# The RDK is a self-contained shared library that statically embeds and
-# symbol-hides its thirdparty dependencies (except Eigen), so consumers only
-# need Eigen (+ Threads).
-#
-# On Windows the shared library is a DLL, and linking one needs two files: the
-# import library (.lib, at link time) and the DLL itself (.dll, at runtime).
-# RDK_RUNTIME_LIB names the .dll; RDK_LIB names the .lib. On all other platforms
-# RDK_LIB is the single shared-library artifact and RDK_RUNTIME_LIB is empty.
+# Select the prebuilt library for this platform. RDK is shipped as a self-contained shared library.
 message(STATUS "OS: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "Processor: ${CMAKE_SYSTEM_PROCESSOR}")
 set(RDK_RUNTIME_LIB "")
@@ -50,6 +36,9 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "AMD64")
+    # On Windows the shared library is a DLL, and linking one needs two files: the import library (.lib, at link time)
+    # and the DLL itself (.dll, at runtime). RDK_RUNTIME_LIB names the .dll; RDK_LIB names the .lib. On all other 
+    # platforms RDK_LIB is the single shared-library artifact and RDK_RUNTIME_LIB is empty.
     set(RDK_LIB "flexiv_rdk.win_amd64.lib")
     set(RDK_RUNTIME_LIB "flexiv_rdk.win_amd64.dll")
   else()
@@ -98,16 +87,11 @@ message(STATUS "Found Threads")
 find_package(Eigen3 3.4.0 REQUIRED)
 message(STATUS "Found Eigen3 v${Eigen3_VERSION}: ${Eigen3_DIR}")
 
-# The remaining dependencies (spdlog, zenoh-c/zenoh-cpp, RBDyn, ...) are embedded
-# and symbol-hidden inside the shared library, so consumers must NOT find or
-# link them.
-
 # ===================================================================
 #      CREATE LIBRARY
 # ===================================================================
-# Create the library target with a dummy source. The dummy output is replaced
-# at install time by the downloaded prebuilt shared library (see
-# FlexivInstallLibrary).
+# Create the library target with a dummy source. The dummy output is replaced at
+# install time by the downloaded prebuilt shared library (see FlexivInstallLibrary).
 add_library(${PROJECT_NAME} SHARED ${CMAKE_CURRENT_SOURCE_DIR}/lib/dummy.cpp)
 
 # Create an alias of the target with flexiv namespace
@@ -119,15 +103,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 
-# Link to dependencies. Only Eigen3 + Threads are needed: Eigen leaks through
-# the public API and Threads is required at link time. The other dependencies
-# are embedded inside the shared library.
+# Link to dependencies
 target_link_libraries(${PROJECT_NAME} PUBLIC
   Threads::Threads
   Eigen3::Eigen
 )
 
-# C++20 required (PUBLIC so the standard propagates to consumers)
+# C++20 required
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 
 # Use moderate compiler warning option

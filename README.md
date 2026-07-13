@@ -141,14 +141,14 @@ The steps to run an example C++ program compiled during the previous step vary b
 
 #### Linux and macOS
 
-On UNIX systems, the install location of the RDK shared library is baked into the executable as an RPATH, so it is found automatically at runtime with no extra setup (the RDK's thirdparty dependencies are embedded inside it, so there are no other shared libraries to locate):
+On UNIX systems, the install location of the RDK shared library is baked into the executable as an RPATH, so it is found automatically at runtime with no extra setup:
 
     cd flexiv_rdk/example/build
     ./<example-name> <robot-sn>
 
 #### Windows - Command Prompt
 
-Windows does not support RPATH, so the RDK DLL (which has the thirdparty dependencies embedded inside it) must be locatable at runtime by adding the `bin` folder under the installation directory to `PATH` for the current session, before executing the example programs:
+Windows does not support RPATH, so the RDK DLL must be locatable at runtime by adding the `bin` folder under the installation directory to `PATH` for the current session, before executing the example programs:
 
     cd flexiv_rdk\example\build
     set PATH=%USERPROFILE%\rdk_install\bin;%PATH%
