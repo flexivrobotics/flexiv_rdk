@@ -82,12 +82,24 @@ macro(FlexivInstallLibrary)
             DESTINATION "lib/cmake/${PROJECT_NAME}"
             )
 
-    # Replace the dummy static lib with the actual static lib 
-    install(CODE 
-            "file(REMOVE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX})")
+    # Replace the dummy library built above with the actual prebuilt library
+    # that was downloaded. Use the prefix/suffix matching the real target type
+    # (SHARED for the self-contained packaging, STATIC otherwise) so the file
+    # name matches what the exported target expects.
+    get_target_property(_rdk_target_type ${PROJECT_NAME} TYPE)
+    if(_rdk_target_type STREQUAL "SHARED_LIBRARY")
+        set(_rdk_lib_prefix ${CMAKE_SHARED_LIBRARY_PREFIX})
+        set(_rdk_lib_suffix ${CMAKE_SHARED_LIBRARY_SUFFIX})
+    else()
+        set(_rdk_lib_prefix ${CMAKE_STATIC_LIBRARY_PREFIX})
+        set(_rdk_lib_suffix ${CMAKE_STATIC_LIBRARY_SUFFIX})
+    endif()
+    set(_rdk_installed_lib "${_rdk_lib_prefix}${PROJECT_NAME}${_rdk_lib_suffix}")
+    install(CODE
+            "file(REMOVE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${_rdk_installed_lib})")
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            RENAME ${CMAKE_STATIC_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX}
+            RENAME ${_rdk_installed_lib}
             )
 
     # Use the CPack Package Generator
