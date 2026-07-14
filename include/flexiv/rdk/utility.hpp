@@ -239,6 +239,19 @@ inline bool ProgramArgsExist(int argc, char** argv, const std::string& ref_strin
     return ProgramArgsExistAny(argc, argv, {ref_strings});
 }
 
+/**
+ * @brief Scan the network for robots currently reachable by RDK and return their serial numbers.
+ * @param[in] timeout_ms Duration [ms] to listen for robots advertising on the network before
+ * returning. A longer timeout gives more robots a chance to be discovered.
+ * @return Sorted vector of serial numbers (dash-separated format) of the discovered robots. Empty
+ * if none were found within the timeout.
+ * @note This function opens (or reuses) a Zenoh session and passively listens for the realtime
+ * states that every running robot publishes, then collects the unique serial numbers seen. Only
+ * robots whose control is currently running and reachable on the same Zenoh network are discovered.
+ * @warning This is a blocking function that returns after [timeout_ms].
+ */
+std::vector<std::string> ScanRobotsInNetwork(unsigned int timeout_ms = 1000);
+
 } /* namespace utility */
 } /* namespace flexiv::rdk */
 
