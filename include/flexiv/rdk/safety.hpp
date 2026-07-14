@@ -44,7 +44,7 @@ struct SafetyLimits
  * @note As mentioned in the function doc, certain safety settings are only applicable to the arms
  * but not the external axis.
  */
-class Safety
+class RDK_API Safety
 {
 public:
     /**

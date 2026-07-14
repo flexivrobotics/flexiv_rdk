@@ -37,7 +37,7 @@ struct ToolParams
  * @brief Interface to manage tools of the robot. All updates take effect immediately without a
  * power cycle. However, the robot must be in IDLE mode when applying changes.
  */
-class Tool
+class RDK_API Tool
 {
 public:
     /**

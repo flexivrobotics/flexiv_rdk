@@ -73,7 +73,7 @@ std::ostream& operator<<(std::ostream& ostream, const GripperStates& gripper_sta
  * robot device, this API uses the same underlying infrastructure as rdk::Device, but with functions
  * tailored specifically for gripper controls.
  */
-class Gripper
+class RDK_API Gripper
 {
 public:
     /**

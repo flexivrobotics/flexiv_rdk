@@ -7,6 +7,8 @@
 #ifndef FLEXIV_RDK_DATA_HPP_
 #define FLEXIV_RDK_DATA_HPP_
 
+#include "export.hpp"
+
 #include <array>
 #include <vector>
 #include <string>
@@ -444,7 +446,7 @@ struct PlanInfo
  * conversion is automatically done when exchanging "JPOS" data type with the robot via functions
  * like Robot::ExecutePrimitive(), Robot::SetGlobalVariables(), etc.
  */
-struct JPos
+struct RDK_API JPos
 {
     /** Default constructor */
     JPos() = default;
@@ -480,7 +482,7 @@ struct JPos
  * conversion is automatically done when exchanging "COORD" data type with the robot via functions
  * like Robot::ExecutePrimitive(), Robot::SetGlobalVariables(), Robot::global_variables(), etc.
  */
-struct Coord
+struct RDK_API Coord
 {
     /** Default constructor */
     Coord() = default;

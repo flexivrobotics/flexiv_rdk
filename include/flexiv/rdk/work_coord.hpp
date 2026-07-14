@@ -15,7 +15,7 @@ namespace flexiv::rdk {
  * @brief Interface to manage work coordinates of the robot. All updates take effect immediately
  * without a power cycle. However, the robot must be in IDLE mode when applying changes.
  */
-class WorkCoord
+class RDK_API WorkCoord
 {
 public:
     /**
