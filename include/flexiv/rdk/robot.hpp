@@ -634,11 +634,15 @@ public:
     /**
      * @brief [Non-blocking] Discretely send Cartesian multi-waypoint motion and/or force commands
      * for the robot to track using non-real-time super primitives.
-     * @param[in] cmds Non-real-time Cartesian multi-waypoint commands mapped by joint group. Only
-     * existing single-arm joint groups like ARM_1 and ARM_2 are accepted.
-     * @throw std::invalid_argument if [cmds] contains a joint group that is not an existing
-     * single-arm joint group in the connected robot, or if any waypoint list is empty or any
-     * waypoint's last 4 input parameters is not positive.
+     * @param[in] cart_cmds Non-real-time Cartesian motion/force commands mapped by joint group.
+     * Each value is a sequence of waypoints for that group. Only existing single-arm joint groups
+     * like ARM_1 and ARM_2 are accepted.
+     * @param[in] joint_pos Sequence of target joint positions [rad] for each waypoint. Size must
+     * match the waypoint count in every command in [cart_cmds].
+     * @throw std::invalid_argument if [cart_cmds] contains joint groups that are not existing
+     * single-arm joint groups in the connected robot, if any waypoint list is empty, if any
+     * waypoint's last 4 input parameters is not positive, if [joint_positions] size does not match
+     * the waypoint count in [cart_cmds], or if any joint position vector size is invalid.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: NRT_SUPER_PRIMITIVE.
@@ -648,8 +652,9 @@ public:
      * @see SetCartesianImpedance(), SetMaxContactWrench(), SetNullSpacePosture(),
      * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
      */
-    void SendCartesianMotionForceMultiWaypoint(
-        const std::map<JointGroup, NrtCartesianMultiWaypointCmd>& cmds);
+    void SendMultiCartesianMotionForce(
+        const std::map<JointGroup, std::vector<NrtCartesianCmd>>& cart_cmds,
+        const std::vector<std::vector<double>>& joint_pos);
 
     /**
      * @brief [Blocking] Set impedance properties of the robot's Cartesian motion controller
