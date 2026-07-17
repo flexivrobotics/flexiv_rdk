@@ -481,6 +481,78 @@ struct Coord
     std::string str() const;
 };
 
+/**
+ * @struct NrtCartesianCmd
+ * @brief Commands data for a single waypoint in non-real-time Cartesian motion-force control.
+ * @see Robot::SendCartesianMotionForce(), Robot::SendMultiCartesianMotionForce().
+ */
+struct NrtCartesianCmd
+{
+    /** Default constructor */
+    NrtCartesianCmd() = default;
+
+    /**
+     * @brief Custom constructor.
+     * @param[in] pose_d Target TCP pose in world frame.
+     * @param[in] wrench_d Target TCP wrench in the force control reference frame.
+     * @param[in] twist_d Target TCP twist in world frame.
+     * @param[in] max_linear_vel Maximum Cartesian linear velocity when moving to the target pose.
+     * @param[in] max_angular_vel Maximum Cartesian angular velocity when moving to the target pose.
+     * @param[in] max_linear_acc Maximum Cartesian linear acceleration when moving to the target
+     * pose.
+     * @param[in] max_angular_acc Maximum Cartesian angular acceleration when moving to the target
+     * pose.
+     */
+    NrtCartesianCmd(const std::array<double, kPoseSize>& pose_d,
+        const std::array<double, kCartDoF>& wrench_d = {},
+        const std::array<double, kCartDoF>& twist_d = {}, double max_linear_vel = 0.5,
+        double max_angular_vel = 1.0, double max_linear_acc = 2.0, double max_angular_acc = 5.0)
+    : pose_d(pose_d)
+    , wrench_d(wrench_d)
+    , twist_d(twist_d)
+    , max_linear_vel(max_linear_vel)
+    , max_angular_vel(max_angular_vel)
+    , max_linear_acc(max_linear_acc)
+    , max_angular_acc(max_angular_acc)
+    {
+    }
+
+    /** Target TCP pose in world frame: \f$ {^{O}T_{TCP}}_{d} \in \mathbb{R}^{7 \times 1} \f$.
+     * Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$ \mathbb{R}^{4 \times 1} \f$
+     * quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$ */
+    std::array<double, kPoseSize> pose_d = {};
+
+    /** Target TCP wrench in the force control reference frame (configured by
+     * SetForceControlFrame()): \f$ ^{O}F_d \in \mathbb{R}^{6 \times 1} \f$. The robot will track
+     * the target wrench using an explicit force controller. Consists of \f$ \mathbb{R}^{3 \times 1}
+     * \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T
+     * \f$. Unit: \f$ [N]:[Nm] \f$ */
+    std::array<double, kCartDoF> wrench_d = {};
+
+    /** Target TCP twist in world frame: \f$ ^{O}\dot{x}_d \in \mathbb{R}^{6 \times 1} \f$.
+     * Providing properly calculated target twist can improve the robot's overall tracking
+     * performance at the cost of reduced robustness. Leaving this input 0 can maximize robustness
+     * at the cost of reduced tracking performance. Consists of \f$ \mathbb{R}^{3 \times 1} \f$
+     * linear and \f$ \mathbb{R}^{3 \times 1} \f$ angular velocity. Unit: \f$ [m/s]:[rad/s] \f$ */
+    std::array<double, kCartDoF> twist_d = {};
+
+    /** Maximum Cartesian linear velocity when moving to the target pose. A safe value is provided
+     * as default. Unit: \f$ [m/s] \f$ */
+    double max_linear_vel = 0.5;
+
+    /** Maximum Cartesian angular velocity when moving to the target pose. A safe value is provided
+     * as default. Unit: \f$ [rad/s] \f$ */
+    double max_angular_vel = 1.0;
+
+    /** Maximum Cartesian linear acceleration when moving to the target pose. A safe value is
+     * provided as default. Unit: \f$ [m/s^2] \f$ */
+    double max_linear_acc = 2.0;
+
+    /** Maximum Cartesian angular acceleration when moving to the target pose. A safe value is
+     * provided as default. Unit: \f$ [rad/s^2] \f$ */
+    double max_angular_acc = 5.0;
+};
+
 /** Alias of the variant that holds all possible types of data exchanged with Flexiv robots */
 using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::Coord,
     std::vector<int>, std::vector<double>, std::vector<std::string>, std::vector<rdk::JPos>,
