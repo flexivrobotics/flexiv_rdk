@@ -688,12 +688,49 @@ public:
      * the rest axes motion-controlled, then provide target pose for the motion-controlled axes and
      * target wrench for the force-controlled axes.
      * @see SetCartesianImpedance(), SetMaxContactWrench(), SetNullSpacePosture(),
-     * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
+     * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl(),
+     * SendMultiCartesianMotionForce().
      */
     void SendCartesianMotionForce(const std::array<double, kPoseSize>& pose,
         const std::array<double, kCartDoF>& wrench = {},
         const std::array<double, kCartDoF>& velocity = {}, double max_linear_vel = 0.5,
         double max_angular_vel = 1.0, double max_linear_acc = 2.0, double max_angular_acc = 5.0);
+
+    /**
+     * @brief [Non-blocking] Discretely send Cartesian multi-waypoint motion and/or force commands
+     * for the robot to track using non-real-time super primitives. The robot will execute the
+     * provided waypoints sequentially using onboard motion generation.
+     * @param[in] cart_cmds Non-real-time Cartesian motion/force commands for each waypoint. Each
+     * element uses the same data layout as a single command in SendCartesianMotionForce().
+     * @param[in] joint_pos Sequence of target joint positions [rad] for each waypoint. Each element
+     * must contain RobotInfo::DoF values, i.e. the full system degrees of freedom including the
+     * manipulator and any external axes. Size must match [cart_cmds].
+     * @throw std::invalid_argument if [cart_cmds] is empty, if [joint_pos] is empty, if
+     * [cart_cmds] and [joint_pos] do not contain the same number of waypoints, if any waypoint's
+     * last 4 input parameters is not positive, or if any joint position vector size is not equal
+     * to RobotInfo::DoF.
+     * @throw std::logic_error if the robot is not in the correct control mode.
+     * @throw std::runtime_error if the robot is not operational.
+     * @note Applicable control modes: NRT_SUPER_PRIMITIVE.
+     * @warning Same as Flexiv Elements, the target wrench is expressed as wrench sensed at TCP
+     * instead of wrench exerted by TCP. E.g. commanding f_z = +5 N will make the end-effector move
+     * towards -Z direction, so that upon contact, the sensed force will be +5 N.
+     * @par How to achieve pure motion control?
+     * Use SetForceControlAxis() to disable force control for all Cartesian axes to achieve pure
+     * motion control. This function does pure motion control by default.
+     * @par How to achieve pure force control?
+     * Use SetForceControlAxis() to enable force control for all Cartesian axes to achieve pure
+     * force control, active or passive.
+     * @par How to achieve unified motion-force control?
+     * Use SetForceControlAxis() to enable force control for one or more Cartesian axes and leave
+     * the rest axes motion-controlled, then provide target pose for the motion-controlled axes and
+     * target wrench for the force-controlled axes.
+     * @see SetCartesianImpedance(), SetMaxContactWrench(), SetNullSpacePosture(),
+     * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl(),
+     * SendCartesianMotionForce().
+     */
+    void SendMultiCartesianMotionForce(const std::vector<NrtCartesianCmd>& cart_cmds,
+        const std::vector<std::vector<double>>& joint_pos);
 
     /**
      * @brief [Blocking] Set impedance properties of the robot's Cartesian motion controller
