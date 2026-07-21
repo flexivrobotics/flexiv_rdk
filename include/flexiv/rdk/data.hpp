@@ -96,21 +96,11 @@ enum class OperationalStatus
     IN_AUTO_MODE,       ///< In regular Auto mode, need to switch to Auto (Remote) mode.
 };
 
-/** Map OperationalStatus enums to strings */
-inline const std::map<OperationalStatus, std::string> kOpStatusNames {
-    {OperationalStatus::UNKNOWN, "Unknown status"},
-    {OperationalStatus::READY, "Ready"},
-    {OperationalStatus::BOOTING, "System booting"},
-    {OperationalStatus::ESTOP_NOT_RELEASED, "E-Stop not released"},
-    {OperationalStatus::NOT_SERVO_ON, "Not servo on"},
-    {OperationalStatus::RELEASING_BRAKE, "Releasing brakes"},
-    {OperationalStatus::MINOR_FAULT, "Minor fault occurred"},
-    {OperationalStatus::CRITICAL_FAULT, "Critical fault occurred"},
-    {OperationalStatus::IN_REDUCED_STATE, "In reduced state"},
-    {OperationalStatus::IN_RECOVERY_STATE, "In recovery state"},
-    {OperationalStatus::IN_MANUAL_MODE, "In Manual mode"},
-    {OperationalStatus::IN_AUTO_MODE, "In regular Auto mode"},
-};
+/**
+ * @brief Map OperationalStatus enums to strings.
+ * @return Const reference to the OperationalStatus-to-string lookup table.
+ */
+const std::map<OperationalStatus, std::string>& OperationalStatusNames();
 
 /**
  * @brief Type of commonly-used reference coordinates.
