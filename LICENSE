@@ -203,7 +203,6 @@
    APPENDIX: This software depends on the following third-party libraries, and users must comply to their licenses.
       - Eigen: https://gitlab.com/libeigen/eigen/-/blob/master/LICENSE
       - boost: https://github.com/boostorg/boost/blob/master/LICENSE_1_0.txt
-      - spdlog: https://github.com/gabime/spdlog/blob/master/LICENSE
       - tinyxml2: https://github.com/leethomason/tinyxml2/blob/master/LICENSE.txt
       - yaml-cpp: https://github.com/jbeder/yaml-cpp/blob/master/LICENSE
       - SpaceVecAlg: https://github.com/jrl-umi3218/SpaceVecAlg/blob/master/LICENSE

@@ -5,11 +5,6 @@ cmake_minimum_required(VERSION 3.22.1)
 # ===================================================================
 project(flexiv_rdk VERSION 2.2 LANGUAGES CXX)
 
-# CMake >= 3.30 warns for FindBoost behavior unless CMP0167 is explicitly set.
-if(POLICY CMP0167)
-  cmake_policy(SET CMP0167 OLD)
-endif()
-
 # Configure build type
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "CMake build type" FORCE)
