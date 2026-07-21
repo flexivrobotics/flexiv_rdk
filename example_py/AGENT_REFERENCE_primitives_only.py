@@ -34,7 +34,7 @@ __author__ = "Flexiv"
 
 import argparse
 import time
-import spdlog  # pip install spdlog
+import logging
 import flexivrdk  # pip install flexivrdk
 import utility
 
@@ -122,7 +122,7 @@ def prepare_robot(robot_sn, logger):
     robot = flexivrdk.Robot(robot_sn)
 
     if robot.fault():
-        logger.warn("Fault detected on connected robot, trying to clear")
+        logger.warning("Fault detected on connected robot, trying to clear")
         if not robot.ClearFault():
             raise RuntimeError("Failed to clear robot fault")
         logger.info("Fault cleared")
@@ -167,7 +167,8 @@ def main():
     )
     args = parser.parse_args()
 
-    logger = spdlog.ConsoleLogger("AgentReference")
+    logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
+    logger = logging.getLogger("AgentReference")
 
     try:
         robot = prepare_robot(args.robot_sn, logger)
@@ -183,7 +184,7 @@ def main():
         # Use this primitive's documented default transition condition.
         # The robot must not be in contact with anything during zeroing.
         logger.info("Step 2: ZeroFTSensor")
-        logger.warn("Zeroing F/T sensors - ensure nothing contacts the robot")
+        logger.warning("Zeroing F/T sensors - ensure nothing contacts the robot")
         exec_prim(
             robot,
             {

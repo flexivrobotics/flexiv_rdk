@@ -11,7 +11,7 @@ __author__ = "Flexiv"
 
 import time
 import argparse
-import spdlog  # pip install spdlog
+import logging
 import flexivrdk  # pip install flexivrdk
 import utility
 
@@ -28,7 +28,8 @@ def main():
     args = argparser.parse_args()
 
     # Define alias
-    logger = spdlog.ConsoleLogger("Example")
+    logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
+    logger = logging.getLogger("Example")
     mode = flexivrdk.Mode
 
     # Print description
@@ -46,7 +47,7 @@ def main():
 
         # Clear fault on the connected robot if any
         if robot.fault():
-            logger.warn("Fault occurred on the connected robot, trying to clear ...")
+            logger.warning("Fault occurred on the connected robot, trying to clear ...")
             # Try to clear the fault
             if not robot.ClearFault():
                 logger.error("Fault cannot be cleared, exiting ...")

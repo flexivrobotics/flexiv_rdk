@@ -22,7 +22,7 @@ Use these sources for API behavior details and argument meaning when in doubt.
 - Typical imports:
   - `import argparse`
   - `import time`
-  - `import spdlog`
+  - `import logging`
   - `import flexivrdk`
 - Typical flow:
   1. Parse `robot_sn` argument.
@@ -118,7 +118,7 @@ Generation rule:
 ## 6) Safety and Robustness Defaults
 - Always include fault clear path before enabling.
 - Always wait for operational state before switching mode or sending primitives.
-- Use try/except and log exceptions with `spdlog`.
+- Use try/except and log exceptions with the stdlib `logging` module.
 - Avoid busy-spin loops; include `time.sleep(...)` in polling loops.
 - Prefer timeout-backed wait helpers over unbounded polling loops when generating new scripts.
 - Keep command sequence deterministic and human-readable.
@@ -142,7 +142,7 @@ Generation rule:
 ```python
 import argparse
 import time
-import spdlog
+import logging
 import flexivrdk
 import utility
 
@@ -174,12 +174,13 @@ def main():
     parser.add_argument("robot_sn")
     args = parser.parse_args()
 
-    logger = spdlog.ConsoleLogger("LLMGenerated")
+    logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
+    logger = logging.getLogger("LLMGenerated")
     try:
         robot = flexivrdk.Robot(args.robot_sn)
 
         if robot.fault():
-            logger.warn("Fault detected, clearing")
+            logger.warning("Fault detected, clearing")
             if not robot.ClearFault():
                 raise RuntimeError("Cannot clear fault")
 
