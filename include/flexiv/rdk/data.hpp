@@ -47,11 +47,11 @@ enum class ProductModel
     MICO_Ultra, /// MICO-Ultra: MICO-Plus with mobile base
 };
 
-/** Map ProductModel enums to strings */
-inline const std::map<ProductModel, std::string> kProductModelNames
-    = {{ProductModel::UNKNOWN, "UNKNOWN"}, {ProductModel::Enlight_L, "Enlight-L"},
-        {ProductModel::Enlight_LL, "Enlight-LL"}, {ProductModel::MICO_Core, "MICO-Core"},
-        {ProductModel::MICO_Plus, "MICO-Plus"}, {ProductModel::MICO_Ultra, "MICO-Ultra"}};
+/**
+ * @brief Map ProductModel enums to strings.
+ * @return Const reference to the ProductModel-to-string lookup table.
+ */
+const std::map<ProductModel, std::string>& ProductModelNames();
 
 /**
  * @brief All possible joint groups of the robot.
