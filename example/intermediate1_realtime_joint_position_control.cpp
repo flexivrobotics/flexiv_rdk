@@ -8,7 +8,6 @@
 #include <flexiv/rdk/robot.hpp>
 #include <flexiv/rdk/scheduler.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <string>
@@ -86,7 +85,7 @@ void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
         loop_counter++;
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         g_stop_sched = true;
     }
 }
@@ -104,17 +103,17 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial runs real-time joint position control to hold "
-        "or sine-sweep all robot joints.\n");
+    std::cout << ">>> Tutorial description <<<\nThis tutorial runs real-time joint position "
+                 "control to hold or sine-sweep all robot joints.\n"
+              << std::endl;
 
     // Type of motion specified by user
     std::string motion_type = "";
     if (rdk::utility::ProgramArgsExist(argc, argv, "--hold")) {
-        spdlog::info("Robot holding current pose");
+        std::cout << "Robot holding current pose" << std::endl;
         motion_type = "hold";
     } else {
-        spdlog::info("Robot running joint sine-sweep");
+        std::cout << "Robot running joint sine-sweep" << std::endl;
         motion_type = "sine-sweep";
     }
 
@@ -126,27 +125,28 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
+            std::cerr << "[warn] Fault occurred on the connected robot, trying to clear ..."
+                      << std::endl;
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                spdlog::error("Fault cannot be cleared, exiting ...");
+                std::cerr << "[error] Fault cannot be cleared, exiting ..." << std::endl;
                 return 1;
             }
-            spdlog::info("Fault on the connected robot is cleared");
+            std::cout << "Fault on the connected robot is cleared" << std::endl;
         }
 
         // Servo on the robot, make sure the E-stop is released
-        spdlog::info("Servo on the robot ...");
+        std::cout << "Servo on the robot ..." << std::endl;
         robot.ServoOn();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Robot is now operational");
+        std::cout << "Robot is now operational" << std::endl;
 
         // Move robot to home pose
-        spdlog::info("Moving to home pose");
+        std::cout << "Moving to home pose" << std::endl;
         robot.Home();
 
         // Real-time Joint Position Control
@@ -158,8 +158,8 @@ int main(int argc, char* argv[])
         }
         // The external axis joint group (if it exists) also supports direct joint control
         if (robot.info().all_groups.contains(rdk::JointGroup::EXT_AXIS)) {
-            exe_groups.emplace(rdk::JointGroup::EXT_AXIS,
-                robot.info().all_groups.at(rdk::JointGroup::EXT_AXIS));
+            exe_groups.emplace(
+                rdk::JointGroup::EXT_AXIS, robot.info().all_groups.at(rdk::JointGroup::EXT_AXIS));
         }
 
         // Switch to real-time joint position control mode
@@ -170,8 +170,8 @@ int main(int argc, char* argv[])
         const auto robot_states = robot.states();
         for (const auto& [group, _] : exe_groups) {
             all_init_pos[group] = robot_states.at(group).q;
-            spdlog::info("[{}] Initial joint positions: {}", rdk::kJointGroupNames.at(group),
-                rdk::utility::Vec2Str(all_init_pos.at(group)));
+            std::cout << "[" << rdk::kJointGroupNames.at(group) << "] Initial joint positions: "
+                      << rdk::utility::Vec2Str(all_init_pos.at(group)) << std::endl;
         }
 
         // Create real-time scheduler to run periodic tasks
@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
         scheduler.Stop();
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 

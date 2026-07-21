@@ -10,7 +10,6 @@
 #include <flexiv/rdk/robot.hpp>
 #include <flexiv/rdk/scheduler.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <thread>
@@ -52,9 +51,9 @@ void PeriodicTask(flexiv::rdk::Robot& robot)
         // send signal at 1Hz
         switch (loop_counter % 1000) {
             case 0: {
-                spdlog::info(
-                    "Sending benchmark signal to both workstation PC's serial "
-                    "port and robot server's digital out port[0]");
+                std::cout << "Sending benchmark signal to both workstation PC's serial port and "
+                             "robot server's digital out port[0]"
+                          << std::endl;
                 break;
             }
             case 1: {
@@ -64,7 +63,7 @@ void PeriodicTask(flexiv::rdk::Robot& robot)
                 // signal workstation PC's serial port
                 auto n = write(g_fd, "0", 1);
                 if (n < 0) {
-                    spdlog::error("Failed to write to serial port");
+                    std::cerr << "[error] Failed to write to serial port" << std::endl;
                 }
 
                 break;
@@ -80,7 +79,7 @@ void PeriodicTask(flexiv::rdk::Robot& robot)
         loop_counter++;
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         g_stop_sched = true;
     }
 }
@@ -119,24 +118,25 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
+            std::cerr << "[warn] Fault occurred on the connected robot, trying to clear ..."
+                      << std::endl;
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                spdlog::error("Fault cannot be cleared, exiting ...");
+                std::cerr << "[error] Fault cannot be cleared, exiting ..." << std::endl;
                 return 1;
             }
-            spdlog::info("Fault on the connected robot is cleared");
+            std::cout << "Fault on the connected robot is cleared" << std::endl;
         }
 
         // Servo on the robot, make sure the E-stop is released
-        spdlog::info("Servo on the robot ...");
+        std::cout << "Servo on the robot ..." << std::endl;
         robot.ServoOn();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Robot is now operational");
+        std::cout << "Robot is now operational" << std::endl;
 
         // Benchmark Signal
         //=============================================================================
@@ -144,11 +144,11 @@ int main(int argc, char* argv[])
         g_fd = open(serial_port.c_str(), O_RDWR | O_NOCTTY | O_NDELAY | O_EXCL | O_CLOEXEC);
 
         if (g_fd == -1) {
-            spdlog::error("Unable to open serial port [{}]", serial_port);
+            std::cerr << "[error] Unable to open serial port [" << serial_port << "]" << std::endl;
         }
 
         // print messages
-        spdlog::warn("Benchmark signal will be sent every 1 second");
+        std::cerr << "[warn] Benchmark signal will be sent every 1 second" << std::endl;
 
         // Periodic Tasks
         //=============================================================================
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
         scheduler.Stop();
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 

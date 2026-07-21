@@ -9,7 +9,6 @@
 #include <flexiv/rdk/gripper.hpp>
 #include <flexiv/rdk/tool.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <iomanip>
@@ -42,7 +41,7 @@ void PrintGripperStates(rdk::Gripper& gripper)
 {
     while (!g_finished) {
         const auto gripper_states = gripper.states();
-        spdlog::info("Current gripper states:");
+        std::cout << "Current gripper states:" << std::endl;
         for (const auto& [group, states] : gripper_states) {
             std::cout << "[" << rdk::kJointGroupNames.at(group) << "]\n" << states << std::endl;
         }
@@ -65,9 +64,9 @@ int main(int argc, char* argv[])
     std::string gripper_tool_name = argv[3];
 
     // Print description
-    spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial does position and force (if available) "
-        "control of grippers supported by Flexiv.\n");
+    std::cout << ">>> Tutorial description <<<\nThis tutorial does position and force (if "
+                 "available) control of grippers supported by Flexiv.\n"
+              << std::endl;
 
     try {
         // RDK Initialization
@@ -77,24 +76,25 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
+            std::cerr << "[warn] Fault occurred on the connected robot, trying to clear ..."
+                      << std::endl;
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                spdlog::error("Fault cannot be cleared, exiting ...");
+                std::cerr << "[error] Fault cannot be cleared, exiting ..." << std::endl;
                 return 1;
             }
-            spdlog::info("Fault on the connected robot is cleared");
+            std::cout << "Fault on the connected robot is cleared" << std::endl;
         }
 
         // Servo on the robot, make sure the E-stop is released
-        spdlog::info("Servo on the robot ...");
+        std::cout << "Servo on the robot ..." << std::endl;
         robot.ServoOn();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Robot is now operational");
+        std::cout << "Robot is now operational" << std::endl;
 
         // Gripper Control
         // =========================================================================================
@@ -114,13 +114,14 @@ int main(int argc, char* argv[])
 
         // Enable the specified gripper as a device. This is equivalent to enabling the specified
         // gripper in Flexiv Elements -> Settings -> Device
-        spdlog::info("Enabling gripper device [{}] for all single-arm groups", gripper_device_name);
+        std::cout << "Enabling gripper device [" << gripper_device_name
+                  << "] for all single-arm groups" << std::endl;
         for (const auto& [group, _] : single_arm_groups) {
             gripper.Enable(group, gripper_device_name);
         }
 
         // Print parameters of the enabled gripper
-        spdlog::info("Gripper params:");
+        std::cout << "Gripper params:" << std::endl;
         const auto gripper_params = gripper.params();
         for (const auto& [group, params] : gripper_params) {
             std::cout << "[" << rdk::kJointGroupNames.at(group) << "]\n"
@@ -132,35 +133,36 @@ int main(int argc, char* argv[])
         }
 
         // Switch robot tool to gripper so the gravity compensation and TCP location is updated
-        spdlog::info("Switching robot tool to [{}] for all single-arm groups", gripper_tool_name);
+        std::cout << "Switching robot tool to [" << gripper_tool_name
+                  << "] for all single-arm groups" << std::endl;
         for (const auto& [group, _] : single_arm_groups) {
             tool.Switch(group, gripper_tool_name);
         }
 
         // User needs to determine if this gripper requires manual initialization
         int choice = 0;
-        spdlog::info(
-            "Manually trigger initialization for the gripper now? Choose Yes if it's a 48v Grav "
-            "gripper");
+        std::cout << "Manually trigger initialization for the gripper now? Choose Yes if it's a "
+                     "48v Grav gripper"
+                  << std::endl;
         std::cout << "[1] No, it has already initialized automatically when power on" << std::endl;
         std::cout << "[2] Yes, it does not initialize itself when power on" << std::endl;
         std::cin >> choice;
 
         // Trigger manual initialization based on choice
         if (choice == 1) {
-            spdlog::info("Skipped manual initialization");
+            std::cout << "Skipped manual initialization" << std::endl;
         } else if (choice == 2) {
             for (const auto& [group, _] : single_arm_groups) {
                 gripper.Init(group);
             }
             // User determines if the manual initialization is finished
-            spdlog::info(
-                "Triggered manual initialization, press Enter when the initialization is finished "
-                "to continue");
+            std::cout << "Triggered manual initialization, press Enter when the initialization is "
+                         "finished to continue"
+                      << std::endl;
             std::cin.get();
             std::cin.get();
         } else {
-            spdlog::error("Invalid choice");
+            std::cerr << "[error] Invalid choice" << std::endl;
             return 1;
         }
 
@@ -178,39 +180,39 @@ int main(int argc, char* argv[])
         std::shared_ptr<void> print_thread_guard(nullptr, [&](void*) { join_print_thread(); });
 
         // Position control
-        spdlog::info("Closing gripper");
+        std::cout << "Closing gripper" << std::endl;
         for (const auto& [group, params] : gripper_params) {
             gripper.Move(group, params.min_width, params.max_vel, 0.25 * params.max_force);
         }
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        spdlog::info("Opening gripper");
+        std::cout << "Opening gripper" << std::endl;
         for (const auto& [group, params] : gripper_params) {
             gripper.Move(group, params.max_width, params.max_vel, 0.25 * params.max_force);
         }
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         // Stop
-        spdlog::info("Closing gripper");
+        std::cout << "Closing gripper" << std::endl;
         for (const auto& [group, params] : gripper_params) {
             gripper.Move(group, params.min_width, params.max_vel, 0.25 * params.max_force);
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        spdlog::info("Stopping gripper");
+        std::cout << "Stopping gripper" << std::endl;
         for (const auto& [group, _] : gripper_params) {
             gripper.Stop(group);
         }
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        spdlog::info("Closing gripper");
+        std::cout << "Closing gripper" << std::endl;
         for (const auto& [group, params] : gripper_params) {
             gripper.Move(group, params.min_width, params.max_vel, 0.25 * params.max_force);
         }
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        spdlog::info("Opening gripper");
+        std::cout << "Opening gripper" << std::endl;
         for (const auto& [group, params] : gripper_params) {
             gripper.Move(group, params.max_width, params.max_vel, 0.25 * params.max_force);
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        spdlog::info("Stopping gripper");
+        std::cout << "Stopping gripper" << std::endl;
         for (const auto& [group, _] : gripper_params) {
             gripper.Stop(group);
         }
@@ -226,7 +228,7 @@ int main(int argc, char* argv[])
             }
         }
         if (has_force_control) {
-            spdlog::info("Gripper running zero force control");
+            std::cout << "Gripper running zero force control" << std::endl;
             for (const auto& [group, _] : gripper_states) {
                 gripper.Grasp(group, 0);
             }
@@ -238,11 +240,11 @@ int main(int argc, char* argv[])
         for (const auto& [group, _] : gripper_states) {
             gripper.Stop(group);
         }
-        spdlog::info("Program finished");
+        std::cout << "Program finished" << std::endl;
         // The print thread is signaled and joined by the scope guard above.
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 

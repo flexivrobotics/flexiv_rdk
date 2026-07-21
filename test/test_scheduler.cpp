@@ -7,7 +7,6 @@
 
 #include <flexiv/rdk/scheduler.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <thread>
@@ -61,7 +60,7 @@ void HighPriorityTask()
         tic = std::chrono::high_resolution_clock::now();
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         g_stop_sched = true;
     }
 }
@@ -86,8 +85,8 @@ void LowPriorityTask()
     avg_interval = (float)accumulated_time / (float)num_measures;
 
     // print time interval of high-priority periodic task
-    spdlog::info(
-        "High-priority task interval (curr | avg) = {} | {} us", measured_interval, avg_interval);
+    std::cout << "High-priority task interval (curr | avg) = " << measured_interval << " | "
+              << avg_interval << " us" << std::endl;
 }
 
 void PrintHelp()
@@ -127,7 +126,7 @@ int main(int argc, char* argv[])
         scheduler.Stop();
 
         // Restart scheduler after 2 seconds
-        spdlog::warn("Scheduler will restart in 2 seconds");
+        std::cerr << "[warn] Scheduler will restart in 2 seconds" << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(2));
         g_stop_sched = false;
         scheduler.Start();
@@ -140,7 +139,7 @@ int main(int argc, char* argv[])
         // the thread exit and resources cleanup
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 

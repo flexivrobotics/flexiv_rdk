@@ -9,7 +9,6 @@
 #include <flexiv/rdk/robot.hpp>
 #include <flexiv/rdk/model.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <iomanip>
@@ -43,10 +42,10 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial runs the integrated dynamics engine to obtain "
-        "robot Jacobian, mass matrix, and gravity torques. Also checks reachability of a Cartesian "
-        "pose.\n");
+    std::cout << ">>> Tutorial description <<<\nThis tutorial runs the integrated dynamics engine "
+                 "to obtain robot Jacobian, mass matrix, and gravity torques. Also checks "
+                 "reachability of a Cartesian pose.\n"
+              << std::endl;
 
     try {
         // RDK Initialization
@@ -56,27 +55,28 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
+            std::cerr << "[warn] Fault occurred on the connected robot, trying to clear ..."
+                      << std::endl;
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                spdlog::error("Fault cannot be cleared, exiting ...");
+                std::cerr << "[error] Fault cannot be cleared, exiting ..." << std::endl;
                 return 1;
             }
-            spdlog::info("Fault on the connected robot is cleared");
+            std::cout << "Fault on the connected robot is cleared" << std::endl;
         }
 
         // Servo on the robot, make sure the E-stop is released
-        spdlog::info("Servo on the robot ...");
+        std::cout << "Servo on the robot ..." << std::endl;
         robot.ServoOn();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Robot is now operational");
+        std::cout << "Robot is now operational" << std::endl;
 
         // Move robot to home pose
-        spdlog::info("Moving to home pose");
+        std::cout << "Moving to home pose" << std::endl;
         robot.Home();
 
         // Robot Dynamics
@@ -91,8 +91,8 @@ int main(int argc, char* argv[])
 
             // Update robot model in dynamics engine
             const auto robot_states = robot.states();
-            model.Update(robot_states.at(rdk::JointGroup::ALL).q,
-                robot_states.at(rdk::JointGroup::ALL).dq);
+            model.Update(
+                robot_states.at(rdk::JointGroup::ALL).q, robot_states.at(rdk::JointGroup::ALL).dq);
 
             // Compute gravity vector
             auto g = model.g();
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
                 = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
 
             // Print time used to compute g, M, J
-            spdlog::info("Computation time = {} us", computation_time);
+            std::cout << "Computation time = " << computation_time << " us" << std::endl;
             // Print gravity
             std::cout << "g = \n"
                       << std::fixed << std::setprecision(5) << g.transpose() << std::endl;
@@ -131,8 +131,9 @@ int main(int argc, char* argv[])
         for (const auto& [group, _] : single_arm_groups) {
             auto pose_to_check = robot_states.at(group).tcp_pose;
             pose_to_check[0] += 0.1;
-            spdlog::info("[{}] Checking IK feasibility of Cartesian pose [{}]",
-                rdk::kJointGroupNames.at(group), rdk::utility::Arr2Str(pose_to_check));
+            std::cout << "[" << rdk::kJointGroupNames.at(group)
+                      << "] Checking IK feasibility of Cartesian pose ["
+                      << rdk::utility::Arr2Str(pose_to_check) << "]" << std::endl;
 
             rdk::IKParams ik_params;
             ik_params.cartesian_pose = pose_to_check;
@@ -143,14 +144,14 @@ int main(int argc, char* argv[])
 
         // Print result
         auto result = model.SolveConstrainedIK(ik_params_by_group);
-        spdlog::info("IK result success = {}", result.success);
+        std::cout << "IK result success = " << result.success << std::endl;
         for (const auto& [group, q] : result.solved_q) {
-            spdlog::info(
-                "[{}] solved_q = [{}]", rdk::kJointGroupNames.at(group), rdk::utility::Vec2Str(q));
+            std::cout << "[" << rdk::kJointGroupNames.at(group) << "] solved_q = ["
+                      << rdk::utility::Vec2Str(q) << "]" << std::endl;
         }
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 

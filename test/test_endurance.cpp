@@ -9,7 +9,6 @@
 #include <flexiv/rdk/robot.hpp>
 #include <flexiv/rdk/scheduler.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <fstream>
@@ -88,7 +87,7 @@ void HighPriorityTask(rdk::Robot& robot,
         }
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         g_stop = true;
     }
 }
@@ -120,7 +119,7 @@ void LowPriorityTask()
         if (loop_counter % kLogDurationLoopCounts == 0) {
             if (csv_file.is_open()) {
                 csv_file.close();
-                spdlog::info("Saved log file: {}", csv_file_name);
+                std::cout << "Saved log file: " << csv_file_name << std::endl;
             }
 
             // Increment log file counter
@@ -132,9 +131,9 @@ void LowPriorityTask()
             // Open new log file
             csv_file.open(csv_file_name);
             if (csv_file.is_open()) {
-                spdlog::info("Created new log file: {}", csv_file_name);
+                std::cout << "Created new log file: " << csv_file_name << std::endl;
             } else {
-                spdlog::error("Failed to create log file: {}", csv_file_name);
+                std::cerr << "[error] Failed to create log file: " << csv_file_name << std::endl;
             }
         }
 
@@ -157,11 +156,11 @@ void LowPriorityTask()
 
         // Check if the test duration has elapsed
         if (g_stop) {
-            spdlog::info("Test duration has elapsed, saving any open log file ...");
+            std::cout << "Test duration has elapsed, saving any open log file ..." << std::endl;
             // Close log file
             if (csv_file.is_open()) {
                 csv_file.close();
-                spdlog::info("Saved log file: {}", csv_file_name);
+                std::cout << "Saved log file: " << csv_file_name << std::endl;
             }
             // Exit thread
             return;
@@ -196,7 +195,8 @@ int main(int argc, char* argv[])
     double test_hours = std::stof(argv[2]);
     // convert duration in hours to loop counts
     g_test_duration_loop_counts = (uint64_t)(test_hours * 3600.0 * 1000.0);
-    spdlog::info("Test duration: {} hours = {} cycles", test_hours, g_test_duration_loop_counts);
+    std::cout << "Test duration: " << test_hours << " hours = " << g_test_duration_loop_counts
+              << " cycles" << std::endl;
 
     try {
         // RDK Initialization
@@ -206,24 +206,25 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
+            std::cerr << "[warn] Fault occurred on the connected robot, trying to clear ..."
+                      << std::endl;
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                spdlog::error("Fault cannot be cleared, exiting ...");
+                std::cerr << "[error] Fault cannot be cleared, exiting ..." << std::endl;
                 return 1;
             }
-            spdlog::info("Fault on the connected robot is cleared");
+            std::cout << "Fault on the connected robot is cleared" << std::endl;
         }
 
         // Servo on the robot, make sure the E-stop is released
-        spdlog::info("Servo on the robot ...");
+        std::cout << "Servo on the robot ..." << std::endl;
         robot.ServoOn();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Robot is now operational");
+        std::cout << "Robot is now operational" << std::endl;
 
         // Move robot to home pose
         //==========================================================================================
@@ -249,8 +250,9 @@ int main(int argc, char* argv[])
         for (const auto& [group, _] : single_arm_groups) {
             all_init_pose[group] = robot_states.at(group).tcp_pose;
             g_curr_tcp_pose[group] = robot_states.at(group).tcp_pose;
-            spdlog::info("[{}] Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: {}",
-                rdk::kJointGroupNames.at(group), rdk::utility::Arr2Str(all_init_pose.at(group)));
+            std::cout << "[" << rdk::kJointGroupNames.at(group)
+                      << "] Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
+                      << rdk::utility::Arr2Str(all_init_pose.at(group)) << std::endl;
         }
 
         // Periodic Tasks
@@ -270,7 +272,7 @@ int main(int argc, char* argv[])
         low_priority_thread.join();
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 

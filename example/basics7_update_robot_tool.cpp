@@ -10,7 +10,6 @@
 #include <flexiv/rdk/robot.hpp>
 #include <flexiv/rdk/tool.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <string>
@@ -42,11 +41,11 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial shows how to online update and interact with "
-        "the robot tools. All changes made to the robot tool system will take effect immediately "
-        "without needing to reboot. However, the robot must be put into IDLE mode when making "
-        "these changes.\n");
+    std::cout << ">>> Tutorial description <<<\nThis tutorial shows how to online update and "
+                 "interact with the robot tools. All changes made to the robot tool system will "
+                 "take effect immediately without needing to reboot. However, the robot must be "
+                 "put into IDLE mode when making these changes.\n"
+              << std::endl;
 
     try {
         // RDK Initialization
@@ -56,24 +55,25 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
+            std::cerr << "[warn] Fault occurred on the connected robot, trying to clear ..."
+                      << std::endl;
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                spdlog::error("Fault cannot be cleared, exiting ...");
+                std::cerr << "[error] Fault cannot be cleared, exiting ..." << std::endl;
                 return 1;
             }
-            spdlog::info("Fault on the connected robot is cleared");
+            std::cout << "Fault on the connected robot is cleared" << std::endl;
         }
 
         // Servo on the robot, make sure the E-stop is released
-        spdlog::info("Servo on the robot ...");
+        std::cout << "Servo on the robot ..." << std::endl;
         robot.ServoOn();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Robot is now operational");
+        std::cout << "Robot is now operational" << std::endl;
 
         // Update Robot Tool
         // =========================================================================================
@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
         }
 
         // Get and print a list of already configured tools currently in the robot's tools pool
-        spdlog::info("All configured tools:");
+        std::cout << "All configured tools:" << std::endl;
         auto tool_list = tool.list();
         for (size_t i = 0; i < tool_list.size(); i++) {
             std::cout << "[" << i << "] " << tool_list[i] << std::endl;
@@ -99,8 +99,8 @@ int main(int argc, char* argv[])
 
         // Get and print the current active tool
         for (const auto& [group, _] : single_arm_groups) {
-            spdlog::info(
-                "[{}] Current active tool: {}", rdk::kJointGroupNames.at(group), tool.name(group));
+            std::cout << "[" << rdk::kJointGroupNames.at(group)
+                      << "] Current active tool: " << tool.name(group) << std::endl;
         }
 
         // Set name and parameters for a new tool
@@ -114,8 +114,8 @@ int main(int argc, char* argv[])
         // If there's already a tool with the same name in the robot's tools pool, then remove it
         // first, because duplicate tool names are not allowed
         if (tool.exist(new_tool_name)) {
-            spdlog::warn(
-                "Tool with the same name [{}] already exists, removing it now", new_tool_name);
+            std::cerr << "[warn] Tool with the same name [" << new_tool_name
+                      << "] already exists, removing it now" << std::endl;
             // Switch to other tool or no tool (Flange) before removing the current tool
             for (const auto& [group, _] : single_arm_groups) {
                 tool.Switch(group, "Flange");
@@ -124,11 +124,11 @@ int main(int argc, char* argv[])
         }
 
         // Add the new tool
-        spdlog::info("Adding new tool [{}] to the robot", new_tool_name);
+        std::cout << "Adding new tool [" << new_tool_name << "] to the robot" << std::endl;
         tool.Add(new_tool_name, new_tool_params);
 
         // Get and print the tools list again, the new tool should appear at the end
-        spdlog::info("All configured tools:");
+        std::cout << "All configured tools:" << std::endl;
         tool_list = tool.list();
         for (size_t i = 0; i < tool_list.size(); i++) {
             std::cout << "[" << i << "] " << tool_list[i] << std::endl;
@@ -136,15 +136,15 @@ int main(int argc, char* argv[])
         std::cout << std::endl;
 
         // Switch to the newly added tool, i.e. set it as the active tool
-        spdlog::info("Switching to tool [{}]", new_tool_name);
+        std::cout << "Switching to tool [" << new_tool_name << "]" << std::endl;
         for (const auto& [group, _] : single_arm_groups) {
             tool.Switch(group, new_tool_name);
         }
 
         // Get and print the current active tool again, should be the new tool
         for (const auto& [group, _] : single_arm_groups) {
-            spdlog::info(
-                "[{}] Current active tool: {}", rdk::kJointGroupNames.at(group), tool.name(group));
+            std::cout << "[" << rdk::kJointGroupNames.at(group)
+                      << "] Current active tool: " << tool.name(group) << std::endl;
         }
 
         // Switch to other tool or no tool (Flange) before removing the current tool
@@ -154,13 +154,13 @@ int main(int argc, char* argv[])
 
         // Clean up by removing the new tool
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        spdlog::info("Removing tool [{}]", new_tool_name);
+        std::cout << "Removing tool [" << new_tool_name << "]" << std::endl;
         tool.Remove(new_tool_name);
 
-        spdlog::info("Program finished");
+        std::cout << "Program finished" << std::endl;
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 
