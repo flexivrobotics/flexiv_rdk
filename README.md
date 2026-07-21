@@ -33,7 +33,7 @@ Before trying to run any RDK program, please make sure to carefully go through t
 
 On all supported platforms, the Python package of RDK and its dependencies for a specific Python version can be installed using the `pip` module:
 
-    python3.x -m pip install numpy spdlog flexivrdk
+    python3.x -m pip install numpy flexivrdk
 
 > [!NOTE]
 > Replace `3.x` with a specific Python version.
