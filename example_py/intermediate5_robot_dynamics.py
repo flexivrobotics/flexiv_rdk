@@ -110,7 +110,7 @@ def main():
             pose_to_check = robot_states[group].tcp_pose.copy()
             pose_to_check[0] += 0.1
             logger.info(
-                f"[{flexivrdk.kJointGroupNames[group]}] Checking IK feasibility of Cartesian pose {pose_to_check}"
+                f"[{flexivrdk.JointGroupNames()[group]}] Checking IK feasibility of Cartesian pose {pose_to_check}"
             )
             ik_params = flexivrdk.IKParams()
             ik_params.cartesian_pose = pose_to_check
@@ -122,7 +122,7 @@ def main():
         result = model.SolveConstrainedIK(ik_params_by_group)
         logger.info(f"IK result success = {result.success}")
         for group, q in result.solved_q.items():
-            logger.info(f"[{flexivrdk.kJointGroupNames[group]}] solved_q = {q}")
+            logger.info(f"[{flexivrdk.JointGroupNames()[group]}] solved_q = {q}")
 
     except Exception as e:
         logger.error(str(e))

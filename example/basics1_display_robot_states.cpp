@@ -38,13 +38,13 @@ void PrintRobotStates(rdk::Robot& robot)
 
         // Print all robot states in JSON format using the built-in ostream operator overloading
         for (const auto& [group, states] : robot.states()) {
-            std::cout << "[" << rdk::kJointGroupNames.at(group) << "] robot states:" << std::endl;
+            std::cout << "[" << rdk::JointGroupNames().at(group) << "] robot states:" << std::endl;
             std::cout << states << std::endl;
         }
 
         // Print all robot actions in JSON format using the built-in ostream operator overloading
         for (const auto& [group, actions] : robot.actions()) {
-            std::cout << "[" << rdk::kJointGroupNames.at(group) << "] robot actions:" << std::endl;
+            std::cout << "[" << rdk::JointGroupNames().at(group) << "] robot actions:" << std::endl;
             std::cout << actions << std::endl;
         }
 

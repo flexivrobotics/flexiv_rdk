@@ -31,7 +31,7 @@ def print_robot_states(robot, logger, stop_event):
 
         # Print all robot states in JSON format using the built-in __str__ overloading
         for group, states in robot.states().items():
-            logger.info(f"[{flexivrdk.kJointGroupNames[group]}] robot states:")
+            logger.info(f"[{flexivrdk.JointGroupNames()[group]}] robot states:")
             # fmt: off
             print("{")
             print(f"timestamp: [{states.timestamp[0]}, {states.timestamp[1]}]")
@@ -57,7 +57,7 @@ def print_robot_states(robot, logger, stop_event):
 
         # Print all robot actions in JSON format using the built-in __str__ overloading
         for group, actions in robot.actions().items():
-            logger.info(f"[{flexivrdk.kJointGroupNames[group]}] robot actions:")
+            logger.info(f"[{flexivrdk.JointGroupNames()[group]}] robot actions:")
             # fmt: off
             print("{")
             print(f"timestamp: [{actions.timestamp[0]}, {actions.timestamp[1]}]")

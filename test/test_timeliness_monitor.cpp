@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
         const auto robot_states = robot.states();
         for (const auto& [group, _] : single_arm_groups) {
             all_init_pos[group] = robot_states.at(group).q;
-            std::cout << "[" << flexiv::rdk::kJointGroupNames.at(group)
+            std::cout << "[" << flexiv::rdk::JointGroupNames().at(group)
                       << "] Initial joint positions: "
                       << flexiv::rdk::utility::Vec2Str(all_init_pos.at(group)) << std::endl;
         }

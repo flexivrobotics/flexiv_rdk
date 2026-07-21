@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
 
         // Get and print the current active tool for each joint group, should be the test tool
         for (const auto& [group, _] : single_arm_groups) {
-            std::cout << "[" << flexiv::rdk::kJointGroupNames.at(group)
+            std::cout << "[" << flexiv::rdk::JointGroupNames().at(group)
                       << "] Current active tool: " << tool.name(group) << std::endl;
         }
 

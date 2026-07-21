@@ -69,7 +69,7 @@ def main():
         # Get and print the current TCP force/moment readings
         for group, states in robot.states().items():
             logger.info(
-                f"[{flexivrdk.kJointGroupNames[group]}] TCP force and moment reading in world frame BEFORE sensor zeroing: {states.tcp_wrench} N-Nm"
+                f"[{flexivrdk.JointGroupNames()[group]}] TCP force and moment reading in world frame BEFORE sensor zeroing: {states.tcp_wrench} N-Nm"
             )
 
         # Primitives can only be executed on single-arm joint groups
@@ -100,7 +100,7 @@ def main():
         # Get and print the current TCP force/moment readings
         for group, states in robot.states().items():
             logger.info(
-                f"[{flexivrdk.kJointGroupNames[group]}] TCP force and moment reading in world frame AFTER sensor zeroing: {states.tcp_wrench} N-Nm"
+                f"[{flexivrdk.JointGroupNames()[group]}] TCP force and moment reading in world frame AFTER sensor zeroing: {states.tcp_wrench} N-Nm"
             )
 
     except Exception as e:

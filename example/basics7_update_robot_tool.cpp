@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
 
         // Get and print the current active tool
         for (const auto& [group, _] : single_arm_groups) {
-            std::cout << "[" << rdk::kJointGroupNames.at(group)
+            std::cout << "[" << rdk::JointGroupNames().at(group)
                       << "] Current active tool: " << tool.name(group) << std::endl;
         }
 
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
 
         // Get and print the current active tool again, should be the new tool
         for (const auto& [group, _] : single_arm_groups) {
-            std::cout << "[" << rdk::kJointGroupNames.at(group)
+            std::cout << "[" << rdk::JointGroupNames().at(group)
                       << "] Current active tool: " << tool.name(group) << std::endl;
         }
 

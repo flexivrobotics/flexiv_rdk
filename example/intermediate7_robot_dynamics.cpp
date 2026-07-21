@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
         for (const auto& [group, _] : single_arm_groups) {
             auto pose_to_check = robot_states.at(group).tcp_pose;
             pose_to_check[0] += 0.1;
-            std::cout << "[" << rdk::kJointGroupNames.at(group)
+            std::cout << "[" << rdk::JointGroupNames().at(group)
                       << "] Checking IK feasibility of Cartesian pose ["
                       << rdk::utility::Arr2Str(pose_to_check) << "]" << std::endl;
 
@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
         auto result = model.SolveConstrainedIK(ik_params_by_group);
         std::cout << "IK result success = " << result.success << std::endl;
         for (const auto& [group, q] : result.solved_q) {
-            std::cout << "[" << rdk::kJointGroupNames.at(group) << "] solved_q = ["
+            std::cout << "[" << rdk::JointGroupNames().at(group) << "] solved_q = ["
                       << rdk::utility::Vec2Str(q) << "]" << std::endl;
         }
 

@@ -109,7 +109,7 @@ def main():
         for group in exe_groups:
             all_init_pos[group] = robot_states[group].q.copy()
             logger.info(
-                f"[{flexivrdk.kJointGroupNames[group]}] Initial joint positions: {all_init_pos[group]}"
+                f"[{flexivrdk.JointGroupNames()[group]}] Initial joint positions: {all_init_pos[group]}"
             )
 
         # Joint sine-sweep amplitude [rad]
@@ -133,7 +133,7 @@ def main():
                     new_Kq = np.multiply(robot.info().K_q_nom[group], 0.5).tolist()
                     robot.SetJointImpedance(group, new_Kq)
                     logger.info(
-                        f"[{flexivrdk.kJointGroupNames[group]}] Joint stiffness set to: {new_Kq}"
+                        f"[{flexivrdk.JointGroupNames()[group]}] Joint stiffness set to: {new_Kq}"
                     )
 
             # Reset stiffness to nominal values after another 5 seconds
@@ -142,7 +142,7 @@ def main():
                     nominal_Kq = robot.info().K_q_nom[group]
                     robot.SetJointImpedance(group, nominal_Kq)
                     logger.info(
-                        f"[{flexivrdk.kJointGroupNames[group]}] Joint stiffness reset to nominal: {nominal_Kq}"
+                        f"[{flexivrdk.JointGroupNames()[group]}] Joint stiffness reset to nominal: {nominal_Kq}"
                     )
 
             # Send commands

@@ -168,7 +168,7 @@ def main():
         for group in single_arm_groups:
             all_init_pose[group] = robot.states()[group].tcp_pose.copy()
             logger.info(
-                f"[{flexivrdk.kJointGroupNames[group]}] Initial TCP pose [position 3x1, rotation (quaternion) 4x1]: {all_init_pose[group]}"
+                f"[{flexivrdk.JointGroupNames()[group]}] Initial TCP pose [position 3x1, rotation (quaternion) 4x1]: {all_init_pose[group]}"
             )
 
         # Use non-real-time mode to make the robot go to a set point with its own motion generator
@@ -202,7 +202,7 @@ def main():
                 if np.linalg.norm(ext_force) > PRESSING_FORCE:
                     is_contacted = True
                     logger.info(
-                        f"[{flexivrdk.kJointGroupNames[group]}] Contact detected at robot TCP"
+                        f"[{flexivrdk.JointGroupNames()[group]}] Contact detected at robot TCP"
                     )
                     break
 
@@ -245,7 +245,7 @@ def main():
         for group in single_arm_groups:
             all_init_pose[group] = robot.states()[group].tcp_pose.copy()
             logger.info(
-                f"[{flexivrdk.kJointGroupNames[group]}] Initial TCP pose [position 3x1, rotation (quaternion) 4x1]: {all_init_pose[group]}"
+                f"[{flexivrdk.JointGroupNames()[group]}] Initial TCP pose [position 3x1, rotation (quaternion) 4x1]: {all_init_pose[group]}"
             )
 
         # Periodic Task

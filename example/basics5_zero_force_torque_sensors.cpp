@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
         // =========================================================================================
         // Get and print the current TCP force/moment readings
         for (const auto& [group, states] : robot.states()) {
-            std::cout << "[" << rdk::kJointGroupNames.at(group)
+            std::cout << "[" << rdk::JointGroupNames().at(group)
                       << "] TCP force and moment reading in world frame BEFORE sensor zeroing: "
                       << rdk::utility::Arr2Str(states.tcp_wrench) << " N-Nm" << std::endl;
         }
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
 
         // Get and print the current TCP force/moment readings
         for (const auto& [group, _] : single_arm_groups) {
-            std::cout << "[" << rdk::kJointGroupNames.at(group)
+            std::cout << "[" << rdk::JointGroupNames().at(group)
                       << "] TCP force and moment reading in world frame AFTER sensor zeroing: "
                       << rdk::utility::Arr2Str(robot.states().at(group).tcp_wrench) << " N-Nm"
                       << std::endl;

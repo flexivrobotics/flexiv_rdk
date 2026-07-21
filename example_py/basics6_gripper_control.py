@@ -26,7 +26,7 @@ def print_gripper_states(gripper, logger, stop_event):
         logger.info("Current gripper states:")
         gripper_states = gripper.states()
         for group, states in gripper_states.items():
-            print(f"[{flexivrdk.kJointGroupNames[group]}]")
+            print(f"[{flexivrdk.JointGroupNames()[group]}]")
             print(f"width: {round(states.width, 2)}")
             print(f"force: {round(states.force, 2)}")
             print(f"is_moving: {states.is_moving}")
@@ -119,7 +119,7 @@ def main():
         logger.info("Gripper params:")
         gripper_params = gripper.params()
         for group, params in gripper_params.items():
-            print(f"[{flexivrdk.kJointGroupNames[group]}]")
+            print(f"[{flexivrdk.JointGroupNames()[group]}]")
             print(f"name: {params.name}")
             print(f"min_width: {round(params.min_width, 2)}")
             print(f"max_width: {round(params.max_width, 2)}")

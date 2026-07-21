@@ -109,7 +109,7 @@ void PeriodicTask(rdk::Robot& robot,
                         v *= 0.5;
                     }
                     robot.SetCartesianImpedance(group, new_K);
-                    std::cout << "[" << rdk::kJointGroupNames.at(group)
+                    std::cout << "[" << rdk::JointGroupNames().at(group)
                               << "] Cartesian stiffness set to: [" << rdk::utility::Arr2Str(new_K)
                               << "]" << std::endl;
                 }
@@ -128,7 +128,7 @@ void PeriodicTask(rdk::Robot& robot,
                 for (const auto& [group, _] : single_arm_groups) {
                     const auto nominal_K = robot.info().K_x_nom.at(group);
                     robot.SetCartesianImpedance(group, nominal_K);
-                    std::cout << "[" << rdk::kJointGroupNames.at(group)
+                    std::cout << "[" << rdk::JointGroupNames().at(group)
                               << "] Cartesian stiffness reset to nominal: ["
                               << rdk::utility::Arr2Str(nominal_K) << "]" << std::endl;
                 }
@@ -137,7 +137,7 @@ void PeriodicTask(rdk::Robot& robot,
             case (14 * kLoopFreq): {
                 for (const auto& [group, init_q] : all_init_q) {
                     robot.SetNullSpacePosture(group, init_q);
-                    std::cout << "[" << rdk::kJointGroupNames.at(group)
+                    std::cout << "[" << rdk::JointGroupNames().at(group)
                               << "] Reference joint positions reset to initial: ["
                               << rdk::utility::Vec2Str(init_q) << "]" << std::endl;
                 }
@@ -147,7 +147,7 @@ void PeriodicTask(rdk::Robot& robot,
                 std::array<double, rdk::kCartDoF> max_wrench = {10.0, 10.0, 10.0, 2.0, 2.0, 2.0};
                 for (const auto& [group, _] : single_arm_groups) {
                     robot.SetMaxContactWrench(group, max_wrench);
-                    std::cout << "[" << rdk::kJointGroupNames.at(group)
+                    std::cout << "[" << rdk::JointGroupNames().at(group)
                               << "] Max contact wrench set to: "
                               << rdk::utility::Arr2Str(max_wrench) << std::endl;
                 }
@@ -158,7 +158,7 @@ void PeriodicTask(rdk::Robot& robot,
                 inf.fill(std::numeric_limits<double>::infinity());
                 for (const auto& [group, _] : single_arm_groups) {
                     robot.SetMaxContactWrench(group, inf);
-                    std::cout << "[" << rdk::kJointGroupNames.at(group)
+                    std::cout << "[" << rdk::JointGroupNames().at(group)
                               << "] Max contact wrench regulation is disabled" << std::endl;
                 }
             } break;
@@ -184,7 +184,7 @@ void PeriodicTask(rdk::Robot& robot,
 
                 if (collision_detected) {
                     robot.Stop();
-                    std::cerr << "[warn] [" << rdk::kJointGroupNames.at(group)
+                    std::cerr << "[warn] [" << rdk::JointGroupNames().at(group)
                               << "] Collision detected, stopping robot and exit program ..."
                               << std::endl;
                     g_stop_sched = true;

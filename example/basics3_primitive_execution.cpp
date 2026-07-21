@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
             // Print current primitive states
             std::cout << "Current primitive states:" << std::endl;
             for (const auto& [group, pt_states] : primitive_states) {
-                std::cout << rdk::kJointGroupNames.at(group) << ":" << std::endl;
+                std::cout << rdk::JointGroupNames().at(group) << ":" << std::endl;
                 std::cout << "primitiveName: " << pt_states.pt_name << std::endl;
                 for (const auto& [name, value] : pt_states.names_and_values) {
                     std::cout << name << ": " << rdk::utility::FlexivTypes2Str(value);

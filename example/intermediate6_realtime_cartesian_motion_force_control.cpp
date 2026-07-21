@@ -222,7 +222,7 @@ int main(int argc, char* argv[])
         const auto robot_states = robot.states();
         for (const auto& [group, _] : single_arm_groups) {
             all_init_pose[group] = robot_states.at(group).tcp_pose;
-            std::cout << "[" << rdk::kJointGroupNames.at(group)
+            std::cout << "[" << rdk::JointGroupNames().at(group)
                       << "] Initial TCP pose [position 3x1, rotation (quaternion) 4x1]: "
                       << rdk::utility::Arr2Str(all_init_pose.at(group)) << std::endl;
         }
@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
                 // Contact is considered to be made if sensed TCP force exceeds the threshold
                 if (ext_force.norm() > kPressingForce) {
                     is_contacted = true;
-                    std::cout << "[" << rdk::kJointGroupNames.at(group)
+                    std::cout << "[" << rdk::JointGroupNames().at(group)
                               << "] Contact detected at robot TCP" << std::endl;
                     break;
                 }

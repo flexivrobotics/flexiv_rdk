@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
         const auto robot_states = robot.states();
         for (const auto& [group, _] : exe_groups) {
             all_init_pos[group] = robot_states.at(group).q;
-            std::cout << "[" << rdk::kJointGroupNames.at(group) << "] Initial joint positions: "
+            std::cout << "[" << rdk::JointGroupNames().at(group) << "] Initial joint positions: "
                       << rdk::utility::Vec2Str(all_init_pos.at(group)) << std::endl;
         }
 

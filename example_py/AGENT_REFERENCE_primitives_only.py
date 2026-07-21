@@ -83,7 +83,7 @@ def wait_primitive_transition(robot, transition_keys_by_group, dt=0.2, timeout_s
         if time.time() - t0 > timeout_s:
             raise TimeoutError(
                 "Timed out waiting for primitive transition states: "
-                f"{ {flexivrdk.kJointGroupNames[g]: k for g, k in transition_keys_by_group.items()} }"
+                f"{ {flexivrdk.JointGroupNames()[g]: k for g, k in transition_keys_by_group.items()} }"
             )
         time.sleep(dt)
 
@@ -147,7 +147,7 @@ def current_euler_zyx_deg(robot, group):
     if group not in all_states:
         raise ValueError(
             f"Requested joint group has no available robot state: "
-            f"{flexivrdk.kJointGroupNames[group]}"
+            f"{flexivrdk.JointGroupNames()[group]}"
         )
 
     pose = all_states[group].tcp_pose
@@ -247,16 +247,16 @@ def main():
                 [live_euler[0] + 40.0, live_euler[1] - 20.0, live_euler[2] + 20.0]
             )
             logger.info(
-                f"Step 4 [{flexivrdk.kJointGroupNames[group]}] live Euler ZYX (deg): {live_euler}"
+                f"Step 4 [{flexivrdk.JointGroupNames()[group]}] live Euler ZYX (deg): {live_euler}"
             )
             logger.info(
-                f"Step 4 [{flexivrdk.kJointGroupNames[group]}] waypoint1 Euler ZYX (deg): {wp1_euler}"
+                f"Step 4 [{flexivrdk.JointGroupNames()[group]}] waypoint1 Euler ZYX (deg): {wp1_euler}"
             )
             logger.info(
-                f"Step 4 [{flexivrdk.kJointGroupNames[group]}] waypoint2 Euler ZYX (deg): {wp2_euler}"
+                f"Step 4 [{flexivrdk.JointGroupNames()[group]}] waypoint2 Euler ZYX (deg): {wp2_euler}"
             )
             logger.info(
-                f"Step 4 [{flexivrdk.kJointGroupNames[group]}] target Euler ZYX (deg): {target_euler}"
+                f"Step 4 [{flexivrdk.JointGroupNames()[group]}] target Euler ZYX (deg): {target_euler}"
             )
 
             step4_primitive_args_by_group[group] = flexivrdk.PrimitiveArgs(

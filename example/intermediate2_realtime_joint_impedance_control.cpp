@@ -89,7 +89,7 @@ void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
                     v *= 0.5;
                 }
                 robot.SetJointImpedance(group, new_Kq);
-                std::cout << "[" << rdk::kJointGroupNames.at(group) << "] Joint stiffness set to: ["
+                std::cout << "[" << rdk::JointGroupNames().at(group) << "] Joint stiffness set to: ["
                           << rdk::utility::Vec2Str(new_Kq) << "]" << std::endl;
             }
         }
@@ -99,7 +99,7 @@ void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
             for (const auto& [group, _] : single_arm_groups) {
                 const auto nominal_Kq = robot.info().K_q_nom.at(group);
                 robot.SetJointImpedance(group, nominal_Kq);
-                std::cout << "[" << rdk::kJointGroupNames.at(group)
+                std::cout << "[" << rdk::JointGroupNames().at(group)
                           << "] Joint stiffness reset to nominal: ["
                           << rdk::utility::Vec2Str(nominal_Kq) << "]" << std::endl;
             }
@@ -198,7 +198,7 @@ int main(int argc, char* argv[])
         const auto robot_states = robot.states();
         for (const auto& [group, _] : exe_groups) {
             all_init_pos[group] = robot_states.at(group).q;
-            std::cout << "[" << rdk::kJointGroupNames.at(group) << "] Initial joint positions: "
+            std::cout << "[" << rdk::JointGroupNames().at(group) << "] Initial joint positions: "
                       << rdk::utility::Vec2Str(all_init_pos.at(group)) << std::endl;
         }
 

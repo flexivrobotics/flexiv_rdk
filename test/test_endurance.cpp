@@ -142,7 +142,7 @@ void LowPriorityTask()
             // Loop counter x1, then grouped TCP pose x7 and TCP wrench x6
             csv_file << loop_counter << ",";
             for (const auto& [group, pose] : g_log_data.tcp_pose) {
-                csv_file << rdk::kJointGroupNames.at(group) << ",";
+                csv_file << rdk::JointGroupNames().at(group) << ",";
                 for (const auto& i : pose) {
                     csv_file << i << ",";
                 }
@@ -250,7 +250,7 @@ int main(int argc, char* argv[])
         for (const auto& [group, _] : single_arm_groups) {
             all_init_pose[group] = robot_states.at(group).tcp_pose;
             g_curr_tcp_pose[group] = robot_states.at(group).tcp_pose;
-            std::cout << "[" << rdk::kJointGroupNames.at(group)
+            std::cout << "[" << rdk::JointGroupNames().at(group)
                       << "] Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
                       << rdk::utility::Arr2Str(all_init_pose.at(group)) << std::endl;
         }

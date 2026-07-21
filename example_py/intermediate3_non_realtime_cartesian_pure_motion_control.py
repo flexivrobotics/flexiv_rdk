@@ -215,7 +215,7 @@ def main():
                     new_K = np.multiply(robot.info().K_x_nom[group], 0.5).tolist()
                     robot.SetCartesianImpedance(group, new_K)
                     logger.info(
-                        f"[{flexivrdk.kJointGroupNames[group]}] Cartesian stiffness set to: {new_K}"
+                        f"[{flexivrdk.JointGroupNames()[group]}] Cartesian stiffness set to: {new_K}"
                     )
             # Online change to another reference joint positions at 9 seconds
             elif time_elapsed % 20.0 == 9.0:
@@ -229,7 +229,7 @@ def main():
                     nominal_K = robot.info().K_x_nom[group]
                     robot.SetCartesianImpedance(group, nominal_K)
                     logger.info(
-                        f"[{flexivrdk.kJointGroupNames[group]}] Cartesian stiffness reset to nominal: {nominal_K}"
+                        f"[{flexivrdk.JointGroupNames()[group]}] Cartesian stiffness reset to nominal: {nominal_K}"
                     )
             # Online reset reference joint positions to nominal at 14 seconds
             elif time_elapsed % 20.0 == 14.0:
@@ -264,7 +264,7 @@ def main():
                     if collision_detected:
                         robot.Stop()
                         logger.warning(
-                            f"[{flexivrdk.kJointGroupNames[group]}] Collision detected, stopping robot and exit program ..."
+                            f"[{flexivrdk.JointGroupNames()[group]}] Collision detected, stopping robot and exit program ..."
                         )
                         return
 

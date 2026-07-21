@@ -43,7 +43,7 @@ void PrintGripperStates(rdk::Gripper& gripper)
         const auto gripper_states = gripper.states();
         std::cout << "Current gripper states:" << std::endl;
         for (const auto& [group, states] : gripper_states) {
-            std::cout << "[" << rdk::kJointGroupNames.at(group) << "]\n" << states << std::endl;
+            std::cout << "[" << rdk::JointGroupNames().at(group) << "]\n" << states << std::endl;
         }
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
         std::cout << "Gripper params:" << std::endl;
         const auto gripper_params = gripper.params();
         for (const auto& [group, params] : gripper_params) {
-            std::cout << "[" << rdk::kJointGroupNames.at(group) << "]\n"
+            std::cout << "[" << rdk::JointGroupNames().at(group) << "]\n"
                       << std::fixed << std::setprecision(2) << "{\n"
                       << "name: " << params.name << "\nmin_width: " << params.min_width
                       << "\nmax_width: " << params.max_width << "\nmin_force: " << params.min_force

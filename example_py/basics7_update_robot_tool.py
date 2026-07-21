@@ -88,7 +88,7 @@ def main():
         # Get and print the current active tool
         for group in single_arm_groups:
             logger.info(
-                f"[{flexivrdk.kJointGroupNames[group]}] Current active tool: [{tool.name(group)}]"
+                f"[{flexivrdk.JointGroupNames()[group]}] Current active tool: [{tool.name(group)}]"
             )
 
         # Set name and parameters for a new tool
@@ -137,7 +137,7 @@ def main():
         # Get and print the current active tool again, should be the new tool
         for group in single_arm_groups:
             logger.info(
-                f"[{flexivrdk.kJointGroupNames[group]}] Current active tool: [{tool.name(group)}]"
+                f"[{flexivrdk.JointGroupNames()[group]}] Current active tool: [{tool.name(group)}]"
             )
 
         # Switch to other tool or no tool (Flange) before removing the current tool

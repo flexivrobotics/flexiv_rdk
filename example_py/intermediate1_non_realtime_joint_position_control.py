@@ -107,7 +107,7 @@ def main():
         for group in exe_groups:
             all_init_pos[group] = robot_states[group].q.copy()
             logger.info(
-                f"[{flexivrdk.kJointGroupNames[group]}] Initial joint positions: {all_init_pos[group]}"
+                f"[{flexivrdk.JointGroupNames()[group]}] Initial joint positions: {all_init_pos[group]}"
             )
 
         # Joint sine-sweep amplitude [rad]
