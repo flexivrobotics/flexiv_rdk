@@ -105,21 +105,11 @@ enum class Mode
     NRT_SUPER_PRIMITIVE,
 };
 
-/** Map Mode enums to strings */
-inline const std::map<Mode, std::string> kModeNames {
-    {Mode::UNKNOWN, "UNKNOWN"},
-    {Mode::IDLE, "IDLE"},
-    {Mode::RT_JOINT_TORQUE, "RT_JOINT_TORQUE"},
-    {Mode::RT_JOINT_IMPEDANCE, "RT_JOINT_IMPEDANCE"},
-    {Mode::NRT_JOINT_IMPEDANCE, "NRT_JOINT_IMPEDANCE"},
-    {Mode::RT_JOINT_POSITION, "RT_JOINT_POSITION"},
-    {Mode::NRT_JOINT_POSITION, "NRT_JOINT_POSITION"},
-    {Mode::NRT_PLAN_EXECUTION, "NRT_PLAN_EXECUTION"},
-    {Mode::NRT_PRIMITIVE_EXECUTION, "NRT_PRIMITIVE_EXECUTION"},
-    {Mode::RT_CARTESIAN_MOTION_FORCE, "RT_CARTESIAN_MOTION_FORCE"},
-    {Mode::NRT_CARTESIAN_MOTION_FORCE, "NRT_CARTESIAN_MOTION_FORCE"},
-    {Mode::NRT_SUPER_PRIMITIVE, "NRT_SUPER_PRIMITIVE"},
-};
+/**
+ * @brief Map Mode enums to strings.
+ * @return Const reference to the Mode-to-string lookup table.
+ */
+const std::map<Mode, std::string>& ModeNames();
 
 } /* namespace flexiv::rdk */
 
