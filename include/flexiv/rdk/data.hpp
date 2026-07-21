@@ -69,15 +69,11 @@ enum class JointGroup
     LAST = EXT_AXIS,
 };
 
-/** Map JointGroup enums to strings */
-inline const std::map<JointGroup, std::string> kJointGroupNames {
-    {JointGroup::UNKNOWN, "UNKNOWN"},
-    {JointGroup::ALL, "ALL"},
-    {JointGroup::ARMS, "ARMS"},
-    {JointGroup::ARM_1, "ARM_1"},
-    {JointGroup::ARM_2, "ARM_2"},
-    {JointGroup::EXT_AXIS, "EXT_AXIS"},
-};
+/**
+ * @brief Map JointGroup enums to strings.
+ * @return Const reference to the JointGroup-to-string lookup table.
+ */
+const std::map<JointGroup, std::string>& JointGroupNames();
 
 /**
  * @brief All possible operational statuses of the robot. Except for the first two, the other
