@@ -42,12 +42,5 @@ mkdir -p cloned && cd cloned
 
 # Build and install all dependencies to INSTALL_DIR
 bash $script_dir/scripts/install_eigen.sh
-bash $script_dir/scripts/install_spdlog.sh
-bash $script_dir/scripts/install_tinyxml2.sh
-bash $script_dir/scripts/install_yaml-cpp.sh
-bash $script_dir/scripts/install_zenoh.sh
-bash $script_dir/scripts/install_boost.sh
-bash $script_dir/scripts/install_SpaceVecAlg.sh
-bash $script_dir/scripts/install_RBDyn.sh
 
 echo ">>>>> Finished: flexiv_rdk/thirdparty/build_and_install_dependencies.sh <<<<<"
