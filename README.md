@@ -182,11 +182,4 @@ Note:
 
 ## API Documentation
 
-The complete and detailed API documentation of the **latest release** can be found at [Flexiv RDK APIs](https://www.flexiv.com/software/rdk/api). The API documentation of a previous release can be generated manually using Doxygen. For example, on Linux:
-
-    sudo apt install doxygen-latex graphviz
-    cd flexiv_rdk
-    git checkout <previous_release_tag>
-    doxygen doc/Doxyfile.in
-
-Open any html file under `flexiv_rdk/doc/html/` with your browser to view the doc.
+The complete and detailed API documentation can be found at [Flexiv RDK APIs](https://www.flexiv.com/software/rdk/api). The page shows the latest release by default. You can view previous releases using the dropdown menu at the top right corner.
