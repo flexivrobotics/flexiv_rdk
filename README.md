@@ -182,4 +182,4 @@ Note:
 
 ## API Documentation
 
-The complete and detailed API documentation can be found at [Flexiv RDK APIs](https://www.flexiv.com/software/rdk/api). The page shows the latest release by default. You can view previous releases using the dropdown menu at the top right corner.
+The complete and detailed API documentation can be found on [Flexiv RDK APIs](https://www.flexiv.com/software/rdk/api). The page shows the latest release by default. You can view previous releases using the dropdown menu at the top right corner.
