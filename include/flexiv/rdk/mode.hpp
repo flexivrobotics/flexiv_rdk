@@ -99,7 +99,7 @@ enum class Mode
      * Run non-real-time super primitives, i.e. composite tasks that consist of various components
      * like motion, force, vision, planning, etc.
      * @note Non-real-time (NRT) mode.
-     * @see Robot::SendCartesianMotionForce().
+     * @see Robot::SendCartesianMotionForce(), Robot::SendMultiCartesianMotionForce().
      */
     NRT_SUPER_PRIMITIVE,
 };
