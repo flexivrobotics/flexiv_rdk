@@ -83,17 +83,7 @@ macro(FlexivInstallLibrary)
             )
 
     # Replace the dummy library built above with the actual prebuilt library that was downloaded.
-    if(RDK_STATIC_PACKAGING)
-        # Single static archive.
-        set(_rdk_installed_lib
-            "${CMAKE_STATIC_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX}")
-        install(CODE
-                "file(REMOVE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${_rdk_installed_lib})")
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
-                DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                RENAME ${_rdk_installed_lib}
-                )
-    elseif(WIN32)
+    if(WIN32)
         # A DLL target produces two files: the import library (.lib, link time, installed to lib/)
         # and the runtime DLL (.dll, installed to bin/). Replace both with the downloaded artifacts.
         set(_rdk_import_lib

@@ -104,11 +104,9 @@ For example:
 
 The following steps are mostly the same on all supported platforms, with some variations.
 
-On Linux, macOS and Windows, RDK is shipped as a self-contained shared library: all of its
-thirdparty dependencies except Eigen are statically embedded into it and their symbols are hidden,
-so Eigen is the only dependency a user application has to install, and it can freely use its own
-version of any other library. On QNX, RDK is shipped as a static archive and therefore still needs
-all of its thirdparty dependencies to be installed.
+RDK is shipped as a self-contained shared library: all of its thirdparty dependencies except Eigen
+are statically embedded into it and their symbols are hidden, so Eigen is the only dependency a user
+application has to install, and it can freely use its own version of any other library.
 
 1. Choose a directory for installing the C++ library of RDK and its dependencies. This directory can be under system path or not, depending on whether you want RDK to be globally discoverable by CMake. For example, a new folder named `rdk_install` under the home directory.
 2. In a new Terminal, run the provided script to compile and install the dependencies to the installation directory chosen in step 1:

@@ -12,14 +12,11 @@ endif()
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "RelWithDebInfo" "MinSizeRel")
 
 # Select the prebuilt library for this platform.
-# On Linux, macOS and Windows, RDK is shipped as a self-contained shared library: every thirdparty
-# dependency except Eigen is statically embedded into it and symbol-hidden, so a user application
-# only needs Eigen and can freely bring its own copy of any other library.
-# QNX is the exception: it is still shipped as a static archive, and therefore still needs all of
-# RDK's thirdparty dependencies at link time (see thirdparty/build_and_install_dependencies.sh).
+# RDK is shipped as a self-contained shared library: every thirdparty dependency except Eigen is
+# statically embedded into it and symbol-hidden, so a user application only needs Eigen and can
+# freely bring its own copy of any other library.
 message(STATUS "OS: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "Processor: ${CMAKE_SYSTEM_PROCESSOR}")
-set(RDK_STATIC_PACKAGING OFF)
 set(RDK_RUNTIME_LIB "")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
@@ -47,11 +44,10 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     message(FATAL_ERROR "Windows with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
   endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "QNX")
-  set(RDK_STATIC_PACKAGING ON)
   if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
-    set(RDK_LIB "libflexiv_rdk.x86_64-qnx.a")
+    set(RDK_LIB "libflexiv_rdk.x86_64-qnx.so")
   elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64le")
-    set(RDK_LIB "libflexiv_rdk.aarch64-qnx.a")
+    set(RDK_LIB "libflexiv_rdk.aarch64-qnx.so")
   else()
     message(FATAL_ERROR "Linux with ${CMAKE_SYSTEM_PROCESSOR} processor is currently not supported.")
   endif()
@@ -115,43 +111,12 @@ message(STATUS "Found Threads")
 find_package(Eigen3 REQUIRED)
 message(STATUS "Found Eigen3 v${Eigen3_VERSION}: ${Eigen3_DIR}")
 
-# The remaining dependencies are only needed where RDK is shipped as a static archive. Everywhere
-# else they are embedded and symbol-hidden inside the shared library.
-if(RDK_STATIC_PACKAGING)
-  # Fast-DDS (Fast-RTPS)
-  find_package(fastrtps REQUIRED)
-  message(STATUS "Found fastrtps v${fastrtps_VERSION}: ${fastrtps_DIR}")
-
-  # Fast-CDR
-  find_package(fastcdr REQUIRED)
-  message(STATUS "Found fastcdr v${fastcdr_VERSION}: ${fastcdr_DIR}")
-
-  # RBDyn
-  set(Boost_USE_STATIC_LIBS OFF)
-  find_package(RBDyn REQUIRED)
-  message(STATUS "Found RBDyn v${RBDyn_VERSION}: ${RBDyn_DIR}")
-
-  # A user application has to find them as well, so declare them in the installed package config
-  set(RDK_EXTRA_FIND_DEPENDENCIES
-"set(Boost_USE_STATIC_LIBS OFF)
-find_dependency(fastrtps REQUIRED)
-find_dependency(fastcdr REQUIRED)
-find_dependency(RBDyn REQUIRED)
-")
-else()
-  set(RDK_EXTRA_FIND_DEPENDENCIES "")
-endif()
-
 # ===================================================================
 #      CREATE LIBRARY
 # ===================================================================
 # Create the library target with a dummy source. The dummy output is replaced at install time by
-# the downloaded prebuilt library (see FlexivInstallLibrary).
-if(RDK_STATIC_PACKAGING)
-  add_library(${PROJECT_NAME} STATIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/dummy.cpp)
-else()
-  add_library(${PROJECT_NAME} SHARED ${CMAKE_CURRENT_SOURCE_DIR}/lib/dummy.cpp)
-endif()
+# the downloaded prebuilt shared library (see FlexivInstallLibrary).
+add_library(${PROJECT_NAME} SHARED ${CMAKE_CURRENT_SOURCE_DIR}/lib/dummy.cpp)
 
 # Create an alias of the target with flexiv namespace
 add_library(flexiv::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
@@ -167,16 +132,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   Threads::Threads
   Eigen3::Eigen
 )
-# A static archive does not carry its dependencies, so they must be linked by the user application
-# as well. The shared library embeds them.
-if(RDK_STATIC_PACKAGING)
-  target_link_libraries(${PROJECT_NAME} PUBLIC
-    fastrtps
-    fastcdr
-    RBDyn::RBDyn
-    RBDyn::Parsers
-  )
-endif()
 
 # Use moderate compiler warning option
 if(CMAKE_HOST_UNIX)
