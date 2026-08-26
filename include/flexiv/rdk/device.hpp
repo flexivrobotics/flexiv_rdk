@@ -19,7 +19,7 @@ using DeviceParamDataTypes
  * @class Device
  * @brief Interface to control the peripheral device(s) connected to the robot.
  */
-class Device
+class RDK_API Device
 {
 public:
     /**

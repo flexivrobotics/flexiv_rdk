@@ -45,7 +45,7 @@ struct SafetyLimits
  * @note As mentioned in the function doc, certain safety settings are only applicable to the
  * manipulator but not the external axes.
  */
-class Safety
+class RDK_API Safety
 {
 public:
     /**

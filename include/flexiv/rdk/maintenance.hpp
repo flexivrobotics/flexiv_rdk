@@ -15,7 +15,7 @@ namespace rdk {
  * @class Maintenance
  * @brief Interface to run maintenance operations on the robot.
  */
-class Maintenance
+class RDK_API Maintenance
 {
 public:
     /**

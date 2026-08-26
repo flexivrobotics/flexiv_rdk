@@ -15,7 +15,7 @@ namespace rdk {
  * @class FileIO
  * @brief Interface to exchange files with the robot. Only certain types of file can be transferred.
  */
-class FileIO
+class RDK_API FileIO
 {
 public:
     /**

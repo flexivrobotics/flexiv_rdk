@@ -17,7 +17,7 @@ namespace rdk {
  * @class Model
  * @brief Interface to obtain certain model data of the robot, including kinematics and dynamics.
  */
-class Model
+class RDK_API Model
 {
 public:
     /**

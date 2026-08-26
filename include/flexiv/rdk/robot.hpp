@@ -21,7 +21,7 @@ namespace rdk {
  * @brief Main interface to control the robot, containing several function categories and background
  * services.
  */
-class Robot
+class RDK_API Robot
 {
 public:
     /**

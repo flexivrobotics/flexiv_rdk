@@ -7,6 +7,8 @@
 #ifndef FLEXIV_RDK_DATA_HPP_
 #define FLEXIV_RDK_DATA_HPP_
 
+#include "export.hpp"
+
 #include <array>
 #include <vector>
 #include <string>
@@ -392,7 +394,7 @@ struct PlanInfo
  * conversion is automatically done when exchanging "JPOS" data type with the robot via functions
  * like Robot::ExecutePrimitive(), Robot::SetGlobalVariables(), etc.
  */
-struct JPos
+struct RDK_API JPos
 {
     /**
      * @brief Construct an instance of JPos.
@@ -426,7 +428,7 @@ struct JPos
  * conversion is automatically done when exchanging "COORD" data type with the robot via functions
  * like Robot::ExecutePrimitive(), Robot::SetGlobalVariables(), Robot::global_variables(), etc.
  */
-struct Coord
+struct RDK_API Coord
 {
     /**
      * @brief Construct an instance of Coord.
@@ -565,7 +567,7 @@ using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::C
  * @return Updated ostream instance.
  * @note The event timestamp is converted to local timezone when printed.
  */
-std::ostream& operator<<(std::ostream& ostream, const RobotEvent& robot_event);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const RobotEvent& robot_event);
 
 /**
  * @brief Operator overloading to out stream all members of RobotInfo in JSON format.
@@ -573,7 +575,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotEvent& robot_event);
  * @param[in] robot_info RobotInfo data structure to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
 
 /**
  * @brief Operator overloading to out stream all members of RobotStates in JSON format.
@@ -581,7 +583,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
  * @param[in] robot_states RobotStates data structure to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states);
 
 /**
  * @brief Operator overloading to out stream all members of RobotActions in JSON format.
@@ -589,7 +591,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states)
  * @param[in] robot_actions RobotActions data structure to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const RobotActions& robot_actions);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const RobotActions& robot_actions);
 
 /**
  * @brief Operator overloading to out stream all members of PlanInfo in JSON format.
@@ -597,7 +599,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotActions& robot_action
  * @param[in] plan_info PlanInfo data structure to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const PlanInfo& plan_info);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const PlanInfo& plan_info);
 
 } /* namespace rdk */
 } /* namespace flexiv */
