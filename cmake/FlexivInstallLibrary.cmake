@@ -82,13 +82,45 @@ macro(FlexivInstallLibrary)
             DESTINATION "lib/cmake/${PROJECT_NAME}"
             )
 
-    # Replace the dummy static lib with the actual static lib 
-    install(CODE 
-            "file(REMOVE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX})")
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            RENAME ${CMAKE_STATIC_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX}
-            )
+    # Replace the dummy library built above with the actual prebuilt library that was downloaded.
+    if(RDK_STATIC_PACKAGING)
+        # Single static archive.
+        set(_rdk_installed_lib
+            "${CMAKE_STATIC_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+        install(CODE
+                "file(REMOVE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${_rdk_installed_lib})")
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                RENAME ${_rdk_installed_lib}
+                )
+    elseif(WIN32)
+        # A DLL target produces two files: the import library (.lib, link time, installed to lib/)
+        # and the runtime DLL (.dll, installed to bin/). Replace both with the downloaded artifacts.
+        set(_rdk_import_lib
+            "${CMAKE_IMPORT_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_IMPORT_LIBRARY_SUFFIX}")
+        set(_rdk_runtime_lib
+            "${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+        install(CODE
+                "file(REMOVE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${_rdk_import_lib})")
+        install(CODE
+                "file(REMOVE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/${_rdk_runtime_lib})")
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                RENAME ${_rdk_import_lib})
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RDK_RUNTIME_LIB}
+                DESTINATION ${CMAKE_INSTALL_BINDIR}
+                RENAME ${_rdk_runtime_lib})
+    else()
+        # Single shared-library artifact (.so on Linux, .dylib on macOS).
+        set(_rdk_installed_lib
+            "${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+        install(CODE
+                "file(REMOVE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${_rdk_installed_lib})")
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                RENAME ${_rdk_installed_lib}
+                )
+    endif()
 
     # Use the CPack Package Generator
     set(CPACK_PACKAGE_VENDOR "Flexiv")
