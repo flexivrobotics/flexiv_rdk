@@ -111,7 +111,7 @@ version of any other library. On QNX, RDK is shipped as a static archive and the
 all of its thirdparty dependencies to be installed.
 
 1. Choose a directory for installing the C++ library of RDK and its dependencies. This directory can be under system path or not, depending on whether you want RDK to be globally discoverable by CMake. For example, a new folder named `rdk_install` under the home directory.
-2. In a new Terminal, run the provided script to compile and install all dependencies to the installation directory chosen in step 1:
+2. In a new Terminal, run the provided script to compile and install the dependencies to the installation directory chosen in step 1:
 
        cd flexiv_rdk/thirdparty
 

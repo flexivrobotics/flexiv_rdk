@@ -75,16 +75,23 @@ export SHARED_CMAKE_ARGS
 # Clone all dependencies in a subfolder
 mkdir -p cloned && cd cloned
 
-# Build and install all dependencies to INSTALL_DIR
+# Eigen is the only dependency a user application always needs: it is header-only and appears in
+# the public flexiv::rdk API.
 bash $SCRIPT_DIR/scripts/install_eigen.sh
-bash $SCRIPT_DIR/scripts/install_spdlog.sh
-bash $SCRIPT_DIR/scripts/install_tinyxml2.sh
-bash $SCRIPT_DIR/scripts/install_yaml-cpp.sh
-bash $SCRIPT_DIR/scripts/install_foonathan_memory.sh
-bash $SCRIPT_DIR/scripts/install_Fast-CDR.sh
-bash $SCRIPT_DIR/scripts/install_Fast-DDS.sh
-bash $SCRIPT_DIR/scripts/install_boost.sh
-bash $SCRIPT_DIR/scripts/install_SpaceVecAlg.sh
-bash $SCRIPT_DIR/scripts/install_RBDyn.sh
+
+# On Linux, macOS and Windows, RDK is shipped as a self-contained shared library that statically
+# embeds and symbol-hides all of its other dependencies, so nothing else has to be built here.
+# QNX is still shipped as a static archive, which does not carry its dependencies, so they must be
+# built and installed for a user application to link against.
+if [ "$OS_NAME" == "QNX" ]; then
+    bash $SCRIPT_DIR/scripts/install_tinyxml2.sh
+    bash $SCRIPT_DIR/scripts/install_yaml-cpp.sh
+    bash $SCRIPT_DIR/scripts/install_foonathan_memory.sh
+    bash $SCRIPT_DIR/scripts/install_Fast-CDR.sh
+    bash $SCRIPT_DIR/scripts/install_Fast-DDS.sh
+    bash $SCRIPT_DIR/scripts/install_boost.sh
+    bash $SCRIPT_DIR/scripts/install_SpaceVecAlg.sh
+    bash $SCRIPT_DIR/scripts/install_RBDyn.sh
+fi
 
 echo ">>>>> Finished: flexiv_rdk/thirdparty/build_and_install_dependencies.sh <<<<<"
