@@ -9,7 +9,6 @@
 #include <flexiv/rdk/robot.hpp>
 #include <flexiv/rdk/model.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <iomanip>
@@ -43,10 +42,10 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial runs the integrated dynamics engine to obtain "
-        "robot Jacobian, mass matrix, and gravity torques. Also checks reachability of a Cartesian "
-        "pose.\n");
+    std::cout << ">>> Tutorial description <<<\nThis tutorial runs the integrated dynamics engine "
+                 "to obtain robot Jacobian, mass matrix, and gravity torques. Also checks "
+                 "reachability of a Cartesian pose.\n"
+              << std::endl;
 
     try {
         // RDK Initialization
@@ -56,27 +55,28 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
+            std::cerr << "[warn] Fault occurred on the connected robot, trying to clear ..."
+                      << std::endl;
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                spdlog::error("Fault cannot be cleared, exiting ...");
+                std::cerr << "[error] Fault cannot be cleared, exiting ..." << std::endl;
                 return 1;
             }
-            spdlog::info("Fault on the connected robot is cleared");
+            std::cout << "Fault on the connected robot is cleared" << std::endl;
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        spdlog::info("Enabling robot ...");
+        std::cout << "Enabling robot ..." << std::endl;
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Robot is now operational");
+        std::cout << "Robot is now operational" << std::endl;
 
         // Move robot to home pose
-        spdlog::info("Moving to home pose");
+        std::cout << "Moving to home pose" << std::endl;
         robot.SwitchMode(rdk::Mode::NRT_PLAN_EXECUTION);
         robot.ExecutePlan("PLAN-Home");
         // Wait for the plan to finish
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
                 = std::chrono::duration_cast<std::chrono::microseconds>(toc - tic).count();
 
             // Print time used to compute g, M, J
-            spdlog::info("Computation time = {} us", computation_time);
+            std::cout << "Computation time = " << computation_time << " us" << std::endl;
             // Print gravity
             std::cout << "g = \n"
                       << std::fixed << std::setprecision(5) << g.transpose() << std::endl;
@@ -126,14 +126,14 @@ int main(int argc, char* argv[])
         // Check reachability of a Cartesian pose based on current pose
         auto pose_to_check = robot.states().tcp_pose;
         pose_to_check[0] += 0.1;
-        spdlog::info(
-            "Checking reachability of Cartesian pose [{}]", rdk::utility::Arr2Str(pose_to_check));
+        std::cout << "Checking reachability of Cartesian pose ["
+                  << rdk::utility::Arr2Str(pose_to_check) << "]" << std::endl;
         auto result = model.reachable(pose_to_check, robot.states().q, true);
-        spdlog::info("Got a result: reachable = {}, IK solution = [{}]", result.first,
-            rdk::utility::Vec2Str(result.second));
+        std::cout << "Got a result: reachable = " << result.first << ", IK solution = ["
+                  << rdk::utility::Vec2Str(result.second) << "]" << std::endl;
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 

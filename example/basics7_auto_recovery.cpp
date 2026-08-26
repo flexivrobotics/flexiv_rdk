@@ -8,7 +8,6 @@
 
 #include <flexiv/rdk/robot.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <string>
@@ -40,10 +39,10 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial runs an automatic recovery process if the "
-        "robot's safety system is in recovery state. See rdk::Robot::recovery() and RDK "
-        "manual for more details.\n");
+    std::cout << ">>> Tutorial description <<<\nThis tutorial runs an automatic recovery process "
+                 "if the robot's safety system is in recovery state. See rdk::Robot::recovery() "
+                 "and RDK manual for more details.\n"
+              << std::endl;
 
     try {
         // RDK Initialization
@@ -52,7 +51,7 @@ int main(int argc, char* argv[])
         rdk::Robot robot(robot_sn);
 
         // Enable the robot, make sure the E-stop is released before enabling
-        spdlog::info("Enabling robot ...");
+        std::cout << "Enabling robot ..." << std::endl;
         robot.Enable();
 
         // Run Auto-recovery
@@ -68,10 +67,11 @@ int main(int argc, char* argv[])
         }
         // Otherwise the system is normal, do nothing
         else {
-            spdlog::info("Robot system is not in recovery state, nothing to be done, exiting ...");
+            std::cout << "Robot system is not in recovery state, nothing to be done, exiting ..."
+                      << std::endl;
         }
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 

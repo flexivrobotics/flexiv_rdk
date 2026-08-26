@@ -10,7 +10,6 @@
 
 #include <flexiv/rdk/robot.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <thread>
@@ -41,12 +40,12 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial executes a plan selected by the user from a "
-        "list of available plans. A plan is a pre-written script to execute a series of robot "
-        "primitives with pre-defined transition conditions between 2 adjacent primitives. Users "
-        "can use Flexiv Elements to compose their own plan and assign to the robot, which will "
-        "appear in the plan list.\n");
+    std::cout << ">>> Tutorial description <<<\nThis tutorial executes a plan selected by the user "
+                 "from a list of available plans. A plan is a pre-written script to execute a "
+                 "series of robot primitives with pre-defined transition conditions between 2 "
+                 "adjacent primitives. Users can use Flexiv Elements to compose their own plan and "
+                 "assign to the robot, which will appear in the plan list.\n"
+              << std::endl;
 
     try {
         // RDK Initialization
@@ -56,24 +55,25 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
+            std::cerr << "[warn] Fault occurred on the connected robot, trying to clear ..."
+                      << std::endl;
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                spdlog::error("Fault cannot be cleared, exiting ...");
+                std::cerr << "[error] Fault cannot be cleared, exiting ..." << std::endl;
                 return 1;
             }
-            spdlog::info("Fault on the connected robot is cleared");
+            std::cout << "Fault on the connected robot is cleared" << std::endl;
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        spdlog::info("Enabling robot ...");
+        std::cout << "Enabling robot ..." << std::endl;
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Robot is now operational");
+        std::cout << "Robot is now operational" << std::endl;
 
         // Execute Plans
         // =========================================================================================
@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
             }
 
             // Get user input
-            spdlog::info("Choose an action:");
+            std::cout << "Choose an action:" << std::endl;
             std::cout << "[1] Show available plans" << std::endl;
             std::cout << "[2] Execute a plan by index" << std::endl;
             std::cout << "[3] Execute a plan by name" << std::endl;
@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
                 } break;
                 // Execute plan by index
                 case 2: {
-                    spdlog::info("Enter plan index to execute:");
+                    std::cout << "Enter plan index to execute:" << std::endl;
                     int index;
                     std::cin >> index;
                     // Allow the plan to continue its execution even if the RDK program is closed or
@@ -116,14 +116,14 @@ int main(int argc, char* argv[])
 
                     // Print plan info while the current plan is running
                     while (robot.busy()) {
-                        spdlog::info("Current plan info:");
+                        std::cout << "Current plan info:" << std::endl;
                         std::cout << robot.plan_info() << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
                 } break;
                 // Execute plan by name
                 case 3: {
-                    spdlog::info("Enter plan name to execute:");
+                    std::cout << "Enter plan name to execute:" << std::endl;
                     std::string name;
                     std::cin >> name;
                     // Allow the plan to continue its execution even if the RDK program is closed or
@@ -132,19 +132,19 @@ int main(int argc, char* argv[])
 
                     // Print plan info while the current plan is running
                     while (robot.busy()) {
-                        spdlog::info("Current plan info:");
+                        std::cout << "Current plan info:" << std::endl;
                         std::cout << robot.plan_info() << std::endl;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                     }
                 } break;
                 default:
-                    spdlog::warn("Invalid input");
+                    std::cerr << "[warn] Invalid input" << std::endl;
                     break;
             }
         }
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 

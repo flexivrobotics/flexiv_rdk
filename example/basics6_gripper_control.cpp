@@ -9,7 +9,6 @@
 #include <flexiv/rdk/gripper.hpp>
 #include <flexiv/rdk/tool.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <iomanip>
@@ -40,7 +39,7 @@ void PrintGripperStates(rdk::Gripper& gripper)
 {
     while (!g_finished) {
         // Print all gripper states in JSON format using the built-in ostream operator overloading
-        spdlog::info("Current gripper states:");
+        std::cout << "Current gripper states:" << std::endl;
         std::cout << gripper.states() << std::endl;
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
@@ -60,9 +59,9 @@ int main(int argc, char* argv[])
     std::string gripper_name = argv[2];
 
     // Print description
-    spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial does position and force (if available) "
-        "control of grippers supported by Flexiv.\n");
+    std::cout << ">>> Tutorial description <<<\nThis tutorial does position and force (if "
+                 "available) control of grippers supported by Flexiv.\n"
+              << std::endl;
 
     try {
         // RDK Initialization
@@ -72,24 +71,25 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
+            std::cerr << "[warn] Fault occurred on the connected robot, trying to clear ..."
+                      << std::endl;
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                spdlog::error("Fault cannot be cleared, exiting ...");
+                std::cerr << "[error] Fault cannot be cleared, exiting ..." << std::endl;
                 return 1;
             }
-            spdlog::info("Fault on the connected robot is cleared");
+            std::cout << "Fault on the connected robot is cleared" << std::endl;
         }
 
         // Enable the robot, make sure the E-Stop is released before enabling
-        spdlog::info("Enabling robot ...");
+        std::cout << "Enabling robot ..." << std::endl;
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Robot is now operational");
+        std::cout << "Robot is now operational" << std::endl;
 
         // Gripper Control
         // =========================================================================================
@@ -103,11 +103,11 @@ int main(int argc, char* argv[])
 
         // Enable the specified gripper as a device. This is equivalent to enabling the specified
         // gripper in Flexiv Elements -> Settings -> Device
-        spdlog::info("Enabling gripper [{}]", gripper_name);
+        std::cout << "Enabling gripper [" << gripper_name << "]" << std::endl;
         gripper.Enable(gripper_name);
 
         // Print parameters of the enabled gripper
-        spdlog::info("Gripper params:");
+        std::cout << "Gripper params:" << std::endl;
         std::cout << std::fixed << std::setprecision(3) << "{\n"
                   << "name: " << gripper.params().name
                   << "\nmin_width: " << gripper.params().min_width
@@ -118,31 +118,31 @@ int main(int argc, char* argv[])
                   << "\nmax_vel: " << gripper.params().max_vel << "\n}" << std::endl;
 
         // Switch robot tool to gripper so the gravity compensation and TCP location is updated
-        spdlog::info("Switching robot tool to [{}]", gripper_name);
+        std::cout << "Switching robot tool to [" << gripper_name << "]" << std::endl;
         tool.Switch(gripper_name);
 
         // User needs to determine if this gripper requires manual initialization
         int choice = 0;
-        spdlog::info(
-            "Manually trigger initialization for the gripper now? Choose Yes if it's a 48v Grav "
-            "gripper");
+        std::cout << "Manually trigger initialization for the gripper now? Choose Yes if it's a "
+                     "48v Grav gripper"
+                  << std::endl;
         std::cout << "[1] No, it has already initialized automatically when power on" << std::endl;
         std::cout << "[2] Yes, it does not initialize itself when power on" << std::endl;
         std::cin >> choice;
 
         // Trigger manual initialization based on choice
         if (choice == 1) {
-            spdlog::info("Skipped manual initialization");
+            std::cout << "Skipped manual initialization" << std::endl;
         } else if (choice == 2) {
             gripper.Init();
             // User determines if the manual initialization is finished
-            spdlog::info(
-                "Triggered manual initialization, press Enter when the initialization is finished "
-                "to continue");
+            std::cout << "Triggered manual initialization, press Enter when the initialization is "
+                         "finished to continue"
+                      << std::endl;
             std::cin.get();
             std::cin.get();
         } else {
-            spdlog::error("Invalid choice");
+            std::cerr << "[error] Invalid choice" << std::endl;
             return 1;
         }
 
@@ -150,33 +150,33 @@ int main(int argc, char* argv[])
         std::thread print_thread(PrintGripperStates, std::ref(gripper));
 
         // Position control
-        spdlog::info("Closing gripper");
+        std::cout << "Closing gripper" << std::endl;
         gripper.Move(0.01, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        spdlog::info("Opening gripper");
+        std::cout << "Opening gripper" << std::endl;
         gripper.Move(0.09, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         // Stop
-        spdlog::info("Closing gripper");
+        std::cout << "Closing gripper" << std::endl;
         gripper.Move(0.01, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        spdlog::info("Stopping gripper");
+        std::cout << "Stopping gripper" << std::endl;
         gripper.Stop();
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        spdlog::info("Closing gripper");
+        std::cout << "Closing gripper" << std::endl;
         gripper.Move(0.01, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        spdlog::info("Opening gripper");
+        std::cout << "Opening gripper" << std::endl;
         gripper.Move(0.09, 0.1, 20);
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        spdlog::info("Stopping gripper");
+        std::cout << "Stopping gripper" << std::endl;
         gripper.Stop();
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         // Force control, if available (sensed force is not zero)
         if (fabs(gripper.states().force) > std::numeric_limits<double>::epsilon()) {
-            spdlog::info("Gripper running zero force control");
+            std::cout << "Gripper running zero force control" << std::endl;
             gripper.Grasp(0);
             // Exit after 10 seconds
             std::this_thread::sleep_for(std::chrono::seconds(10));
@@ -185,11 +185,11 @@ int main(int argc, char* argv[])
         // Finished, exit all threads
         gripper.Stop();
         g_finished = true;
-        spdlog::info("Program finished");
+        std::cout << "Program finished" << std::endl;
         print_thread.join();
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 

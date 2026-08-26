@@ -8,7 +8,6 @@
 
 #include <flexiv/rdk/robot.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <iomanip>
@@ -40,10 +39,10 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial executes several basic robot primitives (unit "
-        "skills). For detailed documentation on all available primitives, please see [Flexiv "
-        "Primitives](https://www.flexiv.com/primitives/).\n");
+    std::cout << ">>> Tutorial description <<<\nThis tutorial executes several basic robot "
+                 "primitives (unit skills). For detailed documentation on all available "
+                 "primitives, please see [Flexiv Primitives](https://www.flexiv.com/primitives/).\n"
+              << std::endl;
 
     try {
         // RDK Initialization
@@ -53,24 +52,25 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
+            std::cerr << "[warn] Fault occurred on the connected robot, trying to clear ..."
+                      << std::endl;
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                spdlog::error("Fault cannot be cleared, exiting ...");
+                std::cerr << "[error] Fault cannot be cleared, exiting ..." << std::endl;
                 return 1;
             }
-            spdlog::info("Fault on the connected robot is cleared");
+            std::cout << "Fault on the connected robot is cleared" << std::endl;
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        spdlog::info("Enabling robot ...");
+        std::cout << "Enabling robot ..." << std::endl;
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Robot is now operational");
+        std::cout << "Robot is now operational" << std::endl;
 
         // Execute Primitives
         // =========================================================================================
@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
         // -----------------------------------------------------------------------------------------
         // All parameters of the "Home" primitive are optional, thus we can skip the parameters and
         // the default values will be used
-        spdlog::info("Executing primitive: Home");
+        std::cout << "Executing primitive: Home" << std::endl;
 
         // Send command to robot
         robot.ExecutePrimitive("Home", std::map<std::string, rdk::FlexivDataTypes> {});
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
         //     waypoints: waypoints to pass before reaching the target
         //         (same format as above, but can be more than one)
         //     vel: TCP linear velocity, unit: m/s
-        spdlog::info("Executing primitive: MoveJ");
+        std::cout << "Executing primitive: MoveJ" << std::endl;
 
         // Send command to robot
         robot.ExecutePrimitive("MoveJ",
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
         // primitive command.
         while (!std::get<int>(robot.primitive_states()["reachedTarget"])) {
             // Print current primitive states
-            spdlog::info("Current primitive states:");
+            std::cout << "Current primitive states:" << std::endl;
             for (const auto& st : robot.primitive_states()) {
                 std::cout << st.first << ": " << rdk::utility::FlexivTypes2Str(st.second);
                 std::cout << std::endl;
@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
         //         (same format as above, but can be more than one)
         //     vel: TCP linear velocity, unit: m/s
         // NOTE: The rotations use Euler ZYX convention, rot_x means Euler ZYX angle around X axis
-        spdlog::info("Executing primitive: MoveL");
+        std::cout << "Executing primitive: MoveL" << std::endl;
 
         // Send command to robot
         robot.ExecutePrimitive("MoveL",
@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
         // -----------------------------------------------------------------------------------------
         // In this example the reference frame is changed from WORLD::WORLD_ORIGIN to TRAJ::START,
         // which represents the current TCP frame
-        spdlog::info("Executing primitive: MoveL");
+        std::cout << "Executing primitive: MoveL" << std::endl;
 
         // Example to convert target quaternion [w,x,y,z] to Euler ZYX using utility functions
         std::array<double, 4> targetQuat = {0.9185587, 0.1767767, 0.3061862, 0.1767767};
@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
         robot.Stop();
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 

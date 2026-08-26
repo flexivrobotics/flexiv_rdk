@@ -9,7 +9,6 @@
 #include <flexiv/rdk/model.hpp>
 #include <flexiv/rdk/tool.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 #include <Eigen/Eigen>
 
 #include <iostream>
@@ -103,24 +102,25 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
+            std::cerr << "[warn] Fault occurred on the connected robot, trying to clear ..."
+                      << std::endl;
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                spdlog::error("Fault cannot be cleared, exiting ...");
+                std::cerr << "[error] Fault cannot be cleared, exiting ..." << std::endl;
                 return 1;
             }
-            spdlog::info("Fault on the connected robot is cleared");
+            std::cout << "Fault on the connected robot is cleared" << std::endl;
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        spdlog::info("Enabling robot ...");
+        std::cout << "Enabling robot ..." << std::endl;
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Robot is now operational");
+        std::cout << "Robot is now operational" << std::endl;
 
         // Set mode after robot is operational
         robot.SwitchMode(flexiv::rdk::Mode::NRT_PLAN_EXECUTION);
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 
         // Test Dynamics Engine without Tool
         //==========================================================================================
-        spdlog::info(">>>>> Test 1: no end-effector tool <<<<<");
+        std::cout << ">>>>> Test 1: no end-effector tool <<<<<" << std::endl;
 
         // Instantiate dynamics engine
         flexiv::rdk::Model model(robot);
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
 
         // Test Dynamics Engine with Tool
         //==========================================================================================
-        spdlog::info(">>>>> Test 2: with end-effector tool <<<<<");
+        std::cout << ">>>>> Test 2: with end-effector tool <<<<<" << std::endl;
 
         // Ground truth from MATLAB with robot tool
         // clang-format off
@@ -206,22 +206,23 @@ int main(int argc, char* argv[])
 
         // Remove any existing tool with the same name
         if (tool.exist(tool_name)) {
-            spdlog::warn("Tool with the same name [{}] already exists, removing it now", tool_name);
+            std::cerr << "[warn] Tool with the same name [" << tool_name
+                      << "] already exists, removing it now" << std::endl;
             // Switch to other tool or no tool (Flange) before removing the current tool
             tool.Switch("Flange");
             tool.Remove(tool_name);
         }
 
         // Add the test tool
-        spdlog::info("Adding test tool [{}] to the robot", tool_name);
+        std::cout << "Adding test tool [" << tool_name << "] to the robot" << std::endl;
         tool.Add(tool_name, tool_params);
 
         // Switch to the newly added test tool, i.e. set it as the active tool
-        spdlog::info("Switching to test tool [{}]", tool_name);
+        std::cout << "Switching to test tool [" << tool_name << "]" << std::endl;
         tool.Switch(tool_name);
 
         // Get and print the current active tool, should be the test tool
-        spdlog::info("Current active tool: {}", tool.name());
+        std::cout << "Current active tool: " << tool.name() << std::endl;
 
         // Reload robot + tool model using the latest data synced from the connected robot
         model.Reload();
@@ -237,12 +238,12 @@ int main(int argc, char* argv[])
         tool.Switch("Flange");
 
         // Clean up by removing the test tool
-        spdlog::info("Removing tool [{}]", tool_name);
+        std::cout << "Removing tool [" << tool_name << "]" << std::endl;
         tool.Remove(tool_name);
 
-        spdlog::info("Program finished");
+        std::cout << "Program finished" << std::endl;
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 
