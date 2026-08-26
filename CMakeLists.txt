@@ -55,23 +55,6 @@ else()
   message(FATAL_ERROR "${CMAKE_SYSTEM_NAME} is currently not supported.")
 endif()
 
-# Option to support ROS2 Jazzy
-option(RDK_SUPPORT_ROS2_JAZZY "Use RDK library compatible with ROS2 Jazzy" OFF)
-if(RDK_SUPPORT_ROS2_JAZZY)
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
-      set(RDK_LIB "libflexiv_rdk.x86_64-linux-gnu.ros2-jazzy.so")
-    elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
-      set(RDK_LIB "libflexiv_rdk.aarch64-linux-gnu.ros2-jazzy.so")
-    else()
-      message(FATAL_ERROR 
-        "Compatibility with ROS2 Jazzy is currently not supported on Linux with ${CMAKE_SYSTEM_PROCESSOR} processor.")
-    endif()
-  else()
-    message(FATAL_ERROR "Compatibility with ROS2 Jazzy is currently not supported on ${CMAKE_SYSTEM_NAME}.")
-  endif()
-endif()
-
 # Download a release asset by file name, verifying its SHA256 against the checked-in
 # <name>.sha256 placeholder.
 function(rdk_download_release_asset asset_name)
