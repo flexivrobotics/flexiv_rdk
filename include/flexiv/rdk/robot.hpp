@@ -125,6 +125,9 @@ public:
     /**
      * @brief [Non-blocking] Whether the robot is in fault state.
      * @return True: robot has fault; false: robot normal.
+     * @note Entering fault state resets the control mode to Mode::IDLE and discards all commands
+     * sent so far. After the fault is cleared, SwitchMode() must be called again before the robot
+     * accepts new commands, see ClearFault().
      */
     bool fault() const;
 
@@ -216,6 +219,8 @@ public:
      * control mode.
      * @warning If the robot is still moving when this function is called, it will automatically
      * stop before making the mode transition.
+     * @warning A mode switch is rejected while the robot is in fault state, since the robot cannot
+     * move until the fault is cleared. Call ClearFault() first.
      */
     void SwitchMode(Mode mode);
 
@@ -223,6 +228,8 @@ public:
      * @brief [Blocking] Stop the robot and transit its control mode to IDLE.
      * @throw std::runtime_error if failed to stop the robot.
      * @note This function blocks until the robot comes to a complete stop.
+     * @note This function does nothing if the robot is already in fault state, because entering
+     * fault state stops the robot and resets its control mode to IDLE by itself.
      */
     void Stop();
 
@@ -235,6 +242,8 @@ public:
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the fault is successfully cleared or [timeout_sec] has
      * elapsed.
+     * @note The robot stays in Mode::IDLE after the fault is cleared, because entering fault state
+     * has reset the control mode. Call SwitchMode() to re-arm the robot.
      * @warning Clearing a critical fault through this function without a power cycle requires a
      * dedicated device, which may not be installed in older robot models.
      */
@@ -312,7 +321,8 @@ public:
      * @brief [Blocking] Execute a plan by specifying its index.
      * @param[in] index Index of the plan to execute, can be obtained via plan_list().
      * @param[in] continue_exec Whether to continue executing the plan when the RDK program is
-     * closed or the connection is lost.
+     * closed or the connection is lost. This does not apply to faults: entering fault state always
+     * resets the control mode to Mode::IDLE, see fault().
      * @param[in] block_until_started Whether to wait for the commanded plan to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the plan ready, the loading process typically takes no more than 200 ms.
@@ -333,7 +343,8 @@ public:
      * @brief [Blocking] Execute a plan by specifying its name.
      * @param[in] name Name of the plan to execute, can be obtained via plan_list().
      * @param[in] continue_exec Whether to continue executing the plan when the RDK program is
-     * closed or the connection is lost.
+     * closed or the connection is lost. This does not apply to faults: entering fault state always
+     * resets the control mode to Mode::IDLE, see fault().
      * @param[in] block_until_started Whether to wait for the commanded plan to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the plan ready, the loading process typically takes no more than 200 ms.
