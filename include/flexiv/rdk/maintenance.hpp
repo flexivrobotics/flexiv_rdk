@@ -14,6 +14,8 @@ namespace rdk {
 /**
  * @class Maintenance
  * @brief Interface to run maintenance operations on the robot.
+ * @note Thread safety: all functions of this class are thread-safe and can be called concurrently
+ * from multiple threads.
  */
 class RDK_API Maintenance
 {

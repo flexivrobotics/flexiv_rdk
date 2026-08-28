@@ -1,6 +1,10 @@
 /**
  * @file data.hpp
  * @brief Header file containing various constant expressions, data structures, and enums.
+ * @note Thread safety: all functions declared in this file are thread-safe and can be called
+ * concurrently from multiple threads. The data structs themselves hold no internal
+ * synchronization, so an instance shared between threads still needs to be externally
+ * synchronized while it's being modified.
  * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  */
 

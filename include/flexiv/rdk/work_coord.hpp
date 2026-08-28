@@ -15,6 +15,8 @@ namespace rdk {
  * @class WorkCoord
  * @brief Interface to manage work coordinates of the robot. All updates take effect immediately
  * without a power cycle. However, the robot must be in IDLE mode when applying changes.
+ * @note Thread safety: all functions of this class are thread-safe and can be called concurrently
+ * from multiple threads.
  */
 class RDK_API WorkCoord
 {

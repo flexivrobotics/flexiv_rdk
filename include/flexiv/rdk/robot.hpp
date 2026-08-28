@@ -20,6 +20,10 @@ namespace rdk {
  * @class Robot
  * @brief Main interface to control the robot, containing several function categories and background
  * services.
+ * @note Thread safety: all functions of this class are thread-safe and can be called concurrently
+ * from multiple threads. Thread safety does not imply ordering though: when several threads command
+ * the robot at the same time, the order in which their commands reach the robot is undefined, so
+ * external synchronization is needed if a specific order is required.
  */
 class RDK_API Robot
 {

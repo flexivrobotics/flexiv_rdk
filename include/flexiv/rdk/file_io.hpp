@@ -14,6 +14,8 @@ namespace rdk {
 /**
  * @class FileIO
  * @brief Interface to exchange files with the robot. Only certain types of file can be transferred.
+ * @note Thread safety: all functions of this class are thread-safe and can be called concurrently
+ * from multiple threads.
  */
 class RDK_API FileIO
 {
