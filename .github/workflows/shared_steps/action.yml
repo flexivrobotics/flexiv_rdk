@@ -35,7 +35,7 @@ runs:
         shopt -s nullglob
         # The <name>.<arch>-<os>.<ext> assets, not the dummy libflexiv_rdk.<ext> CMake target output.
         artifacts=(build/libflexiv_rdk.*-*.* build/flexiv_rdk.win*.dll)
-        bash .github/scripts/check_shipped_artifacts.sh "${artifacts[@]}"
+        bash .github/scripts/check_artifacts.sh "${artifacts[@]}"
 
     # Find and link to flexiv_rdk library, then build all example programs.
     - name: Build examples
