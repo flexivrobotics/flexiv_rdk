@@ -25,6 +25,18 @@ runs:
         cmake .. -DCMAKE_INSTALL_PREFIX=~/rdk_install
         cmake --build . --target install --config Release
 
+    # Guard the prebuilt library that was just downloaded: RDK ships as a self-contained shared
+    # library, so anything it loads beyond the OS C/C++ runtime is a dependency left over from the
+    # machine that built it. That kind of leak passes every build-time check and only shows up as a
+    # loader failure on the user's machine, which is why it is asserted here rather than trusted.
+    - name: Check dependencies of prebuilt library
+      shell: bash
+      run: |
+        shopt -s nullglob
+        # The <name>.<arch>-<os>.<ext> assets, not the dummy libflexiv_rdk.<ext> CMake target output.
+        artifacts=(build/libflexiv_rdk.*-*.* build/flexiv_rdk.win*.dll)
+        bash .github/scripts/check_artifacts.sh "${artifacts[@]}"
+
     # Find and link to flexiv_rdk library, then build all examples.
     - name: Build examples
       shell: bash
