@@ -16,10 +16,10 @@
 #             /usr/lib/ or /System/Library/.
 #    PE     - skipped: listing DLL imports needs the MSVC toolchain, which is not assumed here.
 #
-#  Usage: check_shipped_deps.sh <library> [<library> ...]
+#  Usage: check_shipped_artifacts.sh <library> [<library> ...]
 #
 #  Platforms whose runtime is not glibc (QNX) can extend the allowed DT_NEEDED set:
-#    RDK_EXTRA_ALLOWED_LIBS="libc.so.4 libcpp.so.5" check_shipped_deps.sh <library>
+#    RDK_EXTRA_ALLOWED_LIBS="libc.so.4 libcpp.so.5" check_shipped_artifacts.sh <library>
 # ==================================================================================================
 set -eu
 
