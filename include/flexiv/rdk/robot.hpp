@@ -132,6 +132,9 @@ public:
     /**
      * @brief [Non-blocking] Whether the robot is in fault state.
      * @return True: robot has fault; false: robot normal.
+     * @note Entering fault state resets the control mode to Mode::IDLE and discards all commands
+     * sent so far. After the fault is cleared, SwitchMode() must be called again before the robot
+     * accepts new commands, see ClearFault().
      */
     bool fault() const;
 
@@ -247,6 +250,8 @@ public:
      * control mode.
      * @warning If the robot is still moving when this function is called, it will automatically
      * stop before making the mode transition.
+     * @warning A mode switch is rejected while the robot is in fault state, since the robot cannot
+     * move until the fault is cleared. Call ClearFault() first.
      */
     void SwitchMode(Mode mode);
 
@@ -254,6 +259,8 @@ public:
      * @brief [Blocking] Stop the robot and transit its control mode to IDLE.
      * @throw std::runtime_error if failed to stop the robot.
      * @note This function blocks until the robot comes to a complete stop.
+     * @note This function does nothing if the robot is already in fault state, because entering
+     * fault state stops the robot and resets its control mode to IDLE by itself.
      */
     void Stop();
 
@@ -266,6 +273,8 @@ public:
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the fault is successfully cleared or [timeout_sec] has
      * elapsed.
+     * @note The robot stays in Mode::IDLE after the fault is cleared, because entering fault state
+     * has reset the control mode. Call SwitchMode() to re-arm the robot.
      * @warning Clearing a critical fault through this function without a power cycle requires a
      * dedicated device, which may not be installed in older robot models.
      */
@@ -316,14 +325,16 @@ public:
      * @brief [Blocking] Execute a plan by specifying its index.
      * @param[in] index Index of the plan to execute, can be obtained via plan_list().
      * @param[in] continue_exec Whether to continue executing the plan when the RDK program is
-     * closed or the connection is lost.
+     * closed or the connection is lost. This does not apply to faults: entering fault state always
+     * resets the control mode to Mode::IDLE, see fault().
      * @param[in] block_until_started Whether to wait for the commanded plan to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the plan ready, the loading process typically takes no more than 200 ms.
      * @throw std::invalid_argument if [index] is outside the valid range.
      * @throw std::logic_error if the robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot or the
-     * robot is not operational.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot, if the
+     * robot is not operational, or if [block_until_started] is enabled and the robot did not start
+     * executing the plan in time.
      * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered if
      * [block_until_started] is disabled, or until the plan has started execution if
@@ -337,13 +348,15 @@ public:
      * @brief [Blocking] Execute a plan by specifying its name.
      * @param[in] name Name of the plan to execute, can be obtained via plan_list().
      * @param[in] continue_exec Whether to continue executing the plan when the RDK program is
-     * closed or the connection is lost.
+     * closed or the connection is lost. This does not apply to faults: entering fault state always
+     * resets the control mode to Mode::IDLE, see fault().
      * @param[in] block_until_started Whether to wait for the commanded plan to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the plan ready, the loading process typically takes no more than 200 ms.
      * @throw std::logic_error if the robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot or the
-     * robot is not operational.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot, if the
+     * robot is not operational, or if [block_until_started] is enabled and the robot did not start
+     * executing the plan in time.
      * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered if
      * [block_until_started] is disabled, or until the plan has started execution if
@@ -448,8 +461,9 @@ public:
      * existing single-arm joint groups nor the ARMS joint group of the connected robot, or if it
      * combines the ARMS joint group with ARM_1 or ARM_2, which control the same arms.
      * @throw std::logic_error if the robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot or the
-     * robot is not operational.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot, if the
+     * robot is not operational, or if [block_until_started] is enabled and the robot did not start
+     * executing the primitive in time.
      * @note Applicable control modes: NRT_PRIMITIVE_EXECUTION.
      * @note This function blocks until the request is successfully delivered if
      * [block_until_started] is disabled, or until the primitive has started execution if
