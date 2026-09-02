@@ -154,18 +154,31 @@ public:
     void Remove(const std::string& name);
 
     /**
-     * @brief [Blocking] Calibrate the payload parameters (mass, CoM, and inertia) of a tool.
+     * @brief [Blocking] Calibrate the payload parameters (mass, CoM, and inertia) of the tool
+     * mounted on the flange of the specified arm.
+     * @param[in] group Joint group of the arm to run the calibration on. Only existing single-arm
+     * joint groups like ARM_1 and ARM_2 are accepted.
      * @param[in] tool_mounted Whether the tool to be calibrated is mounted on the robot flange when
      * triggering this calibration process. See details below.
+     * @throw std::invalid_argument if [group] is not an existing single-arm joint group in the
+     * connected robot.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if fault occurred during the calibration or failed to get the
-     * calibration result.
+     * @throw std::runtime_error if the connected robot does not support payload calibration via
+     * RDK, if fault occurred during the calibration, if the calibration did not finish within
+     * kCaliTimeoutSec, or if failed to get the calibration result.
      * @note Applicable control modes: IDLE.
-     * @note This function blocks until the calibration is finished.
+     * @note This function blocks until the calibration is finished. The robot is put back to IDLE
+     * before this function returns, including when it throws.
+     * @note On a robot with more than one arm, only the arm of [group] moves; the calibration does
+     * not depend on, nor change, the robot's primary arm.
      * @warning [tcp_location] in the returned struct will be zeros and should be ignored.
+     * @warning Payload calibration via RDK requires the calibration plans to be installed on the
+     * connected robot, which is currently the case for the Rizon (A02) and Enlight (AX01) series
+     * only. Calling this function on a robot without them throws std::runtime_error naming the
+     * missing plan.
      * @par How to properly calibrate the payload parameters of a tool?
-     * 1. Call Switch("Flange") to disable any active tool from the robot software.
-     * 2. Physically mount the tool to be calibrated to robot flange.
+     * 1. Call Switch(group, "Flange") to disable any active tool from the robot software.
+     * 2. Physically mount the tool to be calibrated to the flange of the arm of [group].
      * 3. Call this function with [tool_mounted] set to TRUE, then wait for completion. If the robot
      * has a force-torque (FT) sensor, then the returned result will be accurate enough and the
      * optional steps can be skipped. If the robot does not have an FT sensor, then the optional
@@ -177,7 +190,7 @@ public:
      * parameters to a new or existing tool. Note that [tcp_location] in the returned struct is
      * invalid and cannot be used directly.
      */
-    ToolParams CalibratePayloadParams(bool tool_mounted);
+    ToolParams CalibratePayloadParams(JointGroup group, bool tool_mounted);
 
 private:
     class Impl;
