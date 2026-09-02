@@ -170,11 +170,34 @@ inline std::string Arr2Str(
 }
 
 /**
+ * @brief Convert a vector of Flexiv data structs to a string, with the elements separated by " : ".
+ * @param[in] vec std::vector of rdk::JPos, rdk::Coord, rdk::DJPos, rdk::DCoord or rdk::OCoord.
+ * @return The converted string.
+ */
+template <typename T>
+inline std::string StructVec2Str(const std::vector<T>& vec)
+{
+    std::string ret;
+    // Separate two structs by " : "
+    for (const auto& v : vec) {
+        ret += v.str() + " : ";
+    }
+    // Remove the trailing " : "
+    if (!ret.empty()) {
+        ret.erase(ret.size() - 3);
+    }
+    return ret;
+}
+
+/**
  * @brief Convert the commonly used std::variant to a string.
  * @param[in] variant std::variant used by multiple rdk::Robot functions.
  * @param[in] decimal Decimal places to keep for each floating-point number in the variant.
  * @param[in] separator Character to separate between numbers in the vector.
  * @return The converted string.
+ * @note The Flexiv data structs (rdk::JPos, rdk::Coord, rdk::DJPos, rdk::DCoord and rdk::OCoord)
+ * are converted using their own str() function, which always keeps 2 decimal places and separates
+ * the numbers by space, thus [decimal] and [separator] do not apply to them.
  */
 inline std::string FlexivTypes2Str(
     const rdk::FlexivDataTypes& variant, size_t decimal = 3, const std::string& separator = " ")
@@ -185,7 +208,15 @@ inline std::string FlexivTypes2Str(
         return Vec2Str(std::vector<double> {*val}, decimal);
     } else if (auto* val = std::get_if<std::string>(&variant)) {
         return *val;
+    } else if (auto* val = std::get_if<rdk::JPos>(&variant)) {
+        return (*val).str();
     } else if (auto* val = std::get_if<rdk::Coord>(&variant)) {
+        return (*val).str();
+    } else if (auto* val = std::get_if<rdk::DJPos>(&variant)) {
+        return (*val).str();
+    } else if (auto* val = std::get_if<rdk::DCoord>(&variant)) {
+        return (*val).str();
+    } else if (auto* val = std::get_if<rdk::OCoord>(&variant)) {
         return (*val).str();
     } else if (auto* vec = std::get_if<std::vector<int>>(&variant)) {
         return Vec2Str(*vec, decimal, separator);
@@ -193,17 +224,16 @@ inline std::string FlexivTypes2Str(
         return Vec2Str(*vec, decimal, separator);
     } else if (auto* vec = std::get_if<std::vector<std::string>>(&variant)) {
         return Vec2Str(*vec, decimal, separator);
+    } else if (auto* vec = std::get_if<std::vector<rdk::JPos>>(&variant)) {
+        return StructVec2Str(*vec);
     } else if (auto* vec = std::get_if<std::vector<rdk::Coord>>(&variant)) {
-        std::string ret;
-        // Separate two Coord by " : "
-        for (const auto& v : (*vec)) {
-            ret += v.str() + " : ";
-        }
-        // Remove the trailing " : "
-        if (!ret.empty()) {
-            ret.erase(ret.size() - 3);
-        }
-        return ret;
+        return StructVec2Str(*vec);
+    } else if (auto* vec = std::get_if<std::vector<rdk::DJPos>>(&variant)) {
+        return StructVec2Str(*vec);
+    } else if (auto* vec = std::get_if<std::vector<rdk::DCoord>>(&variant)) {
+        return StructVec2Str(*vec);
+    } else if (auto* vec = std::get_if<std::vector<rdk::OCoord>>(&variant)) {
+        return StructVec2Str(*vec);
     }
     return "";
 }

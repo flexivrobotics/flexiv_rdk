@@ -418,12 +418,19 @@ public:
     /**
      * @brief [Blocking] Execute primitive(s) on specified joint group(s).
      * @param[in] primitive_args Primitive arguments mapped by joint group. Only existing
-     * single-arm joint groups like ARM_1 and ARM_2 are accepted.
+     * single-arm joint groups like ARM_1 and ARM_2, plus the ARMS joint group of a dual-arm robot,
+     * are accepted. The joint group also selects which version of a primitive to execute: a
+     * single-arm joint group runs the single-arm version, whereas the ARMS joint group runs the
+     * dual-arm version, which moves both arms as a whole and takes the dual-arm data types
+     * (rdk::DJPos, rdk::DCoord and rdk::OCoord) as input parameters. For instance, "MoveJ" on
+     * ARM_1 moves the 1st arm to a rdk::JPos target, while "MoveJ" on ARMS moves both arms to a
+     * rdk::DJPos target.
      * @param[in] block_until_started Whether to wait for the commanded primitive to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the primitive ready, the loading process typically takes no more than 200 ms.
-     * @throw std::invalid_argument if [primitive_args] contains joint groups that are not
-     * existing single-arm joint groups in the connected robot.
+     * @throw std::invalid_argument if [primitive_args] contains joint groups that are neither
+     * existing single-arm joint groups nor the ARMS joint group of the connected robot, or if it
+     * combines the ARMS joint group with ARM_1 or ARM_2, which control the same arms.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot or the
      * robot is not operational.

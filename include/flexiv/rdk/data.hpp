@@ -466,6 +466,51 @@ struct RDK_API JPos
 };
 
 /**
+ * @struct DJPos
+ * @brief Data structure representing the customized data type "DJPOS" in Flexiv Elements, which is
+ * the dual-arm version of "JPOS".
+ * @note Only applicable to dual-arm robots. Both arms share the same set of external axes.
+ * @warning Here [m] is used as the unit of length, whereas [mm] is used in Flexiv Elements. The
+ * conversion is automatically done when exchanging "DJPOS" data type with the robot via functions
+ * like Robot::ExecutePrimitive(), Robot::SetGlobalVariables(), etc.
+ */
+struct RDK_API DJPos
+{
+    /** Default constructor */
+    DJPos() = default;
+
+    /**
+     * @brief Custom constructor.
+     * @param[in] q_a1 Sets struct member [q_a1].
+     * @param[in] q_a2 Sets struct member [q_a2].
+     * @param[in] q_e Sets struct member [q_e]. Leave empty if there's no external axis.
+     */
+    DJPos(const std::array<double, kSerialJointDoF>& q_a1,
+        const std::array<double, kSerialJointDoF>& q_a2,
+        const std::array<double, kMaxExtAxes>& q_e = {})
+    : q_a1(q_a1)
+    , q_a2(q_a2)
+    , q_e(q_e)
+    {
+    }
+
+    /** Joint positions of the 1st robot arm. Unit: [degree] */
+    std::array<double, kSerialJointDoF> q_a1 = {};
+
+    /** Joint positions of the 2nd robot arm. Unit: [degree] */
+    std::array<double, kSerialJointDoF> q_a2 = {};
+
+    /** Joint positions (linear or angular) of the external axes shared by both arms. Unit: [m] or
+     * [degree]
+     * @note If the number of external axes \f$ n_e < kMaxExtAxes \f$, set the first \f$ n_e \f$
+     * elements and leave the rest 0. Leave the whole array empty if there's no external axis. */
+    std::array<double, kMaxExtAxes> q_e = {};
+
+    /** String representation of all data in the struct, separated by space */
+    std::string str() const;
+};
+
+/**
  * @struct Coord
  * @brief Data structure representing the customized data type "COORD" in Flexiv Elements.
  * @warning Here [m] is used as the unit of length, whereas [mm] is used in Flexiv Elements. The
@@ -530,6 +575,99 @@ struct RDK_API Coord
 };
 
 /**
+ * @struct DCoord
+ * @brief Data structure representing the customized data type "DCOORD" in Flexiv Elements, which is
+ * the dual-arm version of "COORD". Each arm holds an independent Coord, so the two arms can be
+ * commanded to targets expressed in different reference frames.
+ * @note Only applicable to dual-arm robots.
+ * @warning Here [m] is used as the unit of length, whereas [mm] is used in Flexiv Elements. The
+ * conversion is automatically done when exchanging "DCOORD" data type with the robot via functions
+ * like Robot::ExecutePrimitive(), Robot::SetGlobalVariables(), Robot::global_variables(), etc.
+ */
+struct RDK_API DCoord
+{
+    /** Default constructor */
+    DCoord() = default;
+
+    /**
+     * @brief Custom constructor.
+     * @param[in] arm1 Sets struct member [arm1].
+     * @param[in] arm2 Sets struct member [arm2].
+     */
+    DCoord(const Coord& arm1, const Coord& arm2)
+    : arm1(arm1)
+    , arm2(arm2)
+    {
+    }
+
+    /** Target coordinate of the 1st robot arm */
+    Coord arm1 = {};
+
+    /** Target coordinate of the 2nd robot arm */
+    Coord arm2 = {};
+
+    /** String representation of all data in the struct, separated by space */
+    std::string str() const;
+};
+
+/**
+ * @struct OCoord
+ * @brief Data structure representing the customized data type "OCOORD" in Flexiv Elements. Unlike
+ * DCoord which specifies one target per arm, OCoord specifies the pose of the object that is
+ * co-manipulated by both arms, plus the reference joint positions of both arms. Used by
+ * collaborative dual-arm primitives such as "CollabMoveL".
+ * @note Only applicable to dual-arm robots.
+ * @warning Here [m] is used as the unit of length, whereas [mm] is used in Flexiv Elements. The
+ * conversion is automatically done when exchanging "OCOORD" data type with the robot via functions
+ * like Robot::ExecutePrimitive(), Robot::SetGlobalVariables(), Robot::global_variables(), etc.
+ */
+struct RDK_API OCoord
+{
+    /** Default constructor */
+    OCoord() = default;
+
+    /**
+     * @brief Custom constructor.
+     * @param[in] position Sets struct member [position].
+     * @param[in] orientation Sets struct member [orientation].
+     * @param[in] ref_frame Sets struct member [ref_frame].
+     * @param[in] ref_q Sets struct member [ref_q]. Leave empty to use default values.
+     */
+    OCoord(const std::array<double, kCartDoF / 2>& position,
+        const std::array<double, kCartDoF / 2>& orientation,
+        const std::array<std::string, 2>& ref_frame, const DJPos& ref_q = {})
+    : position(position)
+    , orientation(orientation)
+    , ref_frame(ref_frame)
+    , ref_q(ref_q)
+    {
+    }
+
+    /** Position of the object in [ref_frame]. Unit: [m] */
+    std::array<double, kCartDoF / 2> position = {};
+
+    /** Orientation of the object in terms of Euler angles in [ref_frame]. Unit: [degree] */
+    std::array<double, kCartDoF / 2> orientation = {};
+
+    /** Name of the reference frame "root::branch" represented as {"root", "branch"}.
+     *  Refer to Flexiv Elements for available options. Some common ones are:
+     * - World origin: {"WORLD", "WORLD_ORIGIN"}
+     * - Current pose: {"TRAJ", "START"}
+     * - A work coordinate: {"WORK", "WorkCoord0"}
+     * - A global variable: {"GVAR", "MyCoord0"}
+     */
+    std::array<std::string, 2> ref_frame = {};
+
+    /** Reference joint positions of both robot arms and the shared external axes. Only
+     * effective on robots with redundant degrees of freedom.
+     * @note Leave empty to use default values. */
+    DJPos ref_q = {};
+
+    /** String representation of all data in the struct, separated by space */
+    std::string str() const;
+};
+
+/**
  * @brief Modes for synchronous motions.
  * @see PrimitiveArgs::sync_motion_mode
  */
@@ -542,9 +680,10 @@ enum class SyncMotionMode
 };
 
 /** Alias of the variant that holds all possible types of data exchanged with Flexiv robots */
-using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::Coord,
-    std::vector<int>, std::vector<double>, std::vector<std::string>, std::vector<rdk::JPos>,
-    std::vector<rdk::Coord>>;
+using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::Coord, rdk::DJPos,
+    rdk::DCoord, rdk::OCoord, std::vector<int>, std::vector<double>, std::vector<std::string>,
+    std::vector<rdk::JPos>, std::vector<rdk::Coord>, std::vector<rdk::DJPos>,
+    std::vector<rdk::DCoord>, std::vector<rdk::OCoord>>;
 
 /**
  * @struct PrimitiveArgs
