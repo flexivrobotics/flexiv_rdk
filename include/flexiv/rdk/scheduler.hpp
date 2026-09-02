@@ -6,6 +6,8 @@
 #ifndef FLEXIV_RDK_SCHEDULER_HPP_
 #define FLEXIV_RDK_SCHEDULER_HPP_
 
+#include "export.hpp"
+
 #include <string>
 #include <functional>
 #include <memory>
@@ -17,7 +19,7 @@ namespace flexiv::rdk {
  * @brief Real-time scheduler that can simultaneously run multiple periodic tasks. Parameters for
  * each task are configured independently.
  */
-class Scheduler
+class RDK_API Scheduler
 {
 public:
     /**

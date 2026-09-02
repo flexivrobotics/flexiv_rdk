@@ -250,7 +250,7 @@ inline bool ProgramArgsExist(int argc, char** argv, const std::string& ref_strin
  * robots whose control is currently running and reachable on the same Zenoh network are discovered.
  * @warning This is a blocking function that returns after [timeout_ms].
  */
-std::vector<std::string> ScanRobotsInNetwork(unsigned int timeout_ms = 1000);
+RDK_API std::vector<std::string> ScanRobotsInNetwork(unsigned int timeout_ms = 1000);
 
 } /* namespace utility */
 } /* namespace flexiv::rdk */

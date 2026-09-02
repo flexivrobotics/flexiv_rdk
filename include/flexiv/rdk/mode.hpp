@@ -6,6 +6,8 @@
 #ifndef FLEXIV_RDK_MODE_HPP_
 #define FLEXIV_RDK_MODE_HPP_
 
+#include "export.hpp"
+
 #include <array>
 #include <map>
 #include <string>
@@ -109,7 +111,7 @@ enum class Mode
  * @brief Map Mode enums to strings.
  * @return Const reference to the Mode-to-string lookup table.
  */
-const std::map<Mode, std::string>& ModeNames();
+RDK_API const std::map<Mode, std::string>& ModeNames();
 
 } /* namespace flexiv::rdk */
 

@@ -51,7 +51,7 @@ enum class ProductModel
  * @brief Map ProductModel enums to strings.
  * @return Const reference to the ProductModel-to-string lookup table.
  */
-const std::map<ProductModel, std::string>& ProductModelNames();
+RDK_API const std::map<ProductModel, std::string>& ProductModelNames();
 
 /**
  * @brief All possible joint groups of the robot.
@@ -73,7 +73,7 @@ enum class JointGroup
  * @brief Map JointGroup enums to strings.
  * @return Const reference to the JointGroup-to-string lookup table.
  */
-const std::map<JointGroup, std::string>& JointGroupNames();
+RDK_API const std::map<JointGroup, std::string>& JointGroupNames();
 
 /**
  * @brief All possible operational statuses of the robot. Except for the first two, the other
@@ -100,7 +100,7 @@ enum class OperationalStatus
  * @brief Map OperationalStatus enums to strings.
  * @return Const reference to the OperationalStatus-to-string lookup table.
  */
-const std::map<OperationalStatus, std::string>& OperationalStatusNames();
+RDK_API const std::map<OperationalStatus, std::string>& OperationalStatusNames();
 
 /**
  * @brief Type of commonly-used reference coordinates.
@@ -824,7 +824,7 @@ struct NrtCartesianCmd
  * @return Updated ostream instance.
  * @note The event timestamp is converted to local timezone when printed.
  */
-std::ostream& operator<<(std::ostream& ostream, const RobotEvent& robot_event);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const RobotEvent& robot_event);
 
 /**
  * @brief Operator overloading to out stream all members of RobotInfo in JSON format.
@@ -832,7 +832,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotEvent& robot_event);
  * @param[in] robot_info RobotInfo data structure to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
 
 /**
  * @brief Operator overloading to out stream all members of RobotStates in JSON format.
@@ -840,7 +840,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
  * @param[in] robot_states RobotStates data structure to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states);
 
 /**
  * @brief Operator overloading to out stream all members of RobotActions in JSON format.
@@ -848,7 +848,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states)
  * @param[in] robot_actions RobotActions data structure to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const RobotActions& robot_actions);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const RobotActions& robot_actions);
 
 /**
  * @brief Operator overloading to out stream all members of PlanInfo in JSON format.
@@ -856,7 +856,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotActions& robot_action
  * @param[in] plan_info PlanInfo data structure to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const PlanInfo& plan_info);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const PlanInfo& plan_info);
 
 } /* namespace flexiv::rdk */
 

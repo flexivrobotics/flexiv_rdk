@@ -65,7 +65,7 @@ struct GripperStates
  * @param[in] gripper_states GripperStates data structure to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const GripperStates& gripper_states);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const GripperStates& gripper_states);
 
 /**
  * @class Gripper
