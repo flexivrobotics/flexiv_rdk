@@ -867,10 +867,10 @@ public:
     //======================================== IO CONTROL ========================================
     /**
      * @brief [Blocking] Set one or more digital output ports, including 16 on the control box plus
-     * 2 inside each wrist connector.
+     * 2 in the M8 connector and 2 in the pogo pin connector of each wrist.
      * @param[in] digital_outputs A map of {port_index, port_value}. For [port_index], the valid
-     * range is [0, 17]. For [port_value], true: set port high, false: set port low. For example,
-     * {{1, true}, {3, false}, {10, true}}.
+     * range is [0, kIOPorts - 1]. For [port_value], true: set port high, false: set port low. For
+     * example, {{1, true}, {3, false}, {10, true}}.
      * @throw std::invalid_argument if any provided port index is outside the valid range.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
@@ -879,7 +879,7 @@ public:
 
     /**
      * @brief [Non-blocking] Current reading from all digital input ports, including 16 on the
-     * control box plus 2 in each wrist connector.
+     * control box plus 2 in the M8 connector and 2 in the pogo pin connector of each wrist.
      * @return A boolean array whose index corresponds to that of the digital input ports.
      * True: port high; false: port low.
      */
@@ -887,7 +887,7 @@ public:
 
     /**
      * @brief [Non-blocking] Current reading from all digital output ports, including 16 on the
-     * control box plus 2 in each wrist connector.
+     * control box plus 2 in the M8 connector and 2 in the pogo pin connector of each wrist.
      * @return A boolean array whose index corresponds to that of the digital output ports.
      * True: port high; false: port low.
      */

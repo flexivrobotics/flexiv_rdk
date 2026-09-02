@@ -31,9 +31,10 @@ constexpr size_t kSerialJointDoF = 7;
 /** Size of pose array (3 position + 4 quaternion) */
 constexpr size_t kPoseSize = 7;
 
-/** Number of digital IO ports: 16 on the control box + 2 in each wrist connector * maximum 2 wrists
- */
-constexpr size_t kIOPorts = 16 + 2 * 2;
+/** Number of digital IO ports, ordered as: 16 on the control box, then the M8 connector of each
+ * wrist (2 ports * maximum 2 wrists), then the pogo pin connector of each wrist (2 ports * maximum
+ * 2 wrists)  */
+constexpr size_t kIOPorts = 16 + 2 * 2 + 2 * 2;
 
 /** Maximum number of external axes */
 constexpr size_t kMaxExtAxes = 6;
