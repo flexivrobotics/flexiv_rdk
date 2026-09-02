@@ -80,6 +80,23 @@ enum class JointGroup
 RDK_API const std::map<JointGroup, std::string>& JointGroupNames();
 
 /**
+ * @brief Type of an actuated joint, which decides the unit its position is expressed in.
+ * @see RobotInfo::joint_types.
+ */
+enum class JointType
+{
+    UNKNOWN = 0, ///< Unknown joint type
+    REVOLUTE,    ///< Rotates about its axis, positions in [rad] and velocities in [rad/s]
+    PRISMATIC,   ///< Translates along its axis, positions in [m] and velocities in [m/s]
+};
+
+/**
+ * @brief Map JointType enums to strings.
+ * @return Const reference to the JointType-to-string lookup table.
+ */
+RDK_API const std::map<JointType, std::string>& JointTypeNames();
+
+/**
  * @brief All possible operational statuses of the robot. Except for the first two, the other
  * enumerators indicate the cause of the robot being not ready to operate.
  * @see Robot::operational_status().
@@ -180,6 +197,11 @@ struct RobotInfo
 
     /** Joint-space degrees of freedom for each joint group */
     std::map<JointGroup, size_t> DoF = {};
+
+    /** Type of every joint of all available joint groups, in the same order as the joints of that
+     * group. An arm joint is always JointType::REVOLUTE, whereas an external axis can be of either
+     * type, which is what decides whether its position is in \f$ [rad] \f$ or \f$ [m] \f$. */
+    std::map<JointGroup, std::vector<JointType>> joint_types = {};
 
     /** Nominal Cartesian motion stiffness of all available single-arm joint groups when in
      * Cartesian motion-force control modes: \f$ K_x^{nom} \in \mathbb{R}^{6 \times 1} \f$. Consists
