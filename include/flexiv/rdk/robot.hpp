@@ -270,9 +270,12 @@ public:
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the global variables are successfully set.
      * @warning The specified global variables need to be created first using Flexiv Elements.
+     * @deprecated Use flexiv::rdk::GlobalVars::Update() instead, which additionally supports
+     * creating and removing global variables.
      * @see global_variables().
      */
-    void SetGlobalVariables(const std::map<std::string, FlexivDataTypes>& global_vars);
+    [[deprecated("Use flexiv::rdk::GlobalVars::Update() instead")]] void SetGlobalVariables(
+        const std::map<std::string, FlexivDataTypes>& global_vars);
 
     /**
      * @brief [Blocking] Existing global variables and their current values.
@@ -280,9 +283,12 @@ public:
      * and 0. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", 1}}.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
+     * @deprecated Use flexiv::rdk::GlobalVars::values() instead.
      * @see SetGlobalVariables().
      */
-    std::map<std::string, FlexivDataTypes> global_variables() const;
+    [[deprecated(
+        "Use flexiv::rdk::GlobalVars::values() instead")]] std::map<std::string, FlexivDataTypes>
+    global_variables() const;
 
     /**
      * @brief [Non-blocking] Set the maximum tolerable percentage of real-time commands that arrived
@@ -899,6 +905,7 @@ private:
 
     friend class Device;
     friend class FileIO;
+    friend class GlobalVars;
     friend class Gripper;
     friend class Maintenance;
     friend class Model;
