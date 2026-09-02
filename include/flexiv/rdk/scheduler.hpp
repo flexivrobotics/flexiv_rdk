@@ -18,6 +18,8 @@ namespace flexiv::rdk {
  * @class Scheduler
  * @brief Real-time scheduler that can simultaneously run multiple periodic tasks. Parameters for
  * each task are configured independently.
+ * @note Thread safety: all functions of this class are thread-safe and can be called concurrently
+ * from multiple threads.
  */
 class RDK_API Scheduler
 {

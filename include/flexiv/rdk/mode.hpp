@@ -1,5 +1,7 @@
 /**
  * @file mode.hpp
+ * @note Thread safety: all functions declared in this file are thread-safe and can be called
+ * concurrently from multiple threads.
  * @copyright Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved.
  */
 

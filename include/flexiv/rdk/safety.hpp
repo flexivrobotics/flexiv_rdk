@@ -43,6 +43,8 @@ struct SafetyLimits
  * this interface.
  * @note As mentioned in the function doc, certain safety settings are only applicable to the arms
  * but not the external axis.
+ * @note Thread safety: all functions of this class are thread-safe and can be called concurrently
+ * from multiple threads.
  */
 class RDK_API Safety
 {

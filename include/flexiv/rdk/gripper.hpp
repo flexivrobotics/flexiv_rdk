@@ -72,6 +72,9 @@ RDK_API std::ostream& operator<<(std::ostream& ostream, const GripperStates& gri
  * @brief Interface to control the gripper installed on the robot. Because gripper is also a type of
  * robot device, this API uses the same underlying infrastructure as rdk::Device, but with functions
  * tailored specifically for gripper controls.
+ * @note Thread safety: all functions of this class are thread-safe and can be called concurrently
+ * from multiple threads. They are serialized with each other, so the record of the enabled
+ * gripper of each joint group always stays consistent with the robot.
  */
 class RDK_API Gripper
 {

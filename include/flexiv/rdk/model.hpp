@@ -44,6 +44,10 @@ struct IKResult
 /**
  * @class Model
  * @brief Interface to obtain certain model data of the robot, including kinematics and dynamics.
+ * @note Thread safety: all functions of this class are thread-safe and can be called concurrently
+ * from multiple threads. The functions accessing the locally stored robot model, i.e. Reload(),
+ * Update() and all kinematics and dynamics getters, are serialized with each other, so a getter
+ * always sees the model of a fully finished Update() or Reload().
  */
 class RDK_API Model
 {
