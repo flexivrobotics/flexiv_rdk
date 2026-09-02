@@ -79,7 +79,7 @@ public:
     std::array<bool, kSafetyIOPorts> safety_inputs() const;
 
     /**
-     * @brief [Blocking] Set safety limits on the joint positions of the manipulator, which will
+     * @brief [Blocking] Set safety limits on the joint positions of the arm, which will
      * honor this setting when making movements.
      * @param[in] min_positions Minimum joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1}
      * \f$. Valid range: [default_min_joint_positions, default_max_joint_positions]. Unit: \f$ [rad]
@@ -90,7 +90,7 @@ public:
      * @param[in] group Joint group to apply the limits to.
      * @throw std::invalid_argument if [group] is not an existing single-arm joint group in the
      * connected robot, if [min_positions] or [max_positions] contains any value outside the valid
-     * range, or if size of any input vector does not match manipulator DoF.
+     * range, or if size of any input vector does not match arm DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
@@ -102,7 +102,7 @@ public:
         const std::vector<double>& max_positions);
 
     /**
-     * @brief [Blocking] Set safety limits on the joint velocities of the manipulator, which will
+     * @brief [Blocking] Set safety limits on the joint velocities of the arm, which will
      * honor this setting when making movements under the normal state.
      * @param[in] max_velocities Maximum joint velocities for normal state: \f$ \dot{q}_{max} \in
      * \mathbb{R}^{n \times 1} \f$. Valid range: [0.8727, joint_velocity_normal_limits]. Unit: \f$
@@ -110,7 +110,7 @@ public:
      * @param[in] group Joint group to apply the limits to.
      * @throw std::invalid_argument if [group] is not an existing single-arm joint group in the
      * connected robot, if [max_velocities] contains any value outside the valid range, or if its
-     * size does not match manipulator DoF.
+     * size does not match arm DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
@@ -121,7 +121,7 @@ public:
     void SetJointVelocityNormalLimits(JointGroup group, const std::vector<double>& max_velocities);
 
     /**
-     * @brief [Blocking] Set safety limits on the joint velocities of the manipulator, which will
+     * @brief [Blocking] Set safety limits on the joint velocities of the arm, which will
      * honor this setting when making movements under the reduced state.
      * @param[in] max_velocities Maximum joint velocities for reduced state: \f$ \dot{q}_{max} \in
      * \mathbb{R}^{n \times 1} \f$. Valid range: [0.8727, joint_velocity_normal_limits]. Unit: \f$
@@ -129,7 +129,7 @@ public:
      * @param[in] group Joint group to apply the limits to.
      * @throw std::invalid_argument if [group] is not an existing single-arm joint group in the
      * connected robot, if [max_velocities] contains any value outside the valid range, or if its
-     * size does not match manipulator DoF.
+     * size does not match arm DoF.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
@@ -141,7 +141,7 @@ public:
 
     /**
      * @brief [Blocking] Change settings of the regulator on the joint output torques of the
-     * manipulator and external axes. The regulator will limit the joints' total output torques so
+     * arm and external axes. The regulator will limit the joints' total output torques so
      * that the measured torques are less likely to exceed safety limits under large payload or
      * fast/abrupt motions.
      * @param[in] limiting_factor Factor to limit the total output torques: \f$ \tau^{o}_{max} =
