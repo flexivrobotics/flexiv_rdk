@@ -201,6 +201,16 @@ public:
     void ServoOn();
 
     /**
+     * @brief [Blocking] Servo off the robot by triggering a CAT-1 stop: the robot decelerates to a
+     * standstill, then engages brakes and turns off the servo power.
+     * @throw std::logic_error if the robot is not connected.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @note This function blocks until the request is successfully delivered.
+     * @note Call ServoOn() to make the robot operational again.
+     */
+    void ServoOff();
+
+    /**
      * @brief [Blocking] Move the specified joint groups to the home posture using Home primitive.
      * @param[in] groups Joint group(s) to home. Only existing single-arm joint groups like ARM_1
      * and ARM_2 are accepted. If left empty, home all applicable joint groups.
