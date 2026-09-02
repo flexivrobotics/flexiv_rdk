@@ -766,6 +766,12 @@ struct PrimitiveStates
      * {{"reachedTarget", 1}, {"timePeriod", 5.6}, {"forceOffset", {0.1, 0.2, -1.3}}}.
      */
     std::map<std::string, FlexivDataTypes> names_and_values = {};
+
+    /** Number of times the currently running primitive has been executed since the robot booted.
+     * The robot increments this count at the moment it starts executing the primitive, so a change
+     * of the {pt_name, exe_count} pair marks the start of a newly commanded primitive, even when
+     * the same primitive is commanded repeatedly */
+    int exe_count = {};
 };
 
 /**
