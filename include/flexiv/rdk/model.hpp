@@ -170,31 +170,43 @@ public:
     Eigen::Isometry3d T(const std::string& link_name);
 
     /**
-     * @brief [Blocking] Sync the actual kinematic parameters of the connected robot into the
-     * template URDF file.
-     * @param[in] template_urdf_path Path to the template URDF file that can be generated in
-     * [flexiv_description](https://github.com/flexivrobotics/flexiv_description). This template
-     * URDF file will be updated when the sync is finished.
-     * @throw std::invalid_argument if failed to load the template URDF file.
-     * @throw std::runtime_error if failed to sync the URDF file.
+     * @brief [Blocking] Sync the actual URDF of the connected robot into a local file.
+     * @param[in] output_urdf_path Path to the output URDF file, which must include the complete
+     * filename, e.g. [/home/user/Enlight-L-123456.urdf]. The file is created if it does not exist,
+     * and fully overwritten if it does.
+     * @throw std::invalid_argument if failed to open [output_urdf_path] for writing.
+     * @throw std::runtime_error if failed to obtain the URDF from the connected robot, or failed to
+     * write the output URDF file.
      * @note This function blocks until the sync is finished.
      * @par Why is this function needed?
-     * The template URDF contains kinematic parameters of the latest version of robot hardware,
-     * which might be different from older versions. This function is therefore provided to sync the
-     * actual kinematic parameters of the connected robot into the template URDF.
+     * The template URDF from
+     * [flexiv_description](https://github.com/flexivrobotics/flexiv_description) only contains the
+     * nominal values, and does not contain the kinematic calibration result of a specific robot.
+     * This function is therefore provided to obtain the URDF that contains the actual calibration
+     * result of the connected robot.
      */
-    void SyncURDF(const std::string& template_urdf_path);
+    void SyncURDF(const std::string& output_urdf_path);
 
     /**
      * @brief [Blocking] Sync the actual kinematic parameters of the connected robot into the
      * template YAML file.
-     * @param[in] template_yaml_path Path to the template YAML file located at
-     * [flexiv_description/config/.../default_kinematics.yaml]. This template YAML file will be
-     * updated when the sync is finished.
+     * @param[in] template_yaml_path Path to the template YAML file of the connected robot model,
+     * located at [flexiv_description/config/<robot_model>/default_kinematics.yaml]. This template
+     * YAML file will be updated when the sync is finished.
      * @return Total number of joints that have been successfully synced.
-     * @throw std::invalid_argument if failed to load the template YAML file.
-     * @throw std::runtime_error if failed to sync the YAML file.
+     * @throw std::invalid_argument if failed to load the template YAML file, or failed to open it
+     * for writing.
+     * @throw std::runtime_error if failed to sync the YAML file, or if none of the joints of the
+     * connected robot matches an entry in the template YAML, which means the given template does
+     * not belong to the connected robot model.
      * @note This function blocks until the sync is finished.
+     * @note All robot models listed in ProductModel are supported. The template of a multi-arm
+     * model groups its joints into sections such as [ARM_1], [ARM_2] and [EXT_AXIS], all of which
+     * are synced; the template of a single-arm model lists the joints of its only arm directly.
+     * Entries with no counterpart in the actual URDF (e.g. [EXT_AXIS] of a model whose external
+     * axis is not part of its kinematics YAML) are left unchanged and reported as a warning.
+     * @warning The template YAML is rewritten by the YAML emitter, so comments and blank lines in
+     * it are not preserved.
      */
     size_t SyncKinematicsYAML(const std::string& template_yaml_path);
 
