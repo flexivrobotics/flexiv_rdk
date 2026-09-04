@@ -11,7 +11,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "RelWithDebInfo" "MinSizeRel")
 
-# Select the prebuilt library for this platform.
+# Select the prebuilt library for this platform. RDK is shipped as a self-contained shared library.
 message(STATUS "OS: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "Processor: ${CMAKE_SYSTEM_PROCESSOR}")
 set(RDK_RUNTIME_LIB "")
