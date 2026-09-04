@@ -12,9 +12,6 @@ endif()
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Release" "Debug" "RelWithDebInfo" "MinSizeRel")
 
 # Select the prebuilt library for this platform.
-# RDK is shipped as a self-contained shared library: every thirdparty dependency except Eigen is
-# statically embedded into it and symbol-hidden, so a user application only needs Eigen and can
-# freely bring its own copy of any other library.
 message(STATUS "OS: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "Processor: ${CMAKE_SYSTEM_PROCESSOR}")
 set(RDK_RUNTIME_LIB "")
