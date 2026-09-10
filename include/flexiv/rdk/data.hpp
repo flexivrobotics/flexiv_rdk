@@ -508,11 +508,14 @@ struct NrtCartesianCmd
      * pose.
      * @param[in] max_angular_acc Maximum Cartesian angular acceleration when moving to the target
      * pose.
+     * @param[in] duration Desired time to reach this waypoint from the previous one. Set to 0
+     * to leave unspecified and let motion generation determine the timing.
      */
     NrtCartesianCmd(const std::array<double, kPoseSize>& pose_d,
         const std::array<double, kCartDoF>& wrench_d = {},
         const std::array<double, kCartDoF>& twist_d = {}, double max_linear_vel = 0.5,
-        double max_angular_vel = 1.0, double max_linear_acc = 2.0, double max_angular_acc = 5.0)
+        double max_angular_vel = 1.0, double max_linear_acc = 2.0, double max_angular_acc = 5.0,
+        double duration = 0.0)
     : pose_d(pose_d)
     , wrench_d(wrench_d)
     , twist_d(twist_d)
@@ -520,6 +523,7 @@ struct NrtCartesianCmd
     , max_angular_vel(max_angular_vel)
     , max_linear_acc(max_linear_acc)
     , max_angular_acc(max_angular_acc)
+    , duration(duration)
     {
     }
 
@@ -557,6 +561,10 @@ struct NrtCartesianCmd
     /** Maximum Cartesian angular acceleration when moving to the target pose. A safe value is
      * provided as default. Unit: \f$ [rad/s^2] \f$ */
     double max_angular_acc = 5.0;
+
+    /** Desired time to reach this waypoint from the previous one. Set to 0 to leave
+     * unspecified and let motion generation determine the timing. Unit: \f$ [s] \f$ */
+    double duration = 0.0;
 };
 
 /** Alias of the variant that holds all possible types of data exchanged with Flexiv robots */

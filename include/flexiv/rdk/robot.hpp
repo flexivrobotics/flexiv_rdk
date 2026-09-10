@@ -715,15 +715,15 @@ public:
      * @brief [Non-blocking] Discretely send Cartesian multi-waypoint motion and/or force commands
      * for the robot to track using non-real-time super primitives. The robot will execute the
      * provided waypoints sequentially using onboard motion generation.
-     * @param[in] cart_cmds Non-real-time Cartesian motion/force commands for each waypoint. Each
-     * element uses the same data layout as a single command in SendCartesianMotionForce().
+     * @param[in] cart_cmds Non-real-time Cartesian motion/force commands for each waypoint,
+     * including optional per-waypoint duration. Each element uses NrtCartesianCmd.
      * @param[in] joint_pos Sequence of target joint positions [rad] for each waypoint. Each element
      * must contain RobotInfo::DoF values, i.e. the full system degrees of freedom including the
      * manipulator and any external axes. Size must match [cart_cmds].
      * @throw std::invalid_argument if [cart_cmds] is empty, if [joint_pos] is empty, if
      * [cart_cmds] and [joint_pos] do not contain the same number of waypoints, if any waypoint's
-     * last 4 input parameters is not positive, or if any joint position vector size is not equal
-     * to RobotInfo::DoF.
+     * max velocity/acceleration parameters is not positive, if any waypoint's duration is
+     * negative, or if any joint position vector size is not equal to RobotInfo::DoF.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: NRT_SUPER_PRIMITIVE.
