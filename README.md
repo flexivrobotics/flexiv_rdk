@@ -173,10 +173,15 @@ On Linux and macOS:
 
     LD_LIBRARY_PATH=~/rdk_install/lib ./<example-name> <robot-sn>
 
-On Windows (Command Prompt):
+On Windows using Command Prompt:
 
     set PATH=%USERPROFILE%\rdk_install\bin;%PATH%
     Release\<example-name>.exe <robot-sn>
+
+On Windows using a bash emulator:
+
+    export PATH="$USERPROFILE/rdk_install/bin:$PATH"
+    ./Release/<example-name>.exe <robot-sn>
 
 Note:
 
