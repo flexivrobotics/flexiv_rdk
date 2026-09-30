@@ -175,8 +175,12 @@ check_macho() {
 # every install, so the toolchain can be found without the caller having entered a VS developer
 # shell. The LLVM and binutils readers are accepted as fallbacks: any of them can list an import
 # table, and a runner that has one but not the other should still check rather than skip.
+#
+# The newest toolset's native Host<arch>/<arch> dumpbin is taken, the one a VS developer shell puts
+# on PATH, rather than whatever a glob sorts first: that was HostX64/arm of the old side-by-side
+# 14.29 toolset on the windows-2022 runner.
 find_pe_reader() {
-    local vswhere vs_path candidate tool
+    local vswhere vs_path msvc host candidate tool
 
     if [ -n "$PE_READER" ]; then
         return 0
@@ -195,13 +199,16 @@ find_pe_reader() {
             if command -v cygpath > /dev/null 2>&1; then
                 vs_path=$(cygpath -u "$vs_path")
             fi
-            for candidate in "$vs_path"/VC/Tools/MSVC/*/bin/Host*/*/dumpbin.exe; do
-                if [ -x "$candidate" ]; then
-                    PE_READER=$candidate
-                    PE_READER_KIND=dumpbin
-                    return 0
-                fi
-            done
+            while IFS= read -r msvc; do
+                for host in HostX64/x64 HostX86/x86 HostARM64/arm64; do
+                    candidate=$msvc/bin/$host/dumpbin.exe
+                    if [ -x "$candidate" ]; then
+                        PE_READER=$candidate
+                        PE_READER_KIND=dumpbin
+                        return 0
+                    fi
+                done
+            done < <(printf '%s\n' "$vs_path"/VC/Tools/MSVC/*/ | sort -rV)
         fi
     fi
 
@@ -234,7 +241,10 @@ pe_imports() {
             if command -v cygpath > /dev/null 2>&1; then
                 target=$(cygpath -w "$lib")
             fi
-            raw=$("$PE_READER" /nologo /dependents "$target") || return 1
+            # Options take the '-' prefix, not '/': Git Bash rewrites a /word argument passed to a
+            # native program into a Windows path (/nologo -> C:\Program Files\Git\nologo), which
+            # dumpbin then tries to open as an input file and fails with LNK1181.
+            raw=$("$PE_READER" -nologo -dependents "$target") || return 1
             echo "$raw" \
                 | awk '/following.*dependencies/ {f = 1; next} /^ *Summary/ {f = 0} f && NF == 1 {print $1}'
             ;;
