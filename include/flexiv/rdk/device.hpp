@@ -18,8 +18,10 @@ using DeviceParamDataTypes
 /**
  * @class Device
  * @brief Interface to control the peripheral device(s) connected to the robot.
+ * @note Thread safety: all functions of this class are thread-safe and can be called concurrently
+ * from multiple threads.
  */
-class Device
+class RDK_API Device
 {
 public:
     /**

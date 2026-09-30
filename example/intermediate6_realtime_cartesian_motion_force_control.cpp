@@ -10,7 +10,6 @@
 #include <flexiv/rdk/robot.hpp>
 #include <flexiv/rdk/scheduler.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <cmath>
@@ -106,7 +105,7 @@ void PeriodicTask(rdk::Robot& robot, const std::array<double, rdk::kPoseSize>& i
         loop_counter++;
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         g_stop_sched = true;
     }
 }
@@ -124,28 +123,29 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial runs real-time Cartesian-space unified "
-        "motion-force control. The Z axis of the chosen reference frame will be activated for "
-        "explicit force control, while the rest axes in the same reference frame will stay motion "
-        "controlled.\n");
+    std::cout << ">>> Tutorial description <<<\nThis tutorial runs real-time Cartesian-space "
+                 "unified motion-force control. The Z axis of the chosen reference frame will be "
+                 "activated for explicit force control, while the rest axes in the same reference "
+                 "frame will stay motion controlled.\n"
+              << std::endl;
 
     // The reference frame used for force control, see Robot::SetForceControlFrame()
     auto force_ctrl_frame = rdk::CoordType::WORLD;
     if (rdk::utility::ProgramArgsExist(argc, argv, "--TCP")) {
-        spdlog::info("Reference frame used for force control: robot TCP frame");
+        std::cout << "Reference frame used for force control: robot TCP frame" << std::endl;
         force_ctrl_frame = rdk::CoordType::TCP;
     } else {
-        spdlog::info("Reference frame used for force control: robot world frame");
+        std::cout << "Reference frame used for force control: robot world frame" << std::endl;
     }
 
     // Whether to enable polish motion
     bool enable_polish = false;
     if (rdk::utility::ProgramArgsExist(argc, argv, "--polish")) {
-        spdlog::info("Robot will run a polish motion along XY plane in robot world frame");
+        std::cout << "Robot will run a polish motion along XY plane in robot world frame"
+                  << std::endl;
         enable_polish = true;
     } else {
-        spdlog::info("Robot will hold its motion in all non-force-controlled axes");
+        std::cout << "Robot will hold its motion in all non-force-controlled axes" << std::endl;
     }
 
     try {
@@ -156,27 +156,28 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
+            std::cerr << "[warn] Fault occurred on the connected robot, trying to clear ..."
+                      << std::endl;
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                spdlog::error("Fault cannot be cleared, exiting ...");
+                std::cerr << "[error] Fault cannot be cleared, exiting ..." << std::endl;
                 return 1;
             }
-            spdlog::info("Fault on the connected robot is cleared");
+            std::cout << "Fault on the connected robot is cleared" << std::endl;
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        spdlog::info("Enabling robot ...");
+        std::cout << "Enabling robot ..." << std::endl;
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Robot is now operational");
+        std::cout << "Robot is now operational" << std::endl;
 
         // Move robot to home pose
-        spdlog::info("Moving to home pose");
+        std::cout << "Moving to home pose" << std::endl;
         robot.SwitchMode(rdk::Mode::NRT_PLAN_EXECUTION);
         robot.ExecutePlan("PLAN-Home");
         // Wait for the plan to finish
@@ -192,26 +193,27 @@ int main(int argc, char* argv[])
 
         // WARNING: during the process, the robot must not contact anything, otherwise the result
         // will be inaccurate and affect following operations
-        spdlog::warn(
-            "Zeroing force/torque sensors, make sure nothing is in contact with the robot");
+        std::cerr
+            << "[warn] Zeroing force/torque sensors, make sure nothing is in contact with the robot"
+            << std::endl;
 
         // Wait for primitive to finish
         while (!std::get<int>(robot.primitive_states()["terminated"])) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Sensor zeroing complete");
+        std::cout << "Sensor zeroing complete" << std::endl;
 
         // Search for Contact
         // =========================================================================================
         // NOTE: there are several ways to do contact search, such as using primitives, or real-time
         // and non-real-time direct motion controls, etc. Here we use non-real-time direct Cartesian
         // control for example.
-        spdlog::info("Searching for contact ...");
+        std::cout << "Searching for contact ..." << std::endl;
 
         // Set initial pose to current TCP pose
         auto init_pose = robot.states().tcp_pose;
-        spdlog::info("Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
-                     + rdk::utility::Arr2Str(init_pose));
+        std::cout << "Initial TCP pose set to [position 3x1, rotation (quaternion) 4x1]: "
+                  << rdk::utility::Arr2Str(init_pose) << std::endl;
 
         // Use non-real-time mode to make the robot go to a set point with its own motion generator
         robot.SwitchMode(rdk::Mode::NRT_CARTESIAN_MOTION_FORCE);
@@ -237,7 +239,7 @@ int main(int argc, char* argv[])
             // Contact is considered to be made if sensed TCP force exceeds the threshold
             if (ext_force.norm() > kPressingForce) {
                 is_contacted = true;
-                spdlog::info("Contact detected at robot TCP");
+                std::cout << "Contact detected at robot TCP" << std::endl;
             }
             // Check at 1ms interval
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -294,7 +296,7 @@ int main(int argc, char* argv[])
         scheduler.Stop();
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 

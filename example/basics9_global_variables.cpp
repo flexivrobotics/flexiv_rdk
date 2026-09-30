@@ -7,7 +7,6 @@
 
 #include <flexiv/rdk/robot.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <thread>
@@ -38,8 +37,9 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial shows how to get and set global variables.\n");
+    std::cout << ">>> Tutorial description <<<\nThis tutorial shows how to get and set global "
+                 "variables.\n"
+              << std::endl;
 
     try {
         // RDK Initialization
@@ -49,33 +49,34 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
+            std::cerr << "[warn] Fault occurred on the connected robot, trying to clear ..."
+                      << std::endl;
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                spdlog::error("Fault cannot be cleared, exiting ...");
+                std::cerr << "[error] Fault cannot be cleared, exiting ..." << std::endl;
                 return 1;
             }
-            spdlog::info("Fault on the connected robot is cleared");
+            std::cout << "Fault on the connected robot is cleared" << std::endl;
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        spdlog::info("Enabling robot ...");
+        std::cout << "Enabling robot ..." << std::endl;
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Robot is now operational");
+        std::cout << "Robot is now operational" << std::endl;
 
         // Get existing global variables
         // =========================================================================================
         auto global_vars = robot.global_variables();
         if (global_vars.empty()) {
-            spdlog::warn("No global variables available");
+            std::cerr << "[warn] No global variables available" << std::endl;
             return 1;
         } else {
-            spdlog::info("Existing global variables and their original values:");
+            std::cout << "Existing global variables and their original values:" << std::endl;
             for (const auto& var : global_vars) {
                 std::cout << var.first << ": " << rdk::utility::FlexivTypes2Str(var.second)
                           << std::endl;
@@ -85,7 +86,7 @@ int main(int argc, char* argv[])
         // Set global variables
         // =========================================================================================
         ///@warning These specified global variables need to be created first using Flexiv Elements
-        spdlog::info("Setting new values to existing global variables");
+        std::cout << "Setting new values to existing global variables" << std::endl;
         robot.SetGlobalVariables({
             {"test_bool", 1},
             {"test_int", 100},
@@ -108,20 +109,20 @@ int main(int argc, char* argv[])
         // =========================================================================================
         global_vars = robot.global_variables();
         if (global_vars.empty()) {
-            spdlog::warn("No global variables available");
+            std::cerr << "[warn] No global variables available" << std::endl;
             return 1;
         } else {
-            spdlog::info("Updated global variables:");
+            std::cout << "Updated global variables:" << std::endl;
             for (const auto& var : global_vars) {
                 std::cout << var.first << ": " << rdk::utility::FlexivTypes2Str(var.second)
                           << std::endl;
             }
         }
 
-        spdlog::info("Program finished");
+        std::cout << "Program finished" << std::endl;
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 

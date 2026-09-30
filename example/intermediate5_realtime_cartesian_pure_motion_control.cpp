@@ -9,7 +9,6 @@
 #include <flexiv/rdk/robot.hpp>
 #include <flexiv/rdk/scheduler.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <cmath>
@@ -89,8 +88,8 @@ void PeriodicTask(rdk::Robot& robot, const std::array<double, rdk::kPoseSize>& i
                 std::vector<double> preferred_jnt_pos
                     = {0.938, -1.108, -1.254, 1.464, 1.073, 0.278, -0.658};
                 robot.SetNullSpacePosture(preferred_jnt_pos);
-                spdlog::info("Reference joint positions set to: "
-                             + rdk::utility::Vec2Str(preferred_jnt_pos));
+                std::cout << "Reference joint positions set to: "
+                          << rdk::utility::Vec2Str(preferred_jnt_pos) << std::endl;
             } break;
             // Online change stiffness to half of nominal at 6 seconds
             case (6 * kLoopFreq): {
@@ -99,38 +98,40 @@ void PeriodicTask(rdk::Robot& robot, const std::array<double, rdk::kPoseSize>& i
                     v *= 0.5;
                 }
                 robot.SetCartesianImpedance(new_K);
-                spdlog::info("Cartesian stiffness set to: {}", rdk::utility::Arr2Str(new_K));
+                std::cout << "Cartesian stiffness set to: " << rdk::utility::Arr2Str(new_K)
+                          << std::endl;
             } break;
             // Online change to another reference joint positions at 9 seconds
             case (9 * kLoopFreq): {
                 std::vector<double> preferred_jnt_pos
                     = {-0.938, -1.108, 1.254, 1.464, -1.073, 0.278, 0.658};
                 robot.SetNullSpacePosture(preferred_jnt_pos);
-                spdlog::info("Reference joint positions set to: "
-                             + rdk::utility::Vec2Str(preferred_jnt_pos));
+                std::cout << "Reference joint positions set to: "
+                          << rdk::utility::Vec2Str(preferred_jnt_pos) << std::endl;
             } break;
             // Online reset impedance properties to nominal at 12 seconds
             case (12 * kLoopFreq): {
                 robot.SetCartesianImpedance(robot.info().K_x_nom);
-                spdlog::info("Cartesian impedance properties are reset");
+                std::cout << "Cartesian impedance properties are reset" << std::endl;
             } break;
             // Online reset reference joint positions to nominal at 14 seconds
             case (14 * kLoopFreq): {
                 robot.SetNullSpacePosture(init_q);
-                spdlog::info("Reference joint positions are reset");
+                std::cout << "Reference joint positions are reset" << std::endl;
             } break;
             // Online enable max contact wrench regulation at 16 seconds
             case (16 * kLoopFreq): {
                 std::array<double, rdk::kCartDoF> max_wrench = {10.0, 10.0, 10.0, 2.0, 2.0, 2.0};
                 robot.SetMaxContactWrench(max_wrench);
-                spdlog::info("Max contact wrench set to: {}", rdk::utility::Arr2Str(max_wrench));
+                std::cout << "Max contact wrench set to: " << rdk::utility::Arr2Str(max_wrench)
+                          << std::endl;
             } break;
             // Disable max contact wrench regulation at 19 seconds
             case (19 * kLoopFreq): {
                 std::array<double, rdk::kCartDoF> inf;
                 inf.fill(std::numeric_limits<double>::infinity());
                 robot.SetMaxContactWrench(inf);
-                spdlog::info("Max contact wrench regulation is disabled");
+                std::cout << "Max contact wrench regulation is disabled" << std::endl;
             } break;
             default:
                 break;
@@ -152,7 +153,8 @@ void PeriodicTask(rdk::Robot& robot, const std::array<double, rdk::kPoseSize>& i
             }
             if (collision_detected) {
                 robot.Stop();
-                spdlog::warn("Collision detected, stopping robot and exit program ...");
+                std::cerr << "[warn] Collision detected, stopping robot and exit program ..."
+                          << std::endl;
                 g_stop_sched = true;
             }
         }
@@ -161,7 +163,7 @@ void PeriodicTask(rdk::Robot& robot, const std::array<double, rdk::kPoseSize>& i
         loop_counter++;
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         g_stop_sched = true;
     }
 }
@@ -179,27 +181,27 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    spdlog::info(
-        ">>> Tutorial description <<<\nThis tutorial runs real-time Cartesian-space pure motion "
-        "control to hold or sine-sweep the robot TCP. A simple collision detection is also "
-        "included.\n");
+    std::cout << ">>> Tutorial description <<<\nThis tutorial runs real-time Cartesian-space pure "
+                 "motion control to hold or sine-sweep the robot TCP. A simple collision detection "
+                 "is also included.\n"
+              << std::endl;
 
     // Type of motion specified by user
     bool enable_hold = false;
     if (rdk::utility::ProgramArgsExist(argc, argv, "--hold")) {
-        spdlog::info("Robot holding current TCP pose");
+        std::cout << "Robot holding current TCP pose" << std::endl;
         enable_hold = true;
     } else {
-        spdlog::info("Robot running TCP sine-sweep");
+        std::cout << "Robot running TCP sine-sweep" << std::endl;
     }
 
     // Whether to enable collision detection
     bool enable_collision = false;
     if (rdk::utility::ProgramArgsExist(argc, argv, "--collision")) {
-        spdlog::info("Collision detection enabled");
+        std::cout << "Collision detection enabled" << std::endl;
         enable_collision = true;
     } else {
-        spdlog::info("Collision detection disabled");
+        std::cout << "Collision detection disabled" << std::endl;
     }
 
     try {
@@ -210,27 +212,28 @@ int main(int argc, char* argv[])
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {
-            spdlog::warn("Fault occurred on the connected robot, trying to clear ...");
+            std::cerr << "[warn] Fault occurred on the connected robot, trying to clear ..."
+                      << std::endl;
             // Try to clear the fault
             if (!robot.ClearFault()) {
-                spdlog::error("Fault cannot be cleared, exiting ...");
+                std::cerr << "[error] Fault cannot be cleared, exiting ..." << std::endl;
                 return 1;
             }
-            spdlog::info("Fault on the connected robot is cleared");
+            std::cout << "Fault on the connected robot is cleared" << std::endl;
         }
 
         // Enable the robot, make sure the E-stop is released before enabling
-        spdlog::info("Enabling robot ...");
+        std::cout << "Enabling robot ..." << std::endl;
         robot.Enable();
 
         // Wait for the robot to become operational
         while (!robot.operational()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Robot is now operational");
+        std::cout << "Robot is now operational" << std::endl;
 
         // Move robot to home pose
-        spdlog::info("Moving to home pose");
+        std::cout << "Moving to home pose" << std::endl;
         robot.SwitchMode(rdk::Mode::NRT_PLAN_EXECUTION);
         robot.ExecutePlan("PLAN-Home");
         // Wait for the plan to finish
@@ -246,14 +249,15 @@ int main(int argc, char* argv[])
 
         // WARNING: during the process, the robot must not contact anything, otherwise the result
         // will be inaccurate and affect following operations
-        spdlog::warn(
-            "Zeroing force/torque sensors, make sure nothing is in contact with the robot");
+        std::cerr
+            << "[warn] Zeroing force/torque sensors, make sure nothing is in contact with the robot"
+            << std::endl;
 
         // Wait for primitive to finish
         while (!std::get<int>(robot.primitive_states()["terminated"])) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        spdlog::info("Sensor zeroing complete");
+        std::cout << "Sensor zeroing complete" << std::endl;
 
         // Configure Motion Control
         // =========================================================================================
@@ -295,7 +299,7 @@ int main(int argc, char* argv[])
         scheduler.Stop();
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 

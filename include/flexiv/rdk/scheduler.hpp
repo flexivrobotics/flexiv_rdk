@@ -6,6 +6,8 @@
 #ifndef FLEXIV_RDK_SCHEDULER_HPP_
 #define FLEXIV_RDK_SCHEDULER_HPP_
 
+#include "export.hpp"
+
 #include <string>
 #include <functional>
 #include <memory>
@@ -17,8 +19,10 @@ namespace rdk {
  * @class Scheduler
  * @brief Real-time scheduler that can simultaneously run multiple periodic tasks. Parameters for
  * each task are configured independently.
+ * @note Thread safety: all functions of this class are thread-safe and can be called concurrently
+ * from multiple threads.
  */
-class Scheduler
+class RDK_API Scheduler
 {
 public:
     /**
@@ -50,7 +54,7 @@ public:
      * which core to run this task thread on according to the system's own strategy. The common
      * practice is to bind the high-priority task to a dedicated spare core, and bind low-priority
      * tasks to other cores or just leave them unbound (cpu_affinity = -1).
-     * @throw std::logic_error if the scheduler is already started or is not fully initialized yet.
+     * @throw std::logic_error if the scheduler is already started.
      * @throw std::invalid_argument if the specified interval/priority/affinity is invalid or the
      * specified task name is duplicate.
      * @throw std::runtime_error if an error is triggered by the client computer.
@@ -65,22 +69,17 @@ public:
         int priority, int cpu_affinity = -1);
 
     /**
-     * @brief [Blocking] Start all added tasks. A dedicated thread will be created for each added
-     * task and the periodic execution will begin.
-     * @throw std::logic_error if the scheduler is not initialized yet.
-     * @throw std::runtime_error if failed to start the tasks.
-     * @note This function blocks until all added tasks are started.
+     * @brief [Non-blocking] Start all added tasks. The dedicated thread of each added task is
+     * created by AddTask() and stays idle until this function starts the periodic execution.
      */
     void Start();
 
     /**
-     * @brief [Blocking] Stop all added tasks. The periodic execution will stop and all task threads
-     * will be closed with the resources released.
-     * @throw std::logic_error if the scheduler is not initialized or the tasks are not started yet.
-     * @throw std::runtime_error if failed to stop the tasks.
-     * @note Calling start() again can restart the added tasks.
-     * @note This function blocks until all task threads have exited and resources are released.
-     * @warning This function cannot be called from within a task thread.
+     * @brief [Non-blocking] Stop all added tasks. The periodic execution will stop, but the task
+     * threads stay alive and idle until this scheduler is destroyed.
+     * @throw std::logic_error if the tasks are not started yet.
+     * @note Calling Start() again can restart the added tasks.
+     * @note This function is safe to call from within a task thread.
      */
     void Stop();
 

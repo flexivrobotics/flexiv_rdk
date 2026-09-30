@@ -20,8 +20,12 @@ namespace rdk {
  * @class Robot
  * @brief Main interface to control the robot, containing several function categories and background
  * services.
+ * @note Thread safety: all functions of this class are thread-safe and can be called concurrently
+ * from multiple threads. Thread safety does not imply ordering though: when several threads command
+ * the robot at the same time, the order in which their commands reach the robot is undefined, so
+ * external synchronization is needed if a specific order is required.
  */
-class Robot
+class RDK_API Robot
 {
 public:
     /**
@@ -125,6 +129,9 @@ public:
     /**
      * @brief [Non-blocking] Whether the robot is in fault state.
      * @return True: robot has fault; false: robot normal.
+     * @note Entering fault state resets the control mode to Mode::IDLE and discards all commands
+     * sent so far. After the fault is cleared, SwitchMode() must be called again before the robot
+     * accepts new commands, see ClearFault().
      */
     bool fault() const;
 
@@ -216,6 +223,8 @@ public:
      * control mode.
      * @warning If the robot is still moving when this function is called, it will automatically
      * stop before making the mode transition.
+     * @warning A mode switch is rejected while the robot is in fault state, since the robot cannot
+     * move until the fault is cleared. Call ClearFault() first.
      */
     void SwitchMode(Mode mode);
 
@@ -223,6 +232,8 @@ public:
      * @brief [Blocking] Stop the robot and transit its control mode to IDLE.
      * @throw std::runtime_error if failed to stop the robot.
      * @note This function blocks until the robot comes to a complete stop.
+     * @note This function does nothing if the robot is already in fault state, because entering
+     * fault state stops the robot and resets its control mode to IDLE by itself.
      */
     void Stop();
 
@@ -235,6 +246,8 @@ public:
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note This function blocks until the fault is successfully cleared or [timeout_sec] has
      * elapsed.
+     * @note The robot stays in Mode::IDLE after the fault is cleared, because entering fault state
+     * has reset the control mode. Call SwitchMode() to re-arm the robot.
      * @warning Clearing a critical fault through this function without a power cycle requires a
      * dedicated device, which may not be installed in older robot models.
      */
@@ -312,7 +325,8 @@ public:
      * @brief [Blocking] Execute a plan by specifying its index.
      * @param[in] index Index of the plan to execute, can be obtained via plan_list().
      * @param[in] continue_exec Whether to continue executing the plan when the RDK program is
-     * closed or the connection is lost.
+     * closed or the connection is lost. This does not apply to faults: entering fault state always
+     * resets the control mode to Mode::IDLE, see fault().
      * @param[in] block_until_started Whether to wait for the commanded plan to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the plan ready, the loading process typically takes no more than 200 ms.
@@ -333,7 +347,8 @@ public:
      * @brief [Blocking] Execute a plan by specifying its name.
      * @param[in] name Name of the plan to execute, can be obtained via plan_list().
      * @param[in] continue_exec Whether to continue executing the plan when the RDK program is
-     * closed or the connection is lost.
+     * closed or the connection is lost. This does not apply to faults: entering fault state always
+     * resets the control mode to Mode::IDLE, see fault().
      * @param[in] block_until_started Whether to wait for the commanded plan to finish loading
      * and start execution before the function returns. Depending on the amount of computation
      * needed to get the plan ready, the loading process typically takes no more than 200 ms.
@@ -700,15 +715,15 @@ public:
      * @brief [Non-blocking] Discretely send Cartesian multi-waypoint motion and/or force commands
      * for the robot to track using non-real-time super primitives. The robot will execute the
      * provided waypoints sequentially using onboard motion generation.
-     * @param[in] cart_cmds Non-real-time Cartesian motion/force commands for each waypoint. Each
-     * element uses the same data layout as a single command in SendCartesianMotionForce().
+     * @param[in] cart_cmds Non-real-time Cartesian motion/force commands for each waypoint,
+     * including optional per-waypoint duration. Each element uses NrtCartesianCmd.
      * @param[in] joint_pos Sequence of target joint positions [rad] for each waypoint. Each element
      * must contain RobotInfo::DoF values, i.e. the full system degrees of freedom including the
      * manipulator and any external axes. Size must match [cart_cmds].
      * @throw std::invalid_argument if [cart_cmds] is empty, if [joint_pos] is empty, if
      * [cart_cmds] and [joint_pos] do not contain the same number of waypoints, if any waypoint's
-     * last 4 input parameters is not positive, or if any joint position vector size is not equal
-     * to RobotInfo::DoF.
+     * max velocity/acceleration parameters is not positive, if any waypoint's duration is
+     * negative, or if any joint position vector size is not equal to RobotInfo::DoF.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: NRT_SUPER_PRIMITIVE.

@@ -75,16 +75,9 @@ export SHARED_CMAKE_ARGS
 # Clone all dependencies in a subfolder
 mkdir -p cloned && cd cloned
 
-# Build and install all dependencies to INSTALL_DIR
+# RDK is shipped as a self-contained shared library that statically embeds and symbol-hides all of
+# its thirdparty dependencies except Eigen, so Eigen is the only one that has to be built here: it
+# is header-only and appears in the public flexiv::rdk API.
 bash $SCRIPT_DIR/scripts/install_eigen.sh
-bash $SCRIPT_DIR/scripts/install_spdlog.sh
-bash $SCRIPT_DIR/scripts/install_tinyxml2.sh
-bash $SCRIPT_DIR/scripts/install_yaml-cpp.sh
-bash $SCRIPT_DIR/scripts/install_foonathan_memory.sh
-bash $SCRIPT_DIR/scripts/install_Fast-CDR.sh
-bash $SCRIPT_DIR/scripts/install_Fast-DDS.sh
-bash $SCRIPT_DIR/scripts/install_boost.sh
-bash $SCRIPT_DIR/scripts/install_SpaceVecAlg.sh
-bash $SCRIPT_DIR/scripts/install_RBDyn.sh
 
 echo ">>>>> Finished: flexiv_rdk/thirdparty/build_and_install_dependencies.sh <<<<<"

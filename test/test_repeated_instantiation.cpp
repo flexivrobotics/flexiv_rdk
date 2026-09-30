@@ -7,7 +7,6 @@
 
 #include <flexiv/rdk/robot.hpp>
 #include <flexiv/rdk/utility.hpp>
-#include <spdlog/spdlog.h>
 
 #include <iostream>
 #include <thread>
@@ -43,24 +42,24 @@ int main(int argc, char* argv[])
 
     try {
         for (size_t i = 1; i <= test_cycles; i++) {
-            spdlog::info("Test cycle: {}/{}", i, test_cycles);
+            std::cout << "Test cycle: " << i << "/" << test_cycles << std::endl;
 
             // Instantiate robot interface
             rdk::Robot robot(robot_sn);
 
             // Enable the robot, make sure the E-stop is released before enabling
-            spdlog::info("Enabling robot ...");
+            std::cout << "Enabling robot ..." << std::endl;
             robot.Enable();
 
             // Wait for the robot to become operational
             while (!robot.operational()) {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
             }
-            spdlog::info("Robot is now operational");
+            std::cout << "Robot is now operational" << std::endl;
         }
 
     } catch (const std::exception& e) {
-        spdlog::error(e.what());
+        std::cerr << "[error] " << e.what() << std::endl;
         return 1;
     }
 

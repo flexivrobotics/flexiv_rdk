@@ -1,11 +1,17 @@
 /**
  * @file data.hpp
  * @brief Header file containing various constant expressions, data structures, and enums.
+ * @note Thread safety: all functions declared in this file are thread-safe and can be called
+ * concurrently from multiple threads. The data structs themselves hold no internal
+ * synchronization, so an instance shared between threads still needs to be externally
+ * synchronized while it's being modified.
  * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  */
 
 #ifndef FLEXIV_RDK_DATA_HPP_
 #define FLEXIV_RDK_DATA_HPP_
+
+#include "export.hpp"
 
 #include <array>
 #include <vector>
@@ -392,7 +398,7 @@ struct PlanInfo
  * conversion is automatically done when exchanging "JPOS" data type with the robot via functions
  * like Robot::ExecutePrimitive(), Robot::SetGlobalVariables(), etc.
  */
-struct JPos
+struct RDK_API JPos
 {
     /**
      * @brief Construct an instance of JPos.
@@ -426,7 +432,7 @@ struct JPos
  * conversion is automatically done when exchanging "COORD" data type with the robot via functions
  * like Robot::ExecutePrimitive(), Robot::SetGlobalVariables(), Robot::global_variables(), etc.
  */
-struct Coord
+struct RDK_API Coord
 {
     /**
      * @brief Construct an instance of Coord.
@@ -502,11 +508,14 @@ struct NrtCartesianCmd
      * pose.
      * @param[in] max_angular_acc Maximum Cartesian angular acceleration when moving to the target
      * pose.
+     * @param[in] duration Desired time to reach this waypoint from the previous one. Set to 0
+     * to leave unspecified and let motion generation determine the timing.
      */
     NrtCartesianCmd(const std::array<double, kPoseSize>& pose_d,
         const std::array<double, kCartDoF>& wrench_d = {},
         const std::array<double, kCartDoF>& twist_d = {}, double max_linear_vel = 0.5,
-        double max_angular_vel = 1.0, double max_linear_acc = 2.0, double max_angular_acc = 5.0)
+        double max_angular_vel = 1.0, double max_linear_acc = 2.0, double max_angular_acc = 5.0,
+        double duration = 0.0)
     : pose_d(pose_d)
     , wrench_d(wrench_d)
     , twist_d(twist_d)
@@ -514,6 +523,7 @@ struct NrtCartesianCmd
     , max_angular_vel(max_angular_vel)
     , max_linear_acc(max_linear_acc)
     , max_angular_acc(max_angular_acc)
+    , duration(duration)
     {
     }
 
@@ -551,6 +561,10 @@ struct NrtCartesianCmd
     /** Maximum Cartesian angular acceleration when moving to the target pose. A safe value is
      * provided as default. Unit: \f$ [rad/s^2] \f$ */
     double max_angular_acc = 5.0;
+
+    /** Desired time to reach this waypoint from the previous one. Set to 0 to leave
+     * unspecified and let motion generation determine the timing. Unit: \f$ [s] \f$ */
+    double duration = 0.0;
 };
 
 /** Alias of the variant that holds all possible types of data exchanged with Flexiv robots */
@@ -565,7 +579,7 @@ using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::C
  * @return Updated ostream instance.
  * @note The event timestamp is converted to local timezone when printed.
  */
-std::ostream& operator<<(std::ostream& ostream, const RobotEvent& robot_event);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const RobotEvent& robot_event);
 
 /**
  * @brief Operator overloading to out stream all members of RobotInfo in JSON format.
@@ -573,7 +587,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotEvent& robot_event);
  * @param[in] robot_info RobotInfo data structure to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
 
 /**
  * @brief Operator overloading to out stream all members of RobotStates in JSON format.
@@ -581,7 +595,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotInfo& robot_info);
  * @param[in] robot_states RobotStates data structure to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states);
 
 /**
  * @brief Operator overloading to out stream all members of RobotActions in JSON format.
@@ -589,7 +603,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotStates& robot_states)
  * @param[in] robot_actions RobotActions data structure to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const RobotActions& robot_actions);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const RobotActions& robot_actions);
 
 /**
  * @brief Operator overloading to out stream all members of PlanInfo in JSON format.
@@ -597,7 +611,7 @@ std::ostream& operator<<(std::ostream& ostream, const RobotActions& robot_action
  * @param[in] plan_info PlanInfo data structure to out stream.
  * @return Updated ostream instance.
  */
-std::ostream& operator<<(std::ostream& ostream, const PlanInfo& plan_info);
+RDK_API std::ostream& operator<<(std::ostream& ostream, const PlanInfo& plan_info);
 
 } /* namespace rdk */
 } /* namespace flexiv */
