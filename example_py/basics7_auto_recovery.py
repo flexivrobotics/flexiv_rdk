@@ -11,7 +11,7 @@ __author__ = "Flexiv"
 
 import time
 import argparse
-import spdlog  # pip install spdlog
+import logging
 import flexivrdk  # pip install flexivrdk
 
 
@@ -27,7 +27,8 @@ def main():
     args = argparser.parse_args()
 
     # Define alias
-    logger = spdlog.ConsoleLogger("Example")
+    logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
+    logger = logging.getLogger("Example")
 
     # Print description
     logger.info(
