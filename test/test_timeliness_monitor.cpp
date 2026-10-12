@@ -2,9 +2,9 @@
  * @test test_timeliness_monitor.cpp
  * A test to evaluate RDK's internal timeliness monitor on real-time modes. Bad communication or
  * insufficient real-time performance of the workstation PC will cause the monitor's timeliness
- * check to fail. A warning will be issued first, then if the check has failed too many times, the
- * RDK connection with the server will be closed. During this test, the robot will hold its position
- * using joint torque streaming mode.
+ * check to fail. Each failure is logged as a warning, and once the failure limit is reached,
+ * reached_timeliness_failure_limit() returns true, which this test polls to stop. During this
+ * test, the robot will hold its position using joint position streaming mode.
  * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -35,6 +35,12 @@ void PeriodicTask(flexiv::rdk::Robot& robot, const std::vector<double>& init_pos
         if (robot.fault()) {
             throw std::runtime_error(
                 "PeriodicTask: Fault occurred on the connected robot, exiting ...");
+        }
+
+        // Monitor timeliness of the real-time commands. The RT streaming functions only log a
+        // warning when commands arrive late and do not throw, so the application must poll this
+        if (robot.reached_timeliness_failure_limit()) {
+            throw std::runtime_error("PeriodicTask: Timeliness failure limit reached, exiting ...");
         }
         // Hold position
         std::vector<double> target_vel(robot.info().DoF);

@@ -50,6 +50,12 @@ void PeriodicTask(rdk::Robot& robot)
 
         // Set 0 joint torques
         std::vector<double> target_torque(robot.info().DoF);
+        // Monitor timeliness of the real-time commands. The RT streaming functions only log a
+        // warning when commands arrive late and do not throw, so the application must poll this
+        if (robot.reached_timeliness_failure_limit()) {
+            throw std::runtime_error("PeriodicTask: Timeliness failure limit reached, exiting ...");
+        }
+
 
         // Add some velocity damping
         for (size_t i = 0; i < target_torque.size(); ++i) {
