@@ -26,7 +26,8 @@ namespace {
 /** RT loop period [sec] */
 constexpr double kLoopPeriod = 0.001;
 
-/** Outer position loop (impedance) gains, values are only for demo purpose */
+/** Outer position loop (impedance) gains, values are only for demo purpose. Only provided for a
+ * 7-DoF arm, see the DoF check in main() */
 const std::vector<double> kImpedanceKp = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
 const std::vector<double> kImpedanceKd = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
 
@@ -64,13 +65,13 @@ void PeriodicTask(
                 "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
 
-        // Target joint positions
         // Monitor timeliness of the real-time commands. The RT streaming functions only log a
         // warning when commands arrive late and do not throw, so the application must poll this
         if (robot.reached_timeliness_failure_limit()) {
             throw std::runtime_error("PeriodicTask: Timeliness failure limit reached, exiting ...");
         }
 
+        // Target joint positions
         std::vector<double> target_pos(robot.info().DoF);
 
         // Set target position based on motion type
@@ -138,6 +139,15 @@ int main(int argc, char* argv[])
         // =========================================================================================
         // Instantiate robot interface
         rdk::Robot robot(robot_sn);
+
+        // The demo impedance gains only cover a 7-DoF arm, do not run joints without gains (e.g.
+        // external axes) on an undefined torque command
+        if (robot.info().DoF > kImpedanceKp.size() || robot.info().DoF > kImpedanceKd.size()) {
+            throw std::invalid_argument("This example only provides impedance gains for "
+                                        + std::to_string(kImpedanceKp.size())
+                                        + " joints, but the connected robot has "
+                                        + std::to_string(robot.info().DoF) + " DoF");
+        }
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {

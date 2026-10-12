@@ -12,6 +12,7 @@
 #include <flexiv/rdk/scheduler.hpp>
 #include <flexiv/rdk/utility.hpp>
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -20,7 +21,8 @@
 using namespace flexiv;
 
 namespace {
-/** Joint velocity damping gains for floating */
+/** Joint velocity damping gains for floating, for the first 7 joints. Any further joints (e.g.
+ * external axes) float without damping */
 const std::vector<double> kFloatingDamping = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
 
 /** Atomic signal to stop scheduler tasks */
@@ -48,17 +50,17 @@ void PeriodicTask(rdk::Robot& robot)
                 "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
 
-        // Set 0 joint torques
-        std::vector<double> target_torque(robot.info().DoF);
         // Monitor timeliness of the real-time commands. The RT streaming functions only log a
         // warning when commands arrive late and do not throw, so the application must poll this
         if (robot.reached_timeliness_failure_limit()) {
             throw std::runtime_error("PeriodicTask: Timeliness failure limit reached, exiting ...");
         }
 
+        // Set 0 joint torques
+        std::vector<double> target_torque(robot.info().DoF);
 
-        // Add some velocity damping
-        for (size_t i = 0; i < target_torque.size(); ++i) {
+        // Add some velocity damping to the joints that have a damping gain
+        for (size_t i = 0; i < std::min(target_torque.size(), kFloatingDamping.size()); ++i) {
             target_torque[i] += -kFloatingDamping[i] * robot.states().dtheta[i];
         }
 
