@@ -52,16 +52,31 @@ else()
   message(FATAL_ERROR "${CMAKE_SYSTEM_NAME} is currently not supported.")
 endif()
 
-# Download a release asset by file name, verifying its SHA256 against the checked-in
-# <name>.sha256 placeholder.
-function(rdk_download_release_asset asset_name)
-  file(READ ${CMAKE_CURRENT_SOURCE_DIR}/lib/${asset_name}.sha256 expected_hash)
-  set(asset_url https://github.com/flexivrobotics/flexiv_rdk/releases/download/v${PROJECT_VERSION}/${asset_name})
+# Additionally verify the downloaded prebuilt library against the release's GPG-signed checksum
+# list (SHA256SUMS + SHA256SUMS.asc), using the release signing key committed in this repository.
+# Requires gpg. See SECURITY.md and RELEASING.md.
+option(FLEXIV_RDK_VERIFY_SIGNATURE "Verify the GPG signature of the downloaded release assets" OFF)
+# Public key and fingerprint of the Flexiv RDK release signing key.
+# TODO: placeholders until the release signing key is published, see cmake/flexiv_release_key.asc.
+set(FLEXIV_RDK_RELEASE_KEY_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/flexiv_release_key.asc)
+set(FLEXIV_RDK_RELEASE_KEY_FINGERPRINT "TODO_PUBLISH_RELEASE_KEY_FINGERPRINT")
+
+# All assets of this version are downloaded from its GitHub release
+set(RDK_RELEASE_URL https://github.com/flexivrobotics/flexiv_rdk/releases/download/v${PROJECT_VERSION})
+
+# Download a file of the release into the build directory. If [expected_hash] is not empty, the
+# download is verified against it.
+function(rdk_download_file asset_name expected_hash)
+  set(asset_url ${RDK_RELEASE_URL}/${asset_name})
+  set(hash_args "")
+  if(expected_hash)
+    set(hash_args EXPECTED_HASH SHA256=${expected_hash})
+  endif()
   message(STATUS "Downloading ${asset_url} ...")
   file(DOWNLOAD ${asset_url} ${CMAKE_CURRENT_BINARY_DIR}/${asset_name}
        SHOW_PROGRESS
        TLS_VERIFY ON
-       EXPECTED_HASH SHA256=${expected_hash}
+       ${hash_args}
        STATUS status)
   list(GET status 0 code)
   if(NOT code EQUAL 0)
@@ -70,11 +85,44 @@ function(rdk_download_release_asset asset_name)
   message(STATUS "Download finished: ${asset_name}")
 endfunction()
 
+# Download a release asset by file name, verifying its SHA256 against the checked-in
+# <name>.sha256 placeholder. The expected hash is also returned in [hash_var], so that the install
+# step can check the file again right before installing it (see FlexivInstallLibrary).
+function(rdk_download_release_asset asset_name hash_var)
+  file(READ ${CMAKE_CURRENT_SOURCE_DIR}/lib/${asset_name}.sha256 expected_hash)
+  string(STRIP "${expected_hash}" expected_hash)
+  string(TOLOWER "${expected_hash}" expected_hash)
+  string(LENGTH "${expected_hash}" hash_length)
+  if(NOT expected_hash MATCHES "^[0-9a-f]+$" OR NOT hash_length EQUAL 64)
+    message(FATAL_ERROR "lib/${asset_name}.sha256 does not contain a valid SHA256")
+  endif()
+  rdk_download_file(${asset_name} ${expected_hash})
+  set(${hash_var} ${expected_hash} PARENT_SCOPE)
+endfunction()
+
 # The link-time artifact (import .lib on Windows, the .so/.dylib/.a elsewhere).
-rdk_download_release_asset(${RDK_LIB})
+rdk_download_release_asset(${RDK_LIB} RDK_LIB_SHA256)
+set(RDK_DOWNLOADED_ASSETS ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB})
 # On Windows also fetch the runtime DLL that the import library refers to.
 if(RDK_RUNTIME_LIB)
-  rdk_download_release_asset(${RDK_RUNTIME_LIB})
+  rdk_download_release_asset(${RDK_RUNTIME_LIB} RDK_RUNTIME_LIB_SHA256)
+  list(APPEND RDK_DOWNLOADED_ASSETS ${CMAKE_CURRENT_BINARY_DIR}/${RDK_RUNTIME_LIB})
+endif()
+
+# Check the signed checksum list of the same release. Its files are downloaded without an expected
+# hash because the GPG signature is what authenticates them.
+if(FLEXIV_RDK_VERIFY_SIGNATURE)
+  include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FlexivVerifyReleaseSignature.cmake)
+  flexiv_check_release_key(${FLEXIV_RDK_RELEASE_KEY_FILE} "${FLEXIV_RDK_RELEASE_KEY_FINGERPRINT}" _)
+  rdk_download_file(SHA256SUMS "")
+  rdk_download_file(SHA256SUMS.asc "")
+  flexiv_verify_release_signature(
+    SUMS_FILE ${CMAKE_CURRENT_BINARY_DIR}/SHA256SUMS
+    SIGNATURE_FILE ${CMAKE_CURRENT_BINARY_DIR}/SHA256SUMS.asc
+    KEY_FILE ${FLEXIV_RDK_RELEASE_KEY_FILE}
+    FINGERPRINT ${FLEXIV_RDK_RELEASE_KEY_FINGERPRINT}
+    WORK_DIR ${CMAKE_CURRENT_BINARY_DIR}/release_signature
+    ARTIFACTS ${RDK_DOWNLOADED_ASSETS})
 endif()
 
 # ===================================================================
