@@ -20,6 +20,10 @@ namespace rdk {
  * from multiple threads. The functions accessing the locally stored robot model, i.e. Reload(),
  * Update() and all kinematics and dynamics getters, are serialized with each other, so a getter
  * always sees the model of a fully finished Update() or Reload().
+ * @note The robot model, including its degrees of freedom, comes from the connected robot. The
+ * dimensions of all returned matrices and vectors therefore follow RobotInfo::DoF, not
+ * kSerialJointDoF, so size buffers from the returned objects (e.g. rows(), cols()). The model is
+ * checked for non-finite or physically invalid values when (re)loaded.
  */
 class RDK_API Model
 {
@@ -31,7 +35,7 @@ public:
      * -9.81]^T \f$. Unit: \f$ [m/s^2] \f$.
      * @throw std::runtime_error if the initialization sequence failed.
      * @throw std::logic_error if the connected robot does not have an RDK professional license; or
-     * the parsed robot model is not supported.
+     * the parsed robot model is not supported or contains invalid values.
      */
     Model(const Robot& robot,
         const Eigen::Vector3d& gravity_vector = Eigen::Vector3d(0.0, 0.0, -9.81));
@@ -63,7 +67,8 @@ public:
      * \f$ [rad] \f$.
      * @param[in] velocities Current joint velocities: \f$ \dot{q} \in \mathbb{R}^{n \times 1}
      * \f$. Unit: \f$ [rad/s] \f$.
-     * @throw std::invalid_argument if size of any input vector does not match robot DoF.
+     * @throw std::invalid_argument if size of any input vector does not match robot DoF, or any
+     * input vector contains NaN or infinite value.
      */
     void Update(const std::vector<double>& positions, const std::vector<double>& velocities);
 
@@ -142,7 +147,9 @@ public:
      * [flexiv_description](https://github.com/flexivrobotics/flexiv_description). This template
      * URDF file will be updated when the sync is finished.
      * @throw std::invalid_argument if failed to load the template URDF file.
-     * @throw std::runtime_error if failed to sync the URDF file.
+     * @throw std::runtime_error if failed to sync the URDF file, including when the URDF received
+     * from the connected robot contains a joint origin that is not three finite numbers. Nothing is
+     * saved in that case.
      * @note This function blocks until the sync is finished.
      * @par Why is this function needed?
      * The template URDF contains kinematic parameters of the latest version of robot hardware,
@@ -159,7 +166,9 @@ public:
      * updated when the sync is finished.
      * @return Total number of joints that have been successfully synced.
      * @throw std::invalid_argument if failed to load the template YAML file.
-     * @throw std::runtime_error if failed to sync the YAML file.
+     * @throw std::runtime_error if failed to sync the YAML file, including when the URDF received
+     * from the connected robot contains a joint origin that is not three finite numbers. Nothing is
+     * saved in that case.
      * @note This function blocks until the sync is finished.
      */
     size_t SyncKinematicsYAML(const std::string& template_yaml_path);

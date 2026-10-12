@@ -32,11 +32,13 @@ public:
      * @brief [Blocking] Instantiate the robot control interface. RDK services will be started and
      * establish connection with the target robot.
      * @param[in] robot_sn Serial number of the robot to connect. The accepted formats are:
-     * "Rizon 4s-123456" and "Rizon4s-123456".
-     * @param[in] network_interface_whitelist Limit the network interface(s) that can be used to try
-     * to establish connection with the specified robot. The whitelisted network interface is
-     * defined by its associated IPv4 address. For example, {"10.42.0.1", "192.168.2.102"}. If left
-     * empty, all available network interfaces will be tried when searching for the specified robot.
+     * "Rizon 4s-123456" and "Rizon4s-123456". The part after the separator may only contain ASCII
+     * letters and digits.
+     * @param[in] network_interface_whitelist Limit the local network interface(s) that this program
+     * uses to try to establish connection with the specified robot. The whitelisted network
+     * interface is defined by its associated IPv4 address. For example, {"10.42.0.1",
+     * "192.168.2.102"}. If left empty, all available network interfaces will be tried when
+     * searching for the specified robot.
      * @param[in] verbose Enable/disable info and warning prints.
      * @param[in] lite Whether to create a lite instance. See details below. A normal instance must
      * have already connected to the robot for lite instances to function properly.
@@ -46,13 +48,26 @@ public:
      * with this RDK library version, or is an unsupported robot model.
      * @warning This constructor blocks until the initialization sequence is successfully finished
      * and connection with the robot is established.
+     * @warning [network_interface_whitelist] is NOT an access control: it does not restrict which
+     * hosts can talk to this program. The connection to the robot is currently neither
+     * authenticated nor encrypted, so any host on the same network can read the robot states and
+     * commands, and impersonate the robot. Keep the robot and the computer running this program on
+     * an isolated network that no untrusted host can reach.
      * @par Lite Instance
      * Creating multiple instances of rdk::Robot that connect to the same robot is allowed. However,
      * every additional instance brings extra overhead that can restrict the total number of
      * instances due to limited computation power and network bandwidth. To mitigate the performance
      * impact, it is recommended to create a lite instance of rdk::Robot if it only needs to send
      * one-shot requests, which are functions marked with the [Blocking] tag. A lite instance does
-     * not receive robot states or system status, nor send motion commands.
+     * not receive robot states or system status, nor send motion commands. Because of that, a lite
+     * instance cannot check locally whether the robot is operational before sending a request; the
+     * robot itself rejects requests it cannot execute in its current state, and the rejection
+     * reason is part of the thrown exception message.
+     * @par Multiple Instances
+     * While one instance controls the robot in a direct (joint or Cartesian) control mode, the
+     * robot rejects requests from other instances to enter a direct control mode, and ignores their
+     * motion commands, until the controlling instance leaves the direct control mode or
+     * disconnects.
      */
     Robot(const std::string& robot_sn,
         const std::vector<std::string>& network_interface_whitelist = {}, bool verbose = true,
@@ -176,6 +191,9 @@ public:
      * @brief [Non-blocking] Whether the timeliness failure limit has been reached within a
      * 1-second moving window.
      * @return True: reached limit; false: not reached limit.
+     * @note The real-time (RT) streaming functions do not throw when this limit is reached, so an
+     * application running a real-time control loop should poll this function in the loop and
+     * decide how to react, e.g. stop the loop.
      * @see SetTimelinessFailureLimit().
      */
     bool reached_timeliness_failure_limit() const;
@@ -186,6 +204,8 @@ public:
      * @return Event log as a vector of RobotEvent, with the first element being the
      * oldest event and the last element being the latest event.
      * @warning Events before the last successful instantiation of this class are not stored.
+     * @note At most the latest 1000 events are kept, older ones are dropped. Each text field of an
+     * event is limited to 1024 characters, with control characters replaced by spaces.
      */
     std::vector<RobotEvent> event_log() const;
 
@@ -312,8 +332,9 @@ public:
     /**
      * @brief [Non-blocking] Set the maximum tolerable percentage of real-time commands that arrived
      * the robot too late within a 1-second moving window. This only applies to the real-time
-     * control modes and functions marked as "Real-time (RT)" will throw an exception when this
-     * limit is reached.
+     * control modes. When this limit is reached, functions marked as "Real-time (RT)" print a
+     * warning (if verbose is enabled) but do NOT throw. Poll reached_timeliness_failure_limit() to
+     * detect this condition.
      * @param[in] percentage Percentage limit, default to 2%. Valid range: [0, 100].
      * @throw std::invalid_argument if [percentage] is outside the valid range.
      * @see reached_timeliness_failure_limit().
@@ -496,6 +517,7 @@ public:
      * compensation at all. Under-compensation increases natural damping of the joints, which can be
      * useful in some cases, e.g. zero-torque floating.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF, or
+     * [torques] contains any NaN, infinite, or out-of-float-range value, or
      * [friction_comp_scale] is outside the valid range.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
@@ -516,7 +538,8 @@ public:
      * \f$. Unit: \f$ [rad/s] \f$.
      * @param[in] accelerations Target joint accelerations: \f$ \ddot{q}_d \in \mathbb{R}^{n \times
      * 1} \f$. Unit: \f$ [rad/s^2] \f$.
-     * @throw std::invalid_argument if size of any input vector does not match robot DoF.
+     * @throw std::invalid_argument if size of any input vector does not match robot DoF, or any
+     * input vector contains NaN, infinite, or out-of-float-range value.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, RT_JOINT_POSITION.
@@ -542,7 +565,8 @@ public:
      * @param[in] max_acc Maximum joint accelerations for the planned trajectory: \f$ \ddot{q}_{max}
      * \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s^2] \f$.
      * @throw std::invalid_argument if size of any input vector does not match robot DoF, or
-     * [max_vel] or [max_acc] contains any non-positive value.
+     * [max_vel] or [max_acc] contains any non-positive value, or any input vector contains NaN,
+     * infinite, or out-of-float-range value.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: NRT_JOINT_IMPEDANCE, NRT_JOINT_POSITION.
@@ -631,6 +655,9 @@ public:
      * improve the robot's tracking performance for highly dynamic motions, but it's also okay to
      * leave this input 0. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ linear and \f$
      * \mathbb{R}^{3 \times 1} \f$ angular acceleration. Unit: \f$ [m/s^2]:[rad/s^2] \f$.
+     * @throw std::invalid_argument if any input contains NaN, infinite, or out-of-float-range
+     * value, or the quaternion of [pose] is (close to) zero. The quaternion is normalized before
+     * being sent.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE.
@@ -685,7 +712,9 @@ public:
      * pose. A safe value is provided as default. Unit: \f$ [m/s^2] \f$.
      * @param[in] max_angular_acc Maximum Cartesian angular acceleration when moving to the target
      * pose. A safe value is provided as default. Unit: \f$ [rad/s^2] \f$.
-     * @throw std::invalid_argument if any of the last 4 input parameters is not positive.
+     * @throw std::invalid_argument if any of the last 4 input parameters is not positive, or any
+     * input contains NaN, infinite, or out-of-float-range value, or the quaternion of [pose] is
+     * (close to) zero. The quaternion is normalized before being sent.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: NRT_CARTESIAN_MOTION_FORCE, NRT_SUPER_PRIMITIVE.
@@ -723,7 +752,9 @@ public:
      * @throw std::invalid_argument if [cart_cmds] is empty, if [joint_pos] is empty, if
      * [cart_cmds] and [joint_pos] do not contain the same number of waypoints, if any waypoint's
      * max velocity/acceleration parameters is not positive, if any waypoint's duration is
-     * negative, or if any joint position vector size is not equal to RobotInfo::DoF.
+     * negative, if any joint position vector size is not equal to RobotInfo::DoF, or if any input
+     * contains NaN, infinite, or out-of-float-range value, or a (close to) zero quaternion. The
+     * quaternions are normalized before being sent.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: NRT_SUPER_PRIMITIVE.
@@ -876,6 +907,8 @@ public:
      * then the force control frame will also be fixed; if root coordinate is a moving one (e.g.
      * TCP), then the force control frame will also be moving with the root coordinate. An identity
      * transformation is provided as default.
+     * @throw std::invalid_argument if [T_in_root] contains NaN, infinite, or out-of-float-range
+     * value, or a (close to) zero quaternion. The quaternion is normalized before being sent.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,

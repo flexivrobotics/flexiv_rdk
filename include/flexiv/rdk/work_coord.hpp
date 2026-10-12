@@ -64,7 +64,9 @@ public:
      * \mathbb{R}^{7 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$
      * \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$
      * [m]:[] \f$.
-     * @throw std::invalid_argument if the specified work coordinate already exists.
+     * @throw std::invalid_argument if the specified work coordinate already exists, or [pose]
+     * contains any NaN, infinite, or out-of-float-range value, or a (close to) zero quaternion. The
+     * quaternion is normalized before being sent.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
@@ -79,7 +81,9 @@ public:
      * \in \mathbb{R}^{7 \times 1} \f$. Consists of \f$ \mathbb{R}^{3 \times 1} \f$ position and \f$
      * \mathbb{R}^{4 \times 1} \f$ quaternion: \f$ [x, y, z, q_w, q_x, q_y, q_z]^T \f$. Unit: \f$
      * [m]:[] \f$.
-     * @throw std::invalid_argument if the specified work coordinate does not exist.
+     * @throw std::invalid_argument if the specified work coordinate does not exist, or [pose]
+     * contains any NaN, infinite, or out-of-float-range value, or a (close to) zero quaternion. The
+     * quaternion is normalized before being sent.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.

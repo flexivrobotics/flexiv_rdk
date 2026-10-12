@@ -49,6 +49,7 @@ public:
      * @brief [Blocking] Whether the specified device is enabled.
      * @param[in] name Name of the device to check.
      * @return True if the specified device is enabled.
+     * @throw std::invalid_argument if the specified device does not exist.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
@@ -58,6 +59,7 @@ public:
      * @brief [Blocking] Whether the specified device is connected.
      * @param[in] name Name of the device to check.
      * @return True if the specified device is connected.
+     * @throw std::invalid_argument if the specified device does not exist.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      */
