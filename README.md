@@ -27,6 +27,10 @@ For AI-assisted code generation in this repository, see [llms.txt](llms.txt).
 
 Before trying to run any RDK program, please make sure to carefully go through the [First Time Setup](https://www.flexiv.com/software/rdk/manual/index.html#first-time-setup) chapter in RDK Manual. Otherwise, you might run into blocking issues.
 
+## Security
+
+The communication between RDK and the robot is currently not authenticated or encrypted, so the robot and the computer running RDK must be connected through an isolated network. See [SECURITY.md](SECURITY.md) for deployment guidance, supported versions, and how to report a vulnerability, and [RELEASING.md](RELEASING.md) for how to verify a release.
+
 ## Quick Start - Python
 
 ### Install the Python package
