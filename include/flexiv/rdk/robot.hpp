@@ -32,6 +32,7 @@ public:
      * establish connection with the target robot.
      * @param[in] robot_sn Serial number of the robot to connect. The accepted formats are:
      * "Enlight-L-123456" and "Enlight L-123456". See ProductModel enum for all supported models.
+     * The part after the last dash may only contain ASCII letters and digits.
      * @param[in] verbose Enable/disable info and warning prints.
      * @param[in] lite Whether to create a lite instance. See details below. A normal instance must
      * have already connected to the robot for lite instances to function properly.
@@ -41,13 +42,25 @@ public:
      * incompatible with this RDK library version, or is an unsupported product model.
      * @warning This constructor blocks until the initialization sequence is successfully finished
      * and connection with the robot is established.
+     * @warning The connection to the robot is currently neither authenticated nor encrypted, so any
+     * host on the same network can read the robot states and commands, and impersonate the robot.
+     * Keep the robot and the computer running this program on an isolated network that no
+     * untrusted host can reach.
      * @par Lite Instance
      * Creating multiple instances of rdk::Robot that connect to the same robot is allowed. However,
      * every additional instance brings extra overhead that can restrict the total number of
      * instances due to limited computation power and network bandwidth. To mitigate the performance
      * impact, it is recommended to create a lite instance of rdk::Robot if it only needs to send
      * one-shot requests, which are functions marked with the [Blocking] tag. A lite instance does
-     * not receive robot states or system status, nor send motion commands.
+     * not receive robot states or system status, nor send motion commands. Because of that, a lite
+     * instance cannot check locally whether the robot is operational before sending a request; the
+     * robot itself rejects requests it cannot execute in its current state, and the rejection
+     * reason is part of the thrown exception message.
+     * @par Multiple Instances
+     * While one instance controls the robot in a direct (joint or Cartesian) control mode, the
+     * robot rejects requests from other instances to enter a direct control mode, and ignores their
+     * motion commands, until the controlling instance leaves the direct control mode or
+     * disconnects.
      */
     Robot(const std::string& robot_sn, bool verbose = true, bool lite = false);
     virtual ~Robot();
@@ -180,6 +193,9 @@ public:
      * @brief [Non-blocking] Whether the timeliness failure limit has been reached within a
      * 1-second moving window.
      * @return True: reached limit; false: not reached limit.
+     * @note The real-time (RT) streaming functions do not throw when this limit is reached, so an
+     * application running a real-time control loop should poll this function in the loop and
+     * decide how to react, e.g. stop the loop.
      * @see SetTimelinessFailureLimit().
      */
     bool reached_timeliness_failure_limit() const;
@@ -190,6 +206,8 @@ public:
      * @return Event log as a vector of RobotEvent, with the first element being the
      * oldest event and the last element being the latest event.
      * @warning Events before the last successful instantiation of this class are not stored.
+     * @note At most the latest 1000 events are kept, older ones are dropped. Each text field of an
+     * event is limited to 1024 characters, with control characters replaced by spaces.
      */
     std::vector<RobotEvent> event_log() const;
 
@@ -312,8 +330,9 @@ public:
     /**
      * @brief [Non-blocking] Set the maximum tolerable percentage of real-time commands that arrived
      * the robot too late within a 1-second moving window. This only applies to the real-time
-     * control modes and functions marked as "Real-time (RT)" will throw an exception when this
-     * limit is reached.
+     * control modes. When this limit is reached, functions marked as "Real-time (RT)" print a
+     * warning (if verbose is enabled) but do NOT throw. Poll reached_timeliness_failure_limit() to
+     * detect this condition.
      * @param[in] percentage Percentage limit, default to 2%. Valid range: [0, 100].
      * @throw std::invalid_argument if [percentage] is outside the valid range.
      * @see reached_timeliness_failure_limit().
@@ -497,7 +516,8 @@ public:
      * single-arm joint groups and external axis joint groups are accepted.
      * @throw std::invalid_argument if [cmds] contains a joint group that is not an existing
      * single-arm or external axis joint group in the connected robot, if size of any input vector
-     * does not match robot DoF, or [friction_comp_scale] is outside the valid range.
+     * does not match robot DoF, [tau_d] contains any NaN, infinite, or out-of-float-range value, or
+     * [friction_comp_scale] is outside the valid range.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: RT_JOINT_TORQUE.
@@ -513,8 +533,9 @@ public:
      * @param[in] cmds Real-time joint position-velocity-acceleration commands mapped by joint
      * group. Only existing single-arm joint groups and external axis joint groups are accepted.
      * @throw std::invalid_argument if [cmds] contains a joint group that is not an existing
-     * single-arm or external axis joint group in the connected robot, or if size of any input
-     * vector does not match robot DoF.
+     * single-arm or external axis joint group in the connected robot, if size of any input vector
+     * does not match robot DoF, or any input vector contains NaN, infinite, or out-of-float-range
+     * value.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: RT_JOINT_IMPEDANCE, RT_JOINT_POSITION.
@@ -533,7 +554,8 @@ public:
      * group. Only existing single-arm joint groups and external axis joint groups are accepted.
      * @throw std::invalid_argument if [cmds] contains a joint group that is not an existing
      * single-arm or external axis joint group in the connected robot, if size of any input vector
-     * does not match robot DoF, or [dq_max] or [ddq_max] contains any non-positive value.
+     * does not match robot DoF, [dq_max] or [ddq_max] contains any non-positive value, or any input
+     * vector contains NaN, infinite, or out-of-float-range value.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: NRT_JOINT_IMPEDANCE, NRT_JOINT_POSITION.
@@ -551,7 +573,7 @@ public:
      * joint groups and external axis joint groups are accepted.
      * @param[in] K_q Joint motion stiffness: \f$ K_q \in \mathbb{R}^{n \times 1} \f$.
      * Setting motion stiffness of a joint axis to 0 will make this axis free-floating. Valid range:
-     * [0, RobotInfo::K_q_nom]. Unit: \f$ [Nm/rad] \f$.
+     * [0, RobotInfo::K_q_nom], finite. Unit: \f$ [Nm/rad] \f$.
      * @param[in] Z_q Joint motion damping ratio: \f$ Z_q \in \mathbb{R}^{n \times 1} \f$.
      * Valid range: [0.3, 0.8]. The default value 0.7 will be used if left empty.
      * @throw std::invalid_argument if [group] is not an existing single-arm or external axis joint
@@ -615,7 +637,9 @@ public:
      * @param[in] cmds Real-time Cartesian motion/force commands mapped by joint group. Only
      * existing single-arm joint groups like ARM_1 and ARM_2 are accepted.
      * @throw std::invalid_argument if [cmds] contains a joint group that is not an existing
-     * single-arm joint group in the connected robot.
+     * single-arm joint group in the connected robot, if any command contains NaN, infinite, or
+     * out-of-float-range value, or if the quaternion of any [pose_d] is (close to) zero. The
+     * quaternions are normalized before being sent.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE.
@@ -649,8 +673,10 @@ public:
      * @param[in] cmds Non-real-time Cartesian motion/force commands mapped by joint group. Only
      * existing single-arm joint groups like ARM_1 and ARM_2 are accepted.
      * @throw std::invalid_argument if [cmds] contains a joint group that is not an existing
-     * single-arm joint group in the connected robot, or if any of the last 4 input parameters is
-     * not positive.
+     * single-arm joint group in the connected robot, if any of the last 4 input parameters is not
+     * positive, if any command contains NaN, infinite, or out-of-float-range value, or if the
+     * quaternion of any [pose_d] is (close to) zero. The quaternions are normalized before being
+     * sent.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: NRT_CARTESIAN_MOTION_FORCE, NRT_SUPER_PRIMITIVE.
@@ -683,7 +709,9 @@ public:
      * @throw std::invalid_argument if [cart_cmds] contains joint groups that are not existing
      * single-arm joint groups in the connected robot, if any waypoint list is empty, if any
      * waypoint's last 4 input parameters is not positive, if [joint_positions] size does not match
-     * the waypoint count in [cart_cmds], or if any joint position vector size is invalid.
+     * the waypoint count in [cart_cmds], if any joint position vector size is invalid, or if any
+     * input contains NaN, infinite, or out-of-float-range value, or a (close to) zero quaternion.
+     * The quaternions are normalized before being sent.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: NRT_SUPER_PRIMITIVE.
@@ -844,7 +872,9 @@ public:
      * TCP), then the force control frame will also be moving with the root coordinate. An identity
      * transformation is provided as default.
      * @throw std::invalid_argument if [group] is not an existing single-arm joint group in the
-     * connected robot, or if [root_coord] is invalid.
+     * connected robot, if [root_coord] is invalid, or if [T_in_root] contains NaN, infinite, or
+     * out-of-float-range value, or a (close to) zero quaternion. The quaternion is normalized
+     * before being sent.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,

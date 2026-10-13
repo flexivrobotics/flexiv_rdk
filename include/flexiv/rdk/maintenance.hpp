@@ -39,8 +39,8 @@ struct PtpConfig
     /** Network port of the control box that the PTP client runs over */
     NetworkPort network_port = NetworkPort::USER_1;
 
-    /** POSIX time zone of the control box system clock, e.g. "UTC-8" for UTC+8. Must not contain
-     * any whitespace */
+    /** POSIX time zone of the control box system clock, e.g. "UTC-8" for UTC+8. At most 64
+     * printable ASCII characters, without any whitespace */
     std::string time_zone = "UTC-8";
 
     /** Whether to periodically write the synchronized system clock to the hardware RTC clock, so

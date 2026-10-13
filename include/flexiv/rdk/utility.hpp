@@ -12,6 +12,7 @@
 #include <Eigen/Eigen>
 #include <algorithm>
 #include <sstream>
+#include <stdexcept>
 
 namespace flexiv::rdk {
 
@@ -79,15 +80,24 @@ inline bool PrimitiveStateTrueForGroups(
 
 /**
  * @brief Convert quaternion to Euler angles with ZYX axis rotations.
- * @param[in] quat Quaternion input in [w,x,y,z] order.
+ * @param[in] quat Quaternion input in [w,x,y,z] order. It does not need to be normalized.
  * @return Euler angles in [x,y,z] order [rad].
+ * @throw std::invalid_argument if [quat] contains NaN or infinite value, or is (close to) zero and
+ * thus does not represent an orientation.
  * @note The return value, when converted to degrees, is the same Euler angles used by Move
  * primitives.
  */
 inline std::array<double, 3> Quat2EulerZYX(const std::array<double, 4>& quat)
 {
-    // Form quaternion
+    // Form quaternion, which must be a unit one for the conversion below to be a rotation.
+    // Normalizing does not change the orientation a non-zero quaternion represents
     Eigen::Quaterniond q(quat[0], quat[1], quat[2], quat[3]);
+    constexpr double kMinQuatNorm = 1e-6;
+    if (!q.coeffs().allFinite() || !(q.norm() >= kMinQuatNorm)) {
+        throw std::invalid_argument(
+            "[flexiv::rdk::utility::Quat2EulerZYX] Input quaternion is not finite or is zero");
+    }
+    q.normalize();
 
     // The returned array is in [z,y,x] order
     auto euler_ZYX = q.toRotationMatrix().eulerAngles(2, 1, 0);

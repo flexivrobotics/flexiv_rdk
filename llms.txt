@@ -122,6 +122,9 @@ Generation rule:
 - Avoid busy-spin loops; include `time.sleep(...)` in polling loops.
 - Prefer timeout-backed wait helpers over unbounded polling loops when generating new scripts.
 - Keep command sequence deterministic and human-readable.
+- Numeric inputs are validated: NaN and Inf values are rejected with `std::invalid_argument` in C++, raised as `ValueError` in Python. The exception is where the API docs define infinity as meaningful, e.g. `SetMaxContactWrench(...)` with infinite values disables the max contact wrench regulation of those axes. Never use NaN as an "unset" marker.
+- Real-time (RT) streaming functions only log a warning when commands arrive late and do not throw. C++ RT loops must poll `robot.reached_timeliness_failure_limit()` (next to the `robot.fault()` check) and stop when it returns true.
+- The password passed to `Safety(robot, password)` is the password of an administrator account on the robot, verified by the robot. Never hardcode it; read it from user input or the environment.
 
 ## 7) Output Style for Generated Scripts
 - Prefer one self-contained runnable script per task.

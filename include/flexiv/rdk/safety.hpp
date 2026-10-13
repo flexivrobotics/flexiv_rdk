@@ -50,11 +50,17 @@ class RDK_API Safety
 {
 public:
     /**
-     * @brief [Non-blocking] Instantiate the safety settings interface.
+     * @brief [Blocking] Instantiate the safety settings interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
-     * @param[in] password Password to authorize making changes to the robot's safety settings.
-     * @throw std::invalid_argument if the provided password is incorrect.
+     * @param[in] password Password to authorize making changes to the robot's safety settings,
+     * which is the administrator password of the robot's user authority, as set in Flexiv
+     * Elements. The robot verifies it, here and again on every request to change a setting.
+     * @throw std::invalid_argument if the provided password is incorrect, or the robot could not
+     * verify it (e.g. its user authority service is unavailable).
      * @throw std::runtime_error if the initialization sequence failed.
+     * @note This function blocks until the robot has replied.
+     * @warning The connection to the robot is not encrypted yet, so the password can be read by
+     * any host on the same network. Keep the robot on an isolated network.
      */
     Safety(const Robot& robot, const std::string& password);
     virtual ~Safety();

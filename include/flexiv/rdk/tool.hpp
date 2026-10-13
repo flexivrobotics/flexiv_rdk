@@ -105,7 +105,9 @@ public:
      * @brief [Blocking] Add a new tool with user-specified parameters.
      * @param[in] name Name of the new tool, must be unique.
      * @param[in] params Parameters of the new tool.
-     * @throw std::invalid_argument if the specified tool already exists.
+     * @throw std::invalid_argument if the specified tool already exists, or [params] contains any
+     * NaN, infinite, or out-of-float-range value, a negative mass or principal moment of inertia,
+     * or a (close to) zero TCP quaternion. The TCP quaternion is normalized before being sent.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
@@ -133,7 +135,9 @@ public:
      * @brief [Blocking] Update the parameters of an existing tool.
      * @param[in] name Name of the tool to update, must be an existing one.
      * @param[in] params New parameters for the specified tool.
-     * @throw std::invalid_argument if the specified tool does not exist.
+     * @throw std::invalid_argument if the specified tool does not exist, or [params] contains any
+     * NaN, infinite, or out-of-float-range value, a negative mass or principal moment of inertia,
+     * or a (close to) zero TCP quaternion. The TCP quaternion is normalized before being sent.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
