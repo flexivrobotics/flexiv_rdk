@@ -63,6 +63,13 @@ void HighPriorityTask(rdk::Robot& robot,
                 "HighPriorityTask: Fault occurred on the connected robot, exiting ...");
         }
 
+        // Monitor timeliness of the real-time commands. The RT streaming functions only log a
+        // warning when commands arrive late and do not throw, so the application must poll this
+        if (robot.reached_timeliness_failure_limit()) {
+            throw std::runtime_error(
+                "HighPriorityTask: Timeliness failure limit reached, exiting ...");
+        }
+
         // Swing along Z direction
         std::map<rdk::JointGroup, rdk::RtCartesianCmd> rt_cmds;
         for (const auto& [group, _] : single_arm_groups) {

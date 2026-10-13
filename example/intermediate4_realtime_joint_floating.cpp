@@ -48,6 +48,12 @@ void PeriodicTask(rdk::Robot& robot, const std::map<rdk::JointGroup, std::string
                 "PeriodicTask: Fault occurred on the connected robot, exiting ...");
         }
 
+        // Monitor timeliness of the real-time commands. The RT streaming functions only log a
+        // warning when commands arrive late and do not throw, so the application must poll this
+        if (robot.reached_timeliness_failure_limit()) {
+            throw std::runtime_error("PeriodicTask: Timeliness failure limit reached, exiting ...");
+        }
+
         std::map<rdk::JointGroup, rdk::RtJointTorqueCmd> rt_cmds;
         const auto all_states = robot.states();
         for (const auto& [group, _] : exe_groups) {
