@@ -22,6 +22,23 @@
 # - lib/lib{PROJECT_NAME}
 # - lib/cmake/{PROJECT_NAME}/
 
+# Check a downloaded prebuilt artifact again right before it is installed. The download is verified
+# at configure time, but the file then sits in the build directory until install, which can happen
+# much later and as a different user (e.g. sudo), so its SHA256 is recomputed at install time and
+# compared with the hash baked in here at configure time.
+function(FlexivVerifyAtInstall file expected_hash)
+    string(STRIP "${expected_hash}" expected_hash)
+    string(TOLOWER "${expected_hash}" expected_hash)
+    if(NOT expected_hash)
+        message(FATAL_ERROR "No expected SHA256 for ${file}")
+    endif()
+    install(CODE "
+        file(SHA256 \"${file}\" _flexiv_actual_hash)
+        if(NOT _flexiv_actual_hash STREQUAL \"${expected_hash}\")
+            message(FATAL_ERROR \"SHA256 mismatch for ${file}: expected ${expected_hash}, got \${_flexiv_actual_hash}. Re-run CMake configure to download it again.\")
+        endif()")
+endfunction()
+
 macro(FlexivInstallLibrary)
     # copy the executables and libraries to the CMAKE_INSTALL_PREFIX DIRECTORY
     # GNUInstallDirs will set CMAKE_INSTALL* to be the standard relative paths
@@ -92,6 +109,8 @@ macro(FlexivInstallLibrary)
             "${CMAKE_IMPORT_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_IMPORT_LIBRARY_SUFFIX}")
         set(_rdk_runtime_lib
             "${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+        FlexivVerifyAtInstall(${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB} "${RDK_LIB_SHA256}")
+        FlexivVerifyAtInstall(${CMAKE_CURRENT_BINARY_DIR}/${RDK_RUNTIME_LIB} "${RDK_RUNTIME_LIB_SHA256}")
         install(CODE
                 "file(REMOVE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${_rdk_import_lib})")
         install(CODE
@@ -106,6 +125,7 @@ macro(FlexivInstallLibrary)
         # Single shared-library artifact (.so on Linux, .dylib on macOS).
         set(_rdk_installed_lib
             "${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+        FlexivVerifyAtInstall(${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB} "${RDK_LIB_SHA256}")
         install(CODE
                 "file(REMOVE ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${_rdk_installed_lib})")
         install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${RDK_LIB}
