@@ -40,8 +40,8 @@ struct SafetyLimits
 
 /**
  * @class Safety
- * @brief Interface to manage safety settings of the robot. A password is required to authenticate
- * this interface.
+ * @brief Interface to manage safety settings of the robot. Reading the safety settings needs no
+ * password, while changing them requires the administrator password of the robot.
  * @note As mentioned in the function doc, certain safety settings are only applicable to the
  * manipulator but not the external axes.
  * @note Thread safety: all functions of this class are thread-safe and can be called concurrently
@@ -51,14 +51,28 @@ class RDK_API Safety
 {
 public:
     /**
-     * @brief [Blocking] Instantiate the safety settings interface.
+     * @brief [Blocking] Instantiate the safety settings interface to only read the safety settings,
+     * which needs no password.
+     * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
+     * @throw std::runtime_error if the initialization sequence failed, e.g. the default safety
+     * limits could not be obtained from the robot.
+     * @note This function blocks until the robot has replied.
+     * @note Functions that change the safety settings throw std::logic_error on this instance.
+     * Instantiate with the password to change them.
+     */
+    explicit Safety(const Robot& robot);
+
+    /**
+     * @brief [Blocking] Instantiate the safety settings interface to read and change the safety
+     * settings.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @param[in] password Password to authorize making changes to the robot's safety settings,
      * which is the administrator password of the robot's user authority, as set in Flexiv
      * Elements. The robot verifies it, here and again on every request to change a setting.
      * @throw std::invalid_argument if the provided password is incorrect, or the robot could not
      * verify it (e.g. its user authority service is unavailable).
-     * @throw std::runtime_error if the initialization sequence failed.
+     * @throw std::runtime_error if the initialization sequence failed, e.g. the default safety
+     * limits could not be obtained from the robot.
      * @note This function blocks until the robot has replied.
      * @warning The connection to the robot is not encrypted yet, so the password can be read by
      * any host on the same network. Keep the robot on an isolated network.
@@ -67,8 +81,11 @@ public:
     virtual ~Safety();
 
     /**
-     * @brief [Non-blocking] Default values of the safety limits of the connected robot.
+     * @brief [Non-blocking] Default values of the safety limits of the connected robot, which are
+     * the factory settings of its exact model and variant. Any safety limit to set must stay within
+     * them.
      * @return SafetyLimits value copy.
+     * @note The values are obtained from the robot when this instance is created.
      */
     SafetyLimits default_limits() const;
 
@@ -96,7 +113,8 @@ public:
      * \f$.
      * @throw std::invalid_argument if [min_positions] or [max_positions] contains any value outside
      * the valid range, or size of any input vector does not match manipulator DoF.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in the correct control mode, or this instance was
+     * created without a password.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
@@ -114,7 +132,8 @@ public:
      * [rad/s] \f$.
      * @throw std::invalid_argument if [max_velocities] contains any value outside the valid range,
      * or its size does not match manipulator DoF.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in the correct control mode, or this instance was
+     * created without a password.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
@@ -131,7 +150,8 @@ public:
      * [rad/s] \f$.
      * @throw std::invalid_argument if [max_velocities] contains any value outside the valid range,
      * or its size does not match manipulator DoF.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in the correct control mode, or this instance was
+     * created without a password.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
@@ -151,7 +171,8 @@ public:
      * configured regulator limit for more than [error_threshold] cycles consecutively, the robot
      * will trigger a minor fault and stop.
      * @throw std::invalid_argument if [limiting_factor] or [error_threshold] is not positive.
-     * @throw std::logic_error if robot is not in the correct control mode.
+     * @throw std::logic_error if robot is not in the correct control mode, or this instance was
+     * created without a password.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.

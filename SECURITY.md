@@ -92,9 +92,12 @@ Until DDS Security is available, the network must provide the protection:
 
 ### Safety settings password
 
-The password passed to `rdk::Safety` is the robot's **Elements admin password**, and it is verified
-by the robot. Until DDS Security is available it travels over the network **in plaintext**, so:
+The password passed to `rdk::Safety(robot, password)` is the robot's **Elements admin password**,
+and it is verified by the robot. It is only needed to change the safety settings:
+`rdk::Safety(robot)` reads them without any password. Until DDS Security is available the password
+travels over the network **in plaintext**, so:
 
-* only use `rdk::Safety` on an isolated robot network as described above;
+* use `rdk::Safety(robot)` when only reading the safety settings, so that no password is sent;
+* only use `rdk::Safety(robot, password)` on an isolated robot network as described above;
 * do not reuse the Elements admin password for anything else;
 * change it if it may have been exposed.
