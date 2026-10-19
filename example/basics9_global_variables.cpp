@@ -1,10 +1,11 @@
 /**
  * @example basics9_global_variables.cpp
- * This tutorial shows how to get and set global variables.
- * @copyright Copyright (C) 2016-2025 Flexiv Ltd. All Rights Reserved.
+ * This tutorial shows how to add, get, update and remove global variables.
+ * @copyright Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
 
+#include <flexiv/rdk/global_vars.hpp>
 #include <flexiv/rdk/robot.hpp>
 #include <flexiv/rdk/utility.hpp>
 
@@ -37,8 +38,8 @@ int main(int argc, char* argv[])
     std::string robot_sn = argv[1];
 
     // Print description
-    std::cout << ">>> Tutorial description <<<\nThis tutorial shows how to get and set global "
-                 "variables.\n"
+    std::cout << ">>> Tutorial description <<<\nThis tutorial shows how to add, get, update and "
+                 "remove global variables.\n"
               << std::endl;
 
     try {
@@ -69,54 +70,73 @@ int main(int argc, char* argv[])
         }
         std::cout << "Robot is now operational" << std::endl;
 
+        // Instantiate global variable interface
+        rdk::GlobalVars global_vars(robot);
+
         // Get existing global variables
         // =========================================================================================
-        auto global_vars = robot.global_variables();
-        if (global_vars.empty()) {
-            std::cerr << "[warn] No global variables available" << std::endl;
-            return 1;
-        } else {
-            std::cout << "Existing global variables and their original values:" << std::endl;
-            for (const auto& var : global_vars) {
-                std::cout << var.first << ": " << rdk::utility::FlexivTypes2Str(var.second)
-                          << std::endl;
-            }
+        std::cout << "Existing global variables and their current values:" << std::endl;
+        for (const auto& var : global_vars.values()) {
+            std::cout << var.first << ": " << rdk::utility::FlexivTypes2Str(var.second)
+                      << std::endl;
         }
 
-        // Set global variables
+        // Add new global variables
         // =========================================================================================
-        ///@warning These specified global variables need to be created first using Flexiv Elements
-        std::cout << "Setting new values to existing global variables" << std::endl;
-        robot.SetGlobalVariables({
-            {"test_bool", 1},
-            {"test_int", 100},
-            {"test_double", 100.123},
-            {"test_string", "Flexiv"},
-            {"test_int_vec", std::vector<int> {1, 2, 3}},
-            {"test_double_vec", std::vector<double> {1.1, 2.2, 3.3}},
-            {"test_string_vec", std::vector<std::string> {"Go", "Flexiv", "Go!"}},
-            {"test_pose", std::vector<double> {0.1, -0.2, 0.3, -90, -45, 120}},
-            {"test_coord", rdk::Coord({0.1, -0.2, 0.3}, {-90, -45, 120}, {"WORLD", "WORLD_ORIGIN"},
-                               {1, 2, 3, 4, 5, 6, 7}, {10, 20, 0, 0, 0, 0})},
-            {"test_coord_array",
+        // The data type of the initial value decides the data type of the new variable. Adding a
+        // global variable requires IDLE mode, which the robot is in after being enabled
+        const std::map<std::string, rdk::FlexivDataTypes> new_vars = {
+            {"rdk_example_int", 100},
+            {"rdk_example_double", 100.123},
+            {"rdk_example_string", std::string("Flexiv")},
+            {"rdk_example_int_vec", std::vector<int> {1, 2, 3}},
+            {"rdk_example_double_vec", std::vector<double> {1.1, 2.2, 3.3}},
+            {"rdk_example_string_vec", std::vector<std::string> {"Go", "Flexiv", "Go!"}},
+            {"rdk_example_jpos", rdk::JPos({10, 20, 30, 40, 50, 60, 70})},
+            {"rdk_example_coord",
+                rdk::Coord({0.1, -0.2, 0.3}, {-90, -45, 120}, {"WORLD", "WORLD_ORIGIN"},
+                    {1, 2, 3, 4, 5, 6, 7}, {10, 20, 0, 0, 0, 0})},
+            {"rdk_example_coord_array",
                 std::vector<rdk::Coord> {rdk::Coord({1, 2, 3}, {4, 5, 6}, {"WORK", "WorkCoord0"}),
-                    rdk::Coord({10, 20, 30}, {40, 50, 60}, {"WORLD", "WORLD_ORIGIN"},
-                        {1, 2, 3, 4, 5, 6, 7}, {10, 20, 0, 0, 0, 0}),
                     rdk::Coord({3, 2, 1}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})}},
+        };
+        std::cout << "Adding new global variables" << std::endl;
+        for (const auto& var : new_vars) {
+            if (global_vars.exist(var.first)) {
+                std::cerr << "[warn] Global variable [" << var.first
+                          << "] already exists, removing it first" << std::endl;
+                global_vars.Remove(var.first);
+            }
+            global_vars.Add(var.first, var.second);
+        }
+
+        // Update global variables
+        // =========================================================================================
+        // Updating a global variable is allowed in any control mode, e.g. to feed values to a
+        // running plan. Several global variables can be updated in one request
+        std::cout << "Updating global variables" << std::endl;
+        global_vars.Update({
+            {"rdk_example_int", 200},
+            {"rdk_example_double", 200.456},
+            {"rdk_example_int_vec", std::vector<int> {4, 5, 6}},
         });
+        global_vars.Update("rdk_example_string", std::string("Flexiv_Robotics"));
 
         // Get updated global variables
         // =========================================================================================
-        global_vars = robot.global_variables();
-        if (global_vars.empty()) {
-            std::cerr << "[warn] No global variables available" << std::endl;
-            return 1;
-        } else {
-            std::cout << "Updated global variables:" << std::endl;
-            for (const auto& var : global_vars) {
-                std::cout << var.first << ": " << rdk::utility::FlexivTypes2Str(var.second)
-                          << std::endl;
-            }
+        std::cout << "Added global variables and their updated values:" << std::endl;
+        for (const auto& var : new_vars) {
+            std::cout << var.first << ": "
+                      << rdk::utility::FlexivTypes2Str(global_vars.value(var.first)) << std::endl;
+        }
+
+        // Remove the added global variables
+        // =========================================================================================
+        // Like adding, removing a global variable requires IDLE mode. Both are saved to the
+        // robot's global variable file, so they persist after a power cycle
+        std::cout << "Removing the added global variables" << std::endl;
+        for (const auto& var : new_vars) {
+            global_vars.Remove(var.first);
         }
 
         std::cout << "Program finished" << std::endl;
