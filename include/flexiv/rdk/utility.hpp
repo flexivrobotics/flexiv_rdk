@@ -134,6 +134,8 @@ inline std::string FlexivTypes2Str(
         return Vec2Str(std::vector<double> {*val}, decimal);
     } else if (auto* val = std::get_if<std::string>(&variant)) {
         return *val;
+    } else if (auto* val = std::get_if<rdk::JPos>(&variant)) {
+        return (*val).str();
     } else if (auto* val = std::get_if<rdk::Coord>(&variant)) {
         return (*val).str();
     } else if (auto* vec = std::get_if<std::vector<int>>(&variant)) {
@@ -142,6 +144,17 @@ inline std::string FlexivTypes2Str(
         return Vec2Str(*vec, decimal, separator);
     } else if (auto* vec = std::get_if<std::vector<std::string>>(&variant)) {
         return Vec2Str(*vec, decimal, separator);
+    } else if (auto* vec = std::get_if<std::vector<rdk::JPos>>(&variant)) {
+        std::string ret;
+        // Separate two JPos by " : "
+        for (const auto& v : (*vec)) {
+            ret += v.str() + " : ";
+        }
+        // Remove the trailing " : "
+        if (!ret.empty()) {
+            ret.erase(ret.size() - 3);
+        }
+        return ret;
     } else if (auto* vec = std::get_if<std::vector<rdk::Coord>>(&variant)) {
         std::string ret;
         // Separate two Coord by " : "
