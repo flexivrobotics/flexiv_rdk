@@ -353,7 +353,7 @@ public:
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot, if the
      * robot is not operational, or if [block_until_started] is enabled and the robot did not start
-     * executing the plan in time.
+     * executing the plan in time, or faulted before it did.
      * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered if
      * [block_until_started] is disabled, or until the plan has started execution if
@@ -375,7 +375,7 @@ public:
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot, if the
      * robot is not operational, or if [block_until_started] is enabled and the robot did not start
-     * executing the plan in time.
+     * executing the plan in time, or faulted before it did.
      * @note Applicable control modes: NRT_PLAN_EXECUTION.
      * @note This function blocks until the request is successfully delivered if
      * [block_until_started] is disabled, or until the plan has started execution if

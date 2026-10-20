@@ -102,7 +102,9 @@ public:
      * sure the command name(s) are valid and can be accepted by the specified device.
      * @throw std::invalid_argument if the specified device does not exist.
      * @throw std::logic_error if the specified device is not enabled yet.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @throw std::runtime_error if failed to deliver the request to the connected robot, or if the
+     * robot rejected it because a command is not one the device takes, or its value is not of the
+     * data type or within the limits of that command. In that case none of the commands is sent.
      * @note This function blocks until the request is successfully delivered.
      */
     void Command(const std::string& name,

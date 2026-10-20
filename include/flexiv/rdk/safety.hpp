@@ -74,6 +74,10 @@ public:
     /**
      * @brief [Non-blocking] Current values of the safety limits of the connected robot.
      * @return SafetyLimits value copy.
+     * @note Only the joint velocity limits of the safety state the robot is in apply at a time, so
+     * the ones of the other state are left empty: SafetyLimits::dq_max_reduced while the robot is
+     * in normal state, and SafetyLimits::dq_max_normal while it is in reduced state. See
+     * Robot::reduced().
      */
     SafetyLimits current_limits() const;
 
