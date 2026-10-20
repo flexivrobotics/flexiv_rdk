@@ -237,10 +237,13 @@ public:
      * and ARM_2 are accepted. If left empty, home all applicable joint groups.
      * @throw std::invalid_argument if [groups] contains joint groups that are not existing
      * single-arm joint groups in the connected robot.
-     * @throw std::runtime_error if failed to execute the Home primitive.
+     * @throw std::runtime_error if failed to execute the Home primitive, if a fault occurred, or if
+     * the home posture was not reached within 300 seconds.
      * @note The robot's control mode will be temporarily switched to NRT_PRIMITIVE_EXECUTION and
      * restored to the previous mode before returning.
      * @note This function blocks until all specified joint groups have reached the home posture.
+     * @note External axes, if any, are homed together with the first joint group in [groups], since
+     * only one arm can control them at a time.
      */
     void Home(const std::vector<JointGroup>& groups = {});
 
