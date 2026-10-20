@@ -445,8 +445,13 @@ struct PlanInfo
     /** Assigned plan name */
     std::string assigned_plan_name = {};
 
-    /** Velocity scale */
-    double velocity_scale = {};
+    /**
+     * Percentage scale of the overall velocity of robot motions, the same one that
+     * Robot::SetVelocityScale() sets. Valid range: [0, 100]. 100 means moving with 100% of the
+     * specified motion velocity, and 0 means not moving at all.
+     * @note Only reflects the actual scale while a plan is running, reads 100 otherwise.
+     */
+    unsigned int velocity_scale = {};
 
     /** Waiting for user signal to step the breakpoint */
     bool waiting_for_step = {};
