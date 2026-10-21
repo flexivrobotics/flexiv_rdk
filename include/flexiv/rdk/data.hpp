@@ -567,6 +567,46 @@ struct NrtCartesianCmd
     double duration = 0.0;
 };
 
+/**
+ * @struct RtExtAxesCmd
+ * @brief Commands data for the external axes in real-time joint torque control, which makes them
+ * track joint positions while the manipulator tracks joint torques.
+ * @see Robot::StreamJointTorque().
+ */
+struct RtExtAxesCmd
+{
+    /** Default constructor */
+    RtExtAxesCmd() = default;
+
+    /**
+     * @brief Custom constructor.
+     * @param[in] q_d Target joint positions of the external axes.
+     * @param[in] dq_d Target joint velocities of the external axes. Leave empty for 0.
+     * @param[in] ddq_d Target joint accelerations of the external axes. Leave empty for 0.
+     */
+    RtExtAxesCmd(const std::vector<double>& q_d, const std::vector<double>& dq_d = {},
+        const std::vector<double>& ddq_d = {})
+    : q_d(q_d)
+    , dq_d(dq_d)
+    , ddq_d(ddq_d)
+    {
+    }
+
+    /** Target joint positions of the external axes: \f$ q_{e,d} \in \mathbb{R}^{n_e \times 1} \f$.
+     * Unit: \f$ [rad] or [m] \f$ */
+    std::vector<double> q_d = {};
+
+    /** Target joint velocities of the external axes: \f$ \dot{q}_{e,d} \in \mathbb{R}^{n_e \times
+     * 1} \f$. Providing properly calculated target velocities removes the tracking lag behind a
+     * moving target. Leave empty for 0. Unit: \f$ [rad/s] or [m/s] \f$ */
+    std::vector<double> dq_d = {};
+
+    /** Target joint accelerations of the external axes: \f$ \ddot{q}_{e,d} \in \mathbb{R}^{n_e
+     * \times 1} \f$. Providing properly calculated target accelerations removes the tracking lag
+     * while speeding up or slowing down. Leave empty for 0. Unit: \f$ [rad/s^2] or [m/s^2] \f$ */
+    std::vector<double> ddq_d = {};
+};
+
 /** Alias of the variant that holds all possible types of data exchanged with Flexiv robots */
 using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::Coord,
     std::vector<int>, std::vector<double>, std::vector<std::string>, std::vector<rdk::JPos>,

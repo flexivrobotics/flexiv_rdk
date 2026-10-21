@@ -529,10 +529,45 @@ public:
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: RT_JOINT_TORQUE.
      * @note Real-time (RT).
+     * @note To control the external axes with position commands instead of torque commands, use
+     * the other overload.
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
      */
     void StreamJointTorque(const std::vector<double>& torques, bool enable_gravity_comp = true,
         bool enable_soft_limits = true, double friction_comp_scale = 100.0);
+
+    /**
+     * @brief [Non-blocking] Continuously stream joint torque commands to the robot manipulator and
+     * joint position commands to the external axes.
+     * @param[in] torques Target joint torques: \f$ \tau_d \in \mathbb{R}^{n \times 1} \f$. The
+     * values for the external axes are ignored. Unit: \f$ [Nm] \f$.
+     * @param[in] ext_axes_cmd Target joint positions, velocities, and accelerations of the
+     * external axes.
+     * @param[in] enable_gravity_comp Enable/disable gravity compensation of the robot manipulator.
+     * The external axes are always gravity compensated.
+     * @param[in] enable_soft_limits Enable/disable soft limits to keep the joints of the robot
+     * manipulator from moving outside allowed position range, which will trigger a safety fault
+     * that requires recovery operation.
+     * @param[in] friction_comp_scale Percentage of joint friction to be compensated. Valid range:
+     * [0, 100]. Setting to 100 means to compensate all joint friction, and 0 means no friction
+     * compensation at all.
+     * @throw std::invalid_argument if the robot has no external axes, or size of [torques] does not
+     * match robot DoF, or size of [ext_axes_cmd.q_d] does not match external axes DoF, or size of
+     * [ext_axes_cmd.dq_d] or [ext_axes_cmd.ddq_d] is neither 0 nor external axes DoF, or any input
+     * vector contains NaN, infinite, or out-of-float-range value, or [friction_comp_scale] is
+     * outside the valid range.
+     * @throw std::logic_error if the robot is not in the correct control mode.
+     * @throw std::runtime_error if the robot is not operational.
+     * @note Applicable control modes: RT_JOINT_TORQUE.
+     * @note Real-time (RT).
+     * @note The external axes will not move if they are locked, see LockExternalAxes().
+     * @note Unlike the other overload, where all joints track torque commands, here only the robot
+     * manipulator joints do, while the external axes track position commands.
+     * @warning Always stream smooth and continuous commands to avoid sudden movements.
+     */
+    void StreamJointTorque(const std::vector<double>& torques, const RtExtAxesCmd& ext_axes_cmd,
+        bool enable_gravity_comp = true, bool enable_soft_limits = true,
+        double friction_comp_scale = 100.0);
 
     /**
      * @brief [Non-blocking] Continuously stream joint position, velocity, and acceleration commands
