@@ -12,7 +12,7 @@ Flexiv RDK (Robotic Development Kit), a key component of the Flexiv Robotic Soft
 
 ## LLM Guidance
 
-For AI-assisted code generation in this repository, see [llms.txt](llms.txt).
+For AI-assisted code generation in this repository, see [AGENTS.md](AGENTS.md).
 
 ## Environment Compatibility
 
