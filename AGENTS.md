@@ -1,4 +1,4 @@
-# llms.txt - Guidance for generating Flexiv robot control code in this repository
+# Guidance for generating Flexiv robot control code in this repository
 
 Scope: This file captures repository-specific, API-accurate knowledge for LLMs that generate Python control scripts using `flexivrdk`.
 
