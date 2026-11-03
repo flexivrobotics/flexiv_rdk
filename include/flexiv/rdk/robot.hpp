@@ -119,9 +119,10 @@ public:
 
     /**
      * @brief [Non-blocking] Whether the robot is ready to be operated, which requires the
-     * following conditions to be met: enabled, brakes fully released, in auto mode, no fault, and
-     * not in reduced state.
-     * @return True: operational (operational_status() == READY); false: not operational.
+     * following conditions to be met: enabled, brakes fully released, in Auto (Remote) mode, and no
+     * fault. The robot can be operated in both normal and reduced state, see reduced().
+     * @return True: operational (operational_status() == READY or IN_REDUCED_STATE); false: not
+     * operational.
      * @warning The robot won't execute any user command until it's ready to be operated.
      */
     bool operational() const;
@@ -151,14 +152,21 @@ public:
     bool fault() const;
 
     /**
-     * @brief [Non-blocking] Whether the robot is in reduced state.
-     * @return True: in reduced state; false: not in reduced state.
+     * @brief [Non-blocking] Whether the robot is in reduced state, or switching between normal and
+     * reduced state in either direction.
+     * @return True: the reduced safety limits apply; false: the normal safety limits apply.
      * @par Reduced state
      * The robot will enter reduced state if a) the safety input for reduced state goes low or b)
      * robot TCP passes through any safety plane. The safety limits are lowered in reduced state
      * compared to normal state. Specific values for the safety limits can be configured in Flexiv
      * Elements under Settings -> Safety Configuration. Please refer to the robot user manual for
      * more details about system reduced state.
+     * @par Operating in reduced state
+     * The robot stays operational in reduced state and accepts all user commands, see
+     * operational(). The reduced safety limits already apply while the robot switches between
+     * normal and reduced state, which takes about 0.5 s. The robot does not slow down the motion
+     * commanded in the real-time and non-real-time control modes to the reduced safety limits:
+     * keep it within them while this function returns true, or the robot will stop with a fault.
      */
     bool reduced() const;
 

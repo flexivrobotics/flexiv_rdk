@@ -38,8 +38,8 @@ constexpr size_t kIOPorts = 18;
 constexpr size_t kMaxExtAxes = 6;
 
 /**
- * @brief Operational status of the robot. Except for the first two, the other enumerators
- * indicate the cause of the robot being not ready to operate.
+ * @brief Operational status of the robot. Except for UNKNOWN, READY and IN_REDUCED_STATE, the
+ * other enumerators indicate the cause of the robot being not ready to operate.
  * @see Robot::operational_status().
  */
 enum class OperationalStatus
@@ -52,7 +52,7 @@ enum class OperationalStatus
     RELEASING_BRAKE,    ///< Brake release in progress, please wait.
     MINOR_FAULT,        ///< Minor fault occurred, call ClearFault() to try clearing it.
     CRITICAL_FAULT,     ///< Critical fault occurred, call ClearFault() to try clearing it.
-    IN_REDUCED_STATE,   ///< In reduced state, see reduced().
+    IN_REDUCED_STATE,   ///< Ready to be operated, in reduced state, see reduced().
     IN_RECOVERY_STATE,  ///< In recovery state, see recovery().
     IN_MANUAL_MODE,     ///< In Manual mode, need to switch to Auto (Remote) mode.
     IN_AUTO_MODE,       ///< In regular Auto mode, need to switch to Auto (Remote) mode.
