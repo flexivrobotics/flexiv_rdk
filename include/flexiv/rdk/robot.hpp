@@ -154,19 +154,23 @@ public:
     /**
      * @brief [Non-blocking] Whether the robot is in reduced state, or switching between normal and
      * reduced state in either direction.
-     * @return True: the reduced safety limits apply; false: the normal safety limits apply.
+     * @return True: in reduced state, or switching to or from it; false: otherwise.
      * @par Reduced state
      * The robot will enter reduced state if a) the safety input for reduced state goes low or b)
      * robot TCP passes through any safety plane. The safety limits are lowered in reduced state
      * compared to normal state. Specific values for the safety limits can be configured in Flexiv
-     * Elements under Settings -> Safety Configuration. Please refer to the robot user manual for
-     * more details about system reduced state.
+     * Elements under Settings -> Safety Configuration, and read with Safety::current_limits().
+     * Please refer to the robot user manual for more details about system reduced state.
      * @par Operating in reduced state
      * The robot stays operational in reduced state and accepts all user commands, see
-     * operational(). The reduced safety limits already apply while the robot switches between
-     * normal and reduced state, which takes about 0.5 s. The robot does not slow down the motion
-     * commanded in the real-time and non-real-time control modes to the reduced safety limits:
-     * keep it within them while this function returns true, or the robot will stop with a fault.
+     * operational(). This function returns true as soon as the robot starts switching from normal
+     * to reduced state. The switch takes about 0.5 s, after which the robot enforces the reduced
+     * safety limits. Motion primitives such as MoveJ, MoveL and MovePTP slow down to the reduced
+     * joint and TCP velocity limits by themselves. In the joint and Cartesian control modes,
+     * real-time and non-real-time alike, the robot follows the commands as they are: if they still
+     * exceed the reduced safety limits once the switch is done, the robot stops with a fault. So as
+     * soon as this function returns true, slow these commands down to within the reduced safety
+     * limits. This function returns false again once the robot is back in normal state.
      */
     bool reduced() const;
 

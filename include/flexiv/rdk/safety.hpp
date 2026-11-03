@@ -16,7 +16,9 @@ constexpr size_t kSafetyIOPorts = 8;
 
 /**
  * @struct SafetyLimits
- * @brief Data structure containing configurable robot safety limits.
+ * @brief Data structure containing configurable robot safety limits. They are the ones under
+ * Settings -> Safety Configuration in Flexiv Elements: the joint limits under Joint Limits, and the
+ * TCP, power and momentum limits under General Limits.
  */
 struct SafetyLimits
 {
@@ -36,6 +38,64 @@ struct SafetyLimits
      * \dot{q}^{reduced}_{max} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
      * @see Robot::reduced() */
     std::vector<double> dq_max_reduced = {};
+
+    /** Upper safety limit of the TCP linear velocity when the robot is in normal state. Unit: \f$
+     * [m/s] \f$. */
+    double tcp_linear_vel_max_normal = 0.0;
+
+    /** Upper safety limit of the TCP linear velocity when the robot is in reduced state. Unit: \f$
+     * [m/s] \f$.
+     * @see Robot::reduced() */
+    double tcp_linear_vel_max_reduced = 0.0;
+
+    /** Upper safety limit of the TCP angular velocity when the robot is in normal state. Unit: \f$
+     * [rad/s] \f$. */
+    double tcp_angular_vel_max_normal = 0.0;
+
+    /** Upper safety limit of the TCP angular velocity when the robot is in reduced state. Unit: \f$
+     * [rad/s] \f$.
+     * @see Robot::reduced() */
+    double tcp_angular_vel_max_reduced = 0.0;
+
+    /** Upper safety limit of the robot's power when the robot is in normal state. Unit: \f$ [W]
+     * \f$. */
+    double power_max_normal = 0.0;
+
+    /** Upper safety limit of the robot's power when the robot is in reduced state. Unit: \f$ [W]
+     * \f$.
+     * @see Robot::reduced() */
+    double power_max_reduced = 0.0;
+
+    /** Upper safety limit of the robot's momentum when the robot is in normal state. Unit: \f$ [kg
+     * \cdot m/s] \f$. */
+    double momentum_max_normal = 0.0;
+
+    /** Upper safety limit of the robot's momentum when the robot is in reduced state. Unit: \f$ [kg
+     * \cdot m/s] \f$.
+     * @see Robot::reduced() */
+    double momentum_max_reduced = 0.0;
+
+    /** Upper safety limit of the force at the TCP when the robot is in normal state, only enforced
+     * if tcp_wrench_monitored is true. Unit: \f$ [N] \f$. */
+    double tcp_force_max_normal = 0.0;
+
+    /** Upper safety limit of the force at the TCP when the robot is in reduced state, only enforced
+     * if tcp_wrench_monitored is true. Unit: \f$ [N] \f$.
+     * @see Robot::reduced() */
+    double tcp_force_max_reduced = 0.0;
+
+    /** Upper safety limit of the torque at the TCP when the robot is in normal state, only enforced
+     * if tcp_wrench_monitored is true. Unit: \f$ [Nm] \f$. */
+    double tcp_torque_max_normal = 0.0;
+
+    /** Upper safety limit of the torque at the TCP when the robot is in reduced state, only
+     * enforced if tcp_wrench_monitored is true. Unit: \f$ [Nm] \f$.
+     * @see Robot::reduced() */
+    double tcp_torque_max_reduced = 0.0;
+
+    /** Whether the robot enforces the safety limits of the force and torque at the TCP, which is
+     * "Enable Monitoring" under General Limits in Flexiv Elements. */
+    bool tcp_wrench_monitored = false;
 };
 
 /**
@@ -54,8 +114,8 @@ public:
      * @brief [Blocking] Instantiate the safety settings interface to only read the safety settings,
      * which needs no password.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
-     * @throw std::runtime_error if the initialization sequence failed, e.g. the default safety
-     * limits could not be obtained from the robot.
+     * @throw std::runtime_error if the initialization sequence failed, e.g. the default or current
+     * safety limits could not be obtained from the robot.
      * @note This function blocks until the robot has replied.
      * @note Functions that change the safety settings throw std::logic_error on this instance.
      * Instantiate with the password to change them.
@@ -71,8 +131,8 @@ public:
      * Elements. The robot verifies it, here and again on every request to change a setting.
      * @throw std::invalid_argument if the provided password is incorrect, or the robot could not
      * verify it (e.g. its user authority service is unavailable, or it is locked out, see below).
-     * @throw std::runtime_error if the initialization sequence failed, e.g. the default safety
-     * limits could not be obtained from the robot.
+     * @throw std::runtime_error if the initialization sequence failed, e.g. the default or current
+     * safety limits could not be obtained from the robot.
      * @note This function blocks until the robot has replied.
      * @note To protect the password against guessing, the robot locks out every password, the
      * correct one included, for 1 minute after 5 incorrect ones in a row. After that, each further
@@ -95,8 +155,12 @@ public:
     SafetyLimits default_limits() const;
 
     /**
-     * @brief [Non-blocking] Current values of the safety limits of the connected robot.
+     * @brief [Non-blocking] Current values of the safety limits of the connected robot, for both
+     * normal and reduced state.
      * @return SafetyLimits value copy.
+     * @note The values are obtained from the robot when this instance is created. They are the ones
+     * the robot has been running with since it booted: changes made since then, with this class or
+     * in Flexiv Elements, take effect after a reboot.
      */
     SafetyLimits current_limits() const;
 
