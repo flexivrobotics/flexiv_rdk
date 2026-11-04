@@ -26,7 +26,8 @@ namespace {
 /** RT loop period [sec] */
 constexpr double kLoopPeriod = 0.001;
 
-/** Outer position loop (impedance) gains, values are only for demo purpose */
+/** Outer position loop (impedance) gains, values are only for demo purpose. Only provided for an
+ * arm of 7 joints, see the DoF check in main() */
 const std::vector<double> kImpedanceKp = {3000.0, 3000.0, 800.0, 800.0, 200.0, 200.0, 200.0};
 const std::vector<double> kImpedanceKd = {80.0, 80.0, 40.0, 40.0, 8.0, 8.0, 8.0};
 
@@ -149,6 +150,18 @@ int main(int argc, char* argv[])
         // =========================================================================================
         // Instantiate robot interface
         rdk::Robot robot(robot_sn);
+
+        // The demo impedance gains only cover an arm of 7 joints, do not run joints without gains
+        // (e.g. external axes locked to an arm) on an undefined torque command
+        for (const auto& [group, name] : robot.info().single_arm_groups) {
+            const size_t dof = robot.info().DoF.at(group);
+            if (dof > kImpedanceKp.size() || dof > kImpedanceKd.size()) {
+                throw std::invalid_argument("This example only provides impedance gains for "
+                                            + std::to_string(kImpedanceKp.size())
+                                            + " joints, but joint group [" + name + "] has "
+                                            + std::to_string(dof));
+            }
+        }
 
         // Clear fault on the connected robot if any
         if (robot.fault()) {

@@ -12,6 +12,7 @@
 #include <flexiv/rdk/scheduler.hpp>
 #include <flexiv/rdk/utility.hpp>
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -20,7 +21,8 @@
 using namespace flexiv;
 
 namespace {
-/** Joint velocity damping gains for floating */
+/** Joint velocity damping gains for floating, for the 7 joints of an arm. Any further joints in an
+ * arm's joint group (e.g. external axes locked to the arm) float without damping */
 const std::vector<double> kFloatingDamping = {10.0, 10.0, 5.0, 5.0, 1.0, 1.0, 1.0};
 
 /** Atomic signal to stop scheduler tasks */
@@ -62,9 +64,13 @@ void PeriodicTask(rdk::Robot& robot, const std::map<rdk::JointGroup, std::string
 
             // Don't add damping for external axis
             if (group != rdk::JointGroup::EXT_AXIS) {
-                // Add some velocity damping
-                for (size_t i = 0; i < target_torque.size(); ++i) {
-                    target_torque[i] += -kFloatingDamping[i] * states.dtheta[i];
+                // Add some velocity damping to the arm joints, which are the last joints of the
+                // group
+                const size_t num_damped = std::min(target_torque.size(), kFloatingDamping.size());
+                const size_t first_damped = target_torque.size() - num_damped;
+                for (size_t i = 0; i < num_damped; ++i) {
+                    target_torque[first_damped + i]
+                        += -kFloatingDamping[i] * states.dtheta[first_damped + i];
                 }
             }
 
