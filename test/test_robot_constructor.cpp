@@ -36,7 +36,8 @@ void ExpectRobotConstructorFailure(
 
 TEST(RobotConstructor, InvalidSerialNumberFormat)
 {
-    ExpectRobotConstructorFailure<std::invalid_argument>("Enlight412345", "serial number is invalid");
+    ExpectRobotConstructorFailure<std::invalid_argument>(
+        "Enlight412345", "serial number is invalid");
 }
 
 TEST(RobotConstructor, UnsupportedProductModel)

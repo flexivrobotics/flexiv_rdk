@@ -137,7 +137,9 @@ def main():
         )
 
         # Wait for primitive to finish
-        while not utility.primitive_state_true_for_groups(robot.primitive_states(), "terminated"):
+        while not utility.primitive_state_true_for_groups(
+            robot.primitive_states(), "terminated"
+        ):
             time.sleep(1)
         logger.info("Sensor zeroing complete")
 

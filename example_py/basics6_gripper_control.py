@@ -169,17 +169,23 @@ def main():
         # Position control
         logger.info("Closing gripper")
         for group, params in gripper_params.items():
-            gripper.Move(group, params.min_width, params.max_vel, 0.25 * params.max_force)
+            gripper.Move(
+                group, params.min_width, params.max_vel, 0.25 * params.max_force
+            )
         time.sleep(2)
         logger.info("Opening gripper")
         for group, params in gripper_params.items():
-            gripper.Move(group, params.max_width, params.max_vel, 0.25 * params.max_force)
+            gripper.Move(
+                group, params.max_width, params.max_vel, 0.25 * params.max_force
+            )
         time.sleep(2)
 
         # Stop
         logger.info("Closing gripper")
         for group, params in gripper_params.items():
-            gripper.Move(group, params.min_width, params.max_vel, 0.25 * params.max_force)
+            gripper.Move(
+                group, params.min_width, params.max_vel, 0.25 * params.max_force
+            )
         time.sleep(0.5)
         logger.info("Stopping gripper")
         for group in gripper_params:
@@ -187,11 +193,15 @@ def main():
         time.sleep(2)
         logger.info("Closing gripper")
         for group, params in gripper_params.items():
-            gripper.Move(group, params.min_width, params.max_vel, 0.25 * params.max_force)
+            gripper.Move(
+                group, params.min_width, params.max_vel, 0.25 * params.max_force
+            )
         time.sleep(2)
         logger.info("Opening gripper")
         for group, params in gripper_params.items():
-            gripper.Move(group, params.max_width, params.max_vel, 0.25 * params.max_force)
+            gripper.Move(
+                group, params.max_width, params.max_vel, 0.25 * params.max_force
+            )
         time.sleep(0.5)
         logger.info("Stopping gripper")
         for group in gripper_params:

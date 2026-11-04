@@ -95,8 +95,9 @@ void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
                     v *= 0.5;
                 }
                 robot.SetJointImpedance(group, new_Kq);
-                std::cout << "[" << rdk::JointGroupNames().at(group) << "] Joint stiffness set to: ["
-                          << rdk::utility::Vec2Str(new_Kq) << "]" << std::endl;
+                std::cout << "[" << rdk::JointGroupNames().at(group)
+                          << "] Joint stiffness set to: [" << rdk::utility::Vec2Str(new_Kq) << "]"
+                          << std::endl;
             }
         }
 
