@@ -15,7 +15,12 @@ constexpr size_t kSafetyIOPorts = 8;
 
 /**
  * @struct SafetyLimits
- * @brief Data structure containing configurable robot safety limits.
+ * @brief Data structure containing configurable robot safety limits, for each single-arm joint
+ * group of the robot. They are the ones under Settings -> Safety Configuration in Flexiv Elements:
+ * the joint limits under Joint Limits, and the TCP, power and momentum limits under General Limits.
+ * @note A TCP, power or momentum limit that the robot does not enforce, i.e. whose enabling status
+ * is "Disabled" in Flexiv Elements, is infinity. Some robot models do not enforce the power,
+ * momentum, TCP force and TCP torque limits by default.
  */
 struct SafetyLimits
 {
@@ -35,6 +40,60 @@ struct SafetyLimits
      * state: \f$ \dot{q}^{reduced}_{max} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
      * @see Robot::reduced() */
     std::map<JointGroup, std::vector<double>> dq_max_reduced = {};
+
+    /** Upper safety limit of the TCP linear velocity of each arm when the robot is in normal state.
+     * Unit: \f$ [m/s] \f$. */
+    std::map<JointGroup, double> tcp_linear_vel_max_normal = {};
+
+    /** Upper safety limit of the TCP linear velocity of each arm when the robot is in reduced
+     * state. Unit: \f$ [m/s] \f$.
+     * @see Robot::reduced() */
+    std::map<JointGroup, double> tcp_linear_vel_max_reduced = {};
+
+    /** Upper safety limit of the TCP angular velocity of each arm when the robot is in normal
+     * state. Unit: \f$ [rad/s] \f$. */
+    std::map<JointGroup, double> tcp_angular_vel_max_normal = {};
+
+    /** Upper safety limit of the TCP angular velocity of each arm when the robot is in reduced
+     * state. Unit: \f$ [rad/s] \f$.
+     * @see Robot::reduced() */
+    std::map<JointGroup, double> tcp_angular_vel_max_reduced = {};
+
+    /** Upper safety limit of the power of each arm when the robot is in normal state. Unit:
+     * \f$ [W] \f$. */
+    std::map<JointGroup, double> power_max_normal = {};
+
+    /** Upper safety limit of the power of each arm when the robot is in reduced state. Unit:
+     * \f$ [W] \f$.
+     * @see Robot::reduced() */
+    std::map<JointGroup, double> power_max_reduced = {};
+
+    /** Upper safety limit of the momentum of each arm when the robot is in normal state. Unit:
+     * \f$ [kg \cdot m/s] \f$. */
+    std::map<JointGroup, double> momentum_max_normal = {};
+
+    /** Upper safety limit of the momentum of each arm when the robot is in reduced state. Unit:
+     * \f$ [kg \cdot m/s] \f$.
+     * @see Robot::reduced() */
+    std::map<JointGroup, double> momentum_max_reduced = {};
+
+    /** Upper safety limit of the force at the TCP of each arm when the robot is in normal state.
+     * Unit: \f$ [N] \f$. */
+    std::map<JointGroup, double> tcp_force_max_normal = {};
+
+    /** Upper safety limit of the force at the TCP of each arm when the robot is in reduced state.
+     * Unit: \f$ [N] \f$.
+     * @see Robot::reduced() */
+    std::map<JointGroup, double> tcp_force_max_reduced = {};
+
+    /** Upper safety limit of the torque at the TCP of each arm when the robot is in normal state.
+     * Unit: \f$ [Nm] \f$. */
+    std::map<JointGroup, double> tcp_torque_max_normal = {};
+
+    /** Upper safety limit of the torque at the TCP of each arm when the robot is in reduced state.
+     * Unit: \f$ [Nm] \f$.
+     * @see Robot::reduced() */
+    std::map<JointGroup, double> tcp_torque_max_reduced = {};
 };
 
 /**
@@ -53,8 +112,8 @@ public:
      * @brief [Blocking] Instantiate the safety settings interface to only read the safety settings,
      * which needs no password.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
-     * @throw std::runtime_error if the initialization sequence failed, e.g. the default safety
-     * limits could not be obtained from the robot.
+     * @throw std::runtime_error if the initialization sequence failed, e.g. the default or current
+     * safety limits could not be obtained from the robot.
      * @note This function blocks until the robot has replied.
      * @note Functions that change the safety settings throw std::logic_error on this instance.
      * Instantiate with the password to change them.
@@ -70,8 +129,8 @@ public:
      * Elements. The robot verifies it, here and again on every request to change a setting.
      * @throw std::invalid_argument if the provided password is incorrect, or the robot could not
      * verify it (e.g. its user authority service is unavailable, or it is locked out, see below).
-     * @throw std::runtime_error if the initialization sequence failed, e.g. the default safety
-     * limits could not be obtained from the robot.
+     * @throw std::runtime_error if the initialization sequence failed, e.g. the default or current
+     * safety limits could not be obtained from the robot.
      * @note This function blocks until the robot has replied.
      * @note To protect the password against guessing, the robot locks out every password, the
      * correct one included, for 1 minute after 5 incorrect ones in a row. After that, each further
@@ -94,12 +153,12 @@ public:
     SafetyLimits default_limits() const;
 
     /**
-     * @brief [Non-blocking] Current values of the safety limits of the connected robot.
+     * @brief [Non-blocking] Current values of the safety limits of the connected robot, for both
+     * normal and reduced state.
      * @return SafetyLimits value copy.
-     * @note Only the joint velocity limits of the safety state the robot is in apply at a time, so
-     * the ones of the other state are left empty: SafetyLimits::dq_max_reduced while the robot is
-     * in normal state, and SafetyLimits::dq_max_normal while it is in reduced state. See
-     * Robot::reduced().
+     * @note The values are obtained from the robot when this instance is created. They are the ones
+     * the robot has been running with since it booted: changes made since then, with this class or
+     * in Flexiv Elements, take effect after a reboot.
      */
     SafetyLimits current_limits() const;
 
