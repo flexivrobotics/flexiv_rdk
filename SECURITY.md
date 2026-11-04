@@ -96,3 +96,10 @@ over the network **in plaintext**, so:
 * only use `rdk::Safety` on an isolated robot network as described above;
 * do not reuse the administrator password for anything else;
 * change it if it may have been exposed.
+
+To protect the password against guessing, the robot locks out every password, the correct one
+included, for 1 minute after 5 incorrect ones in a row. After that, each further incorrect password
+locks them out again, twice as long each time, up to 15 minutes. The correct password, or 1 hour
+without an incorrect one, starts the count over. The lockout applies to all RDK clients together,
+and the robot records every incorrect password and every lockout in its log. A lockout you did not
+cause means that another host on the robot network tried to guess the password.

@@ -69,10 +69,15 @@ public:
      * which is the administrator password of the robot's user authority, as set in Flexiv
      * Elements. The robot verifies it, here and again on every request to change a setting.
      * @throw std::invalid_argument if the provided password is incorrect, or the robot could not
-     * verify it (e.g. its user authority service is unavailable).
+     * verify it (e.g. its user authority service is unavailable, or it is locked out, see below).
      * @throw std::runtime_error if the initialization sequence failed, e.g. the default safety
      * limits could not be obtained from the robot.
      * @note This function blocks until the robot has replied.
+     * @note To protect the password against guessing, the robot locks out every password, the
+     * correct one included, for 1 minute after 5 incorrect ones in a row. After that, each further
+     * incorrect password locks them out again, twice as long each time, up to 15 minutes. The
+     * correct password, or 1 hour without an incorrect one, starts the count over. The lockout
+     * applies to all RDK clients together, and each lockout is recorded in the robot's log.
      * @warning The connection to the robot is not encrypted yet, so the password can be read by
      * any host on the same network. Keep the robot on an isolated network.
      */
@@ -120,7 +125,9 @@ public:
      * range, or if size of any input vector does not match arm DoF.
      * @throw std::logic_error if robot is not in the correct control mode, or if this instance
      * was created without a password.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @throw std::runtime_error if the request failed, e.g. it could not be delivered to the
+     * connected robot, or the robot rejected the password, see Safety(const Robot&, const
+     * std::string&).
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
      * @warning A reboot is required for the updated safety settings to take effect. After reboot,
@@ -141,7 +148,9 @@ public:
      * size does not match arm DoF.
      * @throw std::logic_error if robot is not in the correct control mode, or if this instance
      * was created without a password.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @throw std::runtime_error if the request failed, e.g. it could not be delivered to the
+     * connected robot, or the robot rejected the password, see Safety(const Robot&, const
+     * std::string&).
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
      * @warning A reboot is required for the updated safety settings to take effect. After reboot,
@@ -161,7 +170,9 @@ public:
      * size does not match arm DoF.
      * @throw std::logic_error if robot is not in the correct control mode, or if this instance
      * was created without a password.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @throw std::runtime_error if the request failed, e.g. it could not be delivered to the
+     * connected robot, or the robot rejected the password, see Safety(const Robot&, const
+     * std::string&).
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
      * @warning A reboot is required for the updated safety settings to take effect. After reboot,
@@ -182,7 +193,9 @@ public:
      * @throw std::invalid_argument if [limiting_factor] or [error_threshold] is not positive.
      * @throw std::logic_error if robot is not in the correct control mode, or if this instance
      * was created without a password.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @throw std::runtime_error if the request failed, e.g. it could not be delivered to the
+     * connected robot, or the robot rejected the password, see Safety(const Robot&, const
+     * std::string&).
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
      * @note This setting takes effect immediately and doesn't require a reboot.
