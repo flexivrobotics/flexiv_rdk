@@ -525,8 +525,9 @@ public:
      * | RT_JOINT_IMPEDANCE | RtJointPositionCmd | RtJointPositionCmd |
      * | RT_JOINT_POSITION | RtJointPositionCmd | RtJointPositionCmd |
      * | RT_CARTESIAN_MOTION_FORCE | RtCartesianCmd | RtJointPositionCmd |
-     * @note In RT_JOINT_TORQUE, gravity compensation of the external axes is always enabled if
-     * commanded with RtJointPositionCmd.
+     * @note In RT_JOINT_TORQUE, the external axes track joint positions, with their gravity
+     * compensation always enabled, when commanded with RtJointPositionCmd. Until they are
+     * commanded, they hold their position the same way.
      * @note In RT_CARTESIAN_MOTION_FORCE, the external axes track joint positions as they carry the
      * arms, whose Cartesian motion compensates for it. They are not part of any null space, see
      * SetNullSpacePosture().
