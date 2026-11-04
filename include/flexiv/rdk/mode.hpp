@@ -35,14 +35,14 @@ enum class Mode
     /**
      * Run real-time joint torque control to track continuous commands @1kHz.
      * @note Real-time (RT) mode.
-     * @see Robot::StreamJointTorque().
+     * @see Robot::ExecuteRtCmd().
      */
     RT_JOINT_TORQUE,
 
     /**
      * Run real-time joint impedance control to track continuous commands @ 1kHz.
      * @note Real-time (RT) mode.
-     * @see Robot::StreamJointPosition().
+     * @see Robot::ExecuteRtCmd().
      */
     RT_JOINT_IMPEDANCE,
 
@@ -50,14 +50,14 @@ enum class Mode
      * Run non-real-time joint impedance control to track discrete commands (smoothened by internal
      * motion generator).
      * @note Non-real-time (NRT) mode.
-     * @see Robot::SendJointPosition().
+     * @see Robot::ExecuteNrtCmd().
      */
     NRT_JOINT_IMPEDANCE,
 
     /**
      * Run real-time joint position control to track continuous commands @ 1kHz.
      * @note Real-time (RT) mode.
-     * @see Robot::StreamJointPosition().
+     * @see Robot::ExecuteRtCmd().
      */
     RT_JOINT_POSITION,
 
@@ -65,7 +65,7 @@ enum class Mode
      * Run non-real-time joint position control to track discrete commands (smoothened by internal
      * motion generator).
      * @note Non-real-time (NRT) mode.
-     * @see Robot::SendJointPosition().
+     * @see Robot::ExecuteNrtCmd().
      */
     NRT_JOINT_POSITION,
 
@@ -87,7 +87,7 @@ enum class Mode
     /**
      * Run real-time Cartesian motion-force control to track continuous commands @ 1kHz.
      * @note Real-time (RT) mode.
-     * @see Robot::StreamCartesianMotionForce().
+     * @see Robot::ExecuteRtCmd().
      */
     RT_CARTESIAN_MOTION_FORCE,
 
@@ -95,7 +95,7 @@ enum class Mode
      * Run non-real-time Cartesian motion-force control to track discrete commands, smoothened by
      * internal motion generator.
      * @note Non-real-time (NRT) mode.
-     * @see Robot::SendCartesianMotionForce().
+     * @see Robot::ExecuteNrtCmd().
      */
     NRT_CARTESIAN_MOTION_FORCE,
 
@@ -103,7 +103,7 @@ enum class Mode
      * Run non-real-time super primitives, i.e. composite tasks that consist of various components
      * like motion, force, vision, planning, etc.
      * @note Non-real-time (NRT) mode.
-     * @see Robot::SendCartesianMotionForce().
+     * @see Robot::ExecuteNrtCmd().
      * @see Robot::SendMultiCartesianMotionForce().
      */
     NRT_SUPER_PRIMITIVE,

@@ -498,6 +498,89 @@ public:
      */
     std::map<JointGroup, PrimitiveStates> primitive_states() const;
 
+    //======================================= DIRECT CONTROL =======================================
+    /**
+     * @brief [Non-blocking] Execute real-time commands on the specified joint group(s). Call this
+     * every 1 ms from the real-time loop.
+     * @param[in] cmds Real-time commands mapped by joint group, whose types must be ones the joint
+     * groups take in the current control mode of the robot, see the table below. Only existing
+     * single-arm joint groups and external axis joint groups are accepted.
+     * @throw std::invalid_argument if any of the following:
+     * - [cmds] contains a joint group that is not an existing single-arm or external axis joint
+     *   group in the connected robot.
+     * - [cmds] contains Cartesian commands for an external axis joint group.
+     * - Size of any input vector does not match the DoF of its joint group.
+     * - Any command contains NaN, infinite, or out-of-float-range value.
+     * - [friction_comp_scale] is outside the valid range.
+     * - The quaternion of any [pose_d] is (close to) zero.
+     * @throw std::logic_error if the robot is not in one of the control modes below, or if any
+     * joint group does not take its type of commands in the current control mode.
+     * @throw std::runtime_error if the robot is not operational.
+     * @note Real-time (RT).
+     * @note The quaternions of [pose_d] are normalized before being sent.
+     * @note Applicable control modes and the commands the joint groups take in them:
+     * | Control mode | Single-arm joint groups | External axis joint group |
+     * | --- | --- | --- |
+     * | RT_JOINT_TORQUE | RtJointTorqueCmd | RtJointTorqueCmd or RtJointPositionCmd |
+     * | RT_JOINT_IMPEDANCE | RtJointPositionCmd | RtJointPositionCmd |
+     * | RT_JOINT_POSITION | RtJointPositionCmd | RtJointPositionCmd |
+     * | RT_CARTESIAN_MOTION_FORCE | RtCartesianCmd | RtJointPositionCmd |
+     * @note In RT_JOINT_TORQUE, gravity compensation of the external axes is always enabled if
+     * commanded with RtJointPositionCmd.
+     * @note In RT_CARTESIAN_MOTION_FORCE, the external axes track joint positions as they carry the
+     * arms, whose Cartesian motion compensates for it. They are not part of any null space, see
+     * SetNullSpacePosture().
+     * @note A joint group left out of [cmds] keeps its last commands, or holds its position if it
+     * has not been commanded since the last control mode switch.
+     * @warning Always stream smooth and continuous motion commands to avoid sudden movements. The
+     * force commands don't need to be continuous.
+     */
+    void ExecuteRtCmd(const std::map<JointGroup, RtCmd>& cmds);
+
+    /**
+     * @brief [Non-blocking] Execute non-real-time commands on the specified joint group(s). Call
+     * this whenever a target changes. An internal motion generator smoothens the discrete commands
+     * of each joint group, then the commands are tracked according to the current control mode of
+     * the robot.
+     * @param[in] cmds Non-real-time commands mapped by joint group, whose types must be ones the
+     * joint groups take in the current control mode of the robot, see the table below. Only
+     * existing single-arm joint groups and external axis joint groups are accepted.
+     * @throw std::invalid_argument if any of the following:
+     * - [cmds] contains a joint group that is not an existing single-arm or external axis joint
+     *   group in the connected robot.
+     * - [cmds] contains Cartesian commands for an external axis joint group.
+     * - Size of any input vector does not match the DoF of its joint group.
+     * - [dq_max], [ddq_max], or any of the last 4 input parameters of NrtCartesianCmd is not
+     *   positive.
+     * - Any command contains NaN, infinite, or out-of-float-range value.
+     * - The quaternion of any [pose_d] is (close to) zero.
+     * @throw std::logic_error if the robot is not in one of the control modes below, or if any
+     * joint group does not take its type of commands in the current control mode.
+     * @throw std::runtime_error if the robot is not operational.
+     * @note The quaternions of [pose_d] are normalized before being sent.
+     * @note Applicable control modes and the commands the joint groups take in them:
+     * | Control mode | Single-arm joint groups | External axis joint group |
+     * | --- | --- | --- |
+     * | NRT_JOINT_IMPEDANCE | NrtJointPositionCmd | NrtJointPositionCmd |
+     * | NRT_JOINT_POSITION | NrtJointPositionCmd | NrtJointPositionCmd |
+     * | NRT_CARTESIAN_MOTION_FORCE | NrtCartesianCmd | NrtJointPositionCmd |
+     * | NRT_SUPER_PRIMITIVE | NrtCartesianCmd | NrtJointPositionCmd |
+     * @note In NRT_CARTESIAN_MOTION_FORCE and NRT_SUPER_PRIMITIVE, the external axes track joint
+     * positions as they carry the arms, whose Cartesian motion compensates for it. They are not
+     * part of any null space, see SetNullSpacePosture(). In NRT_SUPER_PRIMITIVE, their motion is
+     * planned together with the arms.
+     * @note A joint group left out of [cmds] keeps its last target, or holds its position if it has
+     * not been commanded since the last control mode switch.
+     * @note In NRT_SUPER_PRIMITIVE, a trajectory sent with SendMultiCartesianMotionForce() covers
+     * the whole robot, its waypoint joint positions including those of the external axes. Calling
+     * this function ends it: the arms it commands and the external axes stop where they are if left
+     * out of [cmds].
+     * @warning Calling this function again while the motion from the previous call is still
+     * ongoing will trigger an online re-planning of the trajectory, such that the previous command
+     * is aborted and the new command starts to execute.
+     */
+    void ExecuteNrtCmd(const std::map<JointGroup, NrtCmd>& cmds);
+
     //==================================== DIRECT JOINT CONTROL ====================================
     /**
      * @brief [Non-blocking] Continuously stream joint torque commands of the specified joint
@@ -514,8 +597,11 @@ public:
      * @note Applicable control modes: RT_JOINT_TORQUE.
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
+     * @deprecated Use ExecuteRtCmd() instead, which takes the commands of every real-time control
+     * mode, e.g. joint commands of the external axes together with Cartesian commands of the arms.
      */
-    void StreamJointTorque(const std::map<JointGroup, RtJointTorqueCmd>& cmds);
+    [[deprecated("Use ExecuteRtCmd() instead")]] void StreamJointTorque(
+        const std::map<JointGroup, RtJointTorqueCmd>& cmds);
 
     /**
      * @brief [Non-blocking] Continuously stream joint position, velocity, and acceleration commands
@@ -533,8 +619,11 @@ public:
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous commands to avoid sudden movements.
      * @see SetJointImpedance().
+     * @deprecated Use ExecuteRtCmd() instead, which takes the commands of every real-time control
+     * mode, e.g. joint commands of the external axes together with Cartesian commands of the arms.
      */
-    void StreamJointPosition(const std::map<JointGroup, RtJointPositionCmd>& cmds);
+    [[deprecated("Use ExecuteRtCmd() instead")]] void StreamJointPosition(
+        const std::map<JointGroup, RtJointPositionCmd>& cmds);
 
     /**
      * @brief [Non-blocking] Discretely send joint position and velocity commands of the specified
@@ -554,8 +643,12 @@ public:
      * ongoing will trigger an online re-planning of the joint trajectory, such that the previous
      * command is aborted and the new command starts to execute.
      * @see SetJointImpedance().
+     * @deprecated Use ExecuteNrtCmd() instead, which takes the commands of every non-real-time
+     * control mode, e.g. joint commands of the external axes together with Cartesian commands of
+     * the arms.
      */
-    void SendJointPosition(const std::map<JointGroup, NrtJointPositionCmd>& cmds);
+    [[deprecated("Use ExecuteNrtCmd() instead")]] void SendJointPosition(
+        const std::map<JointGroup, NrtJointPositionCmd>& cmds);
 
     /**
      * @brief [Blocking] Set impedance properties of the robot's joint motion controller used in
@@ -637,9 +730,6 @@ public:
      * @note Real-time (RT).
      * @warning Always stream smooth and continuous motion commands to avoid sudden movements. The
      * force commands don't need to be continuous.
-     * @warning Same as Flexiv Elements, the target wrench is expressed as wrench sensed at TCP
-     * instead of wrench exerted by TCP. E.g. commanding f_z = +5 N will make the end-effector move
-     * towards -Z direction, so that upon contact, the sensed force will be +5 N.
      * @par How to achieve pure motion control?
      * Use SetForceControlAxis() to disable force control for all Cartesian axes to achieve pure
      * motion control. This function does pure motion control by default.
@@ -652,8 +742,11 @@ public:
      * target wrench for the force-controlled axes.
      * @see SetCartesianImpedance(), SetMaxContactWrench(), SetNullSpacePosture(),
      * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
+     * @deprecated Use ExecuteRtCmd() instead, which takes the commands of every real-time control
+     * mode, e.g. joint commands of the external axes together with Cartesian commands of the arms.
      */
-    void StreamCartesianMotionForce(const std::map<JointGroup, RtCartesianCmd>& cmds);
+    [[deprecated("Use ExecuteRtCmd() instead")]] void StreamCartesianMotionForce(
+        const std::map<JointGroup, RtCartesianCmd>& cmds);
 
     /**
      * @brief [Non-blocking] Discretely send Cartesian motion and/or force commands of the specified
@@ -671,9 +764,6 @@ public:
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: NRT_CARTESIAN_MOTION_FORCE, NRT_SUPER_PRIMITIVE.
-     * @warning Same as Flexiv Elements, the target wrench is expressed as wrench sensed at TCP
-     * instead of wrench exerted by TCP. E.g. commanding f_z = +5 N will make the end-effector move
-     * towards -Z direction, so that upon contact, the sensed force will be +5 N.
      * @par How to achieve pure motion control?
      * Use SetForceControlAxis() to disable force control for all Cartesian axes to achieve pure
      * motion control. This function does pure motion control by default.
@@ -686,8 +776,12 @@ public:
      * target wrench for the force-controlled axes.
      * @see SetCartesianImpedance(), SetMaxContactWrench(), SetNullSpacePosture(),
      * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
+     * @deprecated Use ExecuteNrtCmd() instead, which takes the commands of every non-real-time
+     * control mode, e.g. joint commands of the external axes together with Cartesian commands of
+     * the arms.
      */
-    void SendCartesianMotionForce(const std::map<JointGroup, NrtCartesianCmd>& cmds);
+    [[deprecated("Use ExecuteNrtCmd() instead")]] void SendCartesianMotionForce(
+        const std::map<JointGroup, NrtCartesianCmd>& cmds);
 
     /**
      * @brief [Non-blocking] Discretely send Cartesian multi-waypoint motion and/or force commands
@@ -706,9 +800,10 @@ public:
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if the robot is not operational.
      * @note Applicable control modes: NRT_SUPER_PRIMITIVE.
-     * @warning Same as Flexiv Elements, the target wrench is expressed as wrench sensed at TCP
-     * instead of wrench exerted by TCP. E.g. commanding f_z = +5 N will make the end-effector move
-     * towards -Z direction, so that upon contact, the sensed force will be +5 N.
+     * @note The trajectory covers the whole robot: [joint_pos] includes the positions of the
+     * external axes, if any, which follow them. It replaces the targets that the arms in
+     * [cart_cmds] and the external axes had, and ends with the next call to ExecuteNrtCmd(), after
+     * which those of them that call leaves out stop where they are.
      * @see SetCartesianImpedance(), SetMaxContactWrench(), SetNullSpacePosture(),
      * SetForceControlAxis(), SetForceControlFrame(), SetPassiveForceControl().
      */
@@ -770,13 +865,13 @@ public:
      * @brief [Blocking] Set reference joint positions for the null-space posture control module
      * used in the Cartesian motion-force control modes.
      * @param[in] group The joint group to set null-space posture for. Only existing single-arm
-     * joint groups and external axis joint groups are accepted.
+     * joint groups like ARM_1 and ARM_2 are accepted.
      * @param[in] ref_positions Reference joint positions for the null-space posture control:
      * \f$ q_{ns} \in \mathbb{R}^{n \times 1} \f$. Valid range: [RobotInfo::q_min,
      * RobotInfo::q_max]. Unit: \f$ [rad] \f$.
-     * @throw std::invalid_argument if [group] is not an existing single-arm or external axis
-     * joint group in the connected robot, if [ref_positions] contains any value outside the valid
-     * range, or if its size does not match robot DoF.
+     * @throw std::invalid_argument if [group] is not an existing single-arm joint group in the
+     * connected robot, if [ref_positions] contains any value outside the valid range, or if its
+     * size does not match robot DoF.
      * @throw std::logic_error if the robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
      * @note Applicable control modes: RT_CARTESIAN_MOTION_FORCE, NRT_CARTESIAN_MOTION_FORCE,
@@ -791,6 +886,8 @@ public:
      * desired robot posture are set using this function, the robot's null-space control module will
      * try to pull the arm as close to this posture as possible without affecting the primary
      * Cartesian motion-force control task.
+     * @note The external axes have no null space: their task ranks above those of the arms they
+     * carry. Command their joint positions with ExecuteRtCmd() or ExecuteNrtCmd() instead.
      */
     void SetNullSpacePosture(JointGroup group, const std::vector<double>& ref_positions);
 

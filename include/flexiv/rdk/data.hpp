@@ -782,7 +782,7 @@ struct PrimitiveStates
 /**
  * @struct RtJointTorqueCmd
  * @brief Commands data for real-time joint torque control.
- * @see Robot::StreamJointTorque().
+ * @see Robot::ExecuteRtCmd().
  */
 struct RtJointTorqueCmd
 {
@@ -802,7 +802,8 @@ struct RtJointTorqueCmd
     /** Target joint torques: \f$ \tau_d \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm] \f$ */
     std::vector<double> tau_d = {};
 
-    /** Enable/disable robot gravity compensation */
+    /** Enable/disable gravity compensation of the joints of this joint group. The other joint
+     * groups keep their own setting */
     bool enable_gravity_comp = true;
 
     /** Enable/disable soft limits to keep the joints from moving outside allowed position range,
@@ -818,8 +819,8 @@ struct RtJointTorqueCmd
 
 /**
  * @struct RtJointPositionCmd
- * @brief Commands data for real-time joint position control.
- * @see Robot::StreamJointPosition().
+ * @brief Commands data for real-time joint position and impedance control.
+ * @see Robot::ExecuteRtCmd().
  */
 struct RtJointPositionCmd
 {
@@ -850,7 +851,7 @@ struct RtJointPositionCmd
 /**
  * @struct NrtJointPositionCmd
  * @brief Commands data for non-real-time joint position control.
- * @see Robot::SendJointPosition().
+ * @see Robot::ExecuteNrtCmd().
  */
 struct NrtJointPositionCmd
 {
@@ -887,7 +888,7 @@ struct NrtJointPositionCmd
 /**
  * @struct RtCartesianCmd
  * @brief Commands data for real-time Cartesian motion-force control.
- * @see Robot::StreamCartesianMotionForce().
+ * @see Robot::ExecuteRtCmd().
  */
 struct RtCartesianCmd
 {
@@ -915,7 +916,10 @@ struct RtCartesianCmd
      * SetForceControlFrame()): \f$ ^{O}F_d \in \mathbb{R}^{6 \times 1} \f$. The robot will track
      * the target wrench using an explicit force controller. Consists of \f$ \mathbb{R}^{3 \times 1}
      * \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T
-     * \f$. Unit: \f$ [N]:[Nm] \f$ */
+     * \f$. Unit: \f$ [N]:[Nm] \f$
+     * @warning Same as Flexiv Elements, the target wrench is expressed as wrench sensed at TCP
+     * instead of wrench exerted by TCP. E.g. commanding f_z = +5 N will make the end-effector move
+     * towards -Z direction, so that upon contact, the sensed force will be +5 N. */
     std::array<double, kCartDoF> wrench_d = {};
 
     /** Target TCP twist in world frame: \f$ ^{O}\dot{x}_d \in \mathbb{R}^{6 \times 1} \f$.
@@ -936,7 +940,7 @@ struct RtCartesianCmd
 /**
  * @struct NrtCartesianCmd
  * @brief Commands data for non-real-time Cartesian motion-force control.
- * @see Robot::SendCartesianMotionForce().
+ * @see Robot::ExecuteNrtCmd().
  */
 struct NrtCartesianCmd
 {
@@ -967,7 +971,10 @@ struct NrtCartesianCmd
      * SetForceControlFrame()): \f$ ^{O}F_d \in \mathbb{R}^{6 \times 1} \f$. The robot will track
      * the target wrench using an explicit force controller. Consists of \f$ \mathbb{R}^{3 \times 1}
      * \f$ force and \f$ \mathbb{R}^{3 \times 1} \f$ moment: \f$ [f_x, f_y, f_z, m_x, m_y, m_z]^T
-     * \f$. Unit: \f$ [N]:[Nm] \f$ */
+     * \f$. Unit: \f$ [N]:[Nm] \f$
+     * @warning Same as Flexiv Elements, the target wrench is expressed as wrench sensed at TCP
+     * instead of wrench exerted by TCP. E.g. commanding f_z = +5 N will make the end-effector move
+     * towards -Z direction, so that upon contact, the sensed force will be +5 N. */
     std::array<double, kCartDoF> wrench_d = {};
 
     /** Target TCP twist in world frame: \f$ ^{O}\dot{x}_d \in \mathbb{R}^{6 \times 1} \f$.
@@ -993,6 +1000,20 @@ struct NrtCartesianCmd
      * provided as default. Unit: \f$ [rad/s^2] \f$ */
     double max_angular_acc = 5.0;
 };
+
+/**
+ * @brief Real-time commands of one joint group. The type of commands must be one the joint group
+ * takes in the control mode of the robot.
+ * @see Robot::ExecuteRtCmd().
+ */
+using RtCmd = std::variant<RtJointTorqueCmd, RtJointPositionCmd, RtCartesianCmd>;
+
+/**
+ * @brief Non-real-time commands of one joint group. The type of commands must be one the joint
+ * group takes in the control mode of the robot.
+ * @see Robot::ExecuteNrtCmd().
+ */
+using NrtCmd = std::variant<NrtJointPositionCmd, NrtCartesianCmd>;
 
 /**
  * @brief Operator overloading to out stream all members of RobotEvent in JSON format.
