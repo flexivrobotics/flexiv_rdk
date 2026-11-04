@@ -6,6 +6,7 @@
  */
 
 #include <flexiv/rdk/robot.hpp>
+#include <flexiv/rdk/global_vars.hpp>
 #include <flexiv/rdk/utility.hpp>
 
 #include <iostream>
@@ -69,15 +70,18 @@ int main(int argc, char* argv[])
         }
         std::cout << "Robot is now operational" << std::endl;
 
+        // Instantiate global variables interface
+        rdk::GlobalVars global_vars(robot);
+
         // Get existing global variables
         // =========================================================================================
-        auto global_vars = robot.global_variables();
-        if (global_vars.empty()) {
+        auto values = global_vars.values();
+        if (values.empty()) {
             std::cerr << "[warn] No global variables available" << std::endl;
             return 1;
         } else {
             std::cout << "Existing global variables and their original values:" << std::endl;
-            for (const auto& var : global_vars) {
+            for (const auto& var : values) {
                 std::cout << var.first << ": " << rdk::utility::FlexivTypes2Str(var.second)
                           << std::endl;
             }
@@ -87,7 +91,7 @@ int main(int argc, char* argv[])
         // =========================================================================================
         ///@warning These specified global variables need to be created first using Flexiv Elements
         std::cout << "Setting new values to existing global variables" << std::endl;
-        robot.SetGlobalVariables({
+        global_vars.Update({
             {"test_bool", 1},
             {"test_int", 100},
             {"test_double", 100.123},
@@ -107,13 +111,13 @@ int main(int argc, char* argv[])
 
         // Get updated global variables
         // =========================================================================================
-        global_vars = robot.global_variables();
-        if (global_vars.empty()) {
+        values = global_vars.values();
+        if (values.empty()) {
             std::cerr << "[warn] No global variables available" << std::endl;
             return 1;
         } else {
             std::cout << "Updated global variables:" << std::endl;
-            for (const auto& var : global_vars) {
+            for (const auto& var : values) {
                 std::cout << var.first << ": " << rdk::utility::FlexivTypes2Str(var.second)
                           << std::endl;
             }

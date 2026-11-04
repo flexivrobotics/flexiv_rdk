@@ -59,22 +59,25 @@ def main():
 
         logger.info("Robot is now operational")
 
+        # Instantiate global variables interface
+        global_vars = flexivrdk.GlobalVars(robot)
+
         # Get existing global variables
         # =========================================================================================
-        global_vars = robot.global_variables()
-        if not global_vars:
+        values = global_vars.values()
+        if not values:
             logger.warning("No global variables available")
             return 1
         else:
             logger.info("Existing global variables and their original values:")
-            for key, value in global_vars.items():
+            for key, value in values.items():
                 print(f"{key}: {value}")
 
         # Set global variables
         # =========================================================================================
         # WARNING: These specified global variables need to be created first using Flexiv Elements
         logger.info("Setting new values to existing global variables")
-        robot.SetGlobalVariables(
+        global_vars.Update(
             {
                 "test_bool": 1,
                 "test_int": 100,
@@ -109,13 +112,13 @@ def main():
 
         # Get updated global variables
         # =========================================================================================
-        global_vars = robot.global_variables()
-        if not global_vars:
+        values = global_vars.values()
+        if not values:
             logger.warning("No global variables available")
             return 1
         else:
             logger.info("Updated global variables:")
-            for key, value in global_vars.items():
+            for key, value in values.items():
                 print(f"{key}: {value}")
 
         logger.info("Program finished")
