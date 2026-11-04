@@ -67,9 +67,9 @@ public:
 
     /**
      * @brief [Blocking] Calibrate all joint torque sensors of the robot, which will move to a
-     * proper calibration posture first, then start the calibration of its joint torque sensors.
-     * Trigger this calibration if the sensed joint torques have noticeable deviations from true
-     * values. See below for more details.
+     * proper calibration posture first, then start the calibration of its joint torque sensors and
+     * save the result to the robot. Trigger this calibration if the sensed joint torques have
+     * noticeable deviations from true values. See below for more details.
      * @param[in] cali_posture Joint positions to move the robot to before starting the calibration,
      * keyed by the joint group to apply them to: \f$ q_cali \in \mathbb{R}^{n \times 1} \f$. The
      * valid keys are the single-arm joint groups of the connected robot, plus JointGroup::EXT_AXIS
@@ -82,10 +82,11 @@ public:
      * robot does not have, if the size of an entry does not match the DoF of its joint group, or if
      * an entry contains a value outside the valid range.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if the calibration did not finish within the timeout or a fault
-     * occurred during it.
+     * @throw std::runtime_error if the calibration did not finish within the timeout, a fault
+     * occurred during it, or its result could not be saved.
      * @note Applicable control modes: IDLE.
-     * @note This function blocks until the calibration is finished.
+     * @note This function blocks until the calibration is finished and its result is saved.
+     * @warning The robot needs to be rebooted for the new calibration to take effect.
      * @par How to determine when this calibration is needed?
      * 1. When the robot is static and there's no payload or external force exerted on it, if
      * RobotStates::tcp_wrench_local still gives greater than 5N reading, then this calibration
