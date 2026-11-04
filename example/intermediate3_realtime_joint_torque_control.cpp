@@ -90,22 +90,26 @@ void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
                 }
             }
 
-            // Compute target joint torque using outer position loop (impedance)
-            std::vector<double> target_torque(target_pos.size());
-            // Set target torque for external axis to zero, as the demo impedance gains are defined
-            // for only the arms
-            if (group != rdk::JointGroup::EXT_AXIS) {
-                const auto& states = all_states.at(group);
-                for (size_t i = 0; i < target_torque.size(); ++i) {
-                    target_torque[i] = kImpedanceKp[i] * (target_pos[i] - states.q[i])
-                                       - kImpedanceKd[i] * states.dtheta[i];
-                }
+            // The external axes cannot be torque controlled directly, command their target joint
+            // positions instead, which the robot tracks itself
+            if (group == rdk::JointGroup::EXT_AXIS) {
+                const std::vector<double> zeros(target_pos.size(), 0.0);
+                rt_cmds[group] = rdk::RtJointPositionCmd(target_pos, zeros, zeros);
+                continue;
             }
 
+            // Compute target joint torque using outer position loop (impedance)
+            std::vector<double> target_torque(target_pos.size());
+            const auto& states = all_states.at(group);
+            for (size_t i = 0; i < target_torque.size(); ++i) {
+                target_torque[i] = kImpedanceKp[i] * (target_pos[i] - states.q[i])
+                                   - kImpedanceKd[i] * states.dtheta[i];
+            }
             rt_cmds[group] = rdk::RtJointTorqueCmd(target_torque, true, true);
         }
 
-        // Send target joint torque to RDK server
+        // Send target joint torques of the arms and target joint positions of the external axes to
+        // RDK server
         robot.ExecuteRtCmd(rt_cmds);
 
         loop_counter++;
@@ -196,7 +200,8 @@ int main(int argc, char* argv[])
         if (exe_groups.empty()) {
             throw std::runtime_error("No single-arm joint group found on the connected robot");
         }
-        // The external axis joint group (if it exists) also supports direct joint control
+        // The external axis joint group (if it exists) also supports direct joint control. In
+        // real-time joint torque control mode, it takes joint position commands
         if (robot.info().all_groups.contains(rdk::JointGroup::EXT_AXIS)) {
             exe_groups.emplace(
                 rdk::JointGroup::EXT_AXIS, robot.info().all_groups.at(rdk::JointGroup::EXT_AXIS));

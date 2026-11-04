@@ -3,7 +3,8 @@
  * This tutorial runs real-time joint floating with gentle velocity damping, gravity compensation,
  * and soft protection against position limits. This example is ideal for verifying the system's
  * whole-loop real-timeliness, accuracy of the robot dynamics model, and joint torque control
- * performance. If everything works well, all joints should float smoothly.
+ * performance. If everything works well, all joints of the arms should float smoothly. The external
+ * axes, if any, hold their position.
  * @copyright Copyright (C) 2016-2026 Flexiv Ltd. All Rights Reserved.
  * @author Flexiv
  */
@@ -62,16 +63,12 @@ void PeriodicTask(rdk::Robot& robot, const std::map<rdk::JointGroup, std::string
             const auto& states = all_states.at(group);
             std::vector<double> target_torque(states.q.size());
 
-            // Don't add damping for external axis
-            if (group != rdk::JointGroup::EXT_AXIS) {
-                // Add some velocity damping to the arm joints, which are the last joints of the
-                // group
-                const size_t num_damped = std::min(target_torque.size(), kFloatingDamping.size());
-                const size_t first_damped = target_torque.size() - num_damped;
-                for (size_t i = 0; i < num_damped; ++i) {
-                    target_torque[first_damped + i]
-                        += -kFloatingDamping[i] * states.dtheta[first_damped + i];
-                }
+            // Add some velocity damping to the arm joints, which are the last joints of the group
+            const size_t num_damped = std::min(target_torque.size(), kFloatingDamping.size());
+            const size_t first_damped = target_torque.size() - num_damped;
+            for (size_t i = 0; i < num_damped; ++i) {
+                target_torque[first_damped + i]
+                    += -kFloatingDamping[i] * states.dtheta[first_damped + i];
             }
 
             rt_cmds[group] = rdk::RtJointTorqueCmd(target_torque, true, true);
@@ -104,7 +101,8 @@ int main(int argc, char* argv[])
                  "gentle velocity damping, gravity compensation, and soft protection against "
                  "position limits. This example is ideal for verifying the system's whole-loop "
                  "real-timeliness, accuracy of the robot dynamics model, and joint torque control "
-                 "performance. If everything works well, all joints should float smoothly.\n"
+                 "performance. If everything works well, all joints of the arms should float "
+                 "smoothly. The external axes, if any, hold their position.\n"
               << std::endl;
 
     try {
@@ -141,15 +139,11 @@ int main(int argc, char* argv[])
 
         // Real-time Joint Floating
         // =========================================================================================
-        // Direct joint control can be executed by single-arm joint groups and the external axis
-        auto exe_groups = robot.info().single_arm_groups;
+        // Float the single-arm joint groups. The external axis joint group (if it exists) cannot
+        // be torque controlled directly, so it is left out of the commands and holds its position
+        const auto exe_groups = robot.info().single_arm_groups;
         if (exe_groups.empty()) {
             throw std::runtime_error("No single-arm joint group found on the connected robot");
-        }
-        // The external axis joint group (if exists) also supports direct joint control
-        if (robot.info().all_groups.contains(rdk::JointGroup::EXT_AXIS)) {
-            exe_groups.emplace(
-                rdk::JointGroup::EXT_AXIS, robot.info().all_groups.at(rdk::JointGroup::EXT_AXIS));
         }
 
         // Switch to real-time joint torque control mode
