@@ -90,7 +90,7 @@ void PeriodicTask(rdk::Robot& robot,
         }
         std::array<double, rdk::kCartDoF> target_wrench = {0.0, 0.0, Fz, 0.0, 0.0, 0.0};
 
-        std::map<rdk::JointGroup, rdk::RtCartesianCmd> rt_cmds;
+        std::map<rdk::JointGroup, rdk::RtCmd> rt_cmds;
         for (const auto& [group, init_pose] : all_init_pose) {
             auto target_pose = init_pose;
 
@@ -107,7 +107,7 @@ void PeriodicTask(rdk::Robot& robot,
         }
 
         // Command target pose and target wrench
-        robot.StreamCartesianMotionForce(rt_cmds);
+        robot.ExecuteRtCmd(rt_cmds);
 
         // Increment loop counter
         loop_counter++;
@@ -242,7 +242,7 @@ int main(int argc, char* argv[])
         }
 
         // Set target point along -Z direction and expect contact to happen during the travel
-        std::map<rdk::JointGroup, rdk::NrtCartesianCmd> nrt_cmds;
+        std::map<rdk::JointGroup, rdk::NrtCmd> nrt_cmds;
         for (const auto& [group, init_pose] : all_init_pose) {
             auto target_pose = init_pose;
             target_pose[2] -= kSearchDistance;
@@ -251,7 +251,7 @@ int main(int argc, char* argv[])
 
         // Send target point to robot to start searching for contact and limit the velocity. Keep
         // target wrench 0 at this stage since we are not doing force control yet
-        robot.SendCartesianMotionForce(nrt_cmds);
+        robot.ExecuteNrtCmd(nrt_cmds);
 
         // Use a while loop to poll robot states and check if a contact is made
         bool is_contacted = false;

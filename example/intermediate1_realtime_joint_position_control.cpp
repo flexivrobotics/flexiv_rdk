@@ -61,7 +61,7 @@ void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
             throw std::runtime_error("PeriodicTask: Timeliness failure limit reached, exiting ...");
         }
 
-        std::map<rdk::JointGroup, rdk::RtJointPositionCmd> rt_cmds;
+        std::map<rdk::JointGroup, rdk::RtCmd> rt_cmds;
 
         if ((motion_type != "hold") && (motion_type != "sine-sweep")) {
             throw std::invalid_argument(
@@ -86,7 +86,7 @@ void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
         }
 
         // Send target joint position to RDK server
-        robot.StreamJointPosition(rt_cmds);
+        robot.ExecuteRtCmd(rt_cmds);
 
         loop_counter++;
 

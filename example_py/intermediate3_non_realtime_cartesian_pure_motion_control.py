@@ -199,7 +199,7 @@ def main():
 
             # Send command. Calling this method with only target pose input results
             # in pure motion control
-            robot.SendCartesianMotionForce(cmds)
+            robot.ExecuteNrtCmd(cmds)
 
             #  Do the following operations in sequence for every 20 seconds
             time_elapsed = loop_counter * period

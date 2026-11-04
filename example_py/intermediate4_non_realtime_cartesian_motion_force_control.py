@@ -82,7 +82,7 @@ def main():
         "controlled.\n"
     )
 
-    # The reference frame to use, see Robot::SendCartesianMotionForce() for more details
+    # The reference frame to use, see Robot::SetForceControlFrame() for more details
     force_ctrl_frame = flexivrdk.CoordType.WORLD
     if args.TCP:
         logger.info("Reference frame used for force control: robot TCP frame")
@@ -189,7 +189,7 @@ def main():
 
         # Send target point to robot to start searching for contact and limit the velocity. Keep
         # target wrench 0 at this stage since we are not doing force control yet
-        robot.SendCartesianMotionForce(cmds)
+        robot.ExecuteNrtCmd(cmds)
 
         # Use a while loop to poll robot states and check if a contact is made
         is_contacted = False
@@ -286,7 +286,7 @@ def main():
 
                 cmds[group] = flexivrdk.NrtCartesianCmd(target_pose, target_wrench)
 
-            robot.SendCartesianMotionForce(cmds)
+            robot.ExecuteNrtCmd(cmds)
 
             # Increment loop counter
             loop_counter += 1

@@ -163,7 +163,7 @@ def main():
                     target_pos, zero_vel, max_vel, max_acc
                 )
 
-            robot.SendJointPosition(cmds)
+            robot.ExecuteNrtCmd(cmds)
 
             # Increment loop counter
             loop_counter += 1

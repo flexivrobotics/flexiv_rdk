@@ -45,14 +45,14 @@ void PeriodicTask(flexiv::rdk::Robot& robot,
             throw std::runtime_error("PeriodicTask: Timeliness failure limit reached, exiting ...");
         }
         // Hold position
-        std::map<flexiv::rdk::JointGroup, flexiv::rdk::RtJointPositionCmd> rt_cmds;
+        std::map<flexiv::rdk::JointGroup, flexiv::rdk::RtCmd> rt_cmds;
         for (const auto& [group, _] : single_arm_groups) {
             const auto& init_pos = all_init_pos.at(group);
             std::vector<double> target_vel(init_pos.size());
             std::vector<double> target_acc(init_pos.size());
             rt_cmds[group] = flexiv::rdk::RtJointPositionCmd(init_pos, target_vel, target_acc);
         }
-        robot.StreamJointPosition(rt_cmds);
+        robot.ExecuteRtCmd(rt_cmds);
 
         if (loop_counter == 5000) {
             std::cerr << "[warn] >>>>> Adding simulated loop delay <<<<<" << std::endl;

@@ -76,7 +76,7 @@ void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
                 "PeriodicTask: Unknown motion type. Accepted motion types: hold, sine-sweep");
         }
 
-        std::map<rdk::JointGroup, rdk::RtJointTorqueCmd> rt_cmds;
+        std::map<rdk::JointGroup, rdk::RtCmd> rt_cmds;
         const auto all_states = robot.states();
         for (const auto& [group, init_pos] : all_init_pos) {
             std::vector<double> target_pos(init_pos.size());
@@ -106,7 +106,7 @@ void PeriodicTask(rdk::Robot& robot, const std::string& motion_type,
         }
 
         // Send target joint torque to RDK server
-        robot.StreamJointTorque(rt_cmds);
+        robot.ExecuteRtCmd(rt_cmds);
 
         loop_counter++;
 

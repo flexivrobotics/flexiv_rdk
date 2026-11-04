@@ -56,7 +56,7 @@ void PeriodicTask(rdk::Robot& robot, const std::map<rdk::JointGroup, std::string
             throw std::runtime_error("PeriodicTask: Timeliness failure limit reached, exiting ...");
         }
 
-        std::map<rdk::JointGroup, rdk::RtJointTorqueCmd> rt_cmds;
+        std::map<rdk::JointGroup, rdk::RtCmd> rt_cmds;
         const auto all_states = robot.states();
         for (const auto& [group, _] : exe_groups) {
             const auto& states = all_states.at(group);
@@ -79,7 +79,7 @@ void PeriodicTask(rdk::Robot& robot, const std::map<rdk::JointGroup, std::string
 
         // Send target joint torque to RDK server, enable gravity compensation and joint limits soft
         // protection
-        robot.StreamJointTorque(rt_cmds);
+        robot.ExecuteRtCmd(rt_cmds);
 
     } catch (const std::exception& e) {
         std::cerr << "[error] " << e.what() << std::endl;

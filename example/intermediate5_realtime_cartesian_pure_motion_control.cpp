@@ -77,7 +77,7 @@ void PeriodicTask(rdk::Robot& robot,
             throw std::runtime_error("PeriodicTask: Timeliness failure limit reached, exiting ...");
         }
 
-        std::map<rdk::JointGroup, rdk::RtCartesianCmd> rt_cmds;
+        std::map<rdk::JointGroup, rdk::RtCmd> rt_cmds;
         for (const auto& [group, init_pose] : all_init_pose) {
             auto target_pose = init_pose;
 
@@ -94,7 +94,7 @@ void PeriodicTask(rdk::Robot& robot,
 
         // Send command. Calling this method with only target pose input results in pure motion
         // control
-        robot.StreamCartesianMotionForce(rt_cmds);
+        robot.ExecuteRtCmd(rt_cmds);
 
         // Do the following operations in sequence for every 20 seconds
         switch (loop_counter % (20 * kLoopFreq)) {

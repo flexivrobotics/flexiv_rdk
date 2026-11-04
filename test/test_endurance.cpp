@@ -71,7 +71,7 @@ void HighPriorityTask(rdk::Robot& robot,
         }
 
         // Swing along Z direction
-        std::map<rdk::JointGroup, rdk::RtCartesianCmd> rt_cmds;
+        std::map<rdk::JointGroup, rdk::RtCmd> rt_cmds;
         for (const auto& [group, _] : single_arm_groups) {
             auto target_pose = g_curr_tcp_pose.at(group);
             target_pose[2] = all_init_poses.at(group)[2]
@@ -79,7 +79,7 @@ void HighPriorityTask(rdk::Robot& robot,
             g_curr_tcp_pose[group] = target_pose;
             rt_cmds[group] = rdk::RtCartesianCmd(target_pose);
         }
-        robot.StreamCartesianMotionForce(rt_cmds);
+        robot.ExecuteRtCmd(rt_cmds);
 
         // Save data to global buffer, not using mutex to avoid interruption on RT loop from
         // potential priority inversion
