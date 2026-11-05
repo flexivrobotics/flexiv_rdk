@@ -268,7 +268,7 @@ public:
     std::map<JointGroup, std::vector<Eigen::Vector3d>> multi_contact_positions() const;
 
 private:
-    class Impl;
+    class RDK_HIDDEN Impl;
     std::unique_ptr<Impl> pimpl_;
 };
 
