@@ -24,6 +24,8 @@
 #             rebuilt from clean.
 #    Mach-O - every dependent library and LC_RPATH entry under @rpath/@loader_path/@executable_path,
 #             /usr/lib/ or /System/Library/.
+#             Every exported symbol belongs to the public flexiv::rdk API, as for ELF. Needs nm and
+#             c++filt; skipped without them.
 #    PE     - imported DLLs limited to the Windows system DLLs and the MSVC C/C++ runtime, and
 #             API set contracts, which the loader resolves internally and which are never files.
 #             Reading an import table needs one of dumpbin, llvm-readobj, llvm-objdump or objdump;
@@ -160,14 +162,11 @@ check_elf() {
 # Only the public flexiv::rdk API may be exported. The implementation classes are hidden at compile
 # time (RDK_HIDDEN on the pimpl declarations, hidden default visibility) and at link time (version
 # script); an export of one means one of those was lost.
-check_elf_exports() {
-    local lib=$1 exports leaked
+# Fail on every exported symbol outside the public flexiv::rdk API. Takes the demangled names of the
+# exported symbols, one per line.
+check_export_names() {
+    local exports=$1 leaked
 
-    if ! command -v nm > /dev/null 2>&1; then
-        echo "    SKIP: nm not found, exported symbols not checked"
-        return
-    fi
-    exports=$(nm -DC --defined-only "$lib" | cut -d' ' -f3-)
     echo "    EXPORTS $(echo "$exports" | grep -c .) symbols"
     leaked=$(echo "$exports" | grep -E '::Impl\b|flexiv::rdk_impl|flexiv::scheduler' || true)
     leaked="$leaked
@@ -177,6 +176,28 @@ $(echo "$exports" | grep -v 'flexiv::rdk::' || true)"
         echo "$leaked" | head -5 | sed 's/^/      /'
         fail "$(echo "$leaked" | wc -l) exported symbol(s) outside the public flexiv::rdk API"
     fi
+}
+
+check_elf_exports() {
+    local lib=$1
+
+    if ! command -v nm > /dev/null 2>&1; then
+        echo "    SKIP: nm not found, exported symbols not checked"
+        return
+    fi
+    check_export_names "$(nm -DC --defined-only "$lib" | cut -d' ' -f3-)"
+}
+
+# Mach-O symbol names carry an extra leading underscore, which c++filt on macOS strips before
+# demangling.
+check_macho_exports() {
+    local lib=$1
+
+    if ! command -v nm > /dev/null 2>&1 || ! command -v c++filt > /dev/null 2>&1; then
+        echo "    SKIP: nm or c++filt not found, exported symbols not checked"
+        return
+    fi
+    check_export_names "$(nm -gU "$lib" | awk '{print $3}' | c++filt)"
 }
 
 check_elf_hardening() {
@@ -376,7 +397,8 @@ for lib in "$@"; do
     echo "$lib"
     case "$(file_format "$lib")" in
         elf)   check_elf "$lib";   inspected=$((inspected + 1)) ;;
-        macho) check_macho "$lib"; check_build_paths "$lib"; inspected=$((inspected + 1)) ;;
+        macho) check_macho "$lib"; check_macho_exports "$lib"; check_build_paths "$lib"
+               inspected=$((inspected + 1)) ;;
         pe)    if check_pe "$lib"; then inspected=$((inspected + 1)); fi ;;
         *)     echo "    ERROR: unrecognized object file format"; exit 2 ;;
     esac
