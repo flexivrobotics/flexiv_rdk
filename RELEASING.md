@@ -48,6 +48,8 @@ The secret key is held only by the release maintainers and is never stored in CI
 1. Bump the version in `CMakeLists.txt` (`project(... VERSION ...)`) and `doc/Doxyfile.in`
    (`PROJECT_NUMBER`), and in the Python package.
 2. Build the release libraries for every platform, and update `lib/*.sha256` with their SHA-256.
+   The Linux build also regenerates `sbom/flexiv_rdk.cdx.json` and updates
+   `.github/scripts/check_artifacts.sh`; commit them together with the checksums.
 3. Generate and sign the checksum list over the exact files that will be uploaded, using
    `scripts/generate_release_checksums.sh` in the library source repository:
 
