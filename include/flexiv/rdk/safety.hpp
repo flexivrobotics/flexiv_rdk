@@ -260,7 +260,7 @@ public:
         double limiting_factor = 1.3, unsigned int error_threshold = 50);
 
 private:
-    class Impl;
+    class RDK_HIDDEN Impl;
     std::unique_ptr<Impl> pimpl_;
 };
 

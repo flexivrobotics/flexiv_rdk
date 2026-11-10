@@ -201,7 +201,7 @@ public:
     std::pair<double, double> configuration_score() const;
 
 private:
-    class Impl;
+    class RDK_HIDDEN Impl;
     std::unique_ptr<Impl> pimpl_;
 };
 

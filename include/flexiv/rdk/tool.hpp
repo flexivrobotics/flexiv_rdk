@@ -173,7 +173,7 @@ public:
     ToolParams CalibratePayloadParams(bool tool_mounted);
 
 private:
-    class Impl;
+    class RDK_HIDDEN Impl;
     std::unique_ptr<Impl> pimpl_;
 };
 

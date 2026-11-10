@@ -110,7 +110,7 @@ public:
         const std::map<std::string, std::variant<bool, int, double>>& commands);
 
 private:
-    class Impl;
+    class RDK_HIDDEN Impl;
     std::unique_ptr<Impl> pimpl_;
 };
 

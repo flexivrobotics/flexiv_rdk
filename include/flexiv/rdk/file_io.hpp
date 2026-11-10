@@ -125,7 +125,7 @@ public:
     void DownloadCollisionMesh(const std::string& save_dir);
 
 private:
-    class Impl;
+    class RDK_HIDDEN Impl;
     std::unique_ptr<Impl> pimpl_;
 };
 

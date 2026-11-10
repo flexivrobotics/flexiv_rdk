@@ -1029,7 +1029,7 @@ public:
     std::array<bool, kIOPorts> digital_inputs() const;
 
 private:
-    class Impl;
+    class RDK_HIDDEN Impl;
     std::unique_ptr<Impl> pimpl_;
 
     friend class Device;

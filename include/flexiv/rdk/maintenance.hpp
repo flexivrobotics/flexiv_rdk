@@ -117,7 +117,7 @@ public:
     PtpConfig ptp_config() const;
 
 private:
-    class Impl;
+    class RDK_HIDDEN Impl;
     std::unique_ptr<Impl> pimpl_;
 };
 
