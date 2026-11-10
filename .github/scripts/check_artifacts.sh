@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ==================================================================================================
-#  Release guard: a shipped RDK library must depend on nothing but the OS C/C++ runtime.
+#  Release guard: a shipped RDK library must depend on nothing but the OS C/C++ runtime, and must not
+#  give away more of its internals than the public API.
 #
 #  RDK is distributed as a self-contained shared library that statically embeds every thirdparty
 #  dependency except Eigen, so the only runtime dependencies left should be the compiler runtime and
@@ -12,8 +13,19 @@
 #  Checks, per artifact:
 #    ELF    - DT_NEEDED limited to the C/C++ runtime and the loader; no DT_RPATH/DT_RUNPATH other
 #             than $ORIGIN-relative ones.
+#             Every exported symbol belongs to the public flexiv::rdk API: none of the pimpl
+#             (::Impl) or flexiv::rdk_impl implementation classes. Needs nm; skipped without it.
+#             No .comment section (strip removes it, it names the exact toolchain).
+#             Full RELRO (GNU_RELRO and BIND_NOW) and a non-executable stack.
+#    ELF and Mach-O - no build machine path (a home directory, or the cargo registry and git
+#             checkouts of a Rust dependency) anywhere in the file. These come from __FILE__ in
+#             assertions and logging, which strip does not remove; the RDK client's dependency
+#             build remaps them, so a hit means the library was built from dependencies built
+#             before that, which have to be rebuilt from clean.
 #    Mach-O - every dependent library and LC_RPATH entry under @rpath/@loader_path/@executable_path,
 #             /usr/lib/ or /System/Library/.
+#             Every exported symbol belongs to the public flexiv::rdk API, as for ELF. Needs nm and
+#             c++filt; skipped without them.
 #    PE     - imported DLLs limited to the Windows system DLLs and the MSVC C/C++ runtime, and
 #             API set contracts, which the loader resolves internally and which are never files.
 #             Reading an import table needs one of dumpbin, llvm-readobj, llvm-objdump or objdump;
@@ -22,9 +34,9 @@
 #
 #  Usage: check_artifacts.sh <library> [<library> ...]
 #
-#  Platforms whose runtime is not glibc (QNX) can extend the allowed dependency set, for ELF and
-#  for PE alike:
-#    RDK_EXTRA_ALLOWED_LIBS="libc.so.4 libcpp.so.5" check_artifacts.sh <library>
+#  Platforms whose runtime is not glibc (QNX, see generate_qnx_package.sh) can extend the allowed
+#  dependency set, for ELF and for PE alike:
+#    RDK_EXTRA_ALLOWED_LIBS="libc++.so.2 libm.so.3" check_artifacts.sh <library>
 # ==================================================================================================
 set -eu
 
@@ -144,6 +156,88 @@ check_elf() {
             *) fail "run path $search_path is absolute, it will not exist on the user's machine" ;;
         esac
     done
+
+    check_elf_exports "$lib"
+    check_elf_hardening "$lib"
+    check_build_paths "$lib"
+}
+
+# Only the public flexiv::rdk API may be exported. The implementation classes are hidden at compile
+# time (RDK_HIDDEN on the pimpl declarations, hidden default visibility) and at link time (version
+# script); an export of one means one of those was lost.
+# Fail on every exported symbol outside the public flexiv::rdk API. Takes the demangled names of the
+# exported symbols, one per line.
+check_export_names() {
+    local exports=$1 leaked
+
+    echo "    EXPORTS $(echo "$exports" | grep -c .) symbols"
+    leaked=$(echo "$exports" | grep -E '::Impl\b|flexiv::rdk_impl|flexiv::scheduler' || true)
+    leaked="$leaked
+$(echo "$exports" | grep -v 'flexiv::rdk::' || true)"
+    leaked=$(echo "$leaked" | grep . | sort -u || true)
+    if [ -n "$leaked" ]; then
+        echo "$leaked" | head -5 | sed 's/^/      /'
+        fail "$(echo "$leaked" | wc -l) exported symbol(s) outside the public flexiv::rdk API"
+    fi
+}
+
+check_elf_exports() {
+    local lib=$1
+
+    if ! command -v nm > /dev/null 2>&1; then
+        echo "    SKIP: nm not found, exported symbols not checked"
+        return
+    fi
+    check_export_names "$(nm -DC --defined-only "$lib" | cut -d' ' -f3-)"
+}
+
+# Mach-O symbol names carry an extra leading underscore, which c++filt on macOS strips before
+# demangling.
+check_macho_exports() {
+    local lib=$1
+
+    if ! command -v nm > /dev/null 2>&1 || ! command -v c++filt > /dev/null 2>&1; then
+        echo "    SKIP: nm or c++filt not found, exported symbols not checked"
+        return
+    fi
+    check_export_names "$(nm -gU "$lib" | awk '{print $3}' | c++filt)"
+}
+
+check_elf_hardening() {
+    local lib=$1
+
+    if ! command -v readelf > /dev/null 2>&1; then
+        echo "    SKIP: readelf not found, load-time hardening not checked"
+        return
+    fi
+    if readelf -SW "$lib" | grep -q ' \.comment '; then
+        fail ".comment section present, it names the toolchain (strip with --remove-section=.comment)"
+    fi
+    if ! readelf -lW "$lib" | grep -q 'GNU_RELRO'; then
+        fail "no GNU_RELRO segment (link with -z relro)"
+    fi
+    if ! readelf -dW "$lib" | grep -qE 'BIND_NOW|Flags:.* NOW'; then
+        fail "no BIND_NOW, so RELRO is partial (link with -z now)"
+    fi
+    if readelf -lW "$lib" | grep -E 'GNU_STACK' | grep -qE 'RWE'; then
+        fail "executable stack (link with -z noexecstack)"
+    fi
+}
+
+# Absolute paths of the build machine, found anywhere in the file. grep -a reads the binary as text,
+# so this needs no extra tool.
+check_build_paths() {
+    local lib=$1 paths
+
+    # Match path characters only rather than whole strings, since not every string in the file is
+    # NUL-terminated (a Rust string is not). Besides home directories, a cargo home is caught under
+    # its usual names: .cargo wherever it lives, and /usr/local/cargo of the official Rust images.
+    paths=$(LC_ALL=C grep -a -o -E '(/home/[[:alnum:]._-]+|/Users/[[:alnum:]._-]+|/root)/[[:alnum:]._/+-]*|/[[:alnum:]._/+-]*\.cargo/(registry|git)/[[:alnum:]._/+-]*|/usr/local/cargo/(registry|git)/[[:alnum:]._/+-]*' "$lib" \
+        | sort -u || true)
+    if [ -n "$paths" ]; then
+        echo "$paths" | head -3 | cut -c1-100 | sed 's/^/      /'
+        fail "$(echo "$paths" | wc -l) build machine path(s) embedded; rebuild the RDK client's dependencies from clean (its thirdparty/clean.sh, then thirdparty/build_and_install_dependencies.sh), which remaps them"
+    fi
 }
 
 check_macho() {
@@ -312,7 +406,8 @@ for lib in "$@"; do
     echo "$lib"
     case "$(file_format "$lib")" in
         elf)   check_elf "$lib";   inspected=$((inspected + 1)) ;;
-        macho) check_macho "$lib"; inspected=$((inspected + 1)) ;;
+        macho) check_macho "$lib"; check_macho_exports "$lib"; check_build_paths "$lib"
+               inspected=$((inspected + 1)) ;;
         pe)    if check_pe "$lib"; then inspected=$((inspected + 1)); fi ;;
         *)     echo "    ERROR: unrecognized object file format"; exit 2 ;;
     esac
@@ -320,9 +415,10 @@ done
 
 if [ $failures -ne 0 ]; then
     echo ""
-    echo "$failures dependency violation(s). A released RDK library must load nothing but the OS"
-    echo "C/C++ runtime. A dependency listed above came from the build machine and would abort the"
-    echo "user's process at startup, so it has to be removed from the build rather than shipped."
+    echo "$failures release guard violation(s), see FAIL above. A released RDK library must load"
+    echo "nothing but the OS C/C++ runtime (anything else came from the build machine and would abort"
+    echo "the user's process at startup), and must export nothing but the public API, carry no build"
+    echo "machine path and keep its load-time hardening. Fix the build rather than ship it."
     exit 1
 fi
 
@@ -330,5 +426,5 @@ echo ""
 if [ $inspected -eq 0 ]; then
     echo "Nothing was inspected: every artifact given was skipped."
 else
-    echo "$inspected artifact(s) depend only on the OS C/C++ runtime."
+    echo "$inspected artifact(s) passed the release guard."
 fi
