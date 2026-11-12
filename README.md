@@ -20,7 +20,7 @@ For AI-assisted code generation in this repository, see [AGENTS.md](AGENTS.md).
 | --------------------- | --------------- | -------------------- | ---------------------- |
 | Linux (Ubuntu 22.04+) | x86_64, aarch64 | GCC   v11.4+         | 3.10, 3.12, 3.14       |
 | macOS 14+             | arm64           | Clang v16.0+         | 3.10, 3.12             |
-| Windows 10+           | x86_64          | MSVC  v14.2+         | 3.10, 3.12             |
+| Windows 10+           | x86_64          | MSVC  v14.3+         | 3.10, 3.12             |
 
 ## Important Notice
 
@@ -90,7 +90,7 @@ For example:
 
 #### Windows
 
-1. Install compiler kit: Download and install Microsoft Visual Studio 2019 (MSVC v14.2) or above. Choose "Desktop development with C++" under the *Workloads* tab during installation. You only need to keep the following components for the selected workload:
+1. Install compiler kit: Download and install Microsoft Visual Studio 2022 (MSVC v14.3) or above. Choose "Desktop development with C++" under the *Workloads* tab during installation. You only need to keep the following components for the selected workload:
    * MSVC ... C++ x64/x86 build tools (Latest)
    * C++ CMake tools for Windows
    * Windows 10 SDK or Windows 11 SDK, depending on your actual Windows version
