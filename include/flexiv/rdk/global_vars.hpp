@@ -14,9 +14,11 @@ namespace flexiv::rdk {
  * @class GlobalVars
  * @brief Interface to manage global variables of the robot. All updates take effect immediately
  * without a power cycle, and adding or removing a variable is also written to the robot's global
- * variable file, so it survives a power cycle and is visible in Flexiv Elements. However, the robot
- * must be in IDLE mode when adding or removing, because that changes the set of variables a running
- * plan may be referring to. Updating a value is allowed in any control mode.
+ * variable file, so it survives a power cycle and is visible in Flexiv Elements. The robot also
+ * writes the current values of all variables to that file about once per second, so updated
+ * values survive a power cycle as well. However, the robot must be in IDLE mode when adding or
+ * removing, because that changes the set of variables a running plan may be referring to. Updating
+ * a value is allowed in any control mode.
  * @note Thread safety: all functions of this class are thread-safe and can be called concurrently
  * from multiple threads.
  */
@@ -51,7 +53,8 @@ public:
     /**
      * @brief [Blocking] Current value of an existing global variable.
      * @param[in] name Name of the global variable to get value for, must be an existing one.
-     * @return Value of the global variable. Booleans are represented by int 1 and 0.
+     * @return Value of the global variable, in the data type the robot holds, e.g. bool for a
+     * "BOOL" variable.
      * @throw std::invalid_argument if the specified global variable does not exist.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
@@ -61,14 +64,13 @@ public:
 
     /**
      * @brief [Blocking] All existing global variables and their current values.
-     * @return A map of {global_var_name, global_var_value(s)}. Booleans are represented by int 1
-     * and 0. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", 1}}.
+     * @return A map of {global_var_name, global_var_value(s)}. For example, {{"camera_offset",
+     * {0.1, -0.2, 0.3}}, {"start_plan", true}}.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
-     * @note The robot reports the data type of each variable, so the customized data types of
-     * Flexiv Elements are recovered exactly. Data types that have no counterpart in
-     * rdk::FlexivDataTypes, such as "POSE" and "VEC_3d", are reported as std::vector<double> or
-     * std::vector<int>, and any remaining type as std::string.
+     * @note The robot reports the data type of each variable, so the data types of Flexiv Elements
+     * are recovered exactly, e.g. "POSE" as rdk::Pose and "VEC_3d" as std::array<double, 3>, see
+     * rdk::FlexivDataTypes. Any remaining type, e.g. a file name, is reported as std::string.
      * @see value().
      */
     std::map<std::string, FlexivDataTypes> values() const;
@@ -77,8 +79,8 @@ public:
      * @brief [Blocking] Add a new global variable with an initial value.
      * @param[in] name Name of the new global variable, must be unique.
      * @param[in] initial_value Initial value of the new global variable. Its data type also decides
-     * the data type of the created variable, which cannot be changed afterwards. Use int 1 and 0 to
-     * create a variable holding a boolean.
+     * the data type of the created variable, which cannot be changed afterwards, see
+     * rdk::FlexivDataTypes. E.g. an int creates an "INT" variable and a bool a "BOOL" variable.
      * @throw std::invalid_argument if the specified global variable already exists.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
@@ -95,14 +97,21 @@ public:
     /**
      * @brief [Blocking] Update the value of an existing global variable.
      * @param[in] name Name of the global variable to update, must be an existing one.
-     * @param[in] value New value for the specified global variable. Use int 1 and 0 to represent
-     * booleans.
+     * @param[in] value New value for the specified global variable.
      * @throw std::invalid_argument if the specified global variable does not exist.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @throw std::runtime_error if the robot rejected the value, e.g. a number other than 1 or 0
+     * for a "BOOL" variable, or if failed to deliver the request to the connected robot.
      * @note Applicable control modes: all.
      * @note This function blocks until the request is successfully delivered.
      * @note The data type held by the robot is authoritative: this updates the value only, it
-     * cannot change a variable's data type.
+     * cannot change a variable's data type. The robot converts between the numeric data types,
+     * e.g. a std::vector<double> of 3 elements updates a "VEC_3d" variable, see
+     * rdk::FlexivDataTypes.
+     * @warning The robot converts the value to the variable's data type without fully validating
+     * it: e.g. a double written to an "INT" variable is truncated, and a text that is not a number
+     * written to a numeric variable may be read as 0. Pass a value of the variable's own data type.
+     * Numbers written to a "BOOL" variable are checked: anything but 1 or 0 is rejected with
+     * std::runtime_error.
      * @warning A string value must not contain whitespace: the robot stores it via a
      * whitespace-delimited text channel, so anything after the first space is dropped. This
      * applies to std::string values and to each element of a std::vector<std::string> value.
@@ -112,11 +121,12 @@ public:
     /**
      * @overload
      * @brief [Blocking] Update the values of several existing global variables in one request.
-     * @param[in] global_vars A map of {global_var_name, global_var_value(s)}. Use int 1 and 0 to
-     * represent booleans. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", 1}}.
+     * @param[in] global_vars A map of {global_var_name, global_var_value(s)}. For example,
+     * {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", true}}.
      * @throw std::length_error if [global_vars] is empty.
      * @throw std::invalid_argument if any of the specified global variables does not exist.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @throw std::runtime_error if the robot rejected any of the values, which leaves all of the
+     * variables unchanged, or if failed to deliver the request to the connected robot.
      * @note Applicable control modes: all.
      * @note This function blocks until the request is successfully delivered.
      * @note Either all variables are updated or none is: the robot validates every entry before

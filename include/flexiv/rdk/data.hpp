@@ -17,6 +17,7 @@
 #include <vector>
 #include <string>
 #include <ostream>
+#include <type_traits>
 #include <variant>
 #include <chrono>
 #include <map>
@@ -697,6 +698,44 @@ struct RDK_API OCoord
 };
 
 /**
+ * @struct Pose
+ * @brief Data structure representing the data type "POSE" in Flexiv Elements: a position and an
+ * orientation, without the reference frame and reference joint positions of a Coord.
+ * @note Not to be confused with the poses of kPoseSize elements, e.g. RobotStates::tcp_pose,
+ * whose orientation is a quaternion.
+ * @warning Here [m] is used as the unit of length, whereas [mm] is used in Flexiv Elements. The
+ * conversion is automatically done when exchanging "POSE" data type with the robot via functions
+ * like Robot::ExecutePrimitive(), GlobalVars::Update(), GlobalVars::values(), etc.
+ */
+struct RDK_API Pose
+{
+    /** Default constructor */
+    Pose() = default;
+
+    /**
+     * @brief Custom constructor.
+     * @param[in] position Sets struct member [position].
+     * @param[in] orientation Sets struct member [orientation].
+     */
+    Pose(const std::array<double, kCartDoF / 2>& position,
+        const std::array<double, kCartDoF / 2>& orientation)
+    : position(position)
+    , orientation(orientation)
+    {
+    }
+
+    /** Position. Unit: [m] */
+    std::array<double, kCartDoF / 2> position = {};
+
+    /** Orientation in terms of Euler angles ZYX in [x, y, z] order, the same as Coord::orientation.
+     * Unit: [degree] */
+    std::array<double, kCartDoF / 2> orientation = {};
+
+    /** String representation of all data in the struct, separated by space */
+    std::string str() const;
+};
+
+/**
  * @brief Modes for synchronous motions.
  * @see PrimitiveArgs::sync_motion_mode
  */
@@ -708,11 +747,46 @@ enum class SyncMotionMode
     POSITIONER = 3, ///< sync with positioner
 };
 
-/** Alias of the variant that holds all possible types of data exchanged with Flexiv robots */
-using FlexivDataTypes = std::variant<int, double, std::string, rdk::JPos, rdk::Coord, rdk::DJPos,
-    rdk::DCoord, rdk::OCoord, std::vector<int>, std::vector<double>, std::vector<std::string>,
-    std::vector<rdk::JPos>, std::vector<rdk::Coord>, std::vector<rdk::DJPos>,
-    std::vector<rdk::DCoord>, std::vector<rdk::OCoord>>;
+/**
+ * @brief Alias of the variant that holds all possible types of data exchanged with Flexiv robots.
+ * Each alternative corresponds to a data type of Flexiv Elements:
+ * - int: "INT"
+ * - bool: "BOOL"
+ * - double: "DOUBLE"
+ * - std::string: "STRING" and the other text-based types
+ * - rdk::JPos, rdk::Coord, rdk::DJPos, rdk::DCoord, rdk::OCoord, rdk::Pose: "JPOS", "COORD",
+ *   "DJPOS", "DCOORD", "OCOORD", "POSE"
+ * - std::array<int, N>: "VEC_2i", "VEC_3i", "VEC_6i"
+ * - std::array<double, N>: "VEC_2d", "VEC_3d", "VEC_4d", "VEC_6d", "VEC_7d"
+ * - std::vector of any of the above: the "ARRAY_" version of that type
+ * @note Writing a value to an existing global variable or primitive input parameter keeps its
+ * data type on the robot, which converts the value to that type. The plain numeric types (int,
+ * bool, double, the std::array types, rdk::Pose, and their std::vector versions) can stand in for
+ * each other, as long as the numbers fill whole elements of a "POSE" or "VEC_*" type and are 1 or
+ * 0 for a "BOOL", e.g. a std::vector<double> with 3 elements can update a "VEC_3d" variable, which
+ * then still reads back as std::array<double, 3>, and int 1 can update a "BOOL" variable, which
+ * then reads back as true. For a global variable, the robot rejects numbers that do not fill whole
+ * elements, or are not 1 or 0 for a "BOOL". It does not check a primitive input parameter.
+ * @note A string literal converts to std::string and true/false to bool. A standard library that
+ * would convert a string literal to bool instead fails the static_assert below.
+ */
+using FlexivDataTypes = std::variant<int, bool, double, std::string, rdk::JPos, rdk::Coord,
+    rdk::DJPos, rdk::DCoord, rdk::OCoord, std::vector<int>, std::vector<bool>, std::vector<double>,
+    std::vector<std::string>, std::vector<rdk::JPos>, std::vector<rdk::Coord>,
+    std::vector<rdk::DJPos>, std::vector<rdk::DCoord>, std::vector<rdk::OCoord>, rdk::Pose,
+    std::array<int, 2>, std::array<int, 3>, std::array<int, 6>, std::array<double, 2>,
+    std::array<double, 3>, std::array<double, 4>, std::array<double, 6>, std::array<double, 7>,
+    std::vector<rdk::Pose>, std::vector<std::array<int, 2>>, std::vector<std::array<int, 3>>,
+    std::vector<std::array<int, 6>>, std::vector<std::array<double, 2>>,
+    std::vector<std::array<double, 3>>, std::vector<std::array<double, 4>>,
+    std::vector<std::array<double, 6>>, std::vector<std::array<double, 7>>>;
+
+// The converting constructor of std::variant is noexcept exactly when the alternative it picks is
+// nothrow constructible from the argument. That holds for bool but not for std::string, so this
+// fails with a standard library that predates P0608R3 and would turn a string literal into bool
+static_assert(!std::is_nothrow_constructible_v<FlexivDataTypes, const char*>,
+    "This standard library converts a string literal to the bool alternative of "
+    "flexiv::rdk::FlexivDataTypes instead of std::string, use a newer compiler");
 
 /**
  * @struct PrimitiveArgs
@@ -736,7 +810,7 @@ struct PrimitiveArgs
     /** Name of the primitive to execute. For example, "Home", "MoveL", "ZeroFTSensor", etc. */
     std::string pt_name = {};
 
-    /** Input parameter names and values of this primitive. Use int 1 and 0 to represent booleans.
+    /** Input parameter names and values of this primitive. Use bool for "BOOL" parameters.
      * E.g. {{"target", rdk::Coord({0.65, -0.3, 0.2}, {180, 0, 180}, {"WORLD", "WORLD_ORIGIN"})},
      * {"vel", 0.6}, {"zoneRadius", "Z50"}}.
      * @warning The primitive input parameters may not use SI units, please refer to the Flexiv
@@ -767,9 +841,11 @@ struct PrimitiveStates
     /** Name of the currently running primitive */
     std::string pt_name = {};
 
-    /** Names and corresponding values of this primitive's states. Booleans are represented by int 1
-     * and 0. For example:
-     * {{"reachedTarget", 1}, {"timePeriod", 5.6}, {"forceOffset", {0.1, 0.2, -1.3}}}.
+    /** Names and corresponding values of this primitive's states, in the data type the robot
+     * holds, see rdk::FlexivDataTypes. For example:
+     * {{"reachedTarget", true}, {"timePeriod", 5.6}, {"forceOffset", {0.1, 0.2, -1.3}}}.
+     * @note "BOOL" states such as "reachedTarget" are bool, use std::get<bool>() or
+     * utility::PrimitiveStateTrue() to read them.
      */
     std::map<std::string, FlexivDataTypes> names_and_values = {};
 

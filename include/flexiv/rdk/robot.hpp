@@ -303,8 +303,8 @@ public:
 
     /**
      * @brief [Blocking] Set values to global variables that already exist in the robot.
-     * @param[in] global_vars A map of {global_var_name, global_var_value(s)}. Use int 1 and 0 to
-     * represent booleans. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", 1}}.
+     * @param[in] global_vars A map of {global_var_name, global_var_value(s)}. For example,
+     * {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", true}}.
      * @throw std::length_error if [global_vars] is empty.
      * @throw std::invalid_argument if any of the specified global variables does not exist.
      * @throw std::runtime_error if failed to deliver the request to the connected robot.
@@ -319,8 +319,8 @@ public:
 
     /**
      * @brief [Blocking] Existing global variables and their current values.
-     * @return A map of {global_var_name, global_var_value(s)}. Booleans are represented by int 1
-     * and 0. For example, {{"camera_offset", {0.1, -0.2, 0.3}}, {"start_plan", 1}}.
+     * @return A map of {global_var_name, global_var_value(s)}. For example, {{"camera_offset",
+     * {0.1, -0.2, 0.3}}, {"start_plan", true}}.
      * @throw std::runtime_error if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
      * @deprecated Use flexiv::rdk::GlobalVars::values() instead.

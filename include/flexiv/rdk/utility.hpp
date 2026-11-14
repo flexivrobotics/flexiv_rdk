@@ -11,8 +11,12 @@
 #include "data.hpp"
 #include <Eigen/Eigen>
 #include <algorithm>
+#include <array>
 #include <sstream>
 #include <stdexcept>
+#include <tuple>
+#include <type_traits>
+#include <variant>
 
 namespace flexiv::rdk {
 
@@ -28,7 +32,7 @@ inline bool IsSingleArmGroup(JointGroup group)
  * @brief Check whether one primitive state is true.
  * @param[in] primitive_states Primitive states.
  * @param[in] state_name Primitive state name to check, e.g. "reachedTarget".
- * @return True if the state exists and its integer value is non-zero.
+ * @return True if the state exists and is true, or is an integer state that is non-zero.
  */
 inline bool PrimitiveStateTrue(
     const PrimitiveStates& primitive_states, const std::string& state_name)
@@ -38,18 +42,21 @@ inline bool PrimitiveStateTrue(
         return false;
     }
 
-    if (!std::holds_alternative<int>(state_it->second)) {
-        return false;
+    // "BOOL" states arrive as bool. Integer states still count when non-zero
+    if (const auto* flag = std::get_if<bool>(&state_it->second)) {
+        return *flag;
     }
-
-    return std::get<int>(state_it->second) != 0;
+    if (const auto* number = std::get_if<int>(&state_it->second)) {
+        return *number != 0;
+    }
+    return false;
 }
 
 /**
  * @brief Check whether one primitive state is true for all groups included in [primitive_states].
  * @param[in] primitive_states Primitive states keyed by joint group.
  * @param[in] state_name Primitive state name to check, e.g. "reachedTarget".
- * @return True if all included groups contain the state and its integer value is non-zero.
+ * @return True if all included groups contain the state and it is true, see PrimitiveStateTrue().
  */
 inline bool PrimitiveStateTrueForGroups(
     const std::map<JointGroup, PrimitiveStates>& primitive_states, const std::string& state_name)
@@ -63,8 +70,8 @@ inline bool PrimitiveStateTrueForGroups(
  * using a per-group state name.
  * @param[in] primitive_states Primitive states keyed by joint group.
  * @param[in] state_names Primitive state names keyed by joint group.
- * @return True if every included group has a matching state name entry and its integer value is
- * non-zero.
+ * @return True if every included group has a matching state name entry and it is true, see
+ * PrimitiveStateTrue().
  */
 inline bool PrimitiveStateTrueForGroups(
     const std::map<JointGroup, PrimitiveStates>& primitive_states,
@@ -181,7 +188,8 @@ inline std::string Arr2Str(
 
 /**
  * @brief Convert a vector of Flexiv data structs to a string, with the elements separated by " : ".
- * @param[in] vec std::vector of rdk::JPos, rdk::Coord, rdk::DJPos, rdk::DCoord or rdk::OCoord.
+ * @param[in] vec std::vector of rdk::JPos, rdk::Coord, rdk::DJPos, rdk::DCoord, rdk::OCoord or
+ * rdk::Pose.
  * @return The converted string.
  */
 template <typename T>
@@ -199,53 +207,72 @@ inline std::string StructVec2Str(const std::vector<T>& vec)
     return ret;
 }
 
+namespace detail {
+/** True if T is any of the types U. */
+template <typename T, typename... U>
+inline constexpr bool kIsAnyOf = (std::is_same_v<T, U> || ...);
+} // namespace detail
+
 /**
  * @brief Convert the commonly used std::variant to a string.
  * @param[in] variant std::variant used by multiple rdk::Robot functions.
  * @param[in] decimal Decimal places to keep for each floating-point number in the variant.
  * @param[in] separator Character to separate between numbers in the vector.
  * @return The converted string.
- * @note The Flexiv data structs (rdk::JPos, rdk::Coord, rdk::DJPos, rdk::DCoord and rdk::OCoord)
- * are converted using their own str() function, which always keeps 2 decimal places and separates
- * the numbers by space, thus [decimal] and [separator] do not apply to them.
+ * @note The Flexiv data structs (rdk::JPos, rdk::Coord, rdk::DJPos, rdk::DCoord, rdk::OCoord and
+ * rdk::Pose) are converted using their own str() function, which always keeps 2 decimal places and
+ * separates the numbers by space, thus [decimal] and [separator] do not apply to them. A
+ * std::array is formatted like a std::vector, with [separator] between its numbers, while the
+ * elements of a std::vector of structs or of std::array are separated by " : ". A bool is written
+ * as true or false.
  */
 inline std::string FlexivTypes2Str(
     const rdk::FlexivDataTypes& variant, size_t decimal = 3, const std::string& separator = " ")
 {
-    if (auto* val = std::get_if<int>(&variant)) {
-        return Vec2Str(std::vector<int> {*val}, decimal);
-    } else if (auto* val = std::get_if<double>(&variant)) {
-        return Vec2Str(std::vector<double> {*val}, decimal);
-    } else if (auto* val = std::get_if<std::string>(&variant)) {
-        return *val;
-    } else if (auto* val = std::get_if<rdk::JPos>(&variant)) {
-        return (*val).str();
-    } else if (auto* val = std::get_if<rdk::Coord>(&variant)) {
-        return (*val).str();
-    } else if (auto* val = std::get_if<rdk::DJPos>(&variant)) {
-        return (*val).str();
-    } else if (auto* val = std::get_if<rdk::DCoord>(&variant)) {
-        return (*val).str();
-    } else if (auto* val = std::get_if<rdk::OCoord>(&variant)) {
-        return (*val).str();
-    } else if (auto* vec = std::get_if<std::vector<int>>(&variant)) {
-        return Vec2Str(*vec, decimal, separator);
-    } else if (auto* vec = std::get_if<std::vector<double>>(&variant)) {
-        return Vec2Str(*vec, decimal, separator);
-    } else if (auto* vec = std::get_if<std::vector<std::string>>(&variant)) {
-        return Vec2Str(*vec, decimal, separator);
-    } else if (auto* vec = std::get_if<std::vector<rdk::JPos>>(&variant)) {
-        return StructVec2Str(*vec);
-    } else if (auto* vec = std::get_if<std::vector<rdk::Coord>>(&variant)) {
-        return StructVec2Str(*vec);
-    } else if (auto* vec = std::get_if<std::vector<rdk::DJPos>>(&variant)) {
-        return StructVec2Str(*vec);
-    } else if (auto* vec = std::get_if<std::vector<rdk::DCoord>>(&variant)) {
-        return StructVec2Str(*vec);
-    } else if (auto* vec = std::get_if<std::vector<rdk::OCoord>>(&variant)) {
-        return StructVec2Str(*vec);
-    }
-    return "";
+    return std::visit(
+        [&](const auto& value) -> std::string {
+            using T = std::decay_t<decltype(value)>;
+            if constexpr (std::is_same_v<T, bool>) {
+                return value ? "true" : "false";
+            } else if constexpr (std::is_same_v<T, std::vector<bool>>) {
+                std::string ret;
+                std::string padding;
+                for (const bool v : value) {
+                    ret += padding + (v ? "true" : "false");
+                    padding = separator;
+                }
+                return ret;
+            } else if constexpr (std::is_same_v<T, int> || std::is_same_v<T, double>) {
+                return Vec2Str(std::vector<T> {value}, decimal);
+            } else if constexpr (std::is_same_v<T, std::string>) {
+                return value;
+            } else if constexpr (detail::kIsAnyOf<T, rdk::JPos, rdk::Coord, rdk::DJPos, rdk::DCoord,
+                                     rdk::OCoord, rdk::Pose>) {
+                return value.str();
+            } else if constexpr (detail::kIsAnyOf<T, std::vector<int>, std::vector<double>,
+                                     std::vector<std::string>>) {
+                return Vec2Str(value, decimal, separator);
+            } else if constexpr (requires { std::tuple_size<T>::value; }) {
+                // A fixed-size std::array
+                return Arr2Str(value, decimal, separator);
+            } else if constexpr (requires { std::tuple_size<typename T::value_type>::value; }) {
+                // A std::vector of fixed-size std::array
+                std::string ret;
+                for (const auto& arr : value) {
+                    ret += Arr2Str(arr, decimal, separator) + " : ";
+                }
+                if (!ret.empty()) {
+                    ret.erase(ret.size() - 3);
+                }
+                return ret;
+            } else if constexpr (requires { value.front().str(); }) {
+                // A std::vector of Flexiv data structs
+                return StructVec2Str(value);
+            } else {
+                static_assert(sizeof(T) == 0, "unhandled alternative of rdk::FlexivDataTypes");
+            }
+        },
+        variant);
 }
 
 /**

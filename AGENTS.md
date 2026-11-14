@@ -52,7 +52,7 @@ Use these sources for API behavior details and argument meaning when in doubt.
   - `all_states = robot.primitive_states()`
   - `robot.primitive_states()` only contains joint groups that are currently running primitives
   - check the documented state key(s) from `state.names_and_values` for each target joint group
-  - primitive-state booleans are typically read back as integer `1` or `0`
+  - primitive-state booleans are read back as `bool` (`True`/`False`), the same as global variables of type `BOOL`
   - `time.sleep(0.1-1.0)` in the loop
 
 ### 2.1) RDK v2.x Joint-Group API Rule
