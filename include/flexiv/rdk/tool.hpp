@@ -168,7 +168,9 @@ public:
      * connected robot.
      * @throw std::logic_error if robot is not in the correct control mode.
      * @throw std::runtime_error if the connected robot does not support payload calibration via
-     * RDK, if fault occurred during the calibration, if the calibration did not finish within
+     * RDK, if the robot rejected the calibration (see step 5 below), if fault occurred during the
+     * calibration, if the calibration was interrupted (e.g. the robot dropped to IDLE because it
+     * stopped receiving messages from this client), if the calibration did not finish within
      * kCaliTimeoutSec, or if failed to get the calibration result.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the calibration is finished. The robot is put back to IDLE
@@ -189,7 +191,10 @@ public:
      * steps are recommended to improve accuracy.
      * 4. (Optional) Physically unmount the tool from robot flange.
      * 5. (Optional) Call this function again but with [tool_mounted] set to FALSE, then wait for
-     * completion.
+     * completion. This refines the result of step 3 with the joint torques it recorded, which the
+     * robot keeps for the last arm calibrated in step 3 only. So on a robot with more than one arm,
+     * finish steps 3 to 5 on one arm before calibrating the next. The robot rejects this step for
+     * an arm that is not the last one calibrated in step 3.
      * 6. Review the returned result and call Add() or Update() to apply the calibrated payload
      * parameters to a new or existing tool. Note that [tcp_location] in the returned struct is
      * invalid and cannot be used directly.
