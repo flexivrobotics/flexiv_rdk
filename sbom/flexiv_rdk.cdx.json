@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:61e2519b-5e47-504e-84b1-2d15d3e5f265",
+  "serialNumber": "urn:uuid:5b3d0021-0d8c-51f2-b9af-4d639f6ac7df",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-04T23:15:51Z",
+    "timestamp": "2026-11-13T08:59:43Z",
     "tools": {
       "components": [
         {
@@ -45,6 +45,100 @@
     }
   },
   "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:github/jrl-umi3218/RBDyn@v1.9.5",
+      "name": "RBDyn",
+      "version": "v1.9.5",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:github/jrl-umi3218/RBDyn@v1.9.5",
+      "properties": [
+        {
+          "name": "flexiv:role",
+          "value": "embedded"
+        },
+        {
+          "name": "flexiv:install-script",
+          "value": "thirdparty/scripts/install_RBDyn.sh"
+        },
+        {
+          "name": "flexiv:git-commit",
+          "value": "9fa34237622b680574fced44fd031abed5aa5c57"
+        },
+        {
+          "name": "flexiv:pinned",
+          "value": "true"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/jrl-umi3218/RBDyn.git"
+        }
+      ],
+      "pedigree": {
+        "commits": [
+          {
+            "uid": "9fa34237622b680574fced44fd031abed5aa5c57",
+            "url": "https://github.com/jrl-umi3218/RBDyn.git"
+          }
+        ]
+      }
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:github/jrl-umi3218/SpaceVecAlg@v1.2.10",
+      "name": "SpaceVecAlg",
+      "version": "v1.2.10",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:github/jrl-umi3218/SpaceVecAlg@v1.2.10",
+      "properties": [
+        {
+          "name": "flexiv:role",
+          "value": "embedded"
+        },
+        {
+          "name": "flexiv:install-script",
+          "value": "thirdparty/scripts/install_SpaceVecAlg.sh"
+        },
+        {
+          "name": "flexiv:git-commit",
+          "value": "20b641ce138acc5e0ff49b07cd87451e53b4f943"
+        },
+        {
+          "name": "flexiv:pinned",
+          "value": "true"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/jrl-umi3218/SpaceVecAlg.git"
+        }
+      ],
+      "pedigree": {
+        "commits": [
+          {
+            "uid": "20b641ce138acc5e0ff49b07cd87451e53b4f943",
+            "url": "https://github.com/jrl-umi3218/SpaceVecAlg.git"
+          }
+        ]
+      }
+    },
     {
       "type": "library",
       "bom-ref": "pkg:generic/boost@1.83.0?download_url=https://archives.boost.io/release/1.83.0/source/boost_1_83_0.tar.bz2",
@@ -138,16 +232,7 @@
             "uid": "3147391d946bb4b6c68edd901f2add6ac1f31f8c",
             "url": "https://gitlab.com/libeigen/eigen.git"
           }
-        ],
-        "patches": [
-          {
-            "type": "unofficial",
-            "diff": {
-              "url": "thirdparty/patches/eigen_qnx802.patch"
-            }
-          }
-        ],
-        "notes": "thirdparty/patches/eigen_qnx802.patch: QNX builds only."
+        ]
       }
     },
     {
@@ -9206,100 +9291,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:github/jrl-umi3218/RBDyn@v1.9.5",
-      "name": "RBDyn",
-      "version": "v1.9.5",
-      "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "BSD-2-Clause"
-          }
-        }
-      ],
-      "purl": "pkg:github/jrl-umi3218/RBDyn@v1.9.5",
-      "properties": [
-        {
-          "name": "flexiv:role",
-          "value": "embedded"
-        },
-        {
-          "name": "flexiv:install-script",
-          "value": "thirdparty/scripts/install_RBDyn.sh"
-        },
-        {
-          "name": "flexiv:git-commit",
-          "value": "9fa34237622b680574fced44fd031abed5aa5c57"
-        },
-        {
-          "name": "flexiv:pinned",
-          "value": "true"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "vcs",
-          "url": "https://github.com/jrl-umi3218/RBDyn.git"
-        }
-      ],
-      "pedigree": {
-        "commits": [
-          {
-            "uid": "9fa34237622b680574fced44fd031abed5aa5c57",
-            "url": "https://github.com/jrl-umi3218/RBDyn.git"
-          }
-        ]
-      }
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:github/jrl-umi3218/SpaceVecAlg@v1.2.10",
-      "name": "SpaceVecAlg",
-      "version": "v1.2.10",
-      "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "BSD-2-Clause"
-          }
-        }
-      ],
-      "purl": "pkg:github/jrl-umi3218/SpaceVecAlg@v1.2.10",
-      "properties": [
-        {
-          "name": "flexiv:role",
-          "value": "embedded"
-        },
-        {
-          "name": "flexiv:install-script",
-          "value": "thirdparty/scripts/install_SpaceVecAlg.sh"
-        },
-        {
-          "name": "flexiv:git-commit",
-          "value": "20b641ce138acc5e0ff49b07cd87451e53b4f943"
-        },
-        {
-          "name": "flexiv:pinned",
-          "value": "true"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "vcs",
-          "url": "https://github.com/jrl-umi3218/SpaceVecAlg.git"
-        }
-      ],
-      "pedigree": {
-        "commits": [
-          {
-            "uid": "20b641ce138acc5e0ff49b07cd87451e53b4f943",
-            "url": "https://github.com/jrl-umi3218/SpaceVecAlg.git"
-          }
-        ]
-      }
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:github/leethomason/tinyxml2@9.0.0",
       "name": "tinyxml2",
       "version": "9.0.0",
@@ -9397,12 +9388,12 @@
     {
       "ref": "pkg:github/flexivrobotics/flexiv_rdk@v2.2.0",
       "dependsOn": [
+        "pkg:github/jrl-umi3218/RBDyn@v1.9.5",
+        "pkg:github/jrl-umi3218/SpaceVecAlg@v1.2.10",
         "pkg:generic/boost@1.83.0?download_url=https://archives.boost.io/release/1.83.0/source/boost_1_83_0.tar.bz2",
         "pkg:gitlab/libeigen/eigen@3.4.0",
         "pkg:github/eclipse-zenoh/zenoh-c@1.9.0",
         "pkg:github/eclipse-zenoh/zenoh-cpp@1.9.0",
-        "pkg:github/jrl-umi3218/RBDyn@v1.9.5",
-        "pkg:github/jrl-umi3218/SpaceVecAlg@v1.2.10",
         "pkg:github/leethomason/tinyxml2@9.0.0",
         "pkg:github/jbeder/yaml-cpp@yaml-cpp-0.7.0"
       ]
