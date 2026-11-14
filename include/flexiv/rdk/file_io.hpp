@@ -48,8 +48,10 @@ public:
      * @param[in] file_dir Relative or absolute path of the directory that contains the file to
      * upload, e.g. /home/user/Documents/. Do not include the file name here.
      * @param[in] file_name Full name of the trajectory file to upload, including the extension.
-     * E.g. PolishSpiral.traj. Do not include the directory path here.
-     * @throw std::invalid_argument if failed to find or load the specified file.
+     * E.g. PolishSpiral.traj. Do not include the directory path here. Must end with ".traj", since
+     * traj_files_list() and DownloadTrajFile() only see .traj files.
+     * @throw std::invalid_argument if [file_name] does not end with ".traj", or if failed to find
+     * or load the specified file.
      * @throw std::runtime_error if failed to upload the file.
      * @note This function blocks until the file is successfully uploaded.
      */
@@ -83,8 +85,9 @@ public:
 
     /**
      * @brief [Blocking] Upload a local project to the robot.
-     * @param[in] project_dir Relative or absolute path of the project directory, which should
-     * contain a .proj file and a .plan file.
+     * @param[in] project_dir Relative or absolute path of the project directory, with or without a
+     * trailing path separator. The directory must contain <name>.proj and <name>.plan, where
+     * <name> is the name of the directory.
      * @throw std::invalid_argument if failed to find the specified directory or the project files
      * are incomplete.
      * @throw std::logic_error if robot is not in the correct control mode.
@@ -101,7 +104,8 @@ public:
      * @brief [Blocking] Download a project from the robot and save to the specified directory.
      * @param[in] project_name Full name of the project to download. E.g. "polish_table".
      * @param[in] save_dir Relative or absolute path of the directory to save the downloaded
-     * project. E.g. /home/user/Documents/.
+     * project. E.g. /home/user/Documents/. The project is written into [save_dir]/<project_name>/,
+     * which also gets a .project marker file.
      * @throw std::invalid_argument if the specified project does not exist.
      * @throw std::runtime_error if failed to download or save the project.
      * @throw std::filesystem::filesystem_error if failed to create the specified directory.

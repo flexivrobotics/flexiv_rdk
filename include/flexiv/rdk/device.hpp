@@ -24,9 +24,11 @@ class RDK_API Device
 {
 public:
     /**
-     * @brief [Non-blocking] Instantiate the device control interface.
+     * @brief [Blocking] Instantiate the device control interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
+     * @note This constructor blocks until the list of devices is received from the connected
+     * robot. list() and exist() reflect the devices at that moment.
      */
     Device(const Robot& robot);
     virtual ~Device();

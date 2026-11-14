@@ -23,7 +23,9 @@ struct ToolParams
     /** Center of mass in robot flange frame: \f$ [x, y, z] \f$. Unit: \f$ [m] \f$ */
     std::array<double, 3> CoM = {};
 
-    /** Inertia at center of mass: \f$ [Ixx, Iyy, Izz, Ixy, Ixz, Iyz] \f$. Unit: \f$ [kg m^2] \f$ */
+    /** Inertia at center of mass: \f$ [Ixx, Iyy, Izz, Ixy, Ixz, Iyz] \f$. Unit: \f$ [kg m^2] \f$
+     * @note The inertia must be positive semi-definite, otherwise the robot replaces it with zero.
+     */
     std::array<double, 6> inertia = {};
 
     /** Position and orientation of the tool center point (TCP) in flange frame. Consists of \f$
@@ -139,9 +141,16 @@ public:
      * NaN, infinite, or out-of-float-range value, a negative mass or principal moment of inertia,
      * or a (close to) zero TCP quaternion. The TCP quaternion is normalized before being sent.
      * @throw std::logic_error if robot is not in the correct control mode.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @throw std::runtime_error if the robot rejected the request or could not apply the updated
+     * tool to an arm that uses it, with the robot's reason in the exception message, or if failed
+     * to deliver the request to the connected robot. If only applying it failed, the tool is
+     * updated nonetheless.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
+     * @note Updating the active tool of an arm also updates the tool the robot currently uses.
+     * @warning "Flange" stands for the bare flange without a tool. Updating it changes the
+     * parameters the robot uses whenever it switches to "Flange", e.g. in step 1 of
+     * CalibratePayloadParams(), so leave "Flange" at its default parameters.
      */
     void Update(const std::string& name, const ToolParams& params);
 
@@ -151,7 +160,8 @@ public:
      * @throw std::invalid_argument if the specified tool does not exist.
      * @throw std::logic_error if robot is not in the correct control mode or trying to remove
      * "Flange".
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @throw std::runtime_error if the specified tool is the active tool of any arm, or failed to
+     * deliver the request to the connected robot. Switch the arm to another tool first.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
      */
@@ -170,11 +180,13 @@ public:
      * @throw std::runtime_error if the connected robot does not support payload calibration via
      * RDK, if the robot rejected the calibration (see step 5 below), if fault occurred during the
      * calibration, if the calibration was interrupted (e.g. the robot dropped to IDLE because it
-     * stopped receiving messages from this client), if the calibration did not finish within
-     * kCaliTimeoutSec, or if failed to get the calibration result.
+     * stopped receiving messages from this client), if the calibration did not finish within 600
+     * seconds, or if failed to get the calibration result.
      * @note Applicable control modes: IDLE.
-     * @note This function blocks until the calibration is finished. The robot is put back to IDLE
-     * before this function returns, including when it throws.
+     * @note This function blocks until the calibration is finished. Once the calibration has
+     * started, the robot is put back to IDLE before this function returns, including when it
+     * throws; if that fails, only a warning is logged. A throw from the checks of [group] and the
+     * control mode leaves the control mode untouched.
      * @note On a robot with more than one arm, only the arm of [group] moves; the calibration does
      * not depend on, nor change, the robot's primary arm.
      * @warning [tcp_location] in the returned struct will be zeros and should be ignored.
@@ -194,7 +206,8 @@ public:
      * completion. This refines the result of step 3 with the joint torques it recorded, which the
      * robot keeps for the last arm calibrated in step 3 only. So on a robot with more than one arm,
      * finish steps 3 to 5 on one arm before calibrating the next. The robot rejects this step for
-     * an arm that is not the last one calibrated in step 3.
+     * an arm that is not the last one calibrated in step 3, or if step 3 has not run on that arm
+     * since the robot software last started.
      * 6. Review the returned result and call Add() or Update() to apply the calibrated payload
      * parameters to a new or existing tool. Note that [tcp_location] in the returned struct is
      * invalid and cannot be used directly.

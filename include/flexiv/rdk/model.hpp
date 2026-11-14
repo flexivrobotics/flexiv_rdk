@@ -18,13 +18,15 @@ namespace flexiv::rdk {
  */
 struct IKParams
 {
-    /** Cartesian pose to be solved. */
+    /** Target TCP pose of the joint group's current tool w.r.t. world frame: \f$ [x, y, z, q_w,
+     * q_x, q_y, q_z]^T \f$. Unit: \f$ [m]:[] \f$. */
     std::array<double, kPoseSize> cartesian_pose = {};
 
     /** Seed joint positions for IK solver. Unit: [rad]. */
     std::vector<double> seed_q = {};
 
-    /** Whether to only constrain Cartesian position and allow orientation to vary. */
+    /** Whether to only constrain Cartesian position and allow orientation to vary. Must be the
+     * same for every joint group in one call of SolveConstrainedIK(). */
     bool free_orientation = false;
 };
 
@@ -57,13 +59,15 @@ class RDK_API Model
 {
 public:
     /**
-     * @brief [Non-blocking] Instantiate the robot model interface.
+     * @brief [Blocking] Instantiate the robot model interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @param[in] gravity_vector Earth's gravity vector in world frame. Default to \f$ [0.0, 0.0,
      * -9.81]^T \f$. Unit: \f$ [m/s^2] \f$.
      * @throw std::runtime_error if the initialization sequence failed.
      * @throw std::logic_error if the connected robot does not have an RDK professional license; or
      * the parsed robot model is not supported or contains invalid values.
+     * @note This constructor blocks until the robot model is synced from the connected robot, see
+     * Reload().
      */
     Model(const Robot& robot,
         const Eigen::Vector3d& gravity_vector = Eigen::Vector3d(0.0, 0.0, -9.81));
@@ -87,7 +91,8 @@ public:
      * @throw std::runtime_error if failed to sync model data.
      * @throw std::logic_error if the synced robot model contains invalid data.
      * @note This function blocks until the model parameters are synced and reloaded.
-     * @note This function does not affect the kinematics functions.
+     * @note This function resets the configuration of the locally-stored robot model, so call
+     * Update() again before using the kinematics or dynamics functions.
      * @warning Parameters of the locally-stored robot model must be manually refreshed using this
      * function whenever a physical change is made to the connected robot (e.g. a tool is added or
      * changed). Otherwise the locally computed functions will return incorrect results.
@@ -98,9 +103,11 @@ public:
      * @brief [Non-blocking] Update the configuration (posture) of the locally-stored robot model so
      * that the locally computed functions return results based on the updated configuration.
      * @param[in] full_q Current joint positions of the whole robot and matching the order of
-     * joint_names(): \f$ q \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad] \f$.
+     * joint_names(): \f$ q \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad] \f$ for rotary joints
+     * or \f$ [m] \f$ for linear joints.
      * @param[in] full_dq Current joint velocities of the whole robot and matching the order of
-     * joint_names(): \f$ \dot{q} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$.
+     * joint_names(): \f$ \dot{q} \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [rad/s] \f$ for rotary
+     * joints or \f$ [m/s] \f$ for linear joints.
      * @throw std::invalid_argument if size of any input vector does not match robot full DoF, or
      * any input vector contains NaN or infinite value.
      */
@@ -138,7 +145,8 @@ public:
     /**
      * @brief [Non-blocking] Compute the gravity force vector in generalized coordinates, i.e.
      * joint space.
-     * @return Gravity force vector: \f$ g(q) \in \mathbb{R}^{n \times 1} \f$. Unit: \f$ [Nm] \f$.
+     * @return Gravity force vector: \f$ g(q) \in \mathbb{R}^{n \times 1} \f$.
+     * Unit: \f$ [Nm] \f$ for rotary joints or \f$ [N] \f$ for linear joints.
      * @note Call Update() before this function.
      */
     Eigen::VectorXd g();
@@ -146,8 +154,8 @@ public:
     /**
      * @brief [Non-blocking] Compute the Coriolis force vector in generalized coordinates, i.e.
      * joint space.
-     * @return Coriolis force vector: \f$ c(q,\dot{q}) \in \mathbb{R}^{n \times 1} \f$. Unit: \f$
-     * [Nm] \f$.
+     * @return Coriolis force vector: \f$ c(q,\dot{q}) \in \mathbb{R}^{n \times 1} \f$.
+     * Unit: \f$ [Nm] \f$ for rotary joints or \f$ [N] \f$ for linear joints.
      * @note Call Update() before this function.
      */
     Eigen::VectorXd c();
@@ -221,12 +229,16 @@ public:
      * @brief [Blocking] Solve constrained IK using one or more active joint groups.
      * @param[in] ik_params_by_group IK input parameters mapped by active joint group. Joint groups
      * not included in this map are treated as inactive. Only single-arm joint groups like ARM_1 and
-     * ARM_2 are accepted.
+     * ARM_2 are accepted. [free_orientation] must be the same for every joint group.
      * @return Solver result. [solved_q] contains one entry per requested active joint group.
      * @throw std::invalid_argument if input map is empty, if any joint group is not an existing
      * single-arm joint group, or if any [seed_q] size does not match DoF of its joint group.
-     * @throw std::runtime_error if failed to get a reply from the connected robot.
+     * @throw std::runtime_error if the robot rejected the request, e.g. because of mixed
+     * [free_orientation], a non-finite pose or seed, or a zero quaternion, with the reason in the
+     * exception message, or if failed to get a reply from the connected robot.
      * @note This function blocks until a reply is received.
+     * @note The robot holds the inactive joint groups, including the external axes, at their
+     * current joint positions while solving.
      */
     IKResult SolveConstrainedIK(const std::map<JointGroup, IKParams>& ik_params_by_group);
 
@@ -249,10 +261,10 @@ public:
      * @brief [Non-blocking] Estimated multi-contact forces applied on each link of applicable joint
      * groups, calculated using the force-torque sensors installed in every joint of the robot.
      * @return \f$ f_c \in \mathbb{R}^{n \times 1} \f$ mapped by joint group. Each vector element is
-     * a \f$ \mathbb{R}^{3 \times 1} \f$ force vector w.r.t. the corresponding link frame. Only
-     * contains joint groups that are capable of multi-contact estimation.
-     * @warning This data is only available on certain robot models. An empty vector will be
-     * returned if the connected robot does not support multi-contact estimation.
+     * a \f$ \mathbb{R}^{3 \times 1} \f$ force vector w.r.t. the corresponding link frame. Contains
+     * every joint group of the robot.
+     * @warning This data is only available on certain robot models. All vectors are zero if the
+     * connected robot does not support multi-contact estimation.
      */
     std::map<JointGroup, std::vector<Eigen::Vector3d>> multi_contact_forces() const;
 
@@ -260,10 +272,10 @@ public:
      * @brief [Non-blocking] Estimated multi-contact positions on each link of applicable joint
      * groups, calculated using the force-torque sensors installed in every joint of the robot.
      * @return \f$ p_c \in \mathbb{R}^{n \times 1} \f$ mapped by joint group. Each vector element is
-     * a \f$ \mathbb{R}^{3 \times 1} \f$ position vector w.r.t. the corresponding link frame. Only
-     * contains joint groups that are capable of multi-contact estimation.
-     * @warning This data is only available on certain robot models. An empty vector will be
-     * returned if the connected robot does not support multi-contact estimation.
+     * a \f$ \mathbb{R}^{3 \times 1} \f$ position vector w.r.t. the corresponding link frame.
+     * Contains every joint group of the robot.
+     * @warning This data is only available on certain robot models. All vectors are zero if the
+     * connected robot does not support multi-contact estimation.
      */
     std::map<JointGroup, std::vector<Eigen::Vector3d>> multi_contact_positions() const;
 

@@ -12,6 +12,7 @@
 #include <Eigen/Eigen>
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <sstream>
 #include <stdexcept>
 #include <tuple>
@@ -91,8 +92,11 @@ inline bool PrimitiveStateTrueForGroups(
  * @return Euler angles in [x,y,z] order [rad].
  * @throw std::invalid_argument if [quat] contains NaN or infinite value, or is (close to) zero and
  * thus does not represent an orientation.
- * @note The return value, when converted to degrees, is the same Euler angles used by Move
- * primitives.
+ * @note Every orientation has two equivalent sets of ZYX Euler angles, of which the one with the
+ * smaller sum of absolute angles is returned, e.g. [0, 0, -30] deg rather than [180, 180, 150]
+ * deg. This is the same selection the robot makes when it converts an orientation to Euler
+ * angles, so the return value, when converted to degrees, is the same Euler angles used by Move
+ * primitives. At gimbal lock, i.e. a pitch of +/-pi/2, the Z angle is 0.
  */
 inline std::array<double, 3> Quat2EulerZYX(const std::array<double, 4>& quat)
 {
@@ -105,9 +109,39 @@ inline std::array<double, 3> Quat2EulerZYX(const std::array<double, 4>& quat)
             "[flexiv::rdk::utility::Quat2EulerZYX] Input quaternion is not finite or is zero");
     }
     q.normalize();
+    const Eigen::Matrix3d rot = q.toRotationMatrix();
 
-    // The returned array is in [z,y,x] order
-    auto euler_ZYX = q.toRotationMatrix().eulerAngles(2, 1, 0);
+    // Fold an angle into [-pi, pi]
+    constexpr double kPi = 3.14159265358979323846;
+    const auto wrap_to_pi = [kPi](double angle) {
+        if (angle > kPi) {
+            return angle - 2.0 * kPi;
+        }
+        if (angle < -kPi) {
+            return angle + 2.0 * kPi;
+        }
+        return angle;
+    };
+
+    // Of the Euler angle sets that represent the same orientation, report the one the robot
+    // reports (fvr::FvrFrame, with a zero reference). At gimbal lock (pitch at +/-90 deg) only a
+    // combination of the Z and X angles is determined, so the Z angle is pinned to 0
+    constexpr double kGimbalLockTol = 1e-7;
+    if (rot(0, 0) * rot(0, 0) + rot(1, 0) * rot(1, 0) < kGimbalLockTol * kGimbalLockTol) {
+        const bool pitch_up = rot(2, 0) < 0.0;
+        const double angle_x
+            = pitch_up ? std::atan2(rot(0, 1), rot(1, 1)) : std::atan2(-rot(0, 1), rot(1, 1));
+        return {wrap_to_pi(angle_x), pitch_up ? kPi / 2.0 : -kPi / 2.0, 0.0};
+    }
+
+    // Otherwise there are two sets. Eigen returns the one with the Z angle in [0, pi], so a yaw of
+    // -30 deg would come back as [180, 180, 150] deg; take the set with the smaller sum of absolute
+    // angles instead, as the robot does. Both are in [z,y,x] order
+    const Eigen::Vector3d euler_1 = rot.eulerAngles(2, 1, 0);
+    const Eigen::Vector3d euler_2(
+        wrap_to_pi(euler_1[0] + kPi), wrap_to_pi(kPi - euler_1[1]), wrap_to_pi(euler_1[2] + kPi));
+    const Eigen::Vector3d& euler_ZYX
+        = (euler_1.cwiseAbs().sum() < euler_2.cwiseAbs().sum()) ? euler_1 : euler_2;
 
     // Convert to general [x,y,z] order
     return (std::array<double, 3> {euler_ZYX[2], euler_ZYX[1], euler_ZYX[0]});

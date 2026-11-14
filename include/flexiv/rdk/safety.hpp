@@ -173,15 +173,14 @@ public:
      * @brief [Blocking] Set safety limits on the joint positions of the arm, which will
      * honor this setting when making movements.
      * @param[in] min_positions Minimum joint positions: \f$ q_{min} \in \mathbb{R}^{n \times 1}
-     * \f$. Valid range: [default_min_joint_positions, default_max_joint_positions]. Unit: \f$ [rad]
-     * \f$.
+     * \f$. Valid range: [default_limits().q_min, default_limits().q_max]. Unit: \f$ [rad] \f$.
      * @param[in] max_positions Maximum joint positions: \f$ q_{max} \in \mathbb{R}^{n \times 1}
-     * \f$. Valid range: [default_min_joint_positions, default_max_joint_positions]. Unit: \f$ [rad]
-     * \f$.
+     * \f$. Valid range: [default_limits().q_min, default_limits().q_max]. Unit: \f$ [rad] \f$.
      * @param[in] group Joint group to apply the limits to.
      * @throw std::invalid_argument if [group] is not an existing single-arm joint group in the
      * connected robot, if [min_positions] or [max_positions] contains any value outside the valid
-     * range, or if size of any input vector does not match arm DoF.
+     * range, if any minimum is not less than the maximum of the same joint, or if size of any input
+     * vector does not match arm DoF.
      * @throw std::logic_error if robot is not in the correct control mode, or if this instance
      * was created without a password.
      * @throw std::runtime_error if the request failed, e.g. it could not be delivered to the
@@ -199,8 +198,8 @@ public:
      * @brief [Blocking] Set safety limits on the joint velocities of the arm, which will
      * honor this setting when making movements under the normal state.
      * @param[in] max_velocities Maximum joint velocities for normal state: \f$ \dot{q}_{max} \in
-     * \mathbb{R}^{n \times 1} \f$. Valid range: [0.8727, joint_velocity_normal_limits]. Unit: \f$
-     * [rad/s] \f$.
+     * \mathbb{R}^{n \times 1} \f$. Valid range: [0.872665 (50 deg/s),
+     * default_limits().dq_max_normal]. Unit: \f$ [rad/s] \f$.
      * @param[in] group Joint group to apply the limits to.
      * @throw std::invalid_argument if [group] is not an existing single-arm joint group in the
      * connected robot, if [max_velocities] contains any value outside the valid range, or if its
@@ -208,8 +207,10 @@ public:
      * @throw std::logic_error if robot is not in the correct control mode, or if this instance
      * was created without a password.
      * @throw std::runtime_error if the request failed, e.g. it could not be delivered to the
-     * connected robot, or the robot rejected the password, see Safety(const Robot&, const
-     * std::string&).
+     * connected robot, the robot rejected the password, see Safety(const Robot&, const
+     * std::string&), or a joint's reduced-state limit would exceed its normal-state limit.
+     * @note Each joint's reduced-state limit must not exceed its normal-state limit as last set,
+     * including changes that take effect only after a reboot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
      * @warning A reboot is required for the updated safety settings to take effect. After reboot,
@@ -221,8 +222,8 @@ public:
      * @brief [Blocking] Set safety limits on the joint velocities of the arm, which will
      * honor this setting when making movements under the reduced state.
      * @param[in] max_velocities Maximum joint velocities for reduced state: \f$ \dot{q}_{max} \in
-     * \mathbb{R}^{n \times 1} \f$. Valid range: [0.8727, joint_velocity_normal_limits]. Unit: \f$
-     * [rad/s] \f$.
+     * \mathbb{R}^{n \times 1} \f$. Valid range: [0.872665 (50 deg/s),
+     * default_limits().dq_max_normal]. Unit: \f$ [rad/s] \f$.
      * @param[in] group Joint group to apply the limits to.
      * @throw std::invalid_argument if [group] is not an existing single-arm joint group in the
      * connected robot, if [max_velocities] contains any value outside the valid range, or if its
@@ -230,8 +231,10 @@ public:
      * @throw std::logic_error if robot is not in the correct control mode, or if this instance
      * was created without a password.
      * @throw std::runtime_error if the request failed, e.g. it could not be delivered to the
-     * connected robot, or the robot rejected the password, see Safety(const Robot&, const
-     * std::string&).
+     * connected robot, the robot rejected the password, see Safety(const Robot&, const
+     * std::string&), or a joint's reduced-state limit would exceed its normal-state limit.
+     * @note Each joint's reduced-state limit must not exceed its normal-state limit as last set,
+     * including changes that take effect only after a reboot.
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
      * @warning A reboot is required for the updated safety settings to take effect. After reboot,
@@ -257,7 +260,8 @@ public:
      * std::string&).
      * @note Applicable control modes: IDLE.
      * @note This function blocks until the request is successfully delivered.
-     * @note This setting takes effect immediately and doesn't require a reboot.
+     * @note This setting takes effect immediately and doesn't require a reboot, but it is not
+     * saved: the robot reverts to the default settings when it reboots.
      * @warning Setting the limiting factor too small can cause performance degradation.
      */
     void SetJointOutputTorqueRegulator(

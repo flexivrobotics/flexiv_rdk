@@ -74,15 +74,21 @@ RDK_API std::ostream& operator<<(std::ostream& ostream, const GripperStates& gri
  * tailored specifically for gripper controls.
  * @note Thread safety: all functions of this class are thread-safe and can be called concurrently
  * from multiple threads. They are serialized with each other, so the record of the enabled
- * gripper of each joint group always stays consistent with the robot.
+ * gripper of each joint group stays consistent with the robot for the grippers enabled through
+ * this instance.
+ * @warning Another Gripper instance, or one created in a new session, does not know the grippers
+ * enabled elsewhere, and overwrites the robot's record of enabled grippers when it enables or
+ * disables one.
  */
 class RDK_API Gripper
 {
 public:
     /**
-     * @brief [Non-blocking] Instantiate the gripper control interface.
+     * @brief [Blocking] Instantiate the gripper control interface.
      * @param[in] robot Reference to the instance of flexiv::rdk::Robot.
      * @throw std::runtime_error if the initialization sequence failed.
+     * @note This constructor blocks until the list of devices is received from the connected
+     * robot.
      */
     Gripper(const Robot& robot);
     virtual ~Gripper();
@@ -97,6 +103,8 @@ public:
      * @throw std::runtime_error if failed to deliver the request to the connected robot or failed
      * to sync gripper parameters.
      * @note This function blocks until the request is successfully delivered.
+     * @note If [group] already has an enabled gripper, this function does nothing apart from
+     * logging a warning. Call Disable() first to switch to another gripper.
      * @warning There's no enforced check on whether the enabled device is a gripper or not. Using
      * this function to enable a non-gripper device will likely lead to undefined behaviors.
      */
@@ -158,7 +166,8 @@ public:
      * @brief [Blocking] Stop and hold the gripper used by the specified joint group.
      * @param[in] group Joint group whose gripper to send this command to.
      * @throw std::logic_error if no gripper is enabled for the specified joint group.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @throw std::runtime_error if the gripper states are not available yet, see states(), or
+     * failed to deliver the request to the connected robot.
      * @note This function blocks until the request is successfully delivered.
      */
     void Stop(JointGroup group);
@@ -172,6 +181,8 @@ public:
     /**
      * @brief [Non-blocking] Current states data of all enabled grippers.
      * @return Gripper states data mapped by joint group.
+     * @throw std::runtime_error if the gripper states reported by the robot do not match the
+     * enabled grippers yet, e.g. right after Enable(), or after another instance changed them.
      */
     std::map<JointGroup, GripperStates> states() const;
 

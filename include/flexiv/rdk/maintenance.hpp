@@ -76,8 +76,8 @@ public:
      * if it has external axes. Any joint group left out of the map, including all of them when the
      * map is empty, moves to its recommended posture, which is upright for an arm and zero for the
      * external axes. However, calibrating with a custom posture is NOT recommended. Valid range:
-     * [RobotInfo::q_min, RobotInfo::q_max]. Unit: \f$ [rad] \f$ for an arm joint or an angular
-     * external axis, \f$ [m] \f$ for a linear external axis.
+     * [RobotInfo::q_min, RobotInfo::q_max]. Unit: \f$ [rad] \f$ for rotary joints or \f$ [m] \f$
+     * for linear joints.
      * @throw std::invalid_argument if [cali_posture] is keyed by a joint group that the connected
      * robot does not have, if the size of an entry does not match the DoF of its joint group, or if
      * an entry contains a value outside the valid range.
@@ -104,7 +104,8 @@ public:
      * @param[in] config New PTP configuration. All fields are written, so read the current
      * configuration with ptp_config() first if only some of the fields are to be changed.
      * @throw std::invalid_argument if [config] contains an invalid network port or time zone.
-     * @throw std::runtime_error if failed to deliver the request to the connected robot.
+     * @throw std::runtime_error if the selected network port is not present on this control box,
+     * or failed to deliver the request to the connected robot.
      * @note Applicable control modes: all.
      * @note This function blocks until the request is successfully delivered.
      * @warning The control box needs to be rebooted for the new configuration to take effect.

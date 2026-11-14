@@ -20,6 +20,7 @@ namespace flexiv::rdk {
  * each task are configured independently.
  * @note Thread safety: all functions of this class are thread-safe and can be called concurrently
  * from multiple threads.
+ * @note Not available on Windows.
  */
 class RDK_API Scheduler
 {
@@ -30,11 +31,18 @@ public:
      * @warning This constructor blocks until the initialization sequence is successfully finished.
      */
     Scheduler();
+
+    /**
+     * @brief [Blocking] Stop all tasks and close their threads, waiting for any callback that is
+     * still running to finish.
+     * @warning The scheduler cannot be destroyed from within one of its task threads.
+     */
     virtual ~Scheduler();
 
     /**
      * @brief [Non-blocking] Add a new periodic task to the scheduler's task pool. Each task in the
-     * pool is assigned to a dedicated thread with independent thread configuration.
+     * pool is assigned to a dedicated thread with independent thread configuration, which is
+     * created right away and stays idle until Start() is called.
      * @param[in] callback Callback function of user task.
      * @param[in] task_name A unique name for this task.
      * @param[in] interval Execution interval of this periodic task [ms]. The minimum available
@@ -59,7 +67,10 @@ public:
      * @throw std::runtime_error if an error is triggered by the client computer.
      * @note Setting CPU affinity on macOS has no effect, as its Mach kernel takes full control of
      * thread placement so CPU binding is not supported.
-     * @warning Calling this function after start() is not allowed.
+     * @warning Calling this function after Start() is not allowed.
+     * @warning If [callback] throws, the exception is swallowed and this task stops permanently
+     * without notice, while the other tasks keep running. Catch all exceptions inside the
+     * callback.
      * @warning For maximum scheduling performance, setting CPU affinity to 0 or 1 is not allowed:
      * core 0 is usually the default core for system processes and can be crowded; core 1 is
      * reserved for the scheduler itself.
@@ -68,22 +79,16 @@ public:
         int priority, int cpu_affinity = -1);
 
     /**
-     * @brief [Blocking] Start all added tasks. A dedicated thread will be created for each added
-     * task and the periodic execution will begin.
-     * @throw std::logic_error if the scheduler is not initialized yet.
-     * @throw std::runtime_error if failed to start the tasks.
-     * @note This function blocks until all added tasks are started.
+     * @brief [Non-blocking] Start the periodic execution of all added tasks. Their threads are
+     * already created by AddTask(), this function enables triggering them.
      */
     void Start();
 
     /**
-     * @brief [Blocking] Stop all added tasks. The periodic execution will stop and all task threads
-     * will be closed with the resources released.
-     * @throw std::logic_error if the scheduler is not initialized or the tasks are not started yet.
-     * @throw std::runtime_error if failed to stop the tasks.
-     * @note Calling start() again can restart the added tasks.
-     * @note This function blocks until all task threads have exited and resources are released.
-     * @warning This function cannot be called from within a task thread.
+     * @brief [Non-blocking] Stop triggering all added tasks. A callback that is already running
+     * finishes on its own. The task threads stay alive, idle, until the scheduler is destroyed.
+     * @throw std::logic_error if the tasks are not started yet.
+     * @note Calling Start() again resumes the added tasks.
      */
     void Stop();
 
