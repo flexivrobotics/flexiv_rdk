@@ -35,8 +35,6 @@ public:
      * The part after the last dash may only contain ASCII letters and digits.
      * @param[in] verbose Enable/disable info and warning prints. Robot event log entries and
      * warnings about requests rejected by the robot are printed regardless.
-     * @param[in] lite Whether to create a lite instance. See details below. A normal instance must
-     * have already connected to the robot for lite instances to function properly.
      * @throw std::invalid_argument if the format of [robot_sn] is invalid.
      * @throw std::runtime_error if the initialization sequence failed.
      * @throw std::logic_error if the connected robot does not have a valid RDK license, or is
@@ -47,37 +45,24 @@ public:
      * host on the same network can read the robot states and commands, and impersonate the robot.
      * Keep the robot and the computer running this program on an isolated network that no
      * untrusted host can reach.
-     * @par Lite Instance
-     * Creating multiple instances of rdk::Robot that connect to the same robot is allowed. However,
-     * every additional instance brings extra overhead that can restrict the total number of
-     * instances due to limited computation power and network bandwidth. To mitigate the performance
-     * impact, it is recommended to create a lite instance of rdk::Robot if it only needs to send
-     * one-shot requests, which are functions marked with the [Blocking] tag. A lite instance does
-     * not receive robot states or system status, nor send motion commands. Because of that, the
-     * functions that read them, such as connected(), fault(), busy(), operational(), states() and
-     * event_log(), return default values (false or empty), and ClearFault() cannot verify the
-     * result: it returns true about 1 second after the request is delivered. A lite instance also
-     * cannot check locally whether the robot is operational before sending a request; the robot
-     * itself rejects requests it cannot execute in its current state, so the conditions documented
-     * as std::logic_error (e.g. not operational) surface as std::runtime_error instead, with the
-     * rejection reason in the exception message.
      * @par Multiple Instances
-     * While one instance holds direct (joint or Cartesian) control of the robot, the robot ignores
-     * the motion commands of other instances, and rejects their requests to enter a direct control
-     * mode without first passing through IDLE. Any instance can still stop the robot with Stop() or
+     * Creating multiple instances of rdk::Robot that connect to the same robot is allowed, in the
+     * same program or in different ones. The instances of one program share a single connection to
+     * the robot, while every program receives the robot states over a connection of its own. While
+     * one instance holds direct (joint or Cartesian) control of the robot, the robot ignores the
+     * motion commands of other instances, and rejects their requests to enter a direct control mode
+     * without first passing through IDLE. Any instance can still stop the robot with Stop() or
      * SwitchMode(): since SwitchMode() first switches the robot to IDLE, this ends the direct
-     * control of the controlling instance, after which the calling instance can take over. Direct
-     * control also ends when the controlling instance disconnects.
+     * control of the controlling instance, after which the calling instance can take over. The
+     * robot also stops by itself once the instance commanding it disconnects, e.g. when its program
+     * exits or crashes, even if other instances stay connected. The commanding instance is the one
+     * that switched the robot to its current control mode or last started a primitive or plan in
+     * it. A plan executed with [continue_exec] enabled keeps running.
      */
-    Robot(const std::string& robot_sn, bool verbose = true, bool lite = false);
+    Robot(const std::string& robot_sn, bool verbose = true);
     virtual ~Robot();
 
     //========================================= ACCESSORS ==========================================
-    /**
-     * @brief [Non-blocking] Whether this rdk::Robot instance is a lite one.
-     * @return True: is a lite instance; false: not a lite instance.
-     */
-    bool lite() const;
 
     /**
      * @brief [Non-blocking] Whether the connection with the robot is established.
@@ -236,8 +221,7 @@ public:
     /**
      * @brief [Blocking] Servo on the robot. If E-stop is released and there's no fault, the robot
      * will release brakes, and becomes operational a few seconds later.
-     * @throw std::logic_error if the robot is not connected or E-stop is not released. A lite
-     * instance does not check these, the robot rejects the request instead.
+     * @throw std::logic_error if the robot is not connected or E-stop is not released.
      * @throw std::runtime_error if the robot rejected the request, or failed to deliver the request
      * to the connected robot.
      * @note This function blocks until the request is successfully delivered.
@@ -247,8 +231,7 @@ public:
     /**
      * @brief [Blocking] Servo off the robot by triggering a CAT-1 stop: the robot decelerates to a
      * standstill, then engages brakes and turns off the servo power.
-     * @throw std::logic_error if the robot is not connected. A lite instance does not check this,
-     * the robot rejects the request instead.
+     * @throw std::logic_error if the robot is not connected.
      * @throw std::runtime_error if the robot rejected the request, or failed to deliver the request
      * to the connected robot.
      * @note This function blocks until the request is successfully delivered.
@@ -279,8 +262,8 @@ public:
      * to finish.
      * @param[in] mode Control mode to switch to.
      * @throw std::invalid_argument if the requested mode is invalid or unlicensed.
-     * @throw std::logic_error if [mode] is not IDLE and the robot is not connected (not checked by
-     * a lite instance), is not operational, or is in an unknown control mode.
+     * @throw std::logic_error if [mode] is not IDLE and the robot is not connected, is not
+     * operational, or is in an unknown control mode.
      * @throw std::runtime_error if the robot rejected the request, with the robot's reason in the
      * exception message, or if failed to deliver the request to the connected robot. Only delivery
      * timeouts are retried, a rejection fails immediately.
